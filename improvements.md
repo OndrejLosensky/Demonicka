@@ -5,12 +5,12 @@ This document outlines step-by-step security improvements for both frontend and 
 ## Backend Improvements
 
 ### 1. Token Management
-- [ ] Implement refresh token mechanism
-  - [ ] Add refresh token generation in auth service
-  - [ ] Create refresh token endpoint
-  - [ ] Implement token rotation
-  - [ ] Add refresh token database table/entity
-  - [ ] Add token blacklisting for logout
+- [x] ~~Implement refresh token mechanism~~
+  - [x] ~~Add refresh token generation in auth service~~
+  - [x] ~~Create refresh token endpoint~~
+  - [x] ~~Implement token rotation~~
+  - [x] ~~Add refresh token database table/entity~~
+  - [x] ~~Add token blacklisting for logout~~
 
 ### 2. Rate Limiting
 - [ ] Implement rate limiting middleware
@@ -69,10 +69,10 @@ This document outlines step-by-step security improvements for both frontend and 
 ## Frontend Improvements
 
 ### 1. Token Management
-- [ ] Implement secure token handling
-  - [ ] Switch from localStorage to HTTP-only cookies
-  - [ ] Add automatic token refresh mechanism
-  - [ ] Implement token expiration handling
+- [x] ~~Implement secure token handling~~
+  - [x] ~~Switch from localStorage to HTTP-only cookies~~
+  - [x] ~~Add automatic token refresh mechanism~~
+  - [x] ~~Implement token expiration handling~~
   - [ ] Add secure token storage for development
 
 ### 2. CSRF Protection

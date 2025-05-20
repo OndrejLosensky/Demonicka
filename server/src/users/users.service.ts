@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -42,8 +43,10 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async findOne(username: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { username } });
+  async findOne(usernameOrEmail: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+    });
   }
 
   async findById(id: number): Promise<User | null> {
@@ -56,5 +59,27 @@ export class UsersService {
 
   async validatePassword(user: User, password: string): Promise<boolean> {
     return bcrypt.compare(password, user.password);
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    // Check email uniqueness if email is being updated
+    if (updateUserDto.email && updateUserDto.email !== user.email) {
+      const existingUser = await this.usersRepository.findOne({
+        where: { email: updateUserDto.email },
+      });
+      if (existingUser) {
+        throw new ConflictException('Email already exists');
+      }
+    }
+
+    // Update user properties
+    Object.assign(user, updateUserDto);
+
+    return this.usersRepository.save(user);
   }
 }

@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { AxiosError } from 'axios';
 
 export default function Login() {
-  const [username, setUsername] = useState('');
+  const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -23,11 +23,11 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(username, password);
+      await login(usernameOrEmail, password);
       navigate('/dashboard');
     } catch (err) {
       if (err instanceof AxiosError) {
-        setError(err.response?.data?.message || 'Invalid username or password');
+        setError(err.response?.data?.message || 'Invalid credentials');
       } else {
         setError('An unexpected error occurred');
       }
@@ -46,17 +46,17 @@ export default function Login() {
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
+              <label htmlFor="usernameOrEmail" className="block text-sm font-medium text-gray-700">Username or Email</label>
               <input
-                id="username"
-                name="username"
+                id="usernameOrEmail"
+                name="usernameOrEmail"
                 type="text"
-                autoComplete="username"
+                autoComplete="username email"
                 required
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
+                value={usernameOrEmail}
+                onChange={(e) => setUsernameOrEmail(e.target.value)}
+                placeholder="Enter your username or email"
               />
             </div>
             <div>

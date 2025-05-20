@@ -8,6 +8,8 @@ interface FormErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export default function Register() {
@@ -15,6 +17,8 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const { register, user } = useAuth();
@@ -46,6 +50,16 @@ export default function Register() {
     if (password !== confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
+    if (!firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    } else if (firstName.length < 2) {
+      newErrors.firstName = 'First name must be at least 2 characters';
+    }
+    if (!lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
+    } else if (lastName.length < 2) {
+      newErrors.lastName = 'Last name must be at least 2 characters';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -57,7 +71,7 @@ export default function Register() {
     }
     setIsLoading(true);
     try {
-      await register(username, email, password);
+      await register(username, email, password, firstName, lastName);
       navigate('/dashboard');
     } catch (err) {
       if (err instanceof AxiosError) {
@@ -124,6 +138,40 @@ export default function Register() {
                 placeholder="Enter your username"
               />
               {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
+            </div>
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                required
+                className={`mt-1 block w-full px-3 py-2 border ${errors.firstName ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-md shadow-sm focus:outline-none text-gray-900`}
+                value={firstName}
+                onChange={(e) => {
+                  setFirstName(e.target.value);
+                  setErrors({ ...errors, firstName: undefined });
+                }}
+                placeholder="Enter your first name"
+              />
+              {errors.firstName && <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>}
+            </div>
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                required
+                className={`mt-1 block w-full px-3 py-2 border ${errors.lastName ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-md shadow-sm focus:outline-none text-gray-900`}
+                value={lastName}
+                onChange={(e) => {
+                  setLastName(e.target.value);
+                  setErrors({ ...errors, lastName: undefined });
+                }}
+                placeholder="Enter your last name"
+              />
+              {errors.lastName && <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>}
             </div>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>

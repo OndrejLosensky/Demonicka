@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
+import { RefreshToken } from './auth/entities/refresh-token.entity';
 import { config } from './config';
 
 @Module({
@@ -10,7 +11,7 @@ import { config } from './config';
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: config.databasePath,
-      entities: [User],
+      entities: [User, RefreshToken],
       synchronize: true, // Only for development! Disable in production
     }),
     AuthModule,
