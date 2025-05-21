@@ -6,6 +6,7 @@ import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Participants from './pages/Dashboard/Participants';
 import Layout from './components/Layout';
 import Landing from './pages/Landing';
 
@@ -31,6 +32,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <Dashboard />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/dashboard/ucastnici"
+                element={
+                  <PrivateRoute>
+                    <Participants />
                   </PrivateRoute>
                 }
               />

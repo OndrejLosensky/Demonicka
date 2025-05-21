@@ -38,13 +38,11 @@ export class User {
   @IsNotEmpty({ message: 'Email is required' })
   email: string;
 
-  @Column()
-  @IsNotEmpty({ message: 'First name is required' })
+  @Column({ nullable: true })
   @MinLength(2, { message: 'First name must be at least 2 characters long' })
   firstName: string;
 
-  @Column()
-  @IsNotEmpty({ message: 'Last name is required' })
+  @Column({ nullable: true })
   @MinLength(2, { message: 'Last name must be at least 2 characters long' })
   lastName: string;
 

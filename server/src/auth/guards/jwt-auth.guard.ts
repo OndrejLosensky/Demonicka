@@ -6,6 +6,8 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { JsonWebTokenError } from 'jsonwebtoken';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -26,10 +28,21 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err: any, user: any) {
-    if (err || !user) {
-      throw err || new UnauthorizedException('Invalid token');
+  handleRequest<TUser extends User = User>(
+    err: Error | null,
+    user: TUser | false,
+    info: unknown,
+  ): TUser {
+    if (info instanceof JsonWebTokenError) {
+      throw new UnauthorizedException('Invalid JWT token');
     }
+
+    if (err || !user) {
+      throw new UnauthorizedException(
+        err?.message || 'You are not authorized to access this resource',
+      );
+    }
+
     return user;
   }
 }
