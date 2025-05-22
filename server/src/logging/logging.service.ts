@@ -1,12 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import * as winston from 'winston';
 import { format } from 'winston';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+export interface LogEntry {
+  timestamp: string;
+  level: string;
+  message: string;
+  service: string;
+  event?: string;
+  [key: string]: any;
+}
 
 @Injectable()
 export class LoggingService {
   private logger: winston.Logger;
+  private readonly logDir = 'logs';
+  private readonly combinedLogPath = path.join(this.logDir, 'combined.log');
 
   constructor() {
+    // Ensure logs directory exists
+    fs.mkdir(this.logDir, { recursive: true }).catch(() => {});
+
     this.logger = winston.createLogger({
       level: 'info',
       format: format.combine(
@@ -16,39 +32,68 @@ export class LoggingService {
       ),
       defaultMeta: { service: 'beer-app' },
       transports: [
-        // Write all logs with importance level of 'info' or less to combined.log
-        new winston.transports.File({ 
-          filename: 'logs/combined.log',
+        new winston.transports.File({
+          filename: this.combinedLogPath,
           format: format.combine(
             format.timestamp(),
-            format.json()
-          )
+            format.json(),
+          ),
         }),
-        // Write all logs with importance level of 'error' or less to error.log
-        new winston.transports.File({ 
-          filename: 'logs/error.log', 
+        new winston.transports.File({
+          filename: path.join(this.logDir, 'error.log'),
           level: 'error',
           format: format.combine(
             format.timestamp(),
-            format.json()
-          )
+            format.json(),
+          ),
         }),
       ],
     });
 
     // If we're not in production, log to the console with colors
     if (process.env.NODE_ENV !== 'production') {
-      this.logger.add(new winston.transports.Console({
-        format: format.combine(
-          format.colorize(),
-          format.simple(),
-          format.printf(({ timestamp, level, message, ...meta }) => {
-            return `${timestamp} [${level}]: ${message} ${
-              Object.keys(meta).length ? JSON.stringify(meta, null, 2) : ''
-            }`;
-          })
-        ),
-      }));
+      this.logger.add(
+        new winston.transports.Console({
+          format: format.combine(
+            format.colorize(),
+            format.simple(),
+            format.printf(({ timestamp, level, message, ...meta }) => {
+              return `${timestamp} [${level}]: ${message} ${
+                Object.keys(meta).length ? JSON.stringify(meta, null, 2) : ''
+              }`;
+            }),
+          ),
+        }),
+      );
+    }
+  }
+
+  async getLogs(
+    level?: string,
+    limit = 100,
+    offset = 0,
+  ): Promise<{ logs: LogEntry[]; total: number }> {
+    try {
+      const fileContent = await fs.readFile(this.combinedLogPath, 'utf-8');
+      let logs = fileContent
+        .split('\n')
+        .filter(Boolean)
+        .map(line => JSON.parse(line) as LogEntry)
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      if (level) {
+        logs = logs.filter(log => log.level === level);
+      }
+
+      const total = logs.length;
+      logs = logs.slice(offset, offset + limit);
+
+      return { logs, total };
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('ENOENT')) {
+        return { logs: [], total: 0 };
+      }
+      throw error;
     }
   }
 

@@ -75,14 +75,24 @@ export default function Header() {
                       Participants
                     </Link>
                     <Link
-                      to="/dashboard/sudy"
+                      to="/dashboard/barrels"
                       className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        isActive('/dashboard/sudy')
+                        isActive('/dashboard/barrels')
                           ? 'bg-primary text-white'
                           : 'text-text-primary hover:text-text-secondary'
                       }`}
                     >
                       Barrels
+                    </Link>
+                    <Link
+                      to="/dashboard/history"
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        isActive('/dashboard/history')
+                          ? 'bg-primary text-white'
+                          : 'text-text-primary hover:text-text-secondary'
+                      }`}
+                    >
+                      History
                     </Link>
                   </div>
                 )}

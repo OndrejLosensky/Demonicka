@@ -13,6 +13,7 @@ import Barrels from './pages/Dashboard/Barrels';
 import Leaderboard from './pages/Leaderboard';
 import Landing from './pages/Landing';
 import Header from './components/Header';
+import { History } from './pages/Dashboard/history';
 
 const queryClient = new QueryClient();
 
@@ -60,10 +61,18 @@ function App() {
                   }
                 />
                 <Route
-                  path="dashboard/sudy"
+                  path="dashboard/barrels"
                   element={
                     <PrivateRoute>
                       <Barrels />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="dashboard/history"
+                  element={
+                    <PrivateRoute>
+                      <History />
                     </PrivateRoute>
                   }
                 />
