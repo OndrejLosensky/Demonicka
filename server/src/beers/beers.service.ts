@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Beer } from './entities/beer.entity';
 import { ParticipantsService } from '../participants/participants.service';
+import { BarrelsService } from '../barrels/barrels.service';
 
 @Injectable()
 export class BeersService {
@@ -10,6 +11,7 @@ export class BeersService {
     @InjectRepository(Beer)
     private beersRepository: Repository<Beer>,
     private participantsService: ParticipantsService,
+    private barrelsService: BarrelsService,
   ) {}
 
   async addBeer(participantId: string): Promise<Beer> {
@@ -20,9 +22,22 @@ export class BeersService {
       );
     }
 
+    // Find the oldest active barrel with remaining beers
+    const activeBarrels = await this.barrelsService.findAll();
+    const availableBarrel = activeBarrels
+      .filter((barrel) => barrel.isActive && barrel.remainingBeers > 0)
+      .sort((a, b) => a.orderNumber - b.orderNumber)[0];
+
+    if (!availableBarrel) {
+      throw new Error('No active barrels with remaining beers available');
+    }
+
+    // Create the beer record
     const beer = this.beersRepository.create({
       participantId,
       participant,
+      barrelId: availableBarrel.id,
+      barrel: availableBarrel,
     });
 
     // Update participant's lastBeerTime and beerCount
@@ -31,6 +46,9 @@ export class BeersService {
       beerCount: participant.beerCount + 1,
     });
 
+    // Decrement the barrel's remaining beers
+    await this.barrelsService.decrementBeers(availableBarrel.id);
+
     return this.beersRepository.save(beer);
   }
 
@@ -38,6 +56,7 @@ export class BeersService {
     const lastBeer = await this.beersRepository.findOne({
       where: { participantId },
       order: { createdAt: 'DESC' },
+      relations: ['barrel'],
     });
 
     if (!lastBeer) {
@@ -53,6 +72,13 @@ export class BeersService {
       });
     }
 
+    // Increment the barrel's remaining beers
+    if (lastBeer.barrelId) {
+      await this.barrelsService.update(lastBeer.barrelId, {
+        remainingBeers: lastBeer.barrel.remainingBeers + 1,
+      });
+    }
+
     await this.beersRepository.remove(lastBeer);
   }
 
@@ -60,7 +86,7 @@ export class BeersService {
     return this.beersRepository.find({
       where: { participantId },
       order: { createdAt: 'DESC' },
-      relations: ['participant'],
+      relations: ['participant', 'barrel'],
     });
   }
 

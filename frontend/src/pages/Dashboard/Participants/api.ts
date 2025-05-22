@@ -27,11 +27,15 @@ export const participantsApi = {
     await api.delete(`/participants/${id}`);
   },
 
-  addBeer: async (participantId: string): Promise<void> => {
-    await api.post(`/participants/${participantId}/beers`);
+  addBeer: async (id: string): Promise<void> => {
+    await api.post(`/participants/${id}/beers`);
   },
 
-  removeBeer: async (participantId: string): Promise<void> => {
-    await api.delete(`/participants/${participantId}/beers`);
+  removeBeer: async (id: string): Promise<void> => {
+    await api.delete(`/participants/${id}/beers`);
+  },
+
+  cleanup: async (): Promise<void> => {
+    await api.post('/participants/cleanup');
   },
 }; 

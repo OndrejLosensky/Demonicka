@@ -8,13 +8,29 @@ import { Repository } from 'typeorm';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { Participant } from './entities/participant.entity';
+import { Beer } from '../beers/entities/beer.entity';
 
 @Injectable()
 export class ParticipantsService {
   constructor(
     @InjectRepository(Participant)
     private participantsRepository: Repository<Participant>,
+    @InjectRepository(Beer)
+    private beersRepository: Repository<Beer>,
   ) {}
+
+  async cleanup(): Promise<void> {
+    // First, delete all beers using a query builder
+    await this.beersRepository.createQueryBuilder().delete().execute();
+    
+    // Then get all participants
+    const participants = await this.participantsRepository.find();
+    
+    // Remove them one by one
+    for (const participant of participants) {
+      await this.participantsRepository.remove(participant);
+    }
+  }
 
   async create(createParticipantDto: CreateParticipantDto): Promise<Participant> {
     const existingParticipant = await this.participantsRepository.findOne({
@@ -29,9 +45,9 @@ export class ParticipantsService {
     return this.participantsRepository.save(participant);
   }
 
-  findAll(): Promise<Participant[]> {
+  async findAll(): Promise<Participant[]> {
     return this.participantsRepository.find({
-      order: { name: 'ASC' },
+      order: { beerCount: 'DESC', name: 'ASC' },
     });
   }
 

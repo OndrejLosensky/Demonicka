@@ -22,6 +22,11 @@ import { VersionGuard } from '../versioning/guards/version.guard';
 export class BarrelsController {
   constructor(private readonly barrelsService: BarrelsService) {}
 
+  @Post('cleanup')
+  cleanup() {
+    return this.barrelsService.cleanup();
+  }
+
   @Post()
   create(@Body() createBarrelDto: CreateBarrelDto): Promise<Barrel> {
     return this.barrelsService.create(createBarrelDto);
@@ -48,5 +53,10 @@ export class BarrelsController {
   @Delete(':id')
   remove(@Param('id') id: string): Promise<void> {
     return this.barrelsService.remove(id);
+  }
+
+  @Get('active/current')
+  getActiveBarrel() {
+    return this.barrelsService.getActiveBarrel();
   }
 }

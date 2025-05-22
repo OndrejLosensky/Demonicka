@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsBoolean } from 'class-validator';
+import { IsEnum, IsOptional, IsBoolean, IsNumber, Min } from 'class-validator';
 
 export class UpdateBarrelDto {
   @IsOptional()
@@ -10,4 +10,9 @@ export class UpdateBarrelDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  remainingBeers?: number;
 }

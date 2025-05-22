@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  BeforeInsert,
 } from 'typeorm';
 
 @Entity('barrels')
@@ -20,9 +21,20 @@ export class Barrel {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ type: 'integer' })
+  orderNumber: number;
+
+  @Column({ type: 'integer' })
+  remainingBeers: number;
+
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @BeforeInsert()
+  setInitialBeers() {
+    this.remainingBeers = this.size * 2;
+  }
 }

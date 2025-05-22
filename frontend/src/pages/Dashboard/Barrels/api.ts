@@ -30,4 +30,8 @@ export const barrelsApi = {
     const response = await api.patch(`/barrels/${id}`, data);
     return response.data;
   },
+
+  cleanup: async (): Promise<void> => {
+    await api.post('/barrels/cleanup');
+  },
 }; 

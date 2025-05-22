@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { barrelsApi } from './api';
-import type { Barrel } from './types';
+import type { Barrel, UseBarrelsReturn } from './types';
 
-export const useBarrels = () => {
+export const useBarrels = (): UseBarrelsReturn => {
   const [barrels, setBarrels] = useState<Barrel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,6 +42,17 @@ export const useBarrels = () => {
     }
   }, [fetchBarrels]);
 
+  const handleCleanup = useCallback(async () => {
+    try {
+      await barrelsApi.cleanup();
+      toast.success('All barrels cleaned up');
+      await fetchBarrels();
+    } catch (error: unknown) {
+      console.error('Failed to cleanup barrels:', error);
+      toast.error('Failed to cleanup barrels');
+    }
+  }, [fetchBarrels]);
+
   useEffect(() => {
     fetchBarrels();
   }, [fetchBarrels]);
@@ -51,6 +62,7 @@ export const useBarrels = () => {
     isLoading,
     handleDelete,
     handleToggleActive,
+    handleCleanup,
     fetchBarrels,
   };
 }; 

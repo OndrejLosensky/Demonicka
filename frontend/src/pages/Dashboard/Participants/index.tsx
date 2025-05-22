@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Box, Typography, CircularProgress, Grid, Button } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { ParticipantsTable } from './ParticipantsTable';
 import { useParticipants } from './useParticipants';
 import { AddParticipantDialog } from './AddParticipantDialog';
@@ -12,6 +12,7 @@ const ParticipantsPage: React.FC = () => {
     handleDelete,
     handleAddBeer,
     handleRemoveBeer,
+    handleCleanup,
     fetchParticipants,
   } = useParticipants();
 
@@ -23,6 +24,12 @@ const ParticipantsPage: React.FC = () => {
       femaleParticipants: participants.filter(p => p.gender === 'FEMALE')
     };
   }, [participants]);
+
+  const confirmCleanup = async () => {
+    if (window.confirm('Are you sure you want to delete all participants? This cannot be undone.')) {
+      await handleCleanup();
+    }
+  };
 
   if (isLoading) {
     return (
@@ -38,14 +45,24 @@ const ParticipantsPage: React.FC = () => {
         <Typography variant="h5">
           Participants
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => setDialogOpen(true)}
-        >
-          Add Participant
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={confirmCleanup}
+          >
+            Cleanup All
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => setDialogOpen(true)}
+          >
+            Add Participant
+          </Button>
+        </Box>
       </Box>
       
       <Grid container spacing={3}>

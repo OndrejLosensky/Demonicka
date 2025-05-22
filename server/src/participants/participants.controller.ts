@@ -35,6 +35,11 @@ export class ParticipantsController {
    * @returns {Promise<Participant>} The newly created participant
    * @throws {ConflictException} When participant with the same name already exists
    */
+  @Post('cleanup')
+  cleanup() {
+    return this.participantsService.cleanup();
+  }
+
   @Post()
   create(@Body() createParticipantDto: CreateParticipantDto) {
     return this.participantsService.create(createParticipantDto);

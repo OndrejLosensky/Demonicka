@@ -53,6 +53,17 @@ export const useParticipants = () => {
     }
   }, [fetchParticipants]);
 
+  const handleCleanup = useCallback(async () => {
+    try {
+      await participantsApi.cleanup();
+      toast.success('All participants cleaned up');
+      await fetchParticipants();
+    } catch (error: unknown) {
+      console.error('Failed to cleanup participants:', error);
+      toast.error('Failed to cleanup participants');
+    }
+  }, [fetchParticipants]);
+
   useEffect(() => {
     fetchParticipants();
   }, [fetchParticipants]);
@@ -63,6 +74,7 @@ export const useParticipants = () => {
     handleDelete,
     handleAddBeer,
     handleRemoveBeer,
+    handleCleanup,
     fetchParticipants,
   };
 }; 

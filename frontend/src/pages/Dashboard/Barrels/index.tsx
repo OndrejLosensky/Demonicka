@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, CircularProgress, Button } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { BarrelsTable } from './BarrelsTable';
 import { useBarrels } from './useBarrels';
 import { AddBarrelDialog } from './AddBarrelDialog';
@@ -11,10 +11,26 @@ const BarrelsPage: React.FC = () => {
     isLoading,
     handleDelete,
     handleToggleActive,
+    handleCleanup,
     fetchBarrels,
   } = useBarrels();
 
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  const confirmCleanup = async () => {
+    console.log('Cleanup button clicked');
+    if (window.confirm('Are you sure you want to delete all barrels? This cannot be undone.')) {
+      console.log('Cleanup confirmed, calling handleCleanup');
+      try {
+        await handleCleanup();
+        console.log('Cleanup completed successfully');
+      } catch (error) {
+        console.error('Error during cleanup:', error);
+      }
+    } else {
+      console.log('Cleanup cancelled by user');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -30,14 +46,24 @@ const BarrelsPage: React.FC = () => {
         <Typography variant="h5">
           Barrels
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => setDialogOpen(true)}
-        >
-          Add Barrel
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={confirmCleanup}
+          >
+            Cleanup All
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => setDialogOpen(true)}
+          >
+            Add Barrel
+          </Button>
+        </Box>
       </Box>
 
       <BarrelsTable

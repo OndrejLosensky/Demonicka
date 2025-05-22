@@ -25,7 +25,7 @@ export class Participant {
   @Column({ nullable: true, type: 'datetime' })
   lastBeerTime: Date | null;
 
-  @OneToMany(() => Beer, (beer) => beer.participant)
+  @OneToMany(() => Beer, (beer) => beer.participant, { cascade: true, onDelete: 'CASCADE' })
   beers: Beer[];
 
   @CreateDateColumn()
