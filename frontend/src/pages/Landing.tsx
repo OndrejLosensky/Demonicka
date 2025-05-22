@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { landingApi } from './Landing/api';
-import type { PublicStats, PublicParticipant, BarrelStats } from '../types/public-stats';
+import { useEffect, useState } from 'react';
+import { landingApi } from '../api/landing';
+import type { PublicStats } from '../types/public';
 
-const Landing = () => {
+export default function Landing() {
   const [stats, setStats] = useState<PublicStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -22,146 +23,173 @@ const Landing = () => {
     fetchStats();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white">
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center"
-        >
-          <h1 className="text-6xl font-bold mb-6">🍺 Beer Stats Dashboard</h1>
-          <p className="text-xl text-blue-200 mb-12">Track, analyze, and celebrate every beer moment!</p>
-        </motion.div>
+    <div className="relative min-h-screen bg-background-primary dark:bg-background-primary transition-colors duration-200">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background-primary to-background-secondary dark:from-background-primary dark:to-background-secondary opacity-50" />
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-center"
-          >
-            <h3 className="text-4xl font-bold text-yellow-400 mb-2">{stats?.totalBeers || 0}</h3>
-            <p className="text-blue-200">Total Beers Consumed</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-center"
-          >
-            <h3 className="text-4xl font-bold text-yellow-400 mb-2">{stats?.totalParticipants || 0}</h3>
-            <p className="text-blue-200">Active Participants</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-center"
-          >
-            <h3 className="text-4xl font-bold text-yellow-400 mb-2">{stats?.totalBarrels || 0}</h3>
-            <p className="text-blue-200">Active Barrels</p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Barrel Visualization */}
-      <section className="container mx-auto px-4 py-16">
-        <motion.h2
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="text-3xl font-bold mb-8 text-center"
-        >
-          Active Barrels
-        </motion.h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {stats?.barrelStats.map((barrel: BarrelStats, index: number) => (
-            <motion.div
-              key={barrel.size}
-              initial={{ scale: 0.9, opacity: 0 }}
+      {/* Content */}
+      <div className="relative pt-24 pb-16 sm:pt-32 sm:pb-24">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <motion.img
+              initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: index * 0.2 }}
-              className="bg-white/5 backdrop-blur-lg rounded-xl p-6"
+              transition={{ duration: 0.5 }}
+              src="/logo.svg"
+              alt="Démonická"
+              className="mx-auto h-24 w-auto mb-8"
+            />
+            
+            <motion.h1
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="text-4xl font-bold tracking-tight text-text-primary sm:text-6xl"
             >
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-lg">🛢️ {barrel.size}L Barrel</span>
-                <span className="text-2xl font-bold text-yellow-400">{barrel.count}</span>
-              </div>
-              <div className="w-full bg-blue-900/50 rounded-full h-2">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(barrel.count / (stats?.totalBarrels || 1)) * 100}%` }}
-                  transition={{ duration: 1, delay: 0.5 }}
-                  className="bg-blue-400 h-2 rounded-full"
-                />
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+              Démonická
+            </motion.h1>
+            
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="mt-6 text-lg leading-8 text-text-secondary"
+            >
+              Join the ultimate beer drinking competition and prove your worth among the demons.
+            </motion.p>
 
-      {/* Top Participants */}
-      <section className="container mx-auto px-4 py-16">
-        <motion.h2
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="text-3xl font-bold mb-8 text-center"
-        >
-          Top Beer Enthusiasts
-        </motion.h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stats?.topParticipants.map((participant: PublicParticipant, index: number) => (
+            {/* Stats Grid */}
             <motion.div
-              key={participant.name}
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white/5 backdrop-blur-lg rounded-xl p-6 transform hover:scale-105 transition-transform"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3"
             >
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-xl font-bold">
-                  {participant.name.charAt(0)}
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">{participant.name}</h3>
-                  <p className="text-blue-300">{participant.beerCount} beers</p>
+              <div className="bg-background-card dark:bg-background-tertiary rounded-lg p-8 shadow-lg ring-1 ring-primary/5">
+                <dt className="text-text-secondary text-sm font-medium">Total Beers</dt>
+                <dd className="mt-2 text-4xl font-bold tracking-tight text-primary">
+                  {loading ? '...' : stats?.totalBeers || 0}
+                </dd>
+              </div>
+              <div className="bg-background-card dark:bg-background-tertiary rounded-lg p-8 shadow-lg ring-1 ring-primary/5">
+                <dt className="text-text-secondary text-sm font-medium">Active Participants</dt>
+                <dd className="mt-2 text-4xl font-bold tracking-tight text-primary">
+                  {loading ? '...' : stats?.totalParticipants || 0}
+                </dd>
+              </div>
+              <div className="bg-background-card dark:bg-background-tertiary rounded-lg p-8 shadow-lg ring-1 ring-primary/5">
+                <dt className="text-text-secondary text-sm font-medium">Active Barrels</dt>
+                <dd className="mt-2 text-4xl font-bold tracking-tight text-primary">
+                  {loading ? '...' : stats?.totalBarrels || 0}
+                </dd>
+              </div>
+            </motion.div>
+            
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              className="mt-10 flex items-center justify-center gap-x-6"
+            >
+              <Link
+                to="/register"
+                className="rounded-md bg-primary px-6 py-3 text-lg font-semibold text-white shadow-sm hover:bg-primary-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                Get started
+              </Link>
+              <Link
+                to="/leaderboard"
+                className="text-lg font-semibold leading-6 text-text-primary hover:text-text-secondary"
+              >
+                View Leaderboard <span aria-hidden="true">→</span>
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Features section */}
+        <div className="mx-auto mt-32 max-w-7xl px-6 sm:mt-40 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <motion.h2
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8, duration: 0.5 }}
+              className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl"
+            >
+              Track your progress, compete with friends
+            </motion.h2>
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 1, duration: 0.5 }}
+              className="mt-6 text-lg leading-8 text-text-secondary"
+            >
+              Keep track of your beer consumption, compete with other participants, and climb the ranks to become the ultimate demon.
+            </motion.p>
+          </div>
+
+          {/* Top Participants */}
+          {stats?.topParticipants && stats.topParticipants.length > 0 && (
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 1.2, duration: 0.5 }}
+              className="mx-auto mt-16 max-w-2xl rounded-3xl bg-background-card dark:bg-background-tertiary ring-1 ring-primary/10 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none"
+            >
+              <div className="p-8 sm:p-10 lg:flex-auto">
+                <h3 className="text-2xl font-bold tracking-tight text-text-primary">Top Beer Demons</h3>
+                <div className="mt-6 text-base leading-7 text-text-secondary">
+                  <ul role="list" className="mt-8 space-y-4">
+                    {stats.topParticipants.map((participant, index) => (
+                      <li key={participant.name} className="flex items-center gap-x-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div className="text-text-primary font-semibold">{participant.name}</div>
+                          <div className="text-text-secondary">{participant.beerCount} beers</div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </motion.div>
-          ))}
-        </div>
-      </section>
+          )}
 
-      {/* Call to Action */}
-      <section className="container mx-auto px-4 py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="text-center"
-        >
-          <h2 className="text-3xl font-bold mb-4">Ready to Join?</h2>
-          <p className="text-xl text-blue-200 mb-8">Become part of our beer-loving community!</p>
-          <button className="bg-yellow-400 text-blue-900 px-8 py-3 rounded-full text-lg font-bold hover:bg-yellow-300 transition-colors">
-            Get Started
-          </button>
-        </motion.div>
-      </section>
+          {/* Features list */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 1.4, duration: 0.5 }}
+            className="mx-auto mt-16 max-w-2xl rounded-3xl bg-background-card dark:bg-background-tertiary ring-1 ring-primary/10 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none"
+          >
+            <div className="p-8 sm:p-10 lg:flex-auto">
+              <h3 className="text-2xl font-bold tracking-tight text-text-primary">Competition Features</h3>
+              <div className="mt-6 text-base leading-7 text-text-secondary">
+                <ul role="list" className="mt-8 grid grid-cols-1 gap-4 text-sm leading-6 sm:grid-cols-2">
+                  {[
+                    'Real-time leaderboard updates',
+                    'Personal statistics tracking',
+                    'Achievement system',
+                    'Social features',
+                    'Weekly and monthly rankings',
+                    'Custom challenges'
+                  ].map((feature) => (
+                    <li key={feature} className="flex gap-x-3 text-text-secondary">
+                      <svg className="h-6 w-5 flex-none text-primary" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                      </svg>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Landing; 
+} 

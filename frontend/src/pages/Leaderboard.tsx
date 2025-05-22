@@ -25,9 +25,9 @@ const LeaderboardTable = ({ participants, title }: { participants: ParticipantLe
       <table className="min-w-full">
         <thead>
           <tr>
-            <th className="text-left p-2">Rank</th>
-            <th className="text-left p-2">Name</th>
-            <th className="text-right p-2">Beers</th>
+            <th className="text-left p-3 bg-primary/5 dark:bg-primary/10 border-b-2 border-primary/20 font-bold text-primary dark:text-primary">Rank</th>
+            <th className="text-left p-3 bg-primary/5 dark:bg-primary/10 border-b-2 border-primary/20 font-bold text-primary dark:text-primary">Name</th>
+            <th className="text-right p-3 bg-primary/5 dark:bg-primary/10 border-b-2 border-primary/20 font-bold text-primary dark:text-primary">Beers</th>
           </tr>
         </thead>
         <tbody>
@@ -48,7 +48,9 @@ export default function Leaderboard() {
   const { data: stats, isLoading } = useQuery<LeaderboardData>({
     queryKey: ['leaderboard'],
     queryFn: async () => {
-      const { data } = await axios.get(`${API_URL}/dashboard/leaderboard`);
+      const { data } = await axios.get(`${API_URL}/dashboard/leaderboard`, {
+        withCredentials: true
+      });
       return data;
     },
     refetchInterval: 30000,

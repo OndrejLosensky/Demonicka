@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AxiosError } from 'axios';
+import { AuthLayout } from '../../components/auth/AuthLayout';
+import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 
 interface FormErrors {
   username?: string;
@@ -75,19 +78,15 @@ export default function Register() {
       navigate('/dashboard');
     } catch (err) {
       if (err instanceof AxiosError) {
-        // Handle NestJS/class-validator validation errors
         const data = err.response?.data;
         if (Array.isArray(data?.message)) {
-          // message is an array of validation error objects or strings
           const backendErrors: FormErrors = {};
           type ValidationError = { property: string; constraints: Record<string, string> };
           if (typeof data.message[0] === 'string') {
-            // If it's an array of strings, show all under password
             backendErrors.password = data.message.join(' ');
           } else {
             (data.message as ValidationError[]).forEach((msg) => {
               if (msg && msg.property && msg.constraints) {
-                // class-validator error format
                 const field = msg.property as keyof FormErrors;
                 backendErrors[field] = Object.values(msg.constraints).join(' ');
               }
@@ -95,7 +94,6 @@ export default function Register() {
           }
           setErrors(backendErrors);
         } else {
-          // fallback for single string message
           const errorMessage = data?.message || 'Registration failed';
           if (errorMessage.includes('email')) {
             setErrors({ email: errorMessage });
@@ -114,137 +112,121 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 space-y-8">
-        <div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">Join us and start your journey</p>
-        </div>
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                className={`mt-1 block w-full px-3 py-2 border ${errors.username ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-md shadow-sm focus:outline-none text-gray-900`}
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  setErrors({ ...errors, username: undefined });
-                }}
-                placeholder="Enter your username"
-              />
-              {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
-            </div>
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
-              <input
-                id="firstName"
-                name="firstName"
-                type="text"
-                required
-                className={`mt-1 block w-full px-3 py-2 border ${errors.firstName ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-md shadow-sm focus:outline-none text-gray-900`}
-                value={firstName}
-                onChange={(e) => {
-                  setFirstName(e.target.value);
-                  setErrors({ ...errors, firstName: undefined });
-                }}
-                placeholder="Enter your first name"
-              />
-              {errors.firstName && <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>}
-            </div>
-            <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
-              <input
-                id="lastName"
-                name="lastName"
-                type="text"
-                required
-                className={`mt-1 block w-full px-3 py-2 border ${errors.lastName ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-md shadow-sm focus:outline-none text-gray-900`}
-                value={lastName}
-                onChange={(e) => {
-                  setLastName(e.target.value);
-                  setErrors({ ...errors, lastName: undefined });
-                }}
-                placeholder="Enter your last name"
-              />
-              {errors.lastName && <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>}
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className={`mt-1 block w-full px-3 py-2 border ${errors.email ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-md shadow-sm focus:outline-none text-gray-900`}
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setErrors({ ...errors, email: undefined });
-                }}
-                placeholder="Enter your email"
-              />
-              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className={`mt-1 block w-full px-3 py-2 border ${errors.password ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-md shadow-sm focus:outline-none text-gray-900`}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setErrors({ ...errors, password: undefined });
-                }}
-                placeholder="Enter your password"
-              />
-              {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
-            </div>
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirm Password</label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                className={`mt-1 block w-full px-3 py-2 border ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} rounded-md shadow-sm focus:outline-none text-gray-900`}
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  setErrors({ ...errors, confirmPassword: undefined });
-                }}
-                placeholder="Confirm your password"
-              />
-              {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
-            </div>
+    <AuthLayout
+      title="Create your account"
+      subtitle="Join us and start your journey"
+    >
+      <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              id="firstName"
+              name="firstName"
+              type="text"
+              label="First Name"
+              required
+              value={firstName}
+              onChange={(e) => {
+                setFirstName(e.target.value);
+                setErrors({ ...errors, firstName: undefined });
+              }}
+              placeholder="Enter your first name"
+              error={errors.firstName}
+            />
+            <Input
+              id="lastName"
+              name="lastName"
+              type="text"
+              label="Last Name"
+              required
+              value={lastName}
+              onChange={(e) => {
+                setLastName(e.target.value);
+                setErrors({ ...errors, lastName: undefined });
+              }}
+              placeholder="Enter your last name"
+              error={errors.lastName}
+            />
           </div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium transition-colors duration-200"
-          >
-            {isLoading ? (
-              <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            ) : null}
-            {isLoading ? 'Creating account...' : 'Create account'}
-          </button>
-        </form>
-        <div className="text-sm text-center mt-4">
-          <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
-            Already have an account? Sign in
-          </Link>
+          
+          <Input
+            id="username"
+            name="username"
+            type="text"
+            label="Username"
+            required
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              setErrors({ ...errors, username: undefined });
+            }}
+            placeholder="Choose a username"
+            error={errors.username}
+          />
+
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            label="Email"
+            required
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setErrors({ ...errors, email: undefined });
+            }}
+            placeholder="Enter your email"
+            error={errors.email}
+          />
+
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            label="Password"
+            required
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setErrors({ ...errors, password: undefined });
+            }}
+            placeholder="Create a password"
+            error={errors.password}
+          />
+
+          <Input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            label="Confirm Password"
+            required
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              setErrors({ ...errors, confirmPassword: undefined });
+            }}
+            placeholder="Confirm your password"
+            error={errors.confirmPassword}
+          />
         </div>
+
+        <Button
+          type="submit"
+          isLoading={isLoading}
+          fullWidth
+        >
+          {isLoading ? 'Creating account...' : 'Create account'}
+        </Button>
+      </form>
+
+      <div className="text-sm text-center mt-6">
+        <Link 
+          to="/login" 
+          className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200"
+        >
+          Already have an account? Sign in
+        </Link>
       </div>
-    </div>
+    </AuthLayout>
   );
 } 

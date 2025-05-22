@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Box } from '@mui/material';
 import { motion } from 'framer-motion';
 
-const Header: React.FC = () => {
+export default function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,15 +27,15 @@ const Header: React.FC = () => {
   const isLandingPage = location.pathname === '/';
 
   return (
-    <Box>
-      <div className={`min-h-screen ${isLandingPage ? '' : 'bg-gray-50'}`}>
+    <div>
+      <div className={`min-h-screen ${isLandingPage ? '' : 'bg-background-secondary'}`}>
         <motion.nav
           initial={{ y: -100 }}
           animate={{ y: 0 }}
           className={`fixed w-full z-50 transition-all duration-300 ${
             isScrolled || !isLandingPage
-              ? 'bg-white shadow-md'
-              : 'bg-transparent'
+              ? 'bg-background-primary/95 backdrop-blur-sm shadow-sm'
+              : 'bg-background-secondary/80 backdrop-blur-sm'
           }`}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,11 +47,7 @@ const Header: React.FC = () => {
                 >
                   <Link
                     to="/"
-                    className={`text-xl font-bold ${
-                      isScrolled || !isLandingPage
-                        ? 'text-blue-600'
-                        : 'text-white'
-                    }`}
+                    className="text-2xl font-bold text-primary"
                   >
                     Démonická
                   </Link>
@@ -63,10 +58,8 @@ const Header: React.FC = () => {
                       to="/dashboard"
                       className={`px-3 py-2 rounded-md text-sm font-medium ${
                         isActive('/dashboard')
-                          ? 'bg-blue-600 text-white'
-                          : isScrolled || !isLandingPage
-                          ? 'text-gray-700 hover:text-gray-900'
-                          : 'text-white hover:bg-white/10'
+                          ? 'bg-primary text-white'
+                          : 'text-text-primary hover:text-text-secondary'
                       }`}
                     >
                       Dashboard
@@ -75,10 +68,8 @@ const Header: React.FC = () => {
                       to="/dashboard/ucastnici"
                       className={`px-3 py-2 rounded-md text-sm font-medium ${
                         isActive('/dashboard/ucastnici')
-                          ? 'bg-blue-600 text-white'
-                          : isScrolled || !isLandingPage
-                          ? 'text-gray-700 hover:text-gray-900'
-                          : 'text-white hover:bg-white/10'
+                          ? 'bg-primary text-white'
+                          : 'text-text-primary hover:text-text-secondary'
                       }`}
                     >
                       Participants
@@ -87,10 +78,8 @@ const Header: React.FC = () => {
                       to="/dashboard/sudy"
                       className={`px-3 py-2 rounded-md text-sm font-medium ${
                         isActive('/dashboard/sudy')
-                          ? 'bg-blue-600 text-white'
-                          : isScrolled || !isLandingPage
-                          ? 'text-gray-700 hover:text-gray-900'
-                          : 'text-white hover:bg-white/10'
+                          ? 'bg-primary text-white'
+                          : 'text-text-primary hover:text-text-secondary'
                       }`}
                     >
                       Barrels
@@ -103,10 +92,8 @@ const Header: React.FC = () => {
                   to="/leaderboard"
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
                     isActive('/leaderboard')
-                      ? 'bg-blue-600 text-white'
-                      : isScrolled || !isLandingPage
-                      ? 'text-gray-700 hover:text-gray-900'
-                      : 'text-white hover:bg-white/10'
+                      ? 'bg-primary text-white'
+                      : 'text-text-primary hover:text-text-secondary'
                   }`}
                 >
                   Leaderboard
@@ -115,11 +102,7 @@ const Header: React.FC = () => {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     onClick={handleLogout}
-                    className={`px-4 py-2 rounded-md text-sm font-medium ${
-                      isScrolled || !isLandingPage
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'bg-white text-blue-600 hover:bg-blue-50'
-                    }`}
+                    className="px-4 py-2 rounded-md text-sm font-medium bg-primary text-white hover:bg-primary-hover"
                   >
                     Logout
                   </motion.button>
@@ -127,11 +110,7 @@ const Header: React.FC = () => {
                   <motion.div whileHover={{ scale: 1.05 }}>
                     <Link
                       to="/login"
-                      className={`px-4 py-2 rounded-md text-sm font-medium ${
-                        isScrolled || !isLandingPage
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'bg-white text-blue-600 hover:bg-blue-50'
-                      }`}
+                      className="px-4 py-2 rounded-md text-sm font-medium bg-primary text-white hover:bg-primary-hover"
                     >
                       Login
                     </Link>
@@ -145,8 +124,6 @@ const Header: React.FC = () => {
           <Outlet />
         </main>
       </div>
-    </Box>
+    </div>
   );
-};
-
-export default Header; 
+} 
