@@ -24,7 +24,7 @@ const Header: React.FC = () => {
               <div className="flex">
                 <div className="shrink-0 flex items-center">
                   <Link to="/" className="text-xl font-bold text-primary-600">
-                    Auth App
+                    Démonická
                   </Link>
                 </div>
                 {user && (

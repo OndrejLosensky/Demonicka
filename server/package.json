@@ -1,8 +1,8 @@
 {
-  "name": "backend",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "name": "demonicka-server",
+  "version": "1.0.0",
+  "description": "Backend server for Démonická",
+  "author": "Losenský Ondřej",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

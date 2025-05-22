@@ -1,69 +1,98 @@
-# NestJS & NextJS Authentication System
+# 🍺 Démonická
 
-This is a basic authentication system using NestJS for the backend and NextJS for the frontend with TailwindCSS for styling.
+<div align="center">
 
-## Project Structure
+![Démonická Banner](docs/assets/banner.png)
 
-- `backend/` - NestJS backend with authentication system
-- `frontend/` - NextJS frontend with TailwindCSS (to be implemented)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![NestJS](https://img.shields.io/badge/NestJS-10.0-ea2845.svg)](https://nestjs.com/)
+[![React](https://img.shields.io/badge/React-18.0-61dafb.svg)](https://reactjs.org/)
+[![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-3.0-003b57.svg)](https://www.sqlite.org/)
 
-## Backend Authentication Features
+A modern, full-stack event management system for tracking consumption, managing participants, and monitoring inventory at the annual Démonická gathering.
 
-- User authentication using Passport.js
-- Local authentication strategy with username/password
-- JWT-based authentication for protected routes
-- Basic user service (in-memory for demo purposes)
+[Getting Started](#getting-started) •
+[Features](#features) •
+[Documentation](#documentation) •
+[Roadmap](#roadmap) •
+[Contributing](#contributing)
 
-## API Endpoints
+</div>
 
-- `POST /api/auth/login` - Login with username and password
-- `POST /api/auth/register` - Register a new user (placeholder)
-- `GET /api/profile` - Get user profile (protected route)
+## 🚀 Features
 
-## Getting Started
+### Web Admin Interface
+- 📊 Real-time dashboard with consumption statistics
+- 👥 Participant management and tracking
+- 🛢️ Inventory management
+- 📈 Leaderboard with gender categories
+- 📱 Responsive design for all devices
+
+### iOS Admin App (Coming Soon)
+- 📲 Native iOS experience
+- 🔐 Biometric authentication
+- 🔄 Offline support
+- 🎯 Quick actions and widgets
+- 📸 QR code scanning
 
 ### Backend
+- 🔒 Secure JWT authentication
+- 🚦 Rate limiting and request validation
+- 📡 Real-time updates
+- 🔄 Refresh token rotation
+- 📦 SQLite database
 
-1. Navigate to the backend directory:
+
+## 📚 Documentation
+
+- [API Documentation](docs/API.md)
+- [Security Enhancements](docs/security_enhancements.md)
+- [Future Updates](docs/future_updates.md)
+- [iOS Admin App](docs/admin-swift.md)
+- [Backend Mobile Updates](docs/backend-mobile-updates.md)
+
+## 🗺️ Project Structure
+
 ```
-cd backend
+demonicka/
+├── server/             # NestJS backend
+│   ├── src/
+│   │   ├── auth/       # Authentication
+│   │   └── participants/  # Participants 
+│   │   ├── beers/      # Consumption tracking
+│   │   ├── barrels/    # Barrel management
+│   │   └── dashboard/  # Statistics & analytics
+|   |   └── users       # User management 
+│   └── test/
+├── frontend/           # React frontend
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── services/
+│   └── public/
+└── ios/               # Swift admin app (coming soon)
 ```
 
-2. Install dependencies:
-```
-npm install
-```
+## 🙏 Acknowledgments
 
-3. Start the development server:
-```
-npm run start:dev
-```
+- [NestJS](https://nestjs.com/) - Backend framework
+- [React](https://reactjs.org/) - Frontend library
+- [Material-UI](https://mui.com/) - UI components
+- [Swift](https://swift.org) - iOS development
+- [SQLite](https://www.sqlite.org/) - Database
 
-4. The NestJS server will be running at http://localhost:3000
+## 📬 Contact
 
-### Test the Authentication
+Your Name - [@yourtwitter](https://twitter.com/yourtwitter) - email@example.com
 
-You can use tools like Postman or curl to test the authentication:
+Project Link: [https://github.com/yourusername/demonicka](https://github.com/yourusername/demonicka)
 
-1. Login to get a JWT token:
-```
-curl -X POST http://localhost:3000/api/auth/login -d '{"username": "john", "password": "changeme"}' -H "Content-Type: application/json"
-```
+---
 
-2. Use the token to access a protected route:
-```
-curl -X GET http://localhost:3000/api/profile -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
+<div align="center">
 
-## Next Steps
+Made with ❤️ by [Your Name](https://github.com/yourusername)
 
-- Implement the NextJS frontend with TailwindCSS
-- Connect to a real database instead of in-memory storage
-- Add user registration functionality
-- Implement form validation
-- Add refresh token functionality
-
-## Security Notes
-
-- The JWT secret is hardcoded for demonstration purposes. In a production environment, always use environment variables for secrets.
-- Passwords are hashed using bcrypt, but a more robust user management system would be needed for production. 
+</div> 

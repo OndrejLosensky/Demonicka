@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Profile from './pages/Dashboard/Profile';
 import Participants from './pages/Dashboard/Participants';
 import Barrels from './pages/Dashboard/Barrels';
+import Leaderboard from './pages/Leaderboard';
 import Landing from './pages/Landing';
 import Header from './components/Header';
 
@@ -33,6 +34,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Header />}>
                 <Route index element={<Landing />} />
+                <Route path="leaderboard" element={<Leaderboard />} />
                 <Route
                   path="dashboard"
                   element={

@@ -9,6 +9,10 @@ import {
   ParticipantStatsDto,
   BarrelStatsDto,
 } from './dto/dashboard.dto';
+import {
+  LeaderboardDto,
+  ParticipantLeaderboardDto,
+} from './dto/leaderboard.dto';
 
 @Injectable()
 export class DashboardService {
@@ -71,6 +75,36 @@ export class DashboardService {
       averageBeersPerParticipant,
       topParticipants,
       barrelStats: formattedBarrelStats,
+    };
+  }
+
+  async getLeaderboard(): Promise<LeaderboardDto> {
+    const participants = await this.participantRepository
+      .createQueryBuilder('participant')
+      .leftJoin('participant.beers', 'beer')
+      .select([
+        'participant.id as id',
+        'participant.name as name',
+        'participant.gender as gender',
+        'COUNT(beer.id) as beerCount',
+      ])
+      .groupBy('participant.id')
+      .orderBy('beerCount', 'DESC')
+      .getRawMany<ParticipantLeaderboardDto>();
+
+    return {
+      males: participants
+        .filter((p) => p.gender === 'MALE')
+        .map((p) => ({
+          ...p,
+          beerCount: parseInt(p.beerCount as unknown as string),
+        })),
+      females: participants
+        .filter((p) => p.gender === 'FEMALE')
+        .map((p) => ({
+          ...p,
+          beerCount: parseInt(p.beerCount as unknown as string),
+        })),
     };
   }
 }
