@@ -4,10 +4,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Participants from './pages/Dashboard/Participants';
+import Barrels from './pages/Dashboard/Barrels';
 import Landing from './pages/Landing';
 import Header from './components/Header';
 
@@ -44,6 +45,14 @@ function App() {
                   element={
                     <PrivateRoute>
                       <Participants />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="dashboard/sudy"
+                  element={
+                    <PrivateRoute>
+                      <Barrels />
                     </PrivateRoute>
                   }
                 />

@@ -1,0 +1,49 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
+import { BarrelsService } from './barrels.service';
+import { CreateBarrelDto } from './dto/create-barrel.dto';
+import { UpdateBarrelDto } from './dto/update-barrel.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Barrel } from './entities/barrel.entity';
+
+@Controller('barrels')
+@UseGuards(JwtAuthGuard)
+export class BarrelsController {
+  constructor(private readonly barrelsService: BarrelsService) {}
+
+  @Post()
+  create(@Body() createBarrelDto: CreateBarrelDto): Promise<Barrel> {
+    return this.barrelsService.create(createBarrelDto);
+  }
+
+  @Get()
+  findAll(): Promise<Barrel[]> {
+    return this.barrelsService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string): Promise<Barrel> {
+    return this.barrelsService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateBarrelDto: UpdateBarrelDto,
+  ): Promise<Barrel> {
+    return this.barrelsService.update(id, updateBarrelDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string): Promise<void> {
+    return this.barrelsService.remove(id);
+  }
+}

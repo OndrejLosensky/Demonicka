@@ -49,24 +49,39 @@ const Header: React.FC = () => {
                     >
                       Participants
                     </Link>
+                    <Link
+                      to="/dashboard/sudy"
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        isActive('/dashboard/sudy')
+                          ? 'bg-gray-900 text-white'
+                          : 'text-gray-700 hover:text-gray-900'
+                      }`}
+                    >
+                      Barrels
+                    </Link>
                   </div>
                 )}
               </div>
-              {user && (
-                <div className="flex items-center">
-                  <span className="text-gray-700 mr-4">Welcome, {user.username}</span>
+              <div className="flex items-center">
+                {user ? (
                   <button
                     onClick={handleLogout}
-                    className="btn btn-secondary"
+                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900"
                   >
                     Logout
                   </button>
-                </div>
-              )}
+                ) : (
+                  <Link
+                    to="/login"
+                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900"
+                  >
+                    Login
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </nav>
-
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <Outlet />
         </main>
