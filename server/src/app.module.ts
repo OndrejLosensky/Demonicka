@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { ParticipantsModule } from './participants/participants.module';
 import { BeersModule } from './beers/beers.module';
 import { BarrelsModule } from './barrels/barrels.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import * as cookieParser from 'cookie-parser';
 import * as path from 'path';
 import { User } from './users/entities/user.entity';
@@ -34,6 +35,7 @@ import { Barrel } from './barrels/entities/barrel.entity';
     ParticipantsModule,
     BeersModule,
     BarrelsModule,
+    DashboardModule,
   ],
 })
 export class AppModule implements NestModule {
