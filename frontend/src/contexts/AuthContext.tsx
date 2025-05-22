@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 
 interface User {
   id: string;
@@ -12,7 +12,7 @@ interface AuthContextType {
   user: User | null;
   login: (usernameOrEmail: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string, firstName: string, lastName: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -32,12 +32,6 @@ const api = axios.create({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const refreshPromise = useRef<Promise<string> | null>(null);
-
-  const clearAuth = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-  };
 
   // Helper to fetch user from /me
   const fetchUser = async () => {
@@ -49,89 +43,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       return false;
     } catch (error) {
-      if (error instanceof AxiosError && error.response?.status === 401) {
-        clearAuth();
-      }
+      console.error('Error fetching user:', error);
       return false;
     }
   };
 
-  // Set up axios interceptors
+  // Initial auth check
   useEffect(() => {
-    const requestInterceptor = api.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
-
-    const responseInterceptor = api.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
-        
-        if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh') {
-          originalRequest._retry = true;
-          
-          try {
-            let newToken: string;
-            
-            if (refreshPromise.current) {
-              newToken = await refreshPromise.current;
-            } else {
-              refreshPromise.current = api.post('/auth/refresh')
-                .then(response => response.data.accessToken)
-                .finally(() => {
-                  refreshPromise.current = null;
-                });
-              newToken = await refreshPromise.current;
-            }
-            
-            if (!newToken) {
-              throw new Error('No token received');
-            }
-            
-            localStorage.setItem('token', newToken);
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            
-            await fetchUser();
-            
-            return api(originalRequest);
-          } catch (refreshError) {
-            clearAuth();
-            throw refreshError;
-          }
-        }
-        
-        return Promise.reject(error);
-      }
-    );
-
-    // Initial auth check
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetchUser().finally(() => setIsLoading(false));
-    } else {
-      setIsLoading(false);
-    }
-
-    return () => {
-      api.interceptors.request.eject(requestInterceptor);
-      api.interceptors.response.eject(responseInterceptor);
-    };
+    fetchUser().finally(() => setIsLoading(false));
   }, []);
-
-  const logout = () => {
-    api.post('/auth/logout').finally(() => {
-      clearAuth();
-    });
-  };
 
   const login = async (usernameOrEmail: string, password: string) => {
     try {
@@ -139,9 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         usernameOrEmail,
         password,
       });
-      const { accessToken, user } = response.data;
-      localStorage.setItem('token', accessToken);
-      setUser(user);
+      setUser(response.data.user);
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -157,11 +75,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         firstName,
         lastName
       });
-      const { access_token, user } = response.data;
-      localStorage.setItem('token', access_token);
-      setUser(user);
+      setUser(response.data.user);
     } catch (error) {
       console.error('Registration failed:', error);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+      setUser(null);
+    } catch (error) {
+      console.error('Logout failed:', error);
       throw error;
     }
   };

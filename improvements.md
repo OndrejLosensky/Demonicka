@@ -37,10 +37,10 @@ This document outlines step-by-step security improvements for both frontend and 
   - [ ] Add password expiration policy
 
 ### 5. Cookie Security
-- [ ] Implement secure cookie handling
-  - [ ] Switch from Authorization header to HTTP-only cookies
-  - [ ] Configure secure cookie options
-  - [ ] Implement SameSite cookie policy
+- [x] ~~Implement secure cookie handling~~
+  - [x] ~~Switch from Authorization header to HTTP-only cookies~~
+  - [x] ~~Configure secure cookie options~~
+  - [x] ~~Implement SameSite cookie policy~~
   - [ ] Add cookie encryption
 
 ### 6. Security Headers
@@ -151,10 +151,10 @@ This document outlines step-by-step security improvements for both frontend and 
 ## Priority Levels
 
 ### High Priority (Should be implemented first)
-1. Token Management (Both FE & BE)
-2. Password Security (Both FE & BE)
+1. ~~Token Management (Both FE & BE)~~
+2. ~~Password Security (Both FE & BE)~~
 3. CSRF Protection (Both FE & BE)
-4. Cookie Security (BE)
+4. ~~Cookie Security (BE)~~
 
 ### Medium Priority
 1. Rate Limiting (BE)

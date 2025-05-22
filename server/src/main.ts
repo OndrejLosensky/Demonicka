@@ -9,11 +9,11 @@ async function bootstrap() {
   // Enable cookie parser
   app.use(cookieParser());
 
-  // Enable CORS
+  // Enable CORS with credentials
   app.enableCors({
     origin: 'http://localhost:5173', // Vite's default port
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
@@ -21,7 +21,12 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // Use global validation pipe
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
 
   // Listen on port 3000 or the port specified in the environment
   await app.listen(process.env.PORT ?? 3000);

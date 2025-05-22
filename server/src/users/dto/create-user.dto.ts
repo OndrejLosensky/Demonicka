@@ -1,20 +1,13 @@
 import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  OneToMany,
-} from 'typeorm';
-import { IsEmail, IsNotEmpty, Matches, MinLength } from 'class-validator';
-import { RefreshToken } from '../../auth/entities/refresh-token.entity';
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
 
-@Entity('users')
-export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ unique: true })
+export class CreateUserDto {
+  @IsString()
   @IsNotEmpty({ message: 'Username is required' })
   @MinLength(3, { message: 'Username must be at least 3 characters long' })
   @Matches(/^[a-zA-Z0-9_-]+$/, {
@@ -23,7 +16,7 @@ export class User {
   })
   username: string;
 
-  @Column()
+  @IsString()
   @IsNotEmpty({ message: 'Password is required' })
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   @Matches(
@@ -35,25 +28,15 @@ export class User {
   )
   password: string;
 
-  @Column({ unique: true })
   @IsEmail({}, { message: 'Please provide a valid email address' })
   @IsNotEmpty({ message: 'Email is required' })
   email: string;
 
-  @Column()
+  @IsString()
   @MinLength(2, { message: 'First name must be at least 2 characters long' })
   firstName: string;
 
-  @Column()
+  @IsString()
   @MinLength(2, { message: 'Last name must be at least 2 characters long' })
   lastName: string;
-
-  @OneToMany(() => RefreshToken, (token) => token.user)
-  refreshTokens: RefreshToken[];
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }

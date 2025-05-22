@@ -1,7 +1,10 @@
 import { DataSource } from 'typeorm';
+import { config } from 'dotenv';
 import * as path from 'path';
 
-export default new DataSource({
+config();
+
+export const AppDataSource = new DataSource({
   type: 'sqlite',
   database: path.join(__dirname, '..', 'database.sqlite'),
   entities: [__dirname + '/**/*.entity{.ts,.js}'],

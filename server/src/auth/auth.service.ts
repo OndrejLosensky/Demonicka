@@ -1,122 +1,166 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
 import { User } from '../users/entities/user.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
-import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UsersService } from '../users/users.service';
+import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
-  async register(registerDto: RegisterDto) {
-    const user = await this.usersService.create(
-      registerDto.username,
-      registerDto.password,
-      registerDto.email,
-    );
-
-    const tokens = await this.generateTokens(user);
+  private getCookieOptions(isRefreshToken = false) {
     return {
-      user,
-      ...tokens,
+      httpOnly: true, // Prevents client-side access to the cookie
+      secure: this.configService.get('NODE_ENV') === 'production', // Only send cookie over HTTPS in production
+      sameSite: 'lax' as const, // Protection against CSRF
+      path: '/', // Cookie is available for all paths
+      expires: new Date(
+        Date.now() +
+          (isRefreshToken ? 7 * 24 * 60 * 60 * 1000 : 15 * 60 * 1000),
+      ), // 7 days for refresh, 15 mins for access
     };
   }
 
-  async login(loginDto: LoginDto) {
-    const user = await this.usersService.findOne(loginDto.usernameOrEmail);
+  async validateUser(
+    usernameOrEmail: string,
+    password: string,
+  ): Promise<Omit<User, 'password'> | null> {
+    this.logger.debug(`Looking up user by username: ${usernameOrEmail}`);
+    let user = await this.usersService.findByUsername(usernameOrEmail);
+
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      this.logger.debug('User not found by username, trying email');
+      user = await this.usersService.findByEmail(usernameOrEmail);
     }
 
-    const isPasswordValid = await this.usersService.validatePassword(
-      user,
-      loginDto.password,
-    );
+    if (!user) {
+      this.logger.debug('User not found');
+      return null;
+    }
+
+    this.logger.debug('Comparing passwords');
+    this.logger.debug(`Input password length: ${password.length}`);
+    this.logger.debug(`Stored hash length: ${user.password.length}`);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    this.logger.debug(`Password comparison result: ${isPasswordValid}`);
+
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      this.logger.debug('Password comparison failed');
+      return null;
     }
 
-    const tokens = await this.generateTokens(user);
-    return {
-      user,
-      ...tokens,
-    };
+    this.logger.debug('User validated successfully');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: omitted, ...result } = user;
+    return result;
   }
 
-  async refreshTokens(refreshToken: string) {
-    const token = await this.refreshTokenRepository.findOne({
-      where: { token: refreshToken },
-      relations: ['user'],
-    });
-
-    if (!token || token.isRevoked || token.expiresAt < new Date()) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    // Rotate refresh token
-    await this.revokeRefreshToken(token.id, 'Token rotation');
-    const tokens = await this.generateTokens(token.user);
-
-    return tokens;
+  async register(
+    registerDto: RegisterDto,
+  ): Promise<{ user: Omit<User, 'password'> }> {
+    const user = await this.usersService.create(registerDto);
+    return { user };
   }
 
-  async logout(refreshToken: string) {
-    const token = await this.refreshTokenRepository.findOne({
-      where: { token: refreshToken },
-    });
+  async login(user: Omit<User, 'password'>, response: Response) {
+    const payload = { sub: user.id, username: user.username };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = await this.createRefreshToken(user.id);
 
-    if (token) {
-      await this.revokeRefreshToken(token.id, 'User logout');
-    }
-  }
-
-  private async generateTokens(user: User) {
-    const accessToken = this.jwtService.sign(
-      { sub: user.id.toString(), email: user.email },
-      { expiresIn: '15m' },
+    // Set cookies
+    response.cookie('access_token', accessToken, this.getCookieOptions());
+    response.cookie(
+      'refresh_token',
+      refreshToken.token,
+      this.getCookieOptions(true),
     );
 
-    const refreshToken = await this.createRefreshToken(user);
-
     return {
+      user,
       accessToken,
       refreshToken: refreshToken.token,
     };
   }
 
-  private async createRefreshToken(user: User) {
-    const token = new RefreshToken();
-    token.token = uuidv4();
-    token.user = user;
-    token.userId = user.id.toString();
-    token.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-    return this.refreshTokenRepository.save(token);
+  async logout(response: Response) {
+    await Promise.all([
+      response.clearCookie('access_token', this.getCookieOptions()),
+      response.clearCookie('refresh_token', this.getCookieOptions(true)),
+    ]);
+    return { message: 'Logout successful' };
   }
 
-  private async revokeRefreshToken(tokenId: string, reason: string) {
+  async refreshTokens(refreshTokenStr: string) {
+    const refreshToken = await this.refreshTokenRepository.findOne({
+      where: { token: refreshTokenStr },
+      relations: ['user'],
+    });
+
+    if (
+      !refreshToken ||
+      refreshToken.isRevoked ||
+      new Date() > refreshToken.expiresAt
+    ) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const user = await this.usersService.findOne(refreshToken.userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Generate new tokens
+    const payload = { sub: user.id, username: user.username };
+    const accessToken = this.jwtService.sign(payload);
+    const newRefreshToken = await this.createRefreshToken(user.id);
+
+    // Revoke old refresh token
+    await this.revokeRefreshToken(refreshToken.id, 'Refreshed');
+
+    return {
+      user,
+      accessToken,
+      refreshToken: newRefreshToken.token,
+    };
+  }
+
+  private async createRefreshToken(userId: string): Promise<RefreshToken> {
+    const token = this.jwtService.sign(
+      { sub: userId },
+      { expiresIn: '7d' }, // 7 days
+    );
+
+    const refreshToken = this.refreshTokenRepository.create({
+      token,
+      userId,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    });
+
+    return this.refreshTokenRepository.save(refreshToken);
+  }
+
+  private async revokeRefreshToken(
+    tokenId: string,
+    reason: string,
+  ): Promise<void> {
     await this.refreshTokenRepository.update(tokenId, {
       isRevoked: true,
       reasonRevoked: reason,
     });
-  }
-
-  async validateUser(userId: string): Promise<User> {
-    const user = await this.usersService.findById(Number(userId));
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-    return user;
   }
 
   async validateRefreshToken(token: string, userId: number): Promise<boolean> {

@@ -4,18 +4,27 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   CreateDateColumn,
-  Index,
+  UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
-@Entity()
+@Entity('refresh_tokens')
 export class RefreshToken {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  @Index()
+  @Column({ unique: true })
   token: string;
+
+  @Column({ type: 'uuid' })
+  userId: string;
+
+  @ManyToOne(() => User, (user) => user.refreshTokens, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   @Column({ type: 'datetime' })
   expiresAt: Date;
@@ -23,18 +32,12 @@ export class RefreshToken {
   @Column({ default: false })
   isRevoked: boolean;
 
+  @Column({ nullable: true })
+  reasonRevoked?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  user: User;
-
-  @Column()
-  userId: string;
-
-  @Column({ type: 'varchar', nullable: true })
-  replacedByToken: string | null;
-
-  @Column({ type: 'varchar', nullable: true })
-  reasonRevoked: string | null;
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

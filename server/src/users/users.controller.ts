@@ -1,70 +1,67 @@
 import {
   Controller,
   Get,
+  Post,
+  Body,
   Patch,
   Param,
-  Body,
+  Delete,
   UseGuards,
   ForbiddenException,
-  ParseIntPipe,
-  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { User } from './entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { RequestUser } from './decorators/user.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { User } from './entities/user.entity';
 
 /**
  * Users controller handling user profile management.
  * All routes are prefixed with '/users' and protected by JWT authentication.
  */
 @Controller('users')
-@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  /**
-   * Get user profile by ID
-   * @param id User ID to fetch
-   * @param currentUser Currently authenticated user
-   * @returns User profile data
-   * @throws ForbiddenException if user tries to access another user's profile
-   */
-  @Get(':id')
-  async getUserProfile(
-    @Param('id', ParseIntPipe) id: number,
-    @RequestUser() currentUser: User,
-  ): Promise<User> {
-    // Only allow users to access their own profile
-    if (currentUser.id !== id) {
-      throw new ForbiddenException('You can only access your own profile');
-    }
-    const user = await this.usersService.findById(id);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    return user;
+  @Post()
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
   }
 
-  /**
-   * Update user profile
-   * @param id User ID to update
-   * @param updateUserDto Updated user data
-   * @param currentUser Currently authenticated user
-   * @returns Updated user profile
-   * @throws ForbiddenException if user tries to update another user's profile
-   */
-  @Patch(':id')
-  async updateProfile(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: UpdateUserDto,
-    @RequestUser() currentUser: User,
-  ): Promise<User> {
-    // Only allow users to update their own profile
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  findAll() {
+    return this.usersService.findAll();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async findOne(@Param('id') id: string, @CurrentUser() currentUser: User) {
+    // Only allow users to access their own data unless they're an admin
     if (currentUser.id !== id) {
-      throw new ForbiddenException('You can only update your own profile');
+      throw new ForbiddenException('You can only access your own user data');
+    }
+    return this.usersService.findOne(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser() currentUser: User,
+  ) {
+    // Only allow users to update their own data unless they're an admin
+    if (currentUser.id !== id) {
+      throw new ForbiddenException('You can only update your own user data');
     }
     return this.usersService.update(id, updateUserDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.usersService.remove(id);
   }
 }

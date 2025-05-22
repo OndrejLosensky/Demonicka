@@ -57,8 +57,11 @@ export class ParticipantsService {
     const participant = await this.findOne(id);
 
     if (updateParticipantDto.name) {
-      const where: FindOptionsWhere<Participant> = { name: updateParticipantDto.name };
-      const existingParticipant = await this.participantsRepository.findOneBy(where);
+      const where: FindOptionsWhere<Participant> = {
+        name: updateParticipantDto.name,
+      };
+      const existingParticipant =
+        await this.participantsRepository.findOneBy(where);
 
       if (existingParticipant && existingParticipant.id !== id) {
         throw new ConflictException(

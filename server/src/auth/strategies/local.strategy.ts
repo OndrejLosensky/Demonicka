@@ -1,29 +1,34 @@
 import { Strategy } from 'passport-local';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../../users/users.service';
-import { User } from 'src/users/entities/user.entity';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { AuthService } from '../auth.service';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
-  constructor(private usersService: UsersService) {
-    super();
+  private readonly logger = new Logger(LocalStrategy.name);
+
+  constructor(private authService: AuthService) {
+    super({
+      usernameField: 'usernameOrEmail',
+    });
   }
 
-  async validate(username: string, password: string): Promise<User> {
-    const user = await this.usersService.findOne(username);
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const isPasswordValid = await this.usersService.validatePassword(
-      user,
-      password,
+  async validate(
+    usernameOrEmail: string,
+    password: string,
+  ): Promise<Omit<User, 'password'>> {
+    this.logger.debug(
+      `Attempting to validate user with username/email: ${usernameOrEmail}`,
     );
-    if (!isPasswordValid) {
+
+    const user = await this.authService.validateUser(usernameOrEmail, password);
+    if (!user) {
+      this.logger.debug('User validation failed - invalid credentials');
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    this.logger.debug('User validation successful');
     return user;
   }
 }
