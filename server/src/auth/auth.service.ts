@@ -89,6 +89,9 @@ export class AuthService {
       this.getCookieOptions(true),
     );
 
+    // Set Authorization header
+    response.setHeader('Authorization', `Bearer ${accessToken}`);
+
     return {
       user,
       accessToken,

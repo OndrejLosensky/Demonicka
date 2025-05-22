@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEnum } from 'class-validator';
+import { IsString, IsEnum, IsNotEmpty } from 'class-validator';
 
 export class CreateParticipantDto {
   @IsString()
@@ -6,5 +6,6 @@ export class CreateParticipantDto {
   name: string;
 
   @IsEnum(['MALE', 'FEMALE'])
+  @IsNotEmpty()
   gender: 'MALE' | 'FEMALE';
 }

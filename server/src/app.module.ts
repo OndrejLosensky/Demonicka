@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ParticipantsModule } from './participants/participants.module';
+import { BeersModule } from './beers/beers.module';
 import * as cookieParser from 'cookie-parser';
 import * as path from 'path';
 
@@ -25,6 +26,7 @@ import * as path from 'path';
     AuthModule,
     UsersModule,
     ParticipantsModule,
+    BeersModule,
   ],
 })
 export class AppModule implements NestModule {

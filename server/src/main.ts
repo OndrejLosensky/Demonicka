@@ -13,8 +13,9 @@ async function bootstrap() {
   app.enableCors({
     origin: 'http://localhost:5173', // Vite's default port
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    exposedHeaders: ['Set-Cookie'],
   });
 
   // Set global prefix for all routes

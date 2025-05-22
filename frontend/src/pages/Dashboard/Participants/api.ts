@@ -1,0 +1,37 @@
+import axios from 'axios';
+import type { Participant } from './types';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+// Create an axios instance with proper configuration
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
+
+export const participantsApi = {
+  getAll: async (): Promise<Participant[]> => {
+    const response = await api.get('/participants');
+    return response.data;
+  },
+
+  create: async (data: { name: string; gender: 'MALE' | 'FEMALE' }): Promise<Participant> => {
+    const response = await api.post('/participants', data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/participants/${id}`);
+  },
+
+  addBeer: async (participantId: string): Promise<void> => {
+    await api.post(`/participants/${participantId}/beers`);
+  },
+
+  removeBeer: async (participantId: string): Promise<void> => {
+    await api.delete(`/participants/${participantId}/beers`);
+  },
+}; 

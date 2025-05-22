@@ -4,14 +4,16 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { Beer } from '../../beers/entities/beer.entity';
 
 @Entity('participants')
 export class Participant {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column({ unique: true })
+  @Column()
   name: string;
 
   @Column()
@@ -22,6 +24,9 @@ export class Participant {
 
   @Column({ nullable: true, type: 'datetime' })
   lastBeerTime: Date | null;
+
+  @OneToMany(() => Beer, (beer) => beer.participant)
+  beers: Beer[];
 
   @CreateDateColumn()
   createdAt: Date;

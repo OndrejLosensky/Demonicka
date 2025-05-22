@@ -4,10 +4,10 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere } from 'typeorm';
-import { Participant } from './entities/participant.entity';
+import { Repository } from 'typeorm';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
+import { Participant } from './entities/participant.entity';
 
 @Injectable()
 export class ParticipantsService {
@@ -16,9 +16,7 @@ export class ParticipantsService {
     private participantsRepository: Repository<Participant>,
   ) {}
 
-  async create(
-    createParticipantDto: CreateParticipantDto,
-  ): Promise<Participant> {
+  async create(createParticipantDto: CreateParticipantDto): Promise<Participant> {
     const existingParticipant = await this.participantsRepository.findOne({
       where: { name: createParticipantDto.name },
     });
@@ -27,8 +25,7 @@ export class ParticipantsService {
       throw new ConflictException('Participant with this name already exists');
     }
 
-    const participant =
-      this.participantsRepository.create(createParticipantDto);
+    const participant = this.participantsRepository.create(createParticipantDto);
     return this.participantsRepository.save(participant);
   }
 
@@ -38,7 +35,7 @@ export class ParticipantsService {
     });
   }
 
-  async findOne(id: number): Promise<Participant> {
+  async findOne(id: string): Promise<Participant> {
     const participant = await this.participantsRepository.findOne({
       where: { id },
     });
@@ -51,22 +48,18 @@ export class ParticipantsService {
   }
 
   async update(
-    id: number,
+    id: string,
     updateParticipantDto: UpdateParticipantDto,
   ): Promise<Participant> {
     const participant = await this.findOne(id);
 
     if (updateParticipantDto.name) {
-      const where: FindOptionsWhere<Participant> = {
-        name: updateParticipantDto.name,
-      };
-      const existingParticipant =
-        await this.participantsRepository.findOneBy(where);
+      const existingParticipant = await this.participantsRepository.findOne({
+        where: { name: updateParticipantDto.name },
+      });
 
       if (existingParticipant && existingParticipant.id !== id) {
-        throw new ConflictException(
-          'Participant with this name already exists',
-        );
+        throw new ConflictException('Participant with this name already exists');
       }
     }
 
@@ -74,7 +67,7 @@ export class ParticipantsService {
     return this.participantsRepository.save(participant);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     const participant = await this.findOne(id);
     await this.participantsRepository.remove(participant);
   }
