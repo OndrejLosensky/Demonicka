@@ -1,5 +1,5 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -8,29 +8,21 @@ import { BeersModule } from './beers/beers.module';
 import { BarrelsModule } from './barrels/barrels.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { VersioningModule } from './versioning/versioning.module';
+import { LoggingModule } from './logging/logging.module';
 import * as cookieParser from 'cookie-parser';
-import * as path from 'path';
-import { User } from './users/entities/user.entity';
-import { RefreshToken } from './auth/entities/refresh-token.entity';
-import { Participant } from './participants/entities/participant.entity';
-import { Beer } from './beers/entities/beer.entity';
-import { Barrel } from './barrels/entities/barrel.entity';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'sqlite',
-        database: path.join(__dirname, '..', 'data', 'database.sqlite'),
-        entities: [User, RefreshToken, Participant, Beer, Barrel],
-        synchronize: configService.get('NODE_ENV') !== 'production',
-      }),
-      inject: [ConfigService],
+    TypeOrmModule.forRoot({
+      type: 'sqlite',
+      database: 'data/database.sqlite',
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true,
     }),
     AuthModule,
     UsersModule,
@@ -39,6 +31,7 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
     BarrelsModule,
     DashboardModule,
     VersioningModule,
+    LoggingModule,
   ],
 })
 export class AppModule implements NestModule {

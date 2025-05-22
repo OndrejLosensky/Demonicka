@@ -5,12 +5,14 @@ import { BeersService } from './beers.service';
 import { Beer } from './entities/beer.entity';
 import { ParticipantsModule } from '../participants/participants.module';
 import { BarrelsModule } from '../barrels/barrels.module';
+import { LoggingModule } from '../logging/logging.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Beer]),
     ParticipantsModule,
     BarrelsModule,
+    LoggingModule,
   ],
   controllers: [BeersController],
   providers: [BeersService],

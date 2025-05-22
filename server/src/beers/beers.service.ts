@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Beer } from './entities/beer.entity';
 import { ParticipantsService } from '../participants/participants.service';
 import { BarrelsService } from '../barrels/barrels.service';
+import { LoggingService } from '../logging/logging.service';
 
 @Injectable()
 export class BeersService {
@@ -12,11 +13,15 @@ export class BeersService {
     private beersRepository: Repository<Beer>,
     private participantsService: ParticipantsService,
     private barrelsService: BarrelsService,
+    private loggingService: LoggingService,
   ) {}
 
   async addBeer(participantId: string): Promise<Beer> {
     const participant = await this.participantsService.findOne(participantId);
     if (!participant) {
+      this.loggingService.error('Failed to add beer - participant not found', {
+        participantId,
+      });
       throw new NotFoundException(
         `Participant with ID ${participantId} not found`,
       );
@@ -50,7 +55,9 @@ export class BeersService {
       await this.barrelsService.decrementBeers(availableBarrel.id);
     }
 
-    return this.beersRepository.save(beer);
+    const savedBeer = await this.beersRepository.save(beer);
+    this.loggingService.logBeerAdded(participantId, availableBarrel?.id);
+    return savedBeer;
   }
 
   async removeLastBeer(participantId: string): Promise<void> {
@@ -61,6 +68,9 @@ export class BeersService {
     });
 
     if (!lastBeer) {
+      this.loggingService.error('Failed to remove beer - no beers found', {
+        participantId,
+      });
       throw new NotFoundException(
         `No beers found for participant ${participantId}`,
       );
@@ -81,6 +91,7 @@ export class BeersService {
     }
 
     await this.beersRepository.remove(lastBeer);
+    this.loggingService.logBeerRemoved(participantId, lastBeer.barrelId);
   }
 
   async getParticipantBeers(participantId: string): Promise<Beer[]> {
@@ -96,4 +107,4 @@ export class BeersService {
       where: { participantId },
     });
   }
-} 
+}
