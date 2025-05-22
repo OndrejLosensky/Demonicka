@@ -13,14 +13,18 @@ import { ParticipantsService } from './participants.service';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Versions } from '../versioning/decorators/version.decorator';
+import { VersionGuard } from '../versioning/guards/version.guard';
 
 /**
  * Controller for managing participants in the beer tracking system.
- * All routes are protected by JWT authentication and prefixed with '/participants'.
+ * All routes are protected by JWT authentication, prefixed with '/participants',
+ * and support API versioning.
  * Participants represent users whose beer consumption is being tracked.
  */
 @Controller('participants')
-@UseGuards(JwtAuthGuard)
+@Versions('1')
+@UseGuards(JwtAuthGuard, VersionGuard)
 export class ParticipantsController {
   constructor(private readonly participantsService: ParticipantsService) {}
 

@@ -16,6 +16,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Public } from './decorators/public.decorator';
 import { User } from '../users/entities/user.entity';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { Versions } from '../versioning/decorators/version.decorator';
+import { VersionGuard } from '../versioning/guards/version.guard';
 
 interface RequestWithUser extends Request {
   user: User;
@@ -26,9 +28,11 @@ interface RequestWithUser extends Request {
 
 /**
  * Authentication controller handling user registration, login, token refresh, and session management.
- * All routes are prefixed with '/auth'.
+ * All routes are prefixed with '/auth' and support API versioning.
  */
 @Controller('auth')
+@Versions('1')
+@UseGuards(VersionGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

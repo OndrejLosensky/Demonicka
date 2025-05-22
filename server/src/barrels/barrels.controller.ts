@@ -13,9 +13,12 @@ import { CreateBarrelDto } from './dto/create-barrel.dto';
 import { UpdateBarrelDto } from './dto/update-barrel.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Barrel } from './entities/barrel.entity';
+import { Versions } from '../versioning/decorators/version.decorator';
+import { VersionGuard } from '../versioning/guards/version.guard';
 
 @Controller('barrels')
-@UseGuards(JwtAuthGuard)
+@Versions('1')
+@UseGuards(JwtAuthGuard, VersionGuard)
 export class BarrelsController {
   constructor(private readonly barrelsService: BarrelsService) {}
 

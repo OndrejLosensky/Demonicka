@@ -9,14 +9,17 @@ import {
 import { BeersService } from './beers.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Beer } from './entities/beer.entity';
+import { Versions } from '../versioning/decorators/version.decorator';
+import { VersionGuard } from '../versioning/guards/version.guard';
 
 /**
  * Controller for managing beer consumption records.
- * All routes are protected by JWT authentication and prefixed with '/participants/:participantId/beers'.
- * Each endpoint operates on beers associated with a specific participant.
+ * All routes are protected by JWT authentication, prefixed with '/participants/:participantId/beers',
+ * and support API versioning.
  */
 @Controller('participants/:participantId/beers')
-@UseGuards(JwtAuthGuard)
+@Versions('1')
+@UseGuards(JwtAuthGuard, VersionGuard)
 export class BeersController {
   constructor(private readonly beersService: BeersService) {}
 

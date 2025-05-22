@@ -5,8 +5,12 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { LeaderboardDto } from './dto/leaderboard.dto';
 import { PublicStatsDto } from './dto/public-stats.dto';
 import { Public } from '../auth/decorators/public.decorator';
+import { Versions } from '../versioning/decorators/version.decorator';
+import { VersionGuard } from '../versioning/guards/version.guard';
 
 @Controller('dashboard')
+@Versions('1')
+@UseGuards(VersionGuard)
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 

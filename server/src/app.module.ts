@@ -7,6 +7,7 @@ import { ParticipantsModule } from './participants/participants.module';
 import { BeersModule } from './beers/beers.module';
 import { BarrelsModule } from './barrels/barrels.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { VersioningModule } from './versioning/versioning.module';
 import * as cookieParser from 'cookie-parser';
 import * as path from 'path';
 import { User } from './users/entities/user.entity';
@@ -14,6 +15,7 @@ import { RefreshToken } from './auth/entities/refresh-token.entity';
 import { Participant } from './participants/entities/participant.entity';
 import { Beer } from './beers/entities/beer.entity';
 import { Barrel } from './barrels/entities/barrel.entity';
+import { VersionMiddleware } from './versioning/middleware/version.middleware';
 
 @Module({
   imports: [
@@ -36,10 +38,11 @@ import { Barrel } from './barrels/entities/barrel.entity';
     BeersModule,
     BarrelsModule,
     DashboardModule,
+    VersioningModule,
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(cookieParser()).forRoutes('*');
+    consumer.apply(cookieParser(), VersionMiddleware).forRoutes('*');
   }
 }

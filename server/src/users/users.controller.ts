@@ -15,12 +15,16 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from './entities/user.entity';
+import { Versions } from '../versioning/decorators/version.decorator';
+import { VersionGuard } from '../versioning/guards/version.guard';
 
 /**
  * Users controller handling user profile management.
- * All routes are prefixed with '/users' and protected by JWT authentication.
+ * All routes are prefixed with '/users', protected by JWT authentication, and support API versioning.
  */
 @Controller('users')
+@Versions('1')
+@UseGuards(VersionGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
