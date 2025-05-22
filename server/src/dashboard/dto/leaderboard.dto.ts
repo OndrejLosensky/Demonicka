@@ -1,5 +1,5 @@
 export class ParticipantLeaderboardDto {
-  id: number;
+  id: string;
   name: string;
   beerCount: number;
   gender: 'MALE' | 'FEMALE';

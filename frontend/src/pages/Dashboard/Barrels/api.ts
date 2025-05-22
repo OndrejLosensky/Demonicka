@@ -12,12 +12,19 @@ const api = axios.create({
 });
 
 export const barrelsApi = {
-  getAll: async (): Promise<Barrel[]> => {
-    const response = await api.get('/barrels');
+  getAll: async (withDeleted?: boolean): Promise<Barrel[]> => {
+    const response = await api.get('/barrels', {
+      params: { withDeleted }
+    });
     return response.data;
   },
 
-  create: async (data: { size: 15 | 30 | 50 }): Promise<Barrel> => {
+  getDeleted: async (): Promise<Barrel[]> => {
+    const response = await api.get('/barrels/deleted');
+    return response.data;
+  },
+
+  create: async (data: { size: 15 | 30 | 50; orderNumber: number }): Promise<Barrel> => {
     const response = await api.post('/barrels', data);
     return response.data;
   },
@@ -26,9 +33,8 @@ export const barrelsApi = {
     await api.delete(`/barrels/${id}`);
   },
 
-  update: async (id: string, data: { isActive: boolean }): Promise<Barrel> => {
-    const response = await api.patch(`/barrels/${id}`, data);
-    return response.data;
+  toggleActive: async (id: string): Promise<void> => {
+    await api.patch(`/barrels/${id}/toggle-active`);
   },
 
   cleanup: async (): Promise<void> => {

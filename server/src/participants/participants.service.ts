@@ -10,6 +10,7 @@ import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { Participant } from './entities/participant.entity';
 import { Beer } from '../beers/entities/beer.entity';
 import { Barrel } from '../barrels/entities/barrel.entity';
+import { Not, IsNull } from 'typeorm';
 
 @Injectable()
 export class ParticipantsService {
@@ -23,8 +24,8 @@ export class ParticipantsService {
   ) {}
 
   async cleanup(): Promise<void> {
-    // First, delete all beers using a query builder
-    await this.beersRepository.createQueryBuilder().delete().execute();
+    // Soft delete all beers
+    await this.beersRepository.createQueryBuilder().softDelete().execute();
     
     // Reset all barrels' remaining beers count
     const barrels = await this.barrelsRepository.find();
@@ -33,18 +34,19 @@ export class ParticipantsService {
       await this.barrelsRepository.save(barrel);
     }
     
-    // Then get all participants
+    // Soft delete all participants
     const participants = await this.participantsRepository.find();
-    
-    // Remove them one by one
     for (const participant of participants) {
-      await this.participantsRepository.remove(participant);
+      await this.participantsRepository.softRemove(participant);
     }
   }
 
   async create(createParticipantDto: CreateParticipantDto): Promise<Participant> {
     const existingParticipant = await this.participantsRepository.findOne({
-      where: { name: createParticipantDto.name },
+      where: {
+        name: createParticipantDto.name,
+        deletedAt: IsNull()
+      }
     });
 
     if (existingParticipant) {
@@ -55,15 +57,17 @@ export class ParticipantsService {
     return this.participantsRepository.save(participant);
   }
 
-  async findAll(): Promise<Participant[]> {
+  async findAll(withDeleted = false): Promise<Participant[]> {
     return this.participantsRepository.find({
       order: { beerCount: 'DESC', name: 'ASC' },
+      withDeleted,
     });
   }
 
-  async findOne(id: string): Promise<Participant> {
+  async findOne(id: string, withDeleted = false): Promise<Participant> {
     const participant = await this.participantsRepository.findOne({
       where: { id },
+      withDeleted,
     });
 
     if (!participant) {
@@ -82,6 +86,7 @@ export class ParticipantsService {
     if (updateParticipantDto.name) {
       const existingParticipant = await this.participantsRepository.findOne({
         where: { name: updateParticipantDto.name },
+        withDeleted: false,
       });
 
       if (existingParticipant && existingParticipant.id !== id) {
@@ -95,6 +100,15 @@ export class ParticipantsService {
 
   async remove(id: string): Promise<void> {
     const participant = await this.findOne(id);
-    await this.participantsRepository.remove(participant);
+    await this.participantsRepository.softRemove(participant);
+  }
+
+  async findDeleted(): Promise<Participant[]> {
+    return this.participantsRepository.find({
+      withDeleted: true,
+      where: {
+        deletedAt: Not(IsNull()),
+      },
+    });
   }
 }

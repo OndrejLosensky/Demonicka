@@ -1,24 +1,29 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { barrelsApi } from './api';
-import type { Barrel, UseBarrelsReturn } from './types';
+import type { Barrel } from './types';
 
-export const useBarrels = (): UseBarrelsReturn => {
+export const useBarrels = (includeDeleted = false) => {
   const [barrels, setBarrels] = useState<Barrel[]>([]);
+  const [deletedBarrels, setDeletedBarrels] = useState<Barrel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchBarrels = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await barrelsApi.getAll();
-      setBarrels(data);
+      const [active, deleted] = await Promise.all([
+        barrelsApi.getAll(includeDeleted),
+        includeDeleted ? barrelsApi.getDeleted() : Promise.resolve([]),
+      ]);
+      setBarrels(active);
+      setDeletedBarrels(deleted);
     } catch (error: unknown) {
       console.error('Failed to fetch barrels:', error);
       toast.error('Failed to fetch barrels');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [includeDeleted]);
 
   const handleDelete = useCallback(async (id: string) => {
     try {
@@ -31,14 +36,14 @@ export const useBarrels = (): UseBarrelsReturn => {
     }
   }, [fetchBarrels]);
 
-  const handleToggleActive = useCallback(async (id: string, isActive: boolean) => {
+  const handleToggleActive = useCallback(async (id: string) => {
     try {
-      await barrelsApi.update(id, { isActive });
-      toast.success(`Barrel ${isActive ? 'activated' : 'deactivated'}`);
+      await barrelsApi.toggleActive(id);
+      toast.success('Barrel status updated');
       await fetchBarrels();
     } catch (error: unknown) {
-      console.error('Failed to update barrel:', error);
-      toast.error('Failed to update barrel');
+      console.error('Failed to update barrel status:', error);
+      toast.error('Failed to update barrel status');
     }
   }, [fetchBarrels]);
 
@@ -59,6 +64,7 @@ export const useBarrels = (): UseBarrelsReturn => {
 
   return {
     barrels,
+    deletedBarrels,
     isLoading,
     handleDelete,
     handleToggleActive,

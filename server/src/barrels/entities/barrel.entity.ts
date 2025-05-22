@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BeforeInsert,
+  DeleteDateColumn,
 } from 'typeorm';
 
 @Entity('barrels')
@@ -32,6 +33,9 @@ export class Barrel {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 
   @BeforeInsert()
   setInitialBeers() {

@@ -1,5 +1,5 @@
 export class ParticipantStatsDto {
-  id: number;
+  id: string;
   name: string;
   beerCount: number;
 }

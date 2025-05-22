@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { ParticipantsService } from './participants.service';
 import { CreateParticipantDto } from './dto/create-participant.dto';
@@ -51,8 +52,13 @@ export class ParticipantsController {
    * @returns {Promise<Participant[]>} Array of all participants
    */
   @Get()
-  findAll() {
-    return this.participantsService.findAll();
+  findAll(@Query('withDeleted') withDeleted?: boolean) {
+    return this.participantsService.findAll(withDeleted);
+  }
+
+  @Get('deleted')
+  findDeleted() {
+    return this.participantsService.findDeleted();
   }
 
   /**
@@ -63,8 +69,11 @@ export class ParticipantsController {
    * @throws {NotFoundException} When participant is not found
    */
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.participantsService.findOne(id);
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('withDeleted') withDeleted?: boolean,
+  ) {
+    return this.participantsService.findOne(id, withDeleted);
   }
 
   /**

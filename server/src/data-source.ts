@@ -10,6 +10,7 @@ import { Barrel } from './barrels/entities/barrel.entity';
 import { AddBarrelOrderAndRemaining1684789261000 } from './migrations/1684789261000-AddBarrelOrderAndRemaining';
 import { AddNullableBarrelFields1684789263000 } from './migrations/1684789263000-AddNullableBarrelFields';
 import { UpdateBeersTable1684789262000 } from './migrations/1684789262000-UpdateBeersTable';
+import { FixParticipantIdInPlace1747748324518 } from './migrations/1747748324518-FixParticipantIdInPlace';
 
 config();
 
@@ -22,6 +23,7 @@ export const AppDataSource = new DataSource({
     AddBarrelOrderAndRemaining1684789261000,
     AddNullableBarrelFields1684789263000,
     UpdateBeersTable1684789262000,
+    FixParticipantIdInPlace1747748324518,
   ],
   synchronize: false,
 });

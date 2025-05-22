@@ -3,22 +3,34 @@ import { toast } from 'react-hot-toast';
 import { participantsApi } from './api';
 import type { Participant } from './types';
 
-export const useParticipants = () => {
+export const useParticipants = (includeDeleted = false) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [deletedParticipants, setDeletedParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchParticipants = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await participantsApi.getAll();
-      setParticipants(data);
+      if (includeDeleted) {
+        // When showing deleted, get all participants with deleted flag
+        const data = await participantsApi.getAll(true);
+        const active = data.filter(p => !p.deletedAt);
+        const deleted = data.filter(p => p.deletedAt);
+        setParticipants(active);
+        setDeletedParticipants(deleted);
+      } else {
+        // When not showing deleted, just get active participants
+        const data = await participantsApi.getAll(false);
+        setParticipants(data);
+        setDeletedParticipants([]);
+      }
     } catch (error: unknown) {
       console.error('Failed to fetch participants:', error);
       toast.error('Failed to fetch participants');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [includeDeleted]);
 
   const handleDelete = useCallback(async (id: string) => {
     try {
@@ -70,6 +82,7 @@ export const useParticipants = () => {
 
   return {
     participants,
+    deletedParticipants,
     isLoading,
     handleDelete,
     handleAddBeer,

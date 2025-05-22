@@ -14,9 +14,9 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
+  Chip,
 } from '@mui/material';
 import { 
-  MoreVert as MoreVertIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
   Remove as RemoveIcon,
@@ -32,13 +32,10 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   onRemoveBeer,
   onDelete,
   showGender = true,
+  showDeletedStatus = false,
 }) => {
   const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; participant: { id: string; name: string } }>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, participant: { id: string; name: string }) => {
-    setMenuAnchor({ element: event.currentTarget, participant });
-  };
 
   const handleCloseMenu = () => {
     setMenuAnchor(null);
@@ -75,9 +72,20 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
               <TableRow 
                 key={participant.id}
                 className="hover:bg-primary/5 transition-colors"
+                sx={{
+                  opacity: participant.deletedAt ? 0.5 : 1,
+                }}
               >
                 <TableCell>
                   <Typography className="font-medium">{participant.name}</Typography>
+                  {showDeletedStatus && participant.deletedAt && (
+                    <Chip
+                      label="Deleted"
+                      color="error"
+                      size="small"
+                      sx={{ ml: 1 }}
+                    />
+                  )}
                 </TableCell>
                 <TableCell align="center">
                   <div className="flex items-center gap-2 justify-center bg-primary/5 py-2 px-3 rounded-lg inline-flex">
@@ -102,34 +110,40 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                   )}
                 </TableCell>
                 <TableCell align="right">
-                  <div className="flex items-center gap-2 justify-end">
-                    <Tooltip title="Remove Beer">
-                      <span>
+                  {!participant.deletedAt && (
+                    <>
+                      <Tooltip title="Remove Beer">
+                        <span>
+                          <IconButton
+                            size="medium"
+                            onClick={() => onRemoveBeer(participant.id)}
+                            disabled={participant.beerCount === 0}
+                            className={`hover:bg-primary/10 border-2 ${participant.beerCount === 0 ? 'border-gray-200' : 'border-primary/20 hover:border-primary'}`}
+                          >
+                            <RemoveIcon className={participant.beerCount === 0 ? 'text-gray-300' : 'text-primary'} />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                      <Tooltip title="Add Beer">
                         <IconButton
                           size="medium"
-                          onClick={() => onRemoveBeer(participant.id)}
-                          disabled={participant.beerCount === 0}
-                          className={`hover:bg-primary/10 border-2 ${participant.beerCount === 0 ? 'border-gray-200' : 'border-primary/20 hover:border-primary'}`}
+                          onClick={() => onAddBeer(participant.id)}
+                          className="bg-primary hover:bg-primary/90 text-white"
                         >
-                          <RemoveIcon className={participant.beerCount === 0 ? 'text-gray-300' : 'text-primary'} />
+                          <AddIcon />
                         </IconButton>
-                      </span>
-                    </Tooltip>
-                    <Tooltip title="Add Beer">
-                      <IconButton
-                        size="medium"
-                        onClick={() => onAddBeer(participant.id)}
-                        className="bg-primary hover:bg-primary/90 text-white"
-                      >
-                        <AddIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <IconButton
-                      onClick={(e) => handleOpenMenu(e, { id: participant.id, name: participant.name })}
-                    >
-                      <MoreVertIcon />
-                    </IconButton>
-                  </div>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton
+                          onClick={() => onDelete(participant.id)}
+                          size="medium"
+                          color="error"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

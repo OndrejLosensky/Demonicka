@@ -1,5 +1,5 @@
 export interface ParticipantStats {
-  id: number;
+  id: string;
   name: string;
   beerCount: number;
 }

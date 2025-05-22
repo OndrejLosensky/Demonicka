@@ -6,12 +6,14 @@ export interface Barrel {
   remainingBeers: number;
   createdAt: string;
   updatedAt: string;
+  deletedAt: string | null;
 }
 
 export interface BarrelTableProps {
   barrels: Barrel[];
-  onDelete: (barrelId: string) => Promise<void>;
-  onToggleActive: (barrelId: string, isActive: boolean) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+  onToggleActive: (id: string) => Promise<void>;
+  showDeletedStatus?: boolean;
 }
 
 export interface UseBarrelsReturn {

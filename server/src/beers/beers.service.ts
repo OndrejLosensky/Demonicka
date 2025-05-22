@@ -28,16 +28,15 @@ export class BeersService {
       .filter((barrel) => barrel.isActive && barrel.remainingBeers > 0)
       .sort((a, b) => a.orderNumber - b.orderNumber)[0];
 
-    if (!availableBarrel) {
-      throw new Error('No active barrels with remaining beers available');
-    }
-
     // Create the beer record
     const beer = this.beersRepository.create({
       participantId,
       participant,
-      barrelId: availableBarrel.id,
-      barrel: availableBarrel,
+      // Only set barrel info if there is an available barrel
+      ...(availableBarrel && {
+        barrelId: availableBarrel.id,
+        barrel: availableBarrel,
+      }),
     });
 
     // Update participant's lastBeerTime and beerCount
@@ -46,8 +45,10 @@ export class BeersService {
       beerCount: participant.beerCount + 1,
     });
 
-    // Decrement the barrel's remaining beers
-    await this.barrelsService.decrementBeers(availableBarrel.id);
+    // If there is an available barrel, decrement its remaining beers
+    if (availableBarrel) {
+      await this.barrelsService.decrementBeers(availableBarrel.id);
+    }
 
     return this.beersRepository.save(beer);
   }
@@ -72,8 +73,8 @@ export class BeersService {
       });
     }
 
-    // Increment the barrel's remaining beers
-    if (lastBeer.barrelId) {
+    // Increment the barrel's remaining beers if the beer was associated with a barrel
+    if (lastBeer.barrelId && lastBeer.barrel) {
       await this.barrelsService.update(lastBeer.barrelId, {
         remainingBeers: lastBeer.barrel.remainingBeers + 1,
       });

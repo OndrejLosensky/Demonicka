@@ -40,7 +40,13 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
 
     try {
       setIsSubmitting(true);
-      await barrelsApi.create({ size });
+      // Get all barrels including deleted ones to get correct order number
+      const [activeBarrels, deletedBarrels] = await Promise.all([
+        barrelsApi.getAll(),
+        barrelsApi.getDeleted()
+      ]);
+      const orderNumber = activeBarrels.length + deletedBarrels.length + 1;
+      await barrelsApi.create({ size, orderNumber });
       toast.success('Barrel added successfully');
       onSuccess();
       onClose();

@@ -1,83 +1,90 @@
 import React, { useState } from 'react';
-import { Box, Typography, CircularProgress, Button } from '@mui/material';
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  Button,
+  FormControlLabel,
+  Switch,
+} from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { BarrelsTable } from './BarrelsTable';
 import { useBarrels } from './useBarrels';
 import { AddBarrelDialog } from './AddBarrelDialog';
 
 const BarrelsPage: React.FC = () => {
+  const [showDeleted, setShowDeleted] = useState(false);
   const {
     barrels,
+    deletedBarrels,
     isLoading,
     handleDelete,
     handleToggleActive,
     handleCleanup,
     fetchBarrels,
-  } = useBarrels();
+  } = useBarrels(showDeleted);
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const allBarrels = showDeleted ? [...barrels, ...deletedBarrels] : barrels;
+
   const confirmCleanup = async () => {
-    console.log('Cleanup button clicked');
     if (window.confirm('Are you sure you want to delete all barrels? This cannot be undone.')) {
-      console.log('Cleanup confirmed, calling handleCleanup');
-      try {
-        await handleCleanup();
-        console.log('Cleanup completed successfully');
-      } catch (error) {
-        console.error('Error during cleanup:', error);
-      }
-    } else {
-      console.log('Cleanup cancelled by user');
+      await handleCleanup();
     }
   };
 
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
-    <Box>
+    <Box p={3}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h5">
-          Barrels
-        </Typography>
-        <Box display="flex" gap={2}>
+        <Typography variant="h4">Barrels</Typography>
+        <Box>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showDeleted}
+                onChange={(e) => setShowDeleted(e.target.checked)}
+              />
+            }
+            label="Show Deleted"
+          />
           <Button
-            variant="outlined"
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={() => setDialogOpen(true)}
+            sx={{ mr: 1 }}
+          >
+            Add Barrel
+          </Button>
+          <Button
+            variant="contained"
             color="error"
             startIcon={<DeleteIcon />}
             onClick={confirmCleanup}
           >
             Cleanup All
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => setDialogOpen(true)}
-          >
-            Add Barrel
-          </Button>
         </Box>
       </Box>
 
-      <BarrelsTable
-        barrels={barrels}
-        onDelete={handleDelete}
-        onToggleActive={handleToggleActive}
-      />
+      {isLoading ? (
+        <CircularProgress />
+      ) : (
+        <BarrelsTable
+          barrels={allBarrels}
+          onDelete={handleDelete}
+          onToggleActive={handleToggleActive}
+          showDeletedStatus={showDeleted}
+        />
+      )}
 
       <AddBarrelDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         onSuccess={() => {
           setDialogOpen(false);
-          void fetchBarrels();
+          fetchBarrels();
         }}
       />
     </Box>

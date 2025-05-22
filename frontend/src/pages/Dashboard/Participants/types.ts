@@ -6,6 +6,7 @@ export interface Participant {
   lastBeerTime: string | null;
   createdAt: string;
   updatedAt: string;
+  deletedAt: string | null;
 }
 
 export interface ParticipantTableProps {
@@ -14,4 +15,5 @@ export interface ParticipantTableProps {
   onRemoveBeer: (participantId: string) => Promise<void>;
   onDelete: (participantId: string) => Promise<void>;
   showGender?: boolean;
+  showDeletedStatus?: boolean;
 } 

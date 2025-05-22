@@ -8,6 +8,8 @@ import {
   TableRow,
   Paper,
   IconButton,
+  Tooltip,
+  Chip,
   Switch,
   Typography,
   Menu,
@@ -17,7 +19,6 @@ import {
   LinearProgress,
 } from '@mui/material';
 import { 
-  MoreVert as MoreVertIcon,
   Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { GiBarrel } from 'react-icons/gi';
@@ -29,6 +30,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
   barrels,
   onDelete,
   onToggleActive,
+  showDeletedStatus = false,
 }) => {
   const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; barrel: { id: string; size: number } }>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -87,6 +89,9 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                 <TableRow 
                   key={barrel.id}
                   className="hover:bg-primary/5 transition-colors"
+                  sx={{
+                    opacity: barrel.deletedAt ? 0.5 : 1,
+                  }}
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -95,7 +100,16 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Typography className="font-medium">{barrel.size}L</Typography>
+                    <div className="flex items-center gap-2">
+                      <Typography className="font-medium">{barrel.size}L</Typography>
+                      {showDeletedStatus && barrel.deletedAt && (
+                        <Chip
+                          label="Deleted"
+                          color="error"
+                          size="small"
+                        />
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
@@ -119,7 +133,8 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={barrel.isActive}
-                        onChange={(e) => onToggleActive(barrel.id, e.target.checked)}
+                        onChange={() => !barrel.deletedAt && onToggleActive(barrel.id)}
+                        disabled={!!barrel.deletedAt}
                         color="primary"
                         size="small"
                         className="mr-2"
@@ -137,11 +152,17 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton
-                      onClick={(e) => handleOpenMenu(e, { id: barrel.id, size: barrel.size })}
-                    >
-                      <MoreVertIcon />
-                    </IconButton>
+                    {!barrel.deletedAt && (
+                      <Tooltip title="Delete">
+                        <IconButton
+                          onClick={(e) => handleOpenMenu(e, { id: barrel.id, size: barrel.size })}
+                          size="medium"
+                          color="error"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </TableCell>
                 </TableRow>
               );

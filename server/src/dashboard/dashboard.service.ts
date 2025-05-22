@@ -90,7 +90,7 @@ export class DashboardService {
       ])
       .groupBy('participant.id')
       .orderBy('beerCount', 'DESC')
-      .getRawMany<{ id: number; name: string; beerCount: string }>();
+      .getRawMany<{ id: string; name: string; beerCount: string }>();
 
     const topParticipants: ParticipantStatsDto[] =
       participantsWithBeerCounts.map((p) => ({

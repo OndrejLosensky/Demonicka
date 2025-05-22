@@ -13,8 +13,15 @@ const api = axios.create({
 });
 
 export const participantsApi = {
-  getAll: async (): Promise<Participant[]> => {
-    const response = await api.get('/participants');
+  getAll: async (withDeleted?: boolean): Promise<Participant[]> => {
+    const response = await api.get('/participants', {
+      params: { withDeleted }
+    });
+    return response.data;
+  },
+
+  getDeleted: async (): Promise<Participant[]> => {
+    const response = await api.get('/participants/deleted');
     return response.data;
   },
 

@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  DeleteDateColumn,
 } from 'typeorm';
 import { Beer } from '../../beers/entities/beer.entity';
 
@@ -25,7 +26,10 @@ export class Participant {
   @Column({ nullable: true, type: 'datetime' })
   lastBeerTime: Date | null;
 
-  @OneToMany(() => Beer, (beer) => beer.participant, { cascade: true, onDelete: 'CASCADE' })
+  @OneToMany(() => Beer, (beer) => beer.participant, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   beers: Beer[];
 
   @CreateDateColumn()
@@ -33,4 +37,7 @@ export class Participant {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }

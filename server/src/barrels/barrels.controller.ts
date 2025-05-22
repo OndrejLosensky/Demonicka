@@ -27,6 +27,11 @@ export class BarrelsController {
     return this.barrelsService.cleanup();
   }
 
+  @Get('deleted')
+  findDeleted() {
+    return this.barrelsService.findDeleted();
+  }
+
   @Post()
   create(@Body() createBarrelDto: CreateBarrelDto): Promise<Barrel> {
     return this.barrelsService.create(createBarrelDto);
@@ -53,6 +58,11 @@ export class BarrelsController {
   @Delete(':id')
   remove(@Param('id') id: string): Promise<void> {
     return this.barrelsService.remove(id);
+  }
+
+  @Patch(':id/toggle-active')
+  toggleActive(@Param('id') id: string): Promise<Barrel> {
+    return this.barrelsService.toggleActive(id);
   }
 
   @Get('active/current')
