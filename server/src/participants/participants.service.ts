@@ -9,6 +9,7 @@ import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateParticipantDto } from './dto/update-participant.dto';
 import { Participant } from './entities/participant.entity';
 import { Beer } from '../beers/entities/beer.entity';
+import { Barrel } from '../barrels/entities/barrel.entity';
 
 @Injectable()
 export class ParticipantsService {
@@ -17,11 +18,20 @@ export class ParticipantsService {
     private participantsRepository: Repository<Participant>,
     @InjectRepository(Beer)
     private beersRepository: Repository<Beer>,
+    @InjectRepository(Barrel)
+    private barrelsRepository: Repository<Barrel>,
   ) {}
 
   async cleanup(): Promise<void> {
     // First, delete all beers using a query builder
     await this.beersRepository.createQueryBuilder().delete().execute();
+    
+    // Reset all barrels' remaining beers count
+    const barrels = await this.barrelsRepository.find();
+    for (const barrel of barrels) {
+      barrel.remainingBeers = barrel.size * 2;
+      await this.barrelsRepository.save(barrel);
+    }
     
     // Then get all participants
     const participants = await this.participantsRepository.find();
