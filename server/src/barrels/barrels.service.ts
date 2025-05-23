@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, IsNull } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { Barrel } from './entities/barrel.entity';
 import { CreateBarrelDto } from './dto/create-barrel.dto';
 import { UpdateBarrelDto } from './dto/update-barrel.dto';
@@ -14,17 +14,37 @@ export class BarrelsService {
     private loggingService: LoggingService,
   ) {}
 
-  async cleanup(): Promise<void> {
-    // First deactivate all barrels
-    await this.barrelsRepository.update({}, { isActive: false });
+  async findAll(withDeleted = false): Promise<Barrel[]> {
+    return this.barrelsRepository.find({
+      where: withDeleted ? {} : { deletedAt: IsNull() },
+      order: { orderNumber: 'ASC' },
+    });
+  }
 
-    // Then soft delete all barrels
-    const barrels = await this.barrelsRepository.find();
-    for (const barrel of barrels) {
-      await this.barrelsRepository.softRemove(barrel);
+  async findDeleted(): Promise<Barrel[]> {
+    return this.barrelsRepository.find({
+      withDeleted: true,
+      where: {
+        deletedAt: IsNull(),
+      },
+    });
+  }
+
+  async getActiveBarrel(): Promise<Barrel | null> {
+    return this.barrelsRepository.findOne({
+      where: { isActive: true },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  async findOne(id: string): Promise<Barrel> {
+    const barrel = await this.barrelsRepository.findOne({
+      where: { id },
+    });
+    if (!barrel) {
+      throw new NotFoundException(`Barrel with ID ${id} not found`);
     }
-
-    this.loggingService.logCleanup('BARRELS');
+    return barrel;
   }
 
   async create(createBarrelDto: CreateBarrelDto): Promise<Barrel> {
@@ -53,50 +73,17 @@ export class BarrelsService {
     }
   }
 
-  async findAll(withDeleted = false): Promise<Barrel[]> {
-    return this.barrelsRepository.find({
-      withDeleted,
-      order: { orderNumber: 'ASC' },
-    });
-  }
-
-  async findDeleted(): Promise<Barrel[]> {
-    return this.barrelsRepository.find({
-      withDeleted: true,
-      where: {
-        deletedAt: Not(IsNull()),
-      },
-    });
-  }
-
-  async findOne(id: string, withDeleted = false): Promise<Barrel> {
-    const barrel = await this.barrelsRepository.findOne({
-      where: { id },
-      withDeleted,
-    });
-
-    if (!barrel) {
-      this.loggingService.error('Barrel not found', { id });
-      throw new NotFoundException(`Barrel with ID ${id} not found`);
-    }
-
-    return barrel;
-  }
-
   async update(id: string, updateBarrelDto: UpdateBarrelDto): Promise<Barrel> {
     try {
       const barrel = await this.findOne(id);
       Object.assign(barrel, updateBarrelDto);
       const savedBarrel = await this.barrelsRepository.save(barrel);
-      this.loggingService.info('Barrel updated', {
-        id,
-        changes: updateBarrelDto,
-      });
+      this.loggingService.logBarrelUpdated(id, updateBarrelDto);
       return savedBarrel;
     } catch (error: unknown) {
       this.loggingService.error('Failed to update barrel', {
-        id,
         error: error instanceof Error ? error.message : String(error),
+        id,
         changes: updateBarrelDto,
       });
       throw error;
@@ -108,10 +95,7 @@ export class BarrelsService {
       const barrel = await this.findOne(id);
       barrel.isActive = !barrel.isActive;
       const savedBarrel = await this.barrelsRepository.save(barrel);
-      this.loggingService.info('Barrel active status toggled', {
-        id,
-        isActive: savedBarrel.isActive,
-      });
+      this.loggingService.logBarrelStatusChanged(id, savedBarrel.isActive);
       return savedBarrel;
     } catch (error: unknown) {
       this.loggingService.error('Failed to toggle barrel active status', {
@@ -136,11 +120,20 @@ export class BarrelsService {
     }
   }
 
-  async getActiveBarrel(): Promise<Barrel | null> {
-    return this.barrelsRepository.findOne({
-      where: { isActive: true },
-      order: { createdAt: 'ASC' },
-    });
+  async cleanup(): Promise<void> {
+    try {
+      const barrels = await this.findAll(true);
+      const count = barrels.length;
+      for (const barrel of barrels) {
+        await this.barrelsRepository.softRemove(barrel);
+      }
+      this.loggingService.logCleanup('BARRELS', { barrelsDeleted: count });
+    } catch (error: unknown) {
+      this.loggingService.error('Failed to cleanup barrels', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
   }
 
   async decrementBeers(id: string): Promise<void> {
@@ -156,9 +149,8 @@ export class BarrelsService {
           remainingBeers: 0,
           isActive: false,
         });
-        this.loggingService.info('Barrel deactivated - no beers remaining', {
-          id,
-        });
+        this.loggingService.logBarrelEmpty(id);
+        this.loggingService.logBarrelStatusChanged(id, false);
       } else {
         await this.barrelsRepository.update(id, {
           remainingBeers: barrel.remainingBeers - 1,

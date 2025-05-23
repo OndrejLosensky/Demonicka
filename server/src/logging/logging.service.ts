@@ -3,6 +3,8 @@ import * as winston from 'winston';
 import { format } from 'winston';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import 'winston-daily-rotate-file';
+import type { DailyRotateFileTransportOptions } from 'winston-daily-rotate-file';
 
 export interface LogEntry {
   timestamp: string;
@@ -23,30 +25,37 @@ export class LoggingService {
     // Ensure logs directory exists
     fs.mkdir(this.logDir, { recursive: true }).catch(() => {});
 
+    const rotateFileTransport = new winston.transports.DailyRotateFile({
+      filename: path.join(this.logDir, '%DATE%-combined.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '20m',
+      maxFiles: '14d',
+      format: format.combine(format.timestamp(), format.json()),
+    }) as winston.transport;
+
+    const errorRotateFileTransport = new winston.transports.DailyRotateFile({
+      filename: path.join(this.logDir, '%DATE%-error.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '20m',
+      maxFiles: '30d',
+      level: 'error',
+      format: format.combine(
+        format.timestamp(),
+        format.json()
+      )
+    });
+
     this.logger = winston.createLogger({
       level: 'info',
       format: format.combine(
         format.timestamp(),
         format.errors({ stack: true }),
-        format.json(),
+        format.json()
       ),
       defaultMeta: { service: 'beer-app' },
       transports: [
-        new winston.transports.File({
-          filename: this.combinedLogPath,
-          format: format.combine(
-            format.timestamp(),
-            format.json(),
-          ),
-        }),
-        new winston.transports.File({
-          filename: path.join(this.logDir, 'error.log'),
-          level: 'error',
-          format: format.combine(
-            format.timestamp(),
-            format.json(),
-          ),
-        }),
+        rotateFileTransport,
+        errorRotateFileTransport
       ],
     });
 
@@ -58,9 +67,8 @@ export class LoggingService {
             format.colorize(),
             format.simple(),
             format.printf(({ timestamp, level, message, ...meta }) => {
-              return `${timestamp} [${level}]: ${message} ${
-                Object.keys(meta).length ? JSON.stringify(meta, null, 2) : ''
-              }`;
+              const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
+              return `${timestamp} [${level}]: ${message} ${metaStr}`;
             }),
           ),
         }),
@@ -72,17 +80,34 @@ export class LoggingService {
     level?: string,
     limit = 100,
     offset = 0,
+    startDate?: Date,
+    endDate?: Date,
+    eventType?: string,
   ): Promise<{ logs: LogEntry[]; total: number }> {
     try {
       const fileContent = await fs.readFile(this.combinedLogPath, 'utf-8');
       let logs = fileContent
         .split('\n')
         .filter(Boolean)
-        .map(line => JSON.parse(line) as LogEntry)
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        .map((line) => JSON.parse(line) as LogEntry)
+        .sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
 
       if (level) {
-        logs = logs.filter(log => log.level === level);
+        logs = logs.filter((log) => log.level === level);
+      }
+
+      if (startDate) {
+        logs = logs.filter((log) => new Date(log.timestamp) >= startDate);
+      }
+
+      if (endDate) {
+        logs = logs.filter((log) => new Date(log.timestamp) <= endDate);
+      }
+
+      if (eventType) {
+        logs = logs.filter((log) => log.event === eventType);
       }
 
       const total = logs.length;
@@ -97,7 +122,53 @@ export class LoggingService {
     }
   }
 
-  // Log methods for different levels
+  async getLogStats(startDate?: Date, endDate?: Date): Promise<{
+    totalLogs: number;
+    errorCount: number;
+    warnCount: number;
+    eventCounts: Record<string, number>;
+    participantActivity: Record<string, number>;
+    barrelActivity: Record<string, number>;
+  }> {
+    try {
+      const { logs } = await this.getLogs(
+        undefined,
+        Number.MAX_SAFE_INTEGER,
+        0,
+        startDate,
+        endDate
+      );
+
+      const stats = {
+        totalLogs: logs.length,
+        errorCount: logs.filter(log => log.level === 'error').length,
+        warnCount: logs.filter(log => log.level === 'warn').length,
+        eventCounts: {},
+        participantActivity: {},
+        barrelActivity: {},
+      };
+
+      logs.forEach(log => {
+        if (log.event) {
+          stats.eventCounts[log.event] = (stats.eventCounts[log.event] || 0) + 1;
+        }
+        if (log.participantId) {
+          stats.participantActivity[log.participantId] = (stats.participantActivity[log.participantId] || 0) + 1;
+        }
+        if (log.barrelId) {
+          stats.barrelActivity[log.barrelId] = (stats.barrelActivity[log.barrelId] || 0) + 1;
+        }
+      });
+
+      return stats;
+    } catch (error) {
+      this.error('Failed to get log statistics', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+  }
+
   error(message: string, meta?: Record<string, unknown>) {
     this.logger.error(message, meta);
   }
@@ -114,7 +185,6 @@ export class LoggingService {
     this.logger.debug(message, meta);
   }
 
-  // Specific business event logging methods
   logBeerAdded(participantId: string, barrelId?: string | null) {
     this.info('Beer added to participant', {
       event: 'BEER_ADDED',
@@ -146,11 +216,47 @@ export class LoggingService {
     });
   }
 
-  logParticipantCreated(participantId: string, name: string) {
+  logBarrelUpdated(barrelId: string, changes: Record<string, any>) {
+    this.info('Barrel updated', {
+      event: 'BARREL_UPDATED',
+      barrelId,
+      changes,
+    });
+  }
+
+  logBarrelStatusChanged(barrelId: string, isActive: boolean) {
+    this.info('Barrel status changed', {
+      event: 'BARREL_STATUS_CHANGED',
+      barrelId,
+      isActive,
+    });
+  }
+
+  logBarrelEmpty(barrelId: string) {
+    this.info('Barrel is now empty', {
+      event: 'BARREL_EMPTY',
+      barrelId,
+    });
+  }
+
+  logParticipantCreated(
+    participantId: string,
+    name: string,
+    gender: string,
+  ) {
     this.info('New participant created', {
       event: 'PARTICIPANT_CREATED',
       participantId,
       name,
+      gender,
+    });
+  }
+
+  logParticipantUpdated(participantId: string, changes: Record<string, any>) {
+    this.info('Participant updated', {
+      event: 'PARTICIPANT_UPDATED',
+      participantId,
+      changes,
     });
   }
 
@@ -161,10 +267,28 @@ export class LoggingService {
     });
   }
 
-  logCleanup(type: 'BARRELS' | 'PARTICIPANTS' | 'ALL') {
+  logParticipantBeerCountUpdated(
+    participantId: string,
+    oldCount: number,
+    newCount: number,
+  ) {
+    this.info('Participant beer count updated', {
+      event: 'PARTICIPANT_BEER_COUNT_UPDATED',
+      participantId,
+      oldCount,
+      newCount,
+      change: newCount - oldCount,
+    });
+  }
+
+  logCleanup(
+    type: 'BARRELS' | 'PARTICIPANTS' | 'ALL',
+    details?: Record<string, any>,
+  ) {
     this.info('Cleanup performed', {
       event: 'CLEANUP',
       type,
+      ...details,
     });
   }
 } 

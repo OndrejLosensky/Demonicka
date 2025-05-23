@@ -5,9 +5,13 @@ import { ParticipantsController } from './participants.controller';
 import { Participant } from './entities/participant.entity';
 import { Beer } from '../beers/entities/beer.entity';
 import { Barrel } from '../barrels/entities/barrel.entity';
+import { LoggingModule } from '../logging/logging.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Participant, Beer, Barrel])],
+  imports: [
+    TypeOrmModule.forFeature([Participant, Beer, Barrel]),
+    LoggingModule,
+  ],
   controllers: [ParticipantsController],
   providers: [ParticipantsService],
   exports: [ParticipantsService],
