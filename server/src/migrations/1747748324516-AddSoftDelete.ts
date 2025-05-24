@@ -18,4 +18,4 @@ export class AddSoftDelete1747748324516 implements MigrationInterface {
     await queryRunner.dropColumn('beers', 'deletedAt');
     await queryRunner.dropColumn('barrels', 'deletedAt');
   }
-} 
+}

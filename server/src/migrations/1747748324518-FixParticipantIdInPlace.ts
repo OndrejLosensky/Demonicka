@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class FixParticipantIdInPlace1747748324518 implements MigrationInterface {
+export class FixParticipantIdInPlace1747748324518
+  implements MigrationInterface
+{
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Clean up any existing temporary tables
     await queryRunner.query('DROP TABLE IF EXISTS "temp_participants";');
@@ -79,7 +81,9 @@ export class FixParticipantIdInPlace1747748324518 implements MigrationInterface 
     // Drop the old tables and rename the temporary ones
     await queryRunner.query('DROP TABLE "beer";');
     await queryRunner.query('DROP TABLE "participants";');
-    await queryRunner.query('ALTER TABLE "temp_participants" RENAME TO "participants";');
+    await queryRunner.query(
+      'ALTER TABLE "temp_participants" RENAME TO "participants";',
+    );
     await queryRunner.query('ALTER TABLE "temp_beer" RENAME TO "beer";');
   }
 
@@ -87,4 +91,4 @@ export class FixParticipantIdInPlace1747748324518 implements MigrationInterface 
     // Since we're converting IDs to strings, we can't safely revert this migration
     throw new Error('This migration cannot be reverted');
   }
-} 
+}

@@ -42,7 +42,9 @@ export class BeersController {
    * @throws {NotFoundException} When participant has no beers or is not found
    */
   @Delete()
-  async removeLastBeer(@Param('participantId') participantId: string): Promise<void> {
+  async removeLastBeer(
+    @Param('participantId') participantId: string,
+  ): Promise<void> {
     return this.beersService.removeLastBeer(participantId);
   }
 
@@ -74,4 +76,4 @@ export class BeersController {
     const count = await this.beersService.getBeerCount(participantId);
     return { count };
   }
-} 
+}

@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import { format } from 'date-fns';
-import type { LogEntry } from './api';
+import type { LogEntry } from './types';
 import { LOG_LEVELS } from './useHistory';
 import type { LogLevel } from './useHistory';
 

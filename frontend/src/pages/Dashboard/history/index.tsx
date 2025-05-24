@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { Tabs, Tab } from '@mui/material';
+import { Tabs, Tab, Button } from '@mui/material';
 import { HistoryTable } from './HistoryTable';
 import { useHistory } from './useHistory';
 import { LogStats } from './LogStats';
+import { CleanupDialog } from './CleanupDialog';
+import { DeleteOutline } from '@mui/icons-material';
 
 export const History = () => {
   const [activeTab, setActiveTab] = useState(0);
+  const [isCleanupOpen, setIsCleanupOpen] = useState(false);
   const {
     logs,
     total,
@@ -16,6 +19,7 @@ export const History = () => {
     handlePageChange,
     handleRowsPerPageChange,
     handleLevelChange,
+    refetch,
   } = useHistory();
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -24,7 +28,17 @@ export const History = () => {
 
   return (
     <div className="p-4">
-      <h1 className="text-3xl font-bold mb-6">History & Analytics</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">History & Analytics</h1>
+        <Button
+          variant="outlined"
+          color="error"
+          startIcon={<DeleteOutline />}
+          onClick={() => setIsCleanupOpen(true)}
+        >
+          Clean Up Logs
+        </Button>
+      </div>
       
       <Tabs
         value={activeTab}
@@ -58,6 +72,12 @@ export const History = () => {
           />
         </section>
       )}
+
+      <CleanupDialog
+        open={isCleanupOpen}
+        onClose={() => setIsCleanupOpen(false)}
+        onSuccess={refetch}
+      />
     </div>
   );
 }; 

@@ -8,4 +8,4 @@ import { DatePipe } from './date.pipe';
   exports: [LoggingService],
   controllers: [LoggingController],
 })
-export class LoggingModule {} 
+export class LoggingModule {}

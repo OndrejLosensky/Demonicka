@@ -23,7 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const jwtSecret = configService.get<string>('JWT_SECRET') as string;
     if (!jwtSecret) {
       throw new Error('JWT_SECRET must be defined');

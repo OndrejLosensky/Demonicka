@@ -75,9 +75,11 @@ export class ParticipantsService {
         );
       }
 
-      const participant = this.participantsRepository.create(createParticipantDto);
+      const participant =
+        this.participantsRepository.create(createParticipantDto);
 
-      const savedParticipant = await this.participantsRepository.save(participant);
+      const savedParticipant =
+        await this.participantsRepository.save(participant);
 
       this.loggingService.logParticipantCreated(
         savedParticipant.id,
@@ -165,7 +167,8 @@ export class ParticipantsService {
 
       Object.assign(participant, updateParticipantDto);
 
-      const savedParticipant = await this.participantsRepository.save(participant);
+      const savedParticipant =
+        await this.participantsRepository.save(participant);
 
       this.loggingService.logParticipantUpdated(id, updateParticipantDto);
 

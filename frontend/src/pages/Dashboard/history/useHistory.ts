@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getLogs} from './api';
+import { getLogs } from './api';
 
 export const LOG_LEVELS = ['info', 'error', 'warn', 'debug'] as const;
 export type LogLevel = typeof LOG_LEVELS[number];
@@ -10,7 +10,7 @@ export const useHistory = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [level, setLevel] = useState<LogLevel | ''>('');
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['logs', page, rowsPerPage, level],
     queryFn: () =>
       getLogs({
@@ -47,5 +47,6 @@ export const useHistory = () => {
     handlePageChange,
     handleRowsPerPageChange,
     handleLevelChange,
+    refetch,
   };
 }; 

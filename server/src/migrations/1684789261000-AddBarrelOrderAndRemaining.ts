@@ -16,7 +16,7 @@ export class AddBarrelOrderAndRemaining1684789261000
     const barrels = (await queryRunner.query(
       `SELECT * FROM "barrels" ORDER BY "createdAt" ASC`,
     )) as BarrelData[];
-    
+
     // Drop existing table
     await queryRunner.dropTable('barrels');
 
@@ -93,7 +93,7 @@ export class AddBarrelOrderAndRemaining1684789261000
     const barrels = (await queryRunner.query(
       `SELECT * FROM "barrels"`,
     )) as BarrelData[];
-    
+
     // Drop the new table
     await queryRunner.dropTable('barrels');
 
@@ -139,9 +139,15 @@ export class AddBarrelOrderAndRemaining1684789261000
         await queryRunner.query(
           `INSERT INTO "barrels" ("id", "size", "isActive", "createdAt", "updatedAt")
            VALUES (?, ?, ?, ?, ?)`,
-          [barrel.id, barrel.size, barrel.isActive, barrel.createdAt, barrel.updatedAt],
+          [
+            barrel.id,
+            barrel.size,
+            barrel.isActive,
+            barrel.createdAt,
+            barrel.updatedAt,
+          ],
         );
       }
     }
   }
-} 
+}

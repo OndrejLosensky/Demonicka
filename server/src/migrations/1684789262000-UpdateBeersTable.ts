@@ -100,4 +100,4 @@ export class UpdateBeersTable1684789262000 implements MigrationInterface {
       }),
     );
   }
-} 
+}

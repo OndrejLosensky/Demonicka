@@ -12,6 +12,12 @@ interface GetLogsParams {
   eventType?: string;
 }
 
+interface CleanupOptions {
+  olderThan?: Date;
+  levels?: string[];
+  eventTypes?: string[];
+}
+
 export const historyApi = {
   getStats: async (startDate?: Date, endDate?: Date): Promise<LogStats> => {
     const params = new URLSearchParams();
@@ -27,6 +33,13 @@ export const historyApi = {
     });
     return data;
   },
+
+  cleanup: async (options: CleanupOptions = {}): Promise<{ deletedCount: number }> => {
+    const { data } = await axios.post(`${API_URL}/logs/cleanup`, options, {
+      withCredentials: true
+    });
+    return data;
+  }
 };
 
 export const getLogs = async (params: GetLogsParams = {}): Promise<LogsResponse> => {

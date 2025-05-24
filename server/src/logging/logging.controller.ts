@@ -3,13 +3,29 @@ import {
   Get,
   Query,
   ParseIntPipe,
+  Post,
+  Body,
 } from '@nestjs/common';
 import { LoggingService } from './logging.service';
 import { DatePipe } from './date.pipe';
 
+interface CleanupLogsDto {
+  olderThan?: Date;
+  levels?: string[];
+  eventTypes?: string[];
+}
+
 @Controller('logs')
 export class LoggingController {
   constructor(private readonly loggingService: LoggingService) {}
+
+  @Post('cleanup')
+  async cleanup(
+    @Body() dto: CleanupLogsDto,
+  ): Promise<{ deletedCount: number }> {
+    const result = await this.loggingService.cleanup(dto);
+    return result;
+  }
 
   @Get()
   async getLogs(

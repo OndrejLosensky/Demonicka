@@ -88,7 +88,9 @@ export class FixParticipantIdType1747748324517 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query('ALTER TABLE "beers" RENAME TO "temp_beers";');
-    await queryRunner.query('ALTER TABLE "participants" RENAME TO "temp_participants";');
+    await queryRunner.query(
+      'ALTER TABLE "participants" RENAME TO "temp_participants";',
+    );
     await queryRunner.query(`
       CREATE TABLE "participants" (
         "id" integer PRIMARY KEY AUTOINCREMENT,
@@ -115,4 +117,4 @@ export class FixParticipantIdType1747748324517 implements MigrationInterface {
     await queryRunner.query('DROP TABLE "temp_beers";');
     await queryRunner.query('DROP TABLE "temp_participants";');
   }
-} 
+}

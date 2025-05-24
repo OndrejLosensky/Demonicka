@@ -18,4 +18,4 @@ import { LoggingModule } from '../logging/logging.module';
   providers: [BeersService],
   exports: [BeersService],
 })
-export class BeersModule {} 
+export class BeersModule {}

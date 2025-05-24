@@ -10,7 +10,8 @@ import {
   ArcElement,
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
-import { LogStats, LogsService } from '../services/logs.service';
+import type { LogStats } from '../pages/Dashboard/history/types';
+import { historyApi } from '../pages/Dashboard/history/api';
 
 ChartJS.register(
   CategoryScale,
@@ -32,7 +33,7 @@ export const LogStatsComponent: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const data = await LogsService.getStats(dateRange.startDate, dateRange.endDate);
+        const data = await historyApi.getStats(dateRange.startDate, dateRange.endDate);
         setStats(data);
       } catch (error) {
         console.error('Failed to fetch log stats:', error);
