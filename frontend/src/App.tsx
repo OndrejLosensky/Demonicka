@@ -7,13 +7,13 @@ import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import Dashboard from './pages/Dashboard/Dashboard';
-import Profile from './pages/Dashboard/Profile';
 import Participants from './pages/Dashboard/Participants';
 import Barrels from './pages/Dashboard/Barrels';
 import Leaderboard from './pages/Leaderboard';
 import Landing from './pages/Landing';
 import Header from './components/Header';
 import { History } from './pages/Dashboard/history';
+import ProfilePage from './pages/Profile';
 
 const queryClient = new QueryClient();
 
@@ -45,10 +45,10 @@ function App() {
                   }
                 />
                 <Route
-                  path="dashboard/profile"
+                  path="profile"
                   element={
                     <PrivateRoute>
-                      <Profile />
+                      <ProfilePage />
                     </PrivateRoute>
                   }
                 />

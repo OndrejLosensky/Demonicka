@@ -40,16 +40,7 @@ export default function Landing() {
               alt="Démonická"
               className="mx-auto h-24 w-auto mb-8"
             />
-            
-            <motion.h1
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-4xl font-bold tracking-tight text-text-primary sm:text-6xl"
-            >
-              Démonická
-            </motion.h1>
-            
+        
             <motion.p
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
