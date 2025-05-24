@@ -34,12 +34,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     info: unknown,
   ): TUser {
     if (info instanceof JsonWebTokenError) {
-      throw new UnauthorizedException('Invalid JWT token');
+      throw new UnauthorizedException('Neplatný JWT token');
     }
 
     if (err || !user) {
       throw new UnauthorizedException(
-        err?.message || 'You are not authorized to access this resource',
+        err?.message || 'Nemáte oprávnění k přístupu k tomuto zdroji',
       );
     }
 

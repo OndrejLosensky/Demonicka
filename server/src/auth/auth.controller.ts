@@ -68,7 +68,7 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     if (!req.user) {
-      throw new UnauthorizedException('No user found in request');
+      throw new UnauthorizedException('Uživatel nebyl nalezen v požadavku');
     }
     return this.authService.login(req.user, response);
   }
@@ -83,7 +83,7 @@ export class AuthController {
   async refresh(@Req() req: RequestWithUser) {
     const refreshToken = req.cookies?.['refresh_token'];
     if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token not found');
+      throw new UnauthorizedException('Obnovovací token nebyl nalezen');
     }
     return this.authService.refreshTokens(refreshToken);
   }

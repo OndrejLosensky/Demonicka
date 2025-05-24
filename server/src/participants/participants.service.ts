@@ -48,7 +48,7 @@ export class ParticipantsService {
         barrelsReset: barrels.length,
       });
     } catch (error: unknown) {
-      this.loggingService.error('Failed to cleanup participants', {
+      this.loggingService.error('Nepodařilo se vyčistit účastníky', {
         error: error instanceof Error ? error.message : String(error),
       });
       throw error;
@@ -67,12 +67,10 @@ export class ParticipantsService {
       });
 
       if (existingParticipant) {
-        this.loggingService.warn('Attempted to create duplicate participant', {
+        this.loggingService.warn('Pokus o vytvoření duplicitního účastníka', {
           name: createParticipantDto.name,
         });
-        throw new ConflictException(
-          'Participant with this name already exists',
-        );
+        throw new ConflictException('Účastník s tímto jménem již existuje');
       }
 
       const participant =
@@ -90,7 +88,7 @@ export class ParticipantsService {
       return savedParticipant;
     } catch (error: unknown) {
       if (!(error instanceof ConflictException)) {
-        this.loggingService.error('Failed to create participant', {
+        this.loggingService.error('Nepodařilo se vytvořit účastníka', {
           error: error instanceof Error ? error.message : String(error),
           participant: createParticipantDto,
         });
@@ -106,7 +104,7 @@ export class ParticipantsService {
         withDeleted,
       });
     } catch (error: unknown) {
-      this.loggingService.error('Failed to fetch participants', {
+      this.loggingService.error('Nepodařilo se načíst účastníky', {
         error: error instanceof Error ? error.message : String(error),
         withDeleted,
       });
@@ -122,14 +120,14 @@ export class ParticipantsService {
       });
 
       if (!participant) {
-        this.loggingService.warn('Participant not found', { id, withDeleted });
-        throw new NotFoundException(`Participant with ID ${id} not found`);
+        this.loggingService.warn('Účastník nebyl nalezen', { id, withDeleted });
+        throw new NotFoundException(`Účastník s ID ${id} nebyl nalezen`);
       }
 
       return participant;
     } catch (error: unknown) {
       if (!(error instanceof NotFoundException)) {
-        this.loggingService.error('Failed to fetch participant', {
+        this.loggingService.error('Nepodařilo se načíst účastníka', {
           error: error instanceof Error ? error.message : String(error),
           id,
           withDeleted,
@@ -154,14 +152,12 @@ export class ParticipantsService {
         });
 
         if (existingParticipant && existingParticipant.id !== id) {
-          this.loggingService.warn('Attempted to update to existing name', {
+          this.loggingService.warn('Pokus o aktualizaci na existující jméno', {
             id,
             newName: updateParticipantDto.name,
             existingId: existingParticipant.id,
           });
-          throw new ConflictException(
-            'Participant with this name already exists',
-          );
+          throw new ConflictException('Účastník s tímto jménem již existuje');
         }
       }
 
@@ -187,7 +183,7 @@ export class ParticipantsService {
       return savedParticipant;
     } catch (error: unknown) {
       if (!(error instanceof ConflictException)) {
-        this.loggingService.error('Failed to update participant', {
+        this.loggingService.error('Nepodařilo se aktualizovat účastníka', {
           error: error instanceof Error ? error.message : String(error),
           id,
           changes: updateParticipantDto,
@@ -204,7 +200,7 @@ export class ParticipantsService {
       this.loggingService.logParticipantDeleted(id);
     } catch (error: unknown) {
       if (!(error instanceof NotFoundException)) {
-        this.loggingService.error('Failed to delete participant', {
+        this.loggingService.error('Nepodařilo se smazat účastníka', {
           error: error instanceof Error ? error.message : String(error),
           id,
         });
@@ -222,7 +218,7 @@ export class ParticipantsService {
         },
       });
     } catch (error: unknown) {
-      this.loggingService.error('Failed to fetch deleted participants', {
+      this.loggingService.error('Nepodařilo se načíst smazané účastníky', {
         error: error instanceof Error ? error.message : String(error),
       });
       throw error;

@@ -1,0 +1,26 @@
+{
+  "errors": {
+    "network": {
+      "default": "Chyba připojení k serveru",
+      "unauthorized": "Vaše přihlášení vypršelo, prosím přihlaste se znovu",
+      "forbidden": "Nemáte oprávnění k této akci",
+      "notFound": "Požadovaný zdroj nebyl nalezen",
+      "conflict": "Došlo ke konfliktu dat",
+      "server": "Došlo k chybě na serveru",
+      "unknown": "Došlo k neočekávané chybě"
+    },
+    "validation": {
+      "required": "Toto pole je povinné",
+      "email": "Prosím zadejte platnou emailovou adresu",
+      "minLength": "Minimální délka je {{length}} znaků",
+      "maxLength": "Maximální délka je {{length}} znaků",
+      "pattern": "Neplatný formát",
+      "unique": "Tato hodnota již existuje"
+    }
+  },
+  "success": {
+    "created": "Úspěšně vytvořeno",
+    "updated": "Úspěšně aktualizováno",
+    "deleted": "Úspěšně smazáno"
+  }
+} 

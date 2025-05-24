@@ -2,10 +2,10 @@ import { IsEmail, IsString, MinLength, Matches } from 'class-validator';
 
 export class RegisterDto {
   @IsString()
-  @MinLength(3, { message: 'Username must be at least 3 characters long' })
+  @MinLength(3, { message: 'Uživatelské jméno musí mít alespoň 3 znaky' })
   @Matches(/^[a-zA-Z0-9_-]+$/, {
     message:
-      'Username can only contain letters, numbers, underscores, and hyphens',
+      'Uživatelské jméno může obsahovat pouze písmena, čísla, podtržítka a pomlčky',
   })
   username: string;
 
@@ -16,7 +16,7 @@ export class RegisterDto {
   @MinLength(8)
   @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
     message:
-      'Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number or special character',
+      'Heslo musí obsahovat alespoň 1 velké písmeno, 1 malé písmeno a 1 číslo nebo speciální znak',
   })
   password: string;
 

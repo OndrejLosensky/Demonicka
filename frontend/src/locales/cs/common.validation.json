@@ -1,0 +1,60 @@
+{
+  "auth": {
+    "validation": {
+      "username": {
+        "required": "Uživatelské jméno je povinné",
+        "minLength": "Uživatelské jméno musí mít alespoň 3 znaky"
+      },
+      "password": {
+        "required": "Heslo je povinné",
+        "minLength": "Heslo musí mít alespoň 8 znaků"
+      },
+      "email": {
+        "required": "Email je povinný",
+        "invalid": "Prosím zadejte platnou emailovou adresu"
+      },
+      "firstName": {
+        "minLength": "Křestní jméno musí mít alespoň 2 znaky"
+      },
+      "lastName": {
+        "minLength": "Příjmení musí mít alespoň 2 znaky"
+      }
+    },
+    "success": {
+      "logout": "Odhlášení proběhlo úspěšně"
+    }
+  },
+  "barrels": {
+    "validation": {
+      "size": {
+        "invalid": "Velikost sudu musí být 15L, 30L, nebo 50L"
+      }
+    },
+    "errors": {
+      "create": "Nepodařilo se vytvořit sud",
+      "update": "Nepodařilo se aktualizovat sud",
+      "delete": "Nepodařilo se smazat sud",
+      "fetch": "Nepodařilo se načíst sudy",
+      "notFound": "Sud nebyl nalezen"
+    }
+  },
+  "participants": {
+    "errors": {
+      "create": "Nepodařilo se vytvořit účastníka",
+      "update": "Nepodařilo se aktualizovat účastníka",
+      "delete": "Nepodařilo se smazat účastníka",
+      "fetch": "Nepodařilo se načíst účastníky",
+      "notFound": "Účastník nebyl nalezen"
+    }
+  },
+  "general": {
+    "errors": {
+      "unauthorized": "Nemáte oprávnění k této akci",
+      "forbidden": "Přístup zamítnut",
+      "notFound": "Požadovaný zdroj nebyl nalezen",
+      "serverError": "Došlo k chybě na serveru",
+      "networkError": "Chyba připojení k serveru",
+      "unknown": "Došlo k neočekávané chybě"
+    }
+  }
+} 

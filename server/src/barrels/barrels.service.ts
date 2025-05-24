@@ -42,7 +42,7 @@ export class BarrelsService {
       where: { id },
     });
     if (!barrel) {
-      throw new NotFoundException(`Barrel with ID ${id} not found`);
+      throw new NotFoundException(`Sud s ID ${id} nebyl nalezen`);
     }
     return barrel;
   }
@@ -58,6 +58,7 @@ export class BarrelsService {
       // Create new barrel (active by default)
       const barrel = this.barrelsRepository.create({
         ...createBarrelDto,
+        size: createBarrelDto.size as 15 | 30 | 50,
         remainingBeers: createBarrelDto.size * 2,
         isActive: true,
       });

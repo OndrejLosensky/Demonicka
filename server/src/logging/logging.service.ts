@@ -58,8 +58,12 @@ export class LoggingService {
       format: format.combine(format.timestamp(), format.json()),
     };
 
-    const rotateFileTransport = new winston.transports.DailyRotateFile(rotateConfig);
-    const errorRotateFileTransport = new winston.transports.DailyRotateFile(errorRotateConfig);
+    const rotateFileTransport = new winston.transports.DailyRotateFile(
+      rotateConfig,
+    );
+    const errorRotateFileTransport = new winston.transports.DailyRotateFile(
+      errorRotateConfig,
+    );
 
     // Initialize winston logger with file transports
     this.logger = winston.createLogger({
@@ -204,7 +208,7 @@ export class LoggingService {
 
       return stats;
     } catch (error) {
-      this.error('Failed to get log statistics', {
+      this.error('Nepodařilo se získat statistiky logů', {
         error: error instanceof Error ? error.message : String(error),
       });
       throw error;
@@ -253,7 +257,7 @@ export class LoggingService {
    * @param barrelId - Optional ID of the barrel the beer came from
    */
   logBeerAdded(participantId: string, barrelId?: string | null) {
-    this.info('Beer added to participant', {
+    this.info('Pivo přidáno účastníkovi', {
       event: 'BEER_ADDED',
       participantId,
       barrelId,
@@ -266,7 +270,7 @@ export class LoggingService {
    * @param barrelId - Optional ID of the barrel the beer was associated with
    */
   logBeerRemoved(participantId: string, barrelId?: string | null) {
-    this.info('Beer removed from participant', {
+    this.info('Pivo odebráno účastníkovi', {
       event: 'BEER_REMOVED',
       participantId,
       barrelId,
@@ -275,11 +279,11 @@ export class LoggingService {
 
   /**
    * Logs a barrel creation event
-   * @param barrelId - ID of the newly created barrel
-   * @param size - Size of the barrel
+   * @param barrelId - ID of the created barrel
+   * @param size - Size of the barrel in liters
    */
   logBarrelCreated(barrelId: string, size: number) {
-    this.info('New barrel created', {
+    this.info('Sud vytvořen', {
       event: 'BARREL_CREATED',
       barrelId,
       size,
@@ -291,7 +295,7 @@ export class LoggingService {
    * @param barrelId - ID of the deleted barrel
    */
   logBarrelDeleted(barrelId: string) {
-    this.info('Barrel deleted', {
+    this.info('Sud smazán', {
       event: 'BARREL_DELETED',
       barrelId,
     });
@@ -303,7 +307,7 @@ export class LoggingService {
    * @param changes - Object containing the changes made to the barrel
    */
   logBarrelUpdated(barrelId: string, changes: Record<string, any>) {
-    this.info('Barrel updated', {
+    this.info('Sud aktualizován', {
       event: 'BARREL_UPDATED',
       barrelId,
       changes,
@@ -313,10 +317,10 @@ export class LoggingService {
   /**
    * Logs a barrel status change event
    * @param barrelId - ID of the barrel
-   * @param isActive - New active status of the barrel
+   * @param isActive - New active status
    */
   logBarrelStatusChanged(barrelId: string, isActive: boolean) {
-    this.info('Barrel status changed', {
+    this.info('Stav sudu změněn', {
       event: 'BARREL_STATUS_CHANGED',
       barrelId,
       isActive,
@@ -328,7 +332,7 @@ export class LoggingService {
    * @param barrelId - ID of the empty barrel
    */
   logBarrelEmpty(barrelId: string) {
-    this.info('Barrel is now empty', {
+    this.info('Sud je prázdný', {
       event: 'BARREL_EMPTY',
       barrelId,
     });
@@ -336,12 +340,12 @@ export class LoggingService {
 
   /**
    * Logs a participant creation event
-   * @param participantId - ID of the new participant
+   * @param participantId - ID of the created participant
    * @param name - Name of the participant
    * @param gender - Gender of the participant
    */
   logParticipantCreated(participantId: string, name: string, gender: string) {
-    this.info('New participant created', {
+    this.info('Účastník vytvořen', {
       event: 'PARTICIPANT_CREATED',
       participantId,
       name,
@@ -355,7 +359,7 @@ export class LoggingService {
    * @param changes - Object containing the changes made to the participant
    */
   logParticipantUpdated(participantId: string, changes: Record<string, any>) {
-    this.info('Participant updated', {
+    this.info('Účastník aktualizován', {
       event: 'PARTICIPANT_UPDATED',
       participantId,
       changes,
@@ -367,7 +371,7 @@ export class LoggingService {
    * @param participantId - ID of the deleted participant
    */
   logParticipantDeleted(participantId: string) {
-    this.info('Participant deleted', {
+    this.info('Účastník smazán', {
       event: 'PARTICIPANT_DELETED',
       participantId,
     });
@@ -384,7 +388,7 @@ export class LoggingService {
     oldCount: number,
     newCount: number,
   ) {
-    this.info('Participant beer count updated', {
+    this.info('Počet piv účastníka aktualizován', {
       event: 'PARTICIPANT_BEER_COUNT_UPDATED',
       participantId,
       oldCount,
@@ -402,7 +406,7 @@ export class LoggingService {
     type: 'BARRELS' | 'PARTICIPANTS' | 'ALL',
     details?: Record<string, any>,
   ) {
-    this.info('Cleanup performed', {
+    this.info('Provedeno vyčištění', {
       event: 'CLEANUP',
       type,
       ...details,
@@ -437,11 +441,10 @@ export class LoggingService {
       await fs.mkdir(this.logDir, { recursive: true });
 
       // Close existing transports
-      await Promise.all(
-        this.logger.transports.map((t) => 
-          new Promise((resolve) => t.on('finish', resolve))
-        )
+      const promises = this.logger.transports.map(
+        (t) => new Promise((resolve) => t.on('finish', resolve)),
       );
+      await Promise.all(promises);
       this.logger.clear();
 
       // Reinitialize transports

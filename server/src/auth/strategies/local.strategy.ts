@@ -25,7 +25,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     const user = await this.authService.validateUser(usernameOrEmail, password);
     if (!user) {
       this.logger.debug('User validation failed - invalid credentials');
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Neplatné přihlašovací údaje');
     }
 
     this.logger.debug('User validation successful');

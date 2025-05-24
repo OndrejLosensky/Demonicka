@@ -44,7 +44,7 @@ export class UsersController {
   async findOne(@Param('id') id: string, @CurrentUser() currentUser: User) {
     // Only allow users to access their own data unless they're an admin
     if (currentUser.id !== id) {
-      throw new ForbiddenException('You can only access your own user data');
+      throw new ForbiddenException('Můžete přistupovat pouze k vlastním datům');
     }
     return this.usersService.findOne(id);
   }
@@ -58,7 +58,7 @@ export class UsersController {
   ) {
     // Only allow users to update their own data unless they're an admin
     if (currentUser.id !== id) {
-      throw new ForbiddenException('You can only update your own user data');
+      throw new ForbiddenException('Můžete upravovat pouze vlastní data');
     }
     return this.usersService.update(id, updateUserDto);
   }

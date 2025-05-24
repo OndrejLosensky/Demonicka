@@ -45,7 +45,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
   ): Promise<{ id: string; email: string }> {
     const refreshToken = request?.cookies?.refreshToken;
     if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token not found');
+      throw new UnauthorizedException('Obnovovací token nebyl nalezen');
     }
 
     const isValid = await this.authService.validateRefreshToken(
@@ -53,7 +53,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
       parseInt(payload.sub, 10),
     );
     if (!isValid) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException('Neplatný obnovovací token');
     }
 
     return {

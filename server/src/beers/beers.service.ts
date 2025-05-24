@@ -19,11 +19,14 @@ export class BeersService {
   async addBeer(participantId: string): Promise<Beer> {
     const participant = await this.participantsService.findOne(participantId);
     if (!participant) {
-      this.loggingService.error('Failed to add beer - participant not found', {
-        participantId,
-      });
+      this.loggingService.error(
+        'Nepodařilo se přidat pivo - účastník nenalezen',
+        {
+          participantId,
+        },
+      );
       throw new NotFoundException(
-        `Participant with ID ${participantId} not found`,
+        `Účastník s ID ${participantId} nebyl nalezen`,
       );
     }
 
@@ -68,11 +71,14 @@ export class BeersService {
     });
 
     if (!lastBeer) {
-      this.loggingService.error('Failed to remove beer - no beers found', {
-        participantId,
-      });
+      this.loggingService.error(
+        'Nepodařilo se odebrat pivo - žádná piva nenalezena',
+        {
+          participantId,
+        },
+      );
       throw new NotFoundException(
-        `No beers found for participant ${participantId}`,
+        `Pro účastníka ${participantId} nebyla nalezena žádná piva`,
       );
     }
 

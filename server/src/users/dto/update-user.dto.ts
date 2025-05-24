@@ -9,36 +9,36 @@ import {
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
-  @MinLength(3, { message: 'Username must be at least 3 characters long' })
+  @MinLength(3, { message: 'Uživatelské jméno musí mít alespoň 3 znaky' })
   @Matches(/^[a-zA-Z0-9_-]+$/, {
     message:
-      'Username can only contain letters, numbers, underscores, and hyphens',
+      'Uživatelské jméno může obsahovat pouze písmena, čísla, podtržítka a pomlčky',
   })
   username?: string;
 
   @IsOptional()
   @IsString()
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
+  @MinLength(8, { message: 'Heslo musí mít alespoň 8 znaků' })
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
     {
       message:
-        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+        'Heslo musí obsahovat alespoň jedno velké písmeno, jedno malé písmeno, jedno číslo a jeden speciální znak',
     },
   )
   password?: string;
 
   @IsOptional()
-  @IsEmail({}, { message: 'Please provide a valid email address' })
+  @IsEmail({}, { message: 'Prosím zadejte platnou emailovou adresu' })
   email?: string;
 
   @IsOptional()
   @IsString()
-  @MinLength(2, { message: 'First name must be at least 2 characters long' })
+  @MinLength(2, { message: 'Křestní jméno musí mít alespoň 2 znaky' })
   firstName?: string;
 
   @IsOptional()
   @IsString()
-  @MinLength(2, { message: 'Last name must be at least 2 characters long' })
+  @MinLength(2, { message: 'Příjmení musí mít alespoň 2 znaky' })
   lastName?: string;
 }

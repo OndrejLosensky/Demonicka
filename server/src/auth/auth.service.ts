@@ -104,7 +104,7 @@ export class AuthService {
       response.clearCookie('access_token', this.getCookieOptions()),
       response.clearCookie('refresh_token', this.getCookieOptions(true)),
     ]);
-    return { message: 'Logout successful' };
+    return { message: 'Odhlášení proběhlo úspěšně' };
   }
 
   async refreshTokens(refreshTokenStr: string) {
@@ -118,12 +118,12 @@ export class AuthService {
       refreshToken.isRevoked ||
       new Date() > refreshToken.expiresAt
     ) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException('Neplatný obnovovací token');
     }
 
     const user = await this.usersService.findOne(refreshToken.userId);
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException('Uživatel nebyl nalezen');
     }
 
     // Generate new tokens

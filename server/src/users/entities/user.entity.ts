@@ -15,8 +15,8 @@ export class User {
   id: string;
 
   @Column({ unique: true })
-  @IsNotEmpty({ message: 'Username is required' })
-  @MinLength(3, { message: 'Username must be at least 3 characters long' })
+  @IsNotEmpty({ message: 'Uživatelské jméno je povinné' })
+  @MinLength(3, { message: 'Uživatelské jméno musí mít alespoň 3 znaky' })
   @Matches(/^[a-zA-Z0-9_-]+$/, {
     message:
       'Username can only contain letters, numbers, underscores, and hyphens',
@@ -24,8 +24,8 @@ export class User {
   username: string;
 
   @Column()
-  @IsNotEmpty({ message: 'Password is required' })
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
+  @IsNotEmpty({ message: 'Heslo je povinné' })
+  @MinLength(8, { message: 'Heslo musí mít alespoň 8 znaků' })
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
     {
@@ -36,16 +36,16 @@ export class User {
   password: string;
 
   @Column({ unique: true })
-  @IsEmail({}, { message: 'Please provide a valid email address' })
-  @IsNotEmpty({ message: 'Email is required' })
+  @IsEmail({}, { message: 'Prosím zadejte platnou emailovou adresu' })
+  @IsNotEmpty({ message: 'Email je povinný' })
   email: string;
 
   @Column()
-  @MinLength(2, { message: 'First name must be at least 2 characters long' })
+  @MinLength(2, { message: 'Křestní jméno musí mít alespoň 2 znaky' })
   firstName: string;
 
   @Column()
-  @MinLength(2, { message: 'Last name must be at least 2 characters long' })
+  @MinLength(2, { message: 'Příjmení musí mít alespoň 2 znaky' })
   lastName: string;
 
   @OneToMany(() => RefreshToken, (token) => token.user)

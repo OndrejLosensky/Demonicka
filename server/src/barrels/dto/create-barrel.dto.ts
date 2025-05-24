@@ -1,10 +1,10 @@
-import { IsEnum, IsNumber } from 'class-validator';
+import { IsIn, IsNumber } from 'class-validator';
 
 export class CreateBarrelDto {
-  @IsEnum([15, 30, 50], {
-    message: 'Barrel size must be either 15L, 30L, or 50L',
+  @IsIn([15, 30, 50], {
+    message: 'Velikost sudu musí být 15L, 30L, nebo 50L',
   })
-  size: 15 | 30 | 50;
+  size: number;
 
   @IsNumber()
   orderNumber: number;

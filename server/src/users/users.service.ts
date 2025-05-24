@@ -39,7 +39,7 @@ export class UsersService {
   async findOne(id: string): Promise<UserWithoutPassword> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`Uživatel s ID ${id} nebyl nalezen`);
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = user;
@@ -60,7 +60,7 @@ export class UsersService {
   ): Promise<UserWithoutPassword> {
     const user = await this.findOne(id);
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`Uživatel s ID ${id} nebyl nalezen`);
     }
 
     if (updateUserDto.password) {
@@ -70,7 +70,7 @@ export class UsersService {
     await this.usersRepository.update(id, updateUserDto);
     const updatedUser = await this.usersRepository.findOne({ where: { id } });
     if (!updatedUser) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`Uživatel s ID ${id} nebyl nalezen`);
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = updatedUser;
@@ -80,7 +80,7 @@ export class UsersService {
   async remove(id: string): Promise<void> {
     const result = await this.usersRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`Uživatel s ID ${id} nebyl nalezen`);
     }
   }
 }
