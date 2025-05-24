@@ -11,6 +11,7 @@ import {
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
 import { useLogStats } from './useLogStats';
+import translations from '../../../locales/cs/dashboard.history.json';
 
 ChartJS.register(
   CategoryScale,
@@ -26,11 +27,11 @@ export const LogStats: React.FC = () => {
   const { stats, isLoading, error, dateRange, setDateRange } = useLogStats();
 
   if (isLoading) {
-    return <div>Loading statistics...</div>;
+    return <div>{translations.stats.loading}</div>;
   }
 
   if (error) {
-    return <div>Error loading statistics: {error.message}</div>;
+    return <div>{translations.stats.error.replace('{{message}}', error.message)}</div>;
   }
 
   if (!stats) {
@@ -41,7 +42,7 @@ export const LogStats: React.FC = () => {
     labels: Object.keys(stats.eventCounts),
     datasets: [
       {
-        label: 'Event Counts',
+        label: translations.stats.sections.events.label,
         data: Object.values(stats.eventCounts),
         backgroundColor: [
           'rgba(255, 99, 132, 0.5)',
@@ -63,7 +64,11 @@ export const LogStats: React.FC = () => {
   };
 
   const logLevelData = {
-    labels: ['Error', 'Warning', 'Other'],
+    labels: [
+      translations.stats.sections.logLevels.labels.error,
+      translations.stats.sections.logLevels.labels.warning,
+      translations.stats.sections.logLevels.labels.other
+    ],
     datasets: [
       {
         data: [
@@ -90,7 +95,7 @@ export const LogStats: React.FC = () => {
     labels: Object.keys(stats.participantActivity),
     datasets: [
       {
-        label: 'Participant Activity',
+        label: translations.stats.sections.participants.label,
         data: Object.values(stats.participantActivity),
         backgroundColor: 'rgba(54, 162, 235, 0.5)',
         borderColor: 'rgba(54, 162, 235, 1)',
@@ -102,7 +107,7 @@ export const LogStats: React.FC = () => {
   return (
     <div className="p-4">
       <div className="mb-4">
-        <h2 className="text-2xl font-bold mb-4">Log Statistics</h2>
+        <h2 className="text-2xl font-bold mb-4">{translations.stats.title}</h2>
         <div className="flex gap-4 mb-4">
           <input
             type="date"
@@ -114,6 +119,7 @@ export const LogStats: React.FC = () => {
               }))
             }
             className="border rounded p-2"
+            aria-label={translations.stats.dateRange.start}
           />
           <input
             type="date"
@@ -125,13 +131,14 @@ export const LogStats: React.FC = () => {
               }))
             }
             className="border rounded p-2"
+            aria-label={translations.stats.dateRange.end}
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">Event Distribution</h3>
+          <h3 className="text-lg font-semibold mb-2">{translations.stats.sections.events.title}</h3>
           <Bar
             data={eventData}
             options={{
@@ -142,7 +149,7 @@ export const LogStats: React.FC = () => {
                 },
                 title: {
                   display: true,
-                  text: 'Event Types',
+                  text: translations.stats.sections.events.chartTitle,
                 },
               },
             }}
@@ -150,7 +157,7 @@ export const LogStats: React.FC = () => {
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">Log Levels</h3>
+          <h3 className="text-lg font-semibold mb-2">{translations.stats.sections.logLevels.title}</h3>
           <Pie
             data={logLevelData}
             options={{
@@ -161,7 +168,7 @@ export const LogStats: React.FC = () => {
                 },
                 title: {
                   display: true,
-                  text: 'Log Level Distribution',
+                  text: translations.stats.sections.logLevels.chartTitle,
                 },
               },
             }}
@@ -169,7 +176,7 @@ export const LogStats: React.FC = () => {
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">Participant Activity</h3>
+          <h3 className="text-lg font-semibold mb-2">{translations.stats.sections.participants.title}</h3>
           <Bar
             data={participantData}
             options={{
@@ -180,7 +187,7 @@ export const LogStats: React.FC = () => {
                 },
                 title: {
                   display: true,
-                  text: 'Activity by Participant',
+                  text: translations.stats.sections.participants.chartTitle,
                 },
               },
             }}

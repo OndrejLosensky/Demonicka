@@ -35,6 +35,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
+import translations from '../../locales/cs/profile.json';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -76,7 +77,7 @@ export default function ProfilePage() {
   const [tabValue, setTabValue] = useState(0);
   const [preferences, setPreferences] = useState<PreferencesState>({
     theme: 'system',
-    language: 'en',
+    language: 'cs',
     notifications: {
       email: true,
       push: true,
@@ -141,7 +142,7 @@ export default function ProfilePage() {
                 {user.firstName} {user.lastName}
               </Typography>
               <Typography variant="subtitle1" className="text-text-secondary">
-                Personal Account Information
+                {translations.accountInfo}
               </Typography>
               <Chip 
                 label={`ID: ${user.id.split('-')[0]}...`} 
@@ -161,7 +162,7 @@ export default function ProfilePage() {
                 <PersonIcon color="primary" />
               </ListItemIcon>
               <ListItemText
-                primary="Username"
+                primary={translations.fields.username}
                 secondary={user.username}
                 primaryTypographyProps={{
                   className: "text-text-secondary font-medium"
@@ -177,7 +178,7 @@ export default function ProfilePage() {
                 <EmailIcon color="primary" />
               </ListItemIcon>
               <ListItemText
-                primary="Email Address"
+                primary={translations.fields.email}
                 secondary={user.email}
                 primaryTypographyProps={{
                   className: "text-text-secondary font-medium"
@@ -193,7 +194,7 @@ export default function ProfilePage() {
                 <BadgeIcon color="primary" />
               </ListItemIcon>
               <ListItemText
-                primary="Full Name"
+                primary={translations.fields.fullName}
                 secondary={`${user.firstName} ${user.lastName}`}
                 primaryTypographyProps={{
                   className: "text-text-secondary font-medium"
@@ -209,7 +210,7 @@ export default function ProfilePage() {
                 <FingerprintIcon color="primary" />
               </ListItemIcon>
               <ListItemText
-                primary="User ID"
+                primary={translations.fields.userId}
                 secondary={user.id}
                 primaryTypographyProps={{
                   className: "text-text-secondary font-medium"
@@ -227,7 +228,7 @@ export default function ProfilePage() {
                 <CalendarIcon color="primary" />
               </ListItemIcon>
               <ListItemText
-                primary="Account Created"
+                primary={translations.fields.accountCreated}
                 secondary={format(new Date(user.createdAt), 'PPpp')}
                 primaryTypographyProps={{
                   className: "text-text-secondary font-medium"
@@ -243,7 +244,7 @@ export default function ProfilePage() {
                 <UpdateIcon color="primary" />
               </ListItemIcon>
               <ListItemText
-                primary="Last Updated"
+                primary={translations.fields.lastUpdated}
                 secondary={format(new Date(user.updatedAt), 'PPpp')}
                 primaryTypographyProps={{
                   className: "text-text-secondary font-medium"
@@ -260,7 +261,7 @@ export default function ProfilePage() {
           <Box display="flex" alignItems="center" gap={2} mb={4}>
             <SettingsIcon color="primary" />
             <Typography variant="h5" className="font-bold text-text-primary">
-              Preferences
+              {translations.preferences.title}
             </Typography>
           </Box>
 
@@ -274,34 +275,34 @@ export default function ProfilePage() {
             <Tab 
               icon={<PaletteIcon />} 
               iconPosition="start" 
-              label="Appearance" 
+              label={translations.preferences.tabs.appearance}
             />
             <Tab 
               icon={<NotificationsIcon />} 
               iconPosition="start" 
-              label="Notifications" 
+              label={translations.preferences.tabs.notifications}
             />
             <Tab 
               icon={<LanguageIcon />} 
               iconPosition="start" 
-              label="Language & Region" 
+              label={translations.preferences.tabs.language}
             />
           </Tabs>
 
           <TabPanel value={tabValue} index={0}>
             <FormGroup className="space-y-4">
               <FormControl fullWidth>
-                <InputLabel id="theme-select-label">Theme</InputLabel>
+                <InputLabel id="theme-select-label">{translations.preferences.theme.label}</InputLabel>
                 <Select
                   labelId="theme-select-label"
                   value={preferences.theme}
-                  label="Theme"
+                  label={translations.preferences.theme.label}
                   onChange={handleSelectChange('theme')}
                   className="mb-4"
                 >
-                  <MenuItem value="light">Light</MenuItem>
-                  <MenuItem value="dark">Dark</MenuItem>
-                  <MenuItem value="system">System</MenuItem>
+                  <MenuItem value="light">{translations.preferences.theme.light}</MenuItem>
+                  <MenuItem value="dark">{translations.preferences.theme.dark}</MenuItem>
+                  <MenuItem value="system">{translations.preferences.theme.system}</MenuItem>
                 </Select>
               </FormControl>
               
@@ -312,7 +313,7 @@ export default function ProfilePage() {
                     onChange={handlePreferenceChange('display', 'compactMode')}
                   />
                 }
-                label="Compact Mode"
+                label={translations.preferences.display.compactMode}
               />
               <FormControlLabel
                 control={
@@ -321,7 +322,7 @@ export default function ProfilePage() {
                     onChange={handlePreferenceChange('display', 'showAvatars')}
                   />
                 }
-                label="Show Avatars"
+                label={translations.preferences.display.showAvatars}
               />
               <FormControlLabel
                 control={
@@ -330,7 +331,7 @@ export default function ProfilePage() {
                     onChange={handlePreferenceChange('display', 'highContrast')}
                   />
                 }
-                label="High Contrast Mode"
+                label={translations.preferences.display.highContrast}
               />
             </FormGroup>
           </TabPanel>
@@ -344,7 +345,7 @@ export default function ProfilePage() {
                     onChange={handlePreferenceChange('notifications', 'email')}
                   />
                 }
-                label="Email Notifications"
+                label={translations.preferences.notifications.email}
               />
               <FormControlLabel
                 control={
@@ -353,7 +354,7 @@ export default function ProfilePage() {
                     onChange={handlePreferenceChange('notifications', 'push')}
                   />
                 }
-                label="Push Notifications"
+                label={translations.preferences.notifications.push}
               />
               <FormControlLabel
                 control={
@@ -362,23 +363,23 @@ export default function ProfilePage() {
                     onChange={handlePreferenceChange('notifications', 'updates')}
                   />
                 }
-                label="Product Updates"
+                label={translations.preferences.notifications.updates}
               />
             </FormGroup>
           </TabPanel>
 
           <TabPanel value={tabValue} index={2}>
             <FormControl fullWidth>
-              <InputLabel id="language-select-label">Language</InputLabel>
+              <InputLabel id="language-select-label">{translations.preferences.language.label}</InputLabel>
               <Select
                 labelId="language-select-label"
                 value={preferences.language}
-                label="Language"
+                label={translations.preferences.language.label}
                 onChange={handleSelectChange('language')}
               >
-                <MenuItem value="en">English</MenuItem>
-                <MenuItem value="cs">Čeština</MenuItem>
-                <MenuItem value="sk">Slovenčina</MenuItem>
+                <MenuItem value="en">{translations.preferences.language.en}</MenuItem>
+                <MenuItem value="cs">{translations.preferences.language.cs}</MenuItem>
+                <MenuItem value="sk">{translations.preferences.language.sk}</MenuItem>
               </Select>
             </FormControl>
           </TabPanel>

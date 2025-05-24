@@ -5,6 +5,7 @@ import { useHistory } from './useHistory';
 import { LogStats } from './LogStats';
 import { CleanupDialog } from './CleanupDialog';
 import { DeleteOutline } from '@mui/icons-material';
+import translations from '../../../locales/cs/dashboard.history.json';
 
 export const History = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -29,14 +30,14 @@ export const History = () => {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">History & Analytics</h1>
+        <h1 className="text-3xl font-bold">{translations.title}</h1>
         <Button
           variant="outlined"
           color="error"
           startIcon={<DeleteOutline />}
           onClick={() => setIsCleanupOpen(true)}
         >
-          Clean Up Logs
+          {translations.cleanupLogs.button}
         </Button>
       </div>
       
@@ -47,8 +48,8 @@ export const History = () => {
         textColor="primary"
         indicatorColor="primary"
       >
-        <Tab label="Analytics" />
-        <Tab label="Detailed History" />
+        <Tab label={translations.tabs.analytics} />
+        <Tab label={translations.tabs.detailedHistory} />
       </Tabs>
 
       {activeTab === 0 && (

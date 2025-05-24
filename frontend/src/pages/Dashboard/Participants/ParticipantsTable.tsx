@@ -25,6 +25,7 @@ import { FaBeer } from 'react-icons/fa';
 import type { ParticipantTableProps } from './types';
 import { format } from 'date-fns';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import translations from '../../../locales/cs/dashboard.participants.json';
 
 export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   participants,
@@ -60,11 +61,11 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell className="font-bold">Name</TableCell>
-              <TableCell align="center" className="font-bold">Beers</TableCell>
-              {showGender && <TableCell className="font-bold">Gender</TableCell>}
-              <TableCell className="font-bold">Last Beer</TableCell>
-              <TableCell align="right" className="font-bold w-[220px]">Actions</TableCell>
+              <TableCell className="font-bold">{translations.table.columns.name}</TableCell>
+              <TableCell align="center" className="font-bold">{translations.table.columns.beers}</TableCell>
+              {showGender && <TableCell className="font-bold">{translations.table.columns.gender}</TableCell>}
+              <TableCell className="font-bold">{translations.table.columns.lastBeer}</TableCell>
+              <TableCell align="right" className="font-bold w-[220px]">{translations.table.columns.actions}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -80,7 +81,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                   <Typography className="font-medium">{participant.name}</Typography>
                   {showDeletedStatus && participant.deletedAt && (
                     <Chip
-                      label="Deleted"
+                      label={translations.table.status.deleted}
                       color="error"
                       size="small"
                       sx={{ ml: 1 }}
@@ -112,7 +113,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                 <TableCell align="right">
                   {!participant.deletedAt && (
                     <>
-                      <Tooltip title="Remove Beer">
+                      <Tooltip title={translations.table.actions.removeBeer}>
                         <span>
                           <IconButton
                             size="medium"
@@ -124,7 +125,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                           </IconButton>
                         </span>
                       </Tooltip>
-                      <Tooltip title="Add Beer">
+                      <Tooltip title={translations.table.actions.addBeer}>
                         <IconButton
                           size="medium"
                           onClick={() => onAddBeer(participant.id)}
@@ -133,7 +134,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                           <AddIcon />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Delete">
+                      <Tooltip title={translations.table.actions.delete}>
                         <IconButton
                           onClick={() => onDelete(participant.id)}
                           size="medium"
@@ -162,7 +163,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
           <ListItemIcon>
             <DeleteIcon fontSize="small" className="text-red-500" />
           </ListItemIcon>
-          <ListItemText>Delete Participant</ListItemText>
+          <ListItemText>{translations.table.actions.delete}</ListItemText>
         </MenuItem>
       </Menu>
 

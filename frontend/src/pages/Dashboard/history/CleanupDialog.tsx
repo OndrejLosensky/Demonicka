@@ -16,6 +16,7 @@ import {
 import { LOG_LEVELS } from './useHistory';
 import { toast } from 'react-hot-toast';
 import { historyApi } from './api';
+import translations from '../../../locales/cs/dashboard.history.json';
 
 interface CleanupDialogProps {
   open: boolean;
@@ -41,11 +42,11 @@ export const CleanupDialog: React.FC<CleanupDialogProps> = ({
       };
 
       const result = await historyApi.cleanup(options);
-      toast.success(`Successfully cleaned up ${result.deletedCount} log files`);
+      toast.success(translations.cleanupLogs.dialog.success.replace('{{count}}', result.deletedCount.toString()));
       onSuccess();
       onClose();
     } catch (error) {
-      toast.error('Failed to cleanup logs');
+      toast.error(translations.cleanupLogs.dialog.error);
       console.error('Failed to cleanup logs:', error);
     } finally {
       setIsLoading(false);
@@ -54,11 +55,11 @@ export const CleanupDialog: React.FC<CleanupDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Clean Up Logs</DialogTitle>
+      <DialogTitle>{translations.cleanupLogs.dialog.title}</DialogTitle>
       <DialogContent>
         <Box className="space-y-4 mt-4">
           <TextField
-            label="Delete Logs Older Than"
+            label={translations.cleanupLogs.dialog.olderThanLabel}
             type="date"
             value={olderThan}
             onChange={(e) => setOlderThan(e.target.value)}
@@ -69,7 +70,7 @@ export const CleanupDialog: React.FC<CleanupDialogProps> = ({
           />
 
           <FormControl fullWidth>
-            <InputLabel>Log Levels</InputLabel>
+            <InputLabel>{translations.cleanupLogs.dialog.logLevelsLabel}</InputLabel>
             <Select
               multiple
               value={selectedLevels}
@@ -93,7 +94,7 @@ export const CleanupDialog: React.FC<CleanupDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={isLoading}>
-          Cancel
+          {translations.cleanupLogs.dialog.cancel}
         </Button>
         <Button
           onClick={handleCleanup}
@@ -101,7 +102,7 @@ export const CleanupDialog: React.FC<CleanupDialogProps> = ({
           color="error"
           disabled={isLoading}
         >
-          {isLoading ? 'Cleaning...' : 'Clean Up'}
+          {isLoading ? translations.cleanupLogs.dialog.cleaning : translations.cleanupLogs.dialog.confirm}
         </Button>
       </DialogActions>
     </Dialog>

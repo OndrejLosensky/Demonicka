@@ -1,0 +1,42 @@
+{
+  "title": "Osobní informace",
+  "accountInfo": "Informace o účtu",
+  "fields": {
+    "username": "Uživatelské jméno",
+    "email": "Emailová adresa",
+    "fullName": "Celé jméno",
+    "userId": "ID uživatele",
+    "accountCreated": "Účet vytvořen",
+    "lastUpdated": "Naposledy aktualizováno"
+  },
+  "preferences": {
+    "title": "Předvolby",
+    "tabs": {
+      "appearance": "Vzhled",
+      "notifications": "Oznámení",
+      "language": "Jazyk a region"
+    },
+    "theme": {
+      "label": "Motiv",
+      "light": "Světlý",
+      "dark": "Tmavý",
+      "system": "Systémový"
+    },
+    "display": {
+      "compactMode": "Kompaktní režim",
+      "showAvatars": "Zobrazovat avatary",
+      "highContrast": "Vysoký kontrast"
+    },
+    "notifications": {
+      "email": "Emailová oznámení",
+      "push": "Push oznámení",
+      "updates": "Aktualizace produktu"
+    },
+    "language": {
+      "label": "Jazyk",
+      "cs": "Čeština",
+      "en": "English",
+      "sk": "Slovenčina"
+    }
+  }
+} 

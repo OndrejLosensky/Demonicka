@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { toast } from 'react-hot-toast';
 import { barrelsApi } from './api';
+import translations from '../../../locales/cs/dashboard.barrels.json';
 
 interface AddBarrelDialogProps {
   open: boolean;
@@ -47,12 +48,12 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
       ]);
       const orderNumber = activeBarrels.length + deletedBarrels.length + 1;
       await barrelsApi.create({ size, orderNumber });
-      toast.success('Barrel added successfully');
+      toast.success(translations.dialogs.add.success);
       onSuccess();
       onClose();
     } catch (error) {
       console.error('Failed to add barrel:', error);
-      toast.error('Failed to add barrel');
+      toast.error(translations.dialogs.add.error);
     } finally {
       setIsSubmitting(false);
     }
@@ -61,14 +62,14 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit}>
-        <DialogTitle>Add New Barrel</DialogTitle>
+        <DialogTitle>{translations.dialogs.add.title}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
             <FormControl fullWidth>
-              <InputLabel>Size (L)</InputLabel>
+              <InputLabel>{translations.dialogs.add.size}</InputLabel>
               <Select
                 value={size}
-                label="Size (L)"
+                label={translations.dialogs.add.size}
                 onChange={(e) => setSize(e.target.value as 15 | 30 | 50)}
               >
                 <MenuItem value={15}>15L</MenuItem>
@@ -79,14 +80,14 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{translations.dialogs.add.cancel}</Button>
           <Button
             type="submit"
             variant="contained"
             color="primary"
             disabled={isSubmitting}
           >
-            Add
+            {translations.dialogs.add.confirm}
           </Button>
         </DialogActions>
       </form>

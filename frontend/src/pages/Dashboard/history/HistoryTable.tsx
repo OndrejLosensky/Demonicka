@@ -20,6 +20,7 @@ import { format } from 'date-fns';
 import type { LogEntry } from './types';
 import { LOG_LEVELS } from './useHistory';
 import type { LogLevel } from './useHistory';
+import translations from '../../../locales/cs/dashboard.history.json';
 
 interface HistoryTableProps {
   logs: LogEntry[];
@@ -79,14 +80,14 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
     <>
       <Box sx={{ mb: 2 }}>
         <FormControl sx={{ minWidth: 120 }}>
-          <InputLabel id="level-select-label">Log Level</InputLabel>
+          <InputLabel id="level-select-label">{translations.table.filters.logLevel.label}</InputLabel>
           <Select
             labelId="level-select-label"
             value={level}
-            label="Log Level"
+            label={translations.table.filters.logLevel.label}
             onChange={handleLevelChange}
           >
-            <MenuItem value="">All</MenuItem>
+            <MenuItem value="">{translations.table.filters.logLevel.all}</MenuItem>
             {LOG_LEVELS.map((lvl) => (
               <MenuItem key={lvl} value={lvl}>
                 {lvl.toUpperCase()}
@@ -100,11 +101,11 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Timestamp</TableCell>
-              <TableCell>Level</TableCell>
-              <TableCell>Event</TableCell>
-              <TableCell>Message</TableCell>
-              <TableCell>Metadata</TableCell>
+              <TableCell>{translations.table.columns.timestamp}</TableCell>
+              <TableCell>{translations.table.columns.level}</TableCell>
+              <TableCell>{translations.table.columns.event}</TableCell>
+              <TableCell>{translations.table.columns.message}</TableCell>
+              <TableCell>{translations.table.columns.metadata}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -150,6 +151,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
         page={page}
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
+        labelRowsPerPage={translations.table.pagination.rowsPerPage}
       />
     </>
   );

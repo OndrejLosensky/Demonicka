@@ -15,6 +15,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { participantsApi } from './api';
 import { AxiosError } from 'axios';
+import translations from '../../../locales/cs/dashboard.participants.json';
 
 interface AddParticipantDialogProps {
   open: boolean;
@@ -46,11 +47,11 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   // Validate name on change
   const validateName = (value: string) => {
     if (!value.trim()) {
-      setNameError('Name is required');
+      setNameError(translations.dialogs.add.validation.required);
       return false;
     }
     if (existingNames.includes(value.trim().toLowerCase())) {
-      setNameError('This name already exists');
+      setNameError(translations.dialogs.add.validation.firstName);
       return false;
     }
     setNameError('');
@@ -73,16 +74,16 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
     try {
       setIsSubmitting(true);
       await participantsApi.create({ name: name.trim(), gender });
-      toast.success('Participant added successfully');
+      toast.success(translations.dialogs.add.success);
       onSuccess();
       onClose();
     } catch (error) {
       if ((error as AxiosError)?.response?.status === 409) {
-        setNameError('This name already exists');
-        toast.error('This name is already taken');
+        setNameError(translations.dialogs.add.validation.firstName);
+        toast.error(translations.dialogs.add.validation.firstName);
       } else {
         console.error('Failed to add participant:', error);
-        toast.error('Failed to add participant');
+        toast.error(translations.dialogs.add.error);
       }
     } finally {
       setIsSubmitting(false);
@@ -92,12 +93,12 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit}>
-        <DialogTitle>Add New Participant</DialogTitle>
+        <DialogTitle>{translations.dialogs.add.title}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
             <TextField
               autoFocus
-              label="Name"
+              label={translations.dialogs.add.fields.firstName}
               value={name}
               onChange={handleNameChange}
               error={!!nameError}
@@ -106,27 +107,27 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
               required
             />
             <FormControl fullWidth>
-              <InputLabel>Gender</InputLabel>
+              <InputLabel>{translations.dialogs.add.fields.gender.label}</InputLabel>
               <Select
                 value={gender}
-                label="Gender"
+                label={translations.dialogs.add.fields.gender.label}
                 onChange={(e) => setGender(e.target.value as 'MALE' | 'FEMALE')}
               >
-                <MenuItem value="MALE">Male</MenuItem>
-                <MenuItem value="FEMALE">Female</MenuItem>
+                <MenuItem value="MALE">{translations.dialogs.add.fields.gender.male}</MenuItem>
+                <MenuItem value="FEMALE">{translations.dialogs.add.fields.gender.female}</MenuItem>
               </Select>
             </FormControl>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{translations.dialogs.add.buttons.cancel}</Button>
           <Button
             type="submit"
             variant="contained"
             color="primary"
             disabled={isSubmitting || !!nameError}
           >
-            Add
+            {translations.dialogs.add.buttons.confirm}
           </Button>
         </DialogActions>
       </form>

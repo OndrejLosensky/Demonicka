@@ -3,6 +3,7 @@ import { dashboardApi } from './api';
 import { CircularProgress, Paper, Grid, Typography, Card, CardContent } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import type { DashboardData } from '../../types/dashboard';
+import translations from '../../locales/cs/dashboard.json';
 
 export default function Dashboard() {
   const { data: stats, isLoading, error } = useQuery<DashboardData>({
@@ -24,7 +25,7 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="p-6">
-        <Typography color="error">Failed to load dashboard data.</Typography>
+        <Typography color="error">{translations.errors.loadFailed}</Typography>
       </div>
     );
   }
@@ -32,7 +33,7 @@ export default function Dashboard() {
   if (!stats) {
     return (
       <div className="p-6">
-        <Typography>No data available.</Typography>
+        <Typography>{translations.errors.noData}</Typography>
       </div>
     );
   }
@@ -45,7 +46,7 @@ export default function Dashboard() {
   return (
     <div className="p-6">
       <Typography variant="h4" gutterBottom>
-        Dashboard Overview
+        {translations.overview.title}
       </Typography>
 
       <Grid container spacing={3} className="mb-6">
@@ -53,7 +54,7 @@ export default function Dashboard() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Total Beers
+                {translations.overview.cards.totalBeers}
               </Typography>
               <Typography variant="h5">{stats.totalBeers || 0}</Typography>
             </CardContent>
@@ -63,7 +64,7 @@ export default function Dashboard() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Total Participants
+                {translations.overview.cards.totalParticipants}
               </Typography>
               <Typography variant="h5">{stats.totalParticipants || 0}</Typography>
             </CardContent>
@@ -73,7 +74,7 @@ export default function Dashboard() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Total Barrels
+                {translations.overview.cards.totalBarrels}
               </Typography>
               <Typography variant="h5">{stats.totalBarrels || 0}</Typography>
             </CardContent>
@@ -83,7 +84,7 @@ export default function Dashboard() {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Avg. Beers per Participant
+                {translations.overview.cards.avgBeersPerParticipant}
               </Typography>
               <Typography variant="h5">
                 {formatNumber(stats.averageBeersPerParticipant)}
@@ -97,14 +98,14 @@ export default function Dashboard() {
         <Grid item xs={12} md={6}>
           <Paper className="p-4">
             <Typography variant="h6" gutterBottom>
-              Top Participants
+              {translations.overview.charts.topParticipants.title}
             </Typography>
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead>
                   <tr>
-                    <th className="text-left p-2">Name</th>
-                    <th className="text-right p-2">Beers</th>
+                    <th className="text-left p-2">{translations.overview.charts.topParticipants.columns.name}</th>
+                    <th className="text-right p-2">{translations.overview.charts.topParticipants.columns.beers}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -122,7 +123,7 @@ export default function Dashboard() {
         <Grid item xs={12} md={6}>
           <Paper className="p-4">
             <Typography variant="h6" gutterBottom>
-              Barrel Distribution
+              {translations.overview.charts.barrelDistribution.title}
             </Typography>
             <BarChart
               width={500}
@@ -131,11 +132,27 @@ export default function Dashboard() {
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="size" label={{ value: 'Size (L)', position: 'bottom' }} />
-              <YAxis label={{ value: 'Count', angle: -90, position: 'insideLeft' }} />
+              <XAxis 
+                dataKey="size" 
+                label={{ 
+                  value: translations.overview.charts.barrelDistribution.axis.size, 
+                  position: 'bottom' 
+                }} 
+              />
+              <YAxis 
+                label={{ 
+                  value: translations.overview.charts.barrelDistribution.axis.count, 
+                  angle: -90, 
+                  position: 'insideLeft' 
+                }} 
+              />
               <Tooltip />
               <Legend />
-              <Bar dataKey="count" fill="#8884d8" name="Number of Barrels" />
+              <Bar 
+                dataKey="count" 
+                fill="#8884d8" 
+                name={translations.overview.charts.barrelDistribution.legend.barrels} 
+              />
             </BarChart>
           </Paper>
         </Grid>

@@ -1,0 +1,68 @@
+{
+  "title": "Historie & Analytika",
+  "tabs": {
+    "analytics": "Analytika",
+    "detailedHistory": "Detailní Historie"
+  },
+  "cleanupLogs": {
+    "button": "Vyčistit Logy",
+    "dialog": {
+      "title": "Vyčistit Logy",
+      "olderThanLabel": "Smazat logy starší než",
+      "logLevelsLabel": "Úrovně logů",
+      "cancel": "Zrušit",
+      "confirm": "Vyčistit",
+      "cleaning": "Čištění...",
+      "success": "Úspěšně vyčištěno {{count}} logů",
+      "error": "Nepodařilo se vyčistit logy"
+    }
+  },
+  "table": {
+    "columns": {
+      "timestamp": "Časová značka",
+      "level": "Úroveň",
+      "event": "Událost",
+      "message": "Zpráva",
+      "metadata": "Metadata"
+    },
+    "filters": {
+      "logLevel": {
+        "label": "Úroveň logu",
+        "all": "Vše"
+      }
+    },
+    "pagination": {
+      "rowsPerPage": "Řádků na stránku"
+    }
+  },
+  "stats": {
+    "title": "Statistiky logů",
+    "loading": "Načítání statistik...",
+    "error": "Chyba při načítání statistik: {{message}}",
+    "dateRange": {
+      "start": "Počáteční datum",
+      "end": "Koncové datum"
+    },
+    "sections": {
+      "events": {
+        "title": "Distribuce událostí",
+        "chartTitle": "Typy událostí",
+        "label": "Počet událostí"
+      },
+      "logLevels": {
+        "title": "Úrovně logů",
+        "chartTitle": "Distribuce úrovní logů",
+        "labels": {
+          "error": "Chyba",
+          "warning": "Varování",
+          "other": "Ostatní"
+        }
+      },
+      "participants": {
+        "title": "Aktivita účastníků",
+        "chartTitle": "Aktivita podle účastníka",
+        "label": "Aktivita účastníka"
+      }
+    }
+  }
+} 

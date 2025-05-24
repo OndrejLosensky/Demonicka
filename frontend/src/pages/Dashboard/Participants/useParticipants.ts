@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { participantsApi } from './api';
 import type { Participant } from './types';
+import translations from '../../../locales/cs/dashboard.participants.json';
 
 export const useParticipants = (includeDeleted = false) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -26,7 +27,7 @@ export const useParticipants = (includeDeleted = false) => {
       }
     } catch (error: unknown) {
       console.error('Failed to fetch participants:', error);
-      toast.error('Failed to fetch participants');
+      toast.error(translations.errors.fetchFailed);
     } finally {
       setIsLoading(false);
     }
@@ -35,44 +36,44 @@ export const useParticipants = (includeDeleted = false) => {
   const handleDelete = useCallback(async (id: string) => {
     try {
       await participantsApi.delete(id);
-      toast.success('Participant deleted');
+      toast.success(translations.dialogs.delete.success);
       await fetchParticipants();
     } catch (error: unknown) {
       console.error('Failed to delete participant:', error);
-      toast.error('Failed to delete participant');
+      toast.error(translations.dialogs.delete.error);
     }
   }, [fetchParticipants]);
 
   const handleAddBeer = useCallback(async (participantId: string) => {
     try {
       await participantsApi.addBeer(participantId);
-      toast.success('Beer added');
+      toast.success(translations.errors.beerAdded);
       await fetchParticipants();
     } catch (error: unknown) {
       console.error('Failed to add beer:', error);
-      toast.error('Failed to add beer');
+      toast.error(translations.errors.addBeerFailed);
     }
   }, [fetchParticipants]);
 
   const handleRemoveBeer = useCallback(async (participantId: string) => {
     try {
       await participantsApi.removeBeer(participantId);
-      toast.success('Beer removed');
+      toast.success(translations.errors.beerRemoved);
       await fetchParticipants();
     } catch (error: unknown) {
       console.error('Failed to remove beer:', error);
-      toast.error('Failed to remove beer');
+      toast.error(translations.errors.removeBeerFailed);
     }
   }, [fetchParticipants]);
 
   const handleCleanup = useCallback(async () => {
     try {
       await participantsApi.cleanup();
-      toast.success('All participants cleaned up');
+      toast.success(translations.dialogs.cleanupAll.success);
       await fetchParticipants();
     } catch (error: unknown) {
       console.error('Failed to cleanup participants:', error);
-      toast.error('Failed to cleanup participants');
+      toast.error(translations.dialogs.cleanupAll.error);
     }
   }, [fetchParticipants]);
 

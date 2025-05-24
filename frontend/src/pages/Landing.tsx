@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { landingApi } from '../api/landing';
 import type { PublicStats } from '../types/public';
+import translations from '../locales/cs/landing.json';
 
 export default function Landing() {
   const [stats, setStats] = useState<PublicStats | null>(null);
@@ -40,6 +41,15 @@ export default function Landing() {
               alt="Démonická"
               className="mx-auto h-24 w-auto mb-8"
             />
+
+            <motion.h1
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="text-4xl font-bold tracking-tight text-text-primary sm:text-6xl"
+            >
+              {translations.hero.title}
+            </motion.h1>
         
             <motion.p
               initial={{ y: 20, opacity: 0 }}
@@ -47,7 +57,7 @@ export default function Landing() {
               transition={{ delay: 0.4, duration: 0.5 }}
               className="mt-6 text-lg leading-8 text-text-secondary"
             >
-              Join the ultimate beer drinking competition and prove your worth among the demons.
+              {translations.hero.subtitle}
             </motion.p>
 
             {/* Stats Grid */}
@@ -58,19 +68,19 @@ export default function Landing() {
               className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3"
             >
               <div className="bg-background-card dark:bg-background-tertiary rounded-lg p-8 shadow-lg ring-1 ring-primary/5">
-                <dt className="text-text-secondary text-sm font-medium">Total Beers</dt>
+                <dt className="text-text-secondary text-sm font-medium">{translations.stats.totalBeers}</dt>
                 <dd className="mt-2 text-4xl font-bold tracking-tight text-primary">
                   {loading ? '...' : stats?.totalBeers || 0}
                 </dd>
               </div>
               <div className="bg-background-card dark:bg-background-tertiary rounded-lg p-8 shadow-lg ring-1 ring-primary/5">
-                <dt className="text-text-secondary text-sm font-medium">Active Participants</dt>
+                <dt className="text-text-secondary text-sm font-medium">{translations.stats.activeParticipants}</dt>
                 <dd className="mt-2 text-4xl font-bold tracking-tight text-primary">
                   {loading ? '...' : stats?.totalParticipants || 0}
                 </dd>
               </div>
               <div className="bg-background-card dark:bg-background-tertiary rounded-lg p-8 shadow-lg ring-1 ring-primary/5">
-                <dt className="text-text-secondary text-sm font-medium">Active Barrels</dt>
+                <dt className="text-text-secondary text-sm font-medium">{translations.stats.activeBarrels}</dt>
                 <dd className="mt-2 text-4xl font-bold tracking-tight text-primary">
                   {loading ? '...' : stats?.totalBarrels || 0}
                 </dd>
@@ -87,13 +97,13 @@ export default function Landing() {
                 to="/register"
                 className="rounded-md bg-primary px-6 py-3 text-lg font-semibold text-white shadow-sm hover:bg-primary-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
-                Get started
+                {translations.hero.getStarted}
               </Link>
               <Link
                 to="/leaderboard"
                 className="text-lg font-semibold leading-6 text-text-primary hover:text-text-secondary"
               >
-                View Leaderboard <span aria-hidden="true">→</span>
+                {translations.hero.learnMore} <span aria-hidden="true">→</span>
               </Link>
             </motion.div>
           </div>
@@ -108,7 +118,7 @@ export default function Landing() {
               transition={{ delay: 0.8, duration: 0.5 }}
               className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl"
             >
-              Track your progress, compete with friends
+              {translations.features.title}
             </motion.h2>
             <motion.p
               initial={{ y: 20, opacity: 0 }}
@@ -116,7 +126,7 @@ export default function Landing() {
               transition={{ delay: 1, duration: 0.5 }}
               className="mt-6 text-lg leading-8 text-text-secondary"
             >
-              Keep track of your beer consumption, compete with other participants, and climb the ranks to become the ultimate demon.
+              {translations.features.description}
             </motion.p>
           </div>
 
@@ -129,7 +139,7 @@ export default function Landing() {
               className="mx-auto mt-16 max-w-2xl rounded-3xl bg-background-card dark:bg-background-tertiary ring-1 ring-primary/10 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none"
             >
               <div className="p-8 sm:p-10 lg:flex-auto">
-                <h3 className="text-2xl font-bold tracking-tight text-text-primary">Top Beer Demons</h3>
+                <h3 className="text-2xl font-bold tracking-tight text-text-primary">{translations.topParticipants.title}</h3>
                 <div className="mt-6 text-base leading-7 text-text-secondary">
                   <ul role="list" className="mt-8 space-y-4">
                     {stats.topParticipants.map((participant, index) => (
@@ -139,7 +149,7 @@ export default function Landing() {
                         </div>
                         <div>
                           <div className="text-text-primary font-semibold">{participant.name}</div>
-                          <div className="text-text-secondary">{participant.beerCount} beers</div>
+                          <div className="text-text-secondary">{participant.beerCount} {translations.topParticipants.beers}</div>
                         </div>
                       </li>
                     ))}
@@ -157,17 +167,10 @@ export default function Landing() {
             className="mx-auto mt-16 max-w-2xl rounded-3xl bg-background-card dark:bg-background-tertiary ring-1 ring-primary/10 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none"
           >
             <div className="p-8 sm:p-10 lg:flex-auto">
-              <h3 className="text-2xl font-bold tracking-tight text-text-primary">Competition Features</h3>
+              <h3 className="text-2xl font-bold tracking-tight text-text-primary">{translations.features.list.title}</h3>
               <div className="mt-6 text-base leading-7 text-text-secondary">
                 <ul role="list" className="mt-8 grid grid-cols-1 gap-4 text-sm leading-6 sm:grid-cols-2">
-                  {[
-                    'Real-time leaderboard updates',
-                    'Personal statistics tracking',
-                    'Achievement system',
-                    'Social features',
-                    'Weekly and monthly rankings',
-                    'Custom challenges'
-                  ].map((feature) => (
+                  {translations.features.list.items.map((feature) => (
                     <li key={feature} className="flex gap-x-3 text-text-secondary">
                       <svg className="h-6 w-5 flex-none text-primary" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />

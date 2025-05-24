@@ -1,0 +1,24 @@
+{
+  "title": "Žebříček piv",
+  "subtitle": "Kdo vypije nejvíc? Pojďme to zjistit! 🍻",
+  "loading": "Načítání žebříčku...",
+  "noData": "Žádná data k dispozici.",
+  "sections": {
+    "men": "Žebříček mužů",
+    "women": "Žebříček žen"
+  },
+  "table": {
+    "columns": {
+      "rank": "Pořadí",
+      "name": "Jméno",
+      "beers": "Piva"
+    },
+    "champion": "ŠAMPION",
+    "noParticipants": "Zatím žádní účastníci"
+  },
+  "filters": {
+    "year": {
+      "label": "Rok"
+    }
+  }
+} 

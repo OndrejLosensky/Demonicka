@@ -13,6 +13,7 @@ import { useBarrels } from './useBarrels';
 import { AddBarrelDialog } from './AddBarrelDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
+import translations from '../../../locales/cs/dashboard.barrels.json';
 
 const BarrelsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
@@ -33,7 +34,7 @@ const BarrelsPage: React.FC = () => {
   const allBarrels = showDeleted ? [...barrels, ...deletedBarrels] : barrels;
 
   const confirmCleanup = async () => {
-    if (window.confirm('Are you sure you want to delete all barrels? This cannot be undone.')) {
+    if (window.confirm(translations.dialogs.cleanupAll.message)) {
       await handleCleanup();
     }
   };
@@ -41,7 +42,7 @@ const BarrelsPage: React.FC = () => {
   return (
     <Box p={3}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Barrels</Typography>
+        <Typography variant="h4">{translations.title}</Typography>
         <Box>
           {showDeletedFeature && (
             <FormControlLabel
@@ -51,7 +52,7 @@ const BarrelsPage: React.FC = () => {
                   onChange={(e) => setShowDeleted(e.target.checked)}
                 />
               }
-              label="Show Deleted"
+              label={translations.actions.showDeleted}
             />
           )}
           <Button
@@ -61,7 +62,7 @@ const BarrelsPage: React.FC = () => {
             onClick={() => setDialogOpen(true)}
             sx={{ mr: 1 }}
           >
-            Add Barrel
+            {translations.actions.addBarrel}
           </Button>
           <Button
             variant="contained"
@@ -69,7 +70,7 @@ const BarrelsPage: React.FC = () => {
             startIcon={<DeleteIcon />}
             onClick={confirmCleanup}
           >
-            Cleanup All
+            {translations.actions.cleanupAll}
           </Button>
         </Box>
       </Box>

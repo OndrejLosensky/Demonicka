@@ -21,6 +21,7 @@ import {
   Person as PersonIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
+import translations from '../locales/cs/common.header.json';
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -93,7 +94,7 @@ export default function Header() {
                     to="/"
                     className="text-2xl font-bold text-primary"
                   >
-                    Démonická
+                    {translations.brand}
                   </Link>
                 </motion.div>
                 {user && (
@@ -106,7 +107,7 @@ export default function Header() {
                           : 'text-text-primary hover:text-text-secondary'
                       }`}
                     >
-                      Dashboard
+                      {translations.navigation.dashboard}
                     </Link>
                     <Link
                       to="/dashboard/ucastnici"
@@ -116,7 +117,7 @@ export default function Header() {
                           : 'text-text-primary hover:text-text-secondary'
                       }`}
                     >
-                      Participants
+                      {translations.navigation.participants}
                     </Link>
                     <Link
                       to="/dashboard/barrels"
@@ -126,7 +127,7 @@ export default function Header() {
                           : 'text-text-primary hover:text-text-secondary'
                       }`}
                     >
-                      Barrels
+                      {translations.navigation.barrels}
                     </Link>
                     {isHistoryEnabled && (
                       <Link
@@ -137,7 +138,7 @@ export default function Header() {
                             : 'text-text-primary hover:text-text-secondary'
                         }`}
                       >
-                        History
+                        {translations.navigation.history}
                       </Link>
                     )}
                     <Link
@@ -148,7 +149,7 @@ export default function Header() {
                           : 'text-text-primary hover:text-text-secondary'
                       }`}
                     >
-                      Leaderboard
+                      {translations.navigation.leaderboard}
                     </Link>
                   </div>
                 )}
@@ -160,7 +161,7 @@ export default function Header() {
                       {format(currentTime, 'HH:mm')}
                     </Typography>
                     <Tooltip 
-                      title="Account settings" 
+                      title={translations.auth.accountSettings}
                       TransitionComponent={Fade}
                       arrow
                     >
@@ -235,7 +236,7 @@ export default function Header() {
                           <PersonIcon fontSize="small" className="text-primary" />
                         </ListItemIcon>
                         <ListItemText 
-                          primary="Profile"
+                          primary={translations.auth.profile}
                           primaryTypographyProps={{
                             className: "font-medium"
                           }}
@@ -250,7 +251,7 @@ export default function Header() {
                           <LogoutIcon fontSize="small" className="text-red-600" />
                         </ListItemIcon>
                         <ListItemText 
-                          primary="Logout"
+                          primary={translations.auth.logout}
                           primaryTypographyProps={{
                             className: "font-medium text-red-600"
                           }}
@@ -264,7 +265,7 @@ export default function Header() {
                       to="/login"
                       className="px-4 py-2 rounded-md text-sm font-medium bg-primary text-white hover:bg-primary-hover"
                     >
-                      Login
+                      {translations.auth.login}
                     </Link>
                   </motion.div>
                 )}

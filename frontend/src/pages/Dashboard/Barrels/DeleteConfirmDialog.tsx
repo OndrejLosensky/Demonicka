@@ -7,6 +7,7 @@ import {
   Typography,
 } from '@mui/material';
 import { FaTrashAlt } from 'react-icons/fa';
+import translations from '../../../locales/cs/dashboard.barrels.json';
 
 interface DeleteConfirmDialogProps {
   open: boolean;
@@ -27,22 +28,22 @@ export const DeleteConfirmDialog = ({
         <div className="p-2 bg-red-500/10 rounded-lg">
           <FaTrashAlt className="text-xl text-red-500" />
         </div>
-        <span>Delete Barrel</span>
+        <span>{translations.dialogs.delete.title}</span>
       </DialogTitle>
       <DialogContent>
         <Typography>
-          Are you sure you want to delete this <strong>{barrelSize}L</strong> barrel? This action cannot be undone.
+          {translations.dialogs.delete.message.replace('{size}', barrelSize.toString())}
         </Typography>
         <Typography className="mt-2 text-sm text-text-secondary">
-          All associated data will be permanently removed from the system.
+          {translations.dialogs.delete.additionalInfo}
         </Typography>
       </DialogContent>
       <DialogActions className="p-6">
         <Button onClick={onClose} variant="outlined" color="inherit">
-          Cancel
+          {translations.dialogs.delete.cancel}
         </Button>
         <Button onClick={onConfirm} variant="contained" color="error" autoFocus>
-          Delete Barrel
+          {translations.dialogs.delete.confirm}
         </Button>
       </DialogActions>
     </Dialog>

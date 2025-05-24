@@ -1,0 +1,26 @@
+{
+  "navigation": {
+    "home": "Home",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "buttons": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit"
+  },
+  "errors": {
+    "general": "Something went wrong",
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email",
+    "networkError": "Network error occurred"
+  },
+  "footer": {
+    "copyright": "© 2024 Auth Boilerplate. All rights reserved.",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy"
+  }
+} 

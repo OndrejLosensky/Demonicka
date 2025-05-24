@@ -1,24 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { AxiosError } from 'axios';
 import { AuthLayout } from '../../components/auth/AuthLayout';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import translations from '../../locales/cs/auth.json';
 
 export default function Login() {
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, user } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user) {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [user, navigate]);
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,13 +20,8 @@ export default function Login() {
 
     try {
       await login(usernameOrEmail, password);
-      navigate('/dashboard');
     } catch (err) {
-      if (err instanceof AxiosError) {
-        setError(err.response?.data?.message || 'Invalid credentials');
-      } else {
-        setError('An unexpected error occurred');
-      }
+      setError(err instanceof Error ? err.message : 'Něco se pokazilo');
     } finally {
       setIsLoading(false);
     }
@@ -41,8 +29,8 @@ export default function Login() {
 
   return (
     <AuthLayout
-      title="Welcome back!"
-      subtitle="Sign in to your account"
+      title={translations.login.title}
+      subtitle={translations.login.subtitle}
     >
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div className="space-y-5">
@@ -50,24 +38,24 @@ export default function Login() {
             id="usernameOrEmail"
             name="usernameOrEmail"
             type="text"
-            label="Username or Email"
+            label={translations.login.usernameOrEmail}
             autoComplete="username email"
             required
             value={usernameOrEmail}
             onChange={(e) => setUsernameOrEmail(e.target.value)}
-            placeholder="Enter your username or email"
+            placeholder={translations.login.usernameOrEmail}
             error={error}
           />
           <Input
             id="password"
             name="password"
             type="password"
-            label="Password"
+            label={translations.login.password}
             autoComplete="current-password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
+            placeholder={translations.login.password}
           />
         </div>
 
@@ -77,7 +65,7 @@ export default function Login() {
             isLoading={isLoading}
             fullWidth
           >
-            {isLoading ? 'Signing in...' : 'Sign in'}
+            {isLoading ? translations.login.signingIn : translations.login.signIn}
           </Button>
         </div>
       </form>
@@ -87,7 +75,7 @@ export default function Login() {
           to="/register" 
           className="font-medium text-primary-500 hover:text-primary-600 transition-colors duration-200"
         >
-          Don&apos;t have an account? Sign up
+          {translations.login.noAccount}
         </Link>
       </div>
     </AuthLayout>

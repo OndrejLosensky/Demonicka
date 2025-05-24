@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FaBeer, FaTrophy } from 'react-icons/fa';
 import { GiPodiumWinner, GiPodiumSecond, GiPodiumThird } from 'react-icons/gi';
 import type { LeaderboardTableProps } from './types';
+import translations from '../../locales/cs/dashboard.leaderboard.json';
 
 const getRankIcon = (rank: number) => {
   switch (rank) {
@@ -37,9 +38,9 @@ export const LeaderboardTable = ({ participants, title }: LeaderboardTableProps)
         <table className="min-w-full">
           <thead>
             <tr>
-              <th className="text-left p-4 bg-primary/5 dark:bg-primary/10 border-b-2 border-primary/20 font-bold text-primary dark:text-primary">Rank</th>
-              <th className="text-left p-4 bg-primary/5 dark:bg-primary/10 border-b-2 border-primary/20 font-bold text-primary dark:text-primary">Name</th>
-              <th className="text-right p-4 bg-primary/5 dark:bg-primary/10 border-b-2 border-primary/20 font-bold text-primary dark:text-primary">Beers</th>
+              <th className="text-left p-4 bg-primary/5 dark:bg-primary/10 border-b-2 border-primary/20 font-bold text-primary dark:text-primary">{translations.table.columns.rank}</th>
+              <th className="text-left p-4 bg-primary/5 dark:bg-primary/10 border-b-2 border-primary/20 font-bold text-primary dark:text-primary">{translations.table.columns.name}</th>
+              <th className="text-right p-4 bg-primary/5 dark:bg-primary/10 border-b-2 border-primary/20 font-bold text-primary dark:text-primary">{translations.table.columns.beers}</th>
             </tr>
           </thead>
           <tbody>
@@ -63,7 +64,7 @@ export const LeaderboardTable = ({ participants, title }: LeaderboardTableProps)
                       animate={{ scale: 1 }}
                       className="inline-block ml-2 px-2 py-1 bg-yellow-500/10 rounded-full"
                     >
-                      <span className="text-xs font-bold text-yellow-500">CHAMPION</span>
+                      <span className="text-xs font-bold text-yellow-500">{translations.table.champion}</span>
                     </motion.div>
                   )}
                 </td>
@@ -78,7 +79,7 @@ export const LeaderboardTable = ({ participants, title }: LeaderboardTableProps)
             {participants.length === 0 && (
               <tr>
                 <td colSpan={3} className="text-center p-8 text-text-secondary">
-                  No participants yet
+                  {translations.table.noParticipants}
                 </td>
               </tr>
             )}

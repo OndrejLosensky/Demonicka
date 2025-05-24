@@ -1,0 +1,16 @@
+{
+  "brand": "Démonická",
+  "navigation": {
+    "dashboard": "Přehled",
+    "participants": "Účastníci",
+    "barrels": "Sudy",
+    "history": "Historie",
+    "leaderboard": "Žebříček"
+  },
+  "auth": {
+    "login": "Přihlásit se",
+    "accountSettings": "Nastavení účtu",
+    "profile": "Profil",
+    "logout": "Odhlásit se"
+  }
+} 

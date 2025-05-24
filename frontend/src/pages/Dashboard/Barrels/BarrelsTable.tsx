@@ -25,6 +25,7 @@ import { GiBarrel } from 'react-icons/gi';
 import type { BarrelTableProps } from './types';
 import { format } from 'date-fns';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import translations from '../../../locales/cs/dashboard.barrels.json';
 
 export const BarrelsTable: React.FC<BarrelTableProps> = ({
   barrels,
@@ -74,12 +75,12 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell className="font-bold">Barrel</TableCell>
-              <TableCell className="font-bold">Size</TableCell>
-              <TableCell className="font-bold">Remaining Beers</TableCell>
-              <TableCell className="font-bold">Status</TableCell>
-              <TableCell className="font-bold">Created At</TableCell>
-              <TableCell align="right" className="font-bold w-[100px]">Actions</TableCell>
+              <TableCell className="font-bold">{translations.table.columns.barrel}</TableCell>
+              <TableCell className="font-bold">{translations.table.columns.size}</TableCell>
+              <TableCell className="font-bold">{translations.table.columns.remainingBeers}</TableCell>
+              <TableCell className="font-bold">{translations.table.columns.status}</TableCell>
+              <TableCell className="font-bold">{translations.table.columns.createdAt}</TableCell>
+              <TableCell align="right" className="font-bold w-[100px]">{translations.table.columns.actions}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -104,7 +105,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                       <Typography className="font-medium">{barrel.size}L</Typography>
                       {showDeletedStatus && barrel.deletedAt && (
                         <Chip
-                          label="Deleted"
+                          label={translations.table.status.deleted}
                           color="error"
                           size="small"
                         />
@@ -142,7 +143,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                       <Typography 
                         className={`text-sm font-medium ${barrel.isActive ? 'text-green-600' : 'text-gray-500'}`}
                       >
-                        {barrel.isActive ? 'Active' : 'Inactive'}
+                        {barrel.isActive ? translations.table.status.active : translations.table.status.inactive}
                       </Typography>
                     </div>
                   </TableCell>
@@ -153,7 +154,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                   </TableCell>
                   <TableCell align="right">
                     {!barrel.deletedAt && (
-                      <Tooltip title="Delete">
+                      <Tooltip title={translations.dialogs.delete.title}>
                         <IconButton
                           onClick={(e) => handleOpenMenu(e, { id: barrel.id, size: barrel.size })}
                           size="medium"
@@ -182,7 +183,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
           <ListItemIcon>
             <DeleteIcon fontSize="small" className="text-red-500" />
           </ListItemIcon>
-          <ListItemText>Delete Barrel</ListItemText>
+          <ListItemText>{translations.dialogs.delete.title}</ListItemText>
         </MenuItem>
       </Menu>
 

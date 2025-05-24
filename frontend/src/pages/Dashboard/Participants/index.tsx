@@ -14,6 +14,7 @@ import { useParticipants } from './useParticipants';
 import { AddParticipantDialog } from './AddParticipantDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
+import translations from '../../../locales/cs/dashboard.participants.json';
 
 const ParticipantsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
@@ -40,7 +41,7 @@ const ParticipantsPage: React.FC = () => {
   }, [participants, deletedParticipants, showDeleted]);
 
   const confirmCleanup = async () => {
-    if (window.confirm('Are you sure you want to delete all participants? This cannot be undone.')) {
+    if (window.confirm(translations.dialogs.cleanupAll.message)) {
       await handleCleanup();
     }
   };
@@ -48,7 +49,7 @@ const ParticipantsPage: React.FC = () => {
   return (
     <Box p={3}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Participants</Typography>
+        <Typography variant="h4">{translations.title}</Typography>
         <Box>
           {showDeletedFeature && (
             <FormControlLabel
@@ -58,7 +59,7 @@ const ParticipantsPage: React.FC = () => {
                   onChange={(e) => setShowDeleted(e.target.checked)}
                 />
               }
-              label="Show Deleted"
+              label={translations.actions.showDeleted}
             />
           )}
           <Button
@@ -68,7 +69,7 @@ const ParticipantsPage: React.FC = () => {
             onClick={() => setDialogOpen(true)}
             sx={{ mr: 1 }}
           >
-            Add Participant
+            {translations.actions.addParticipant}
           </Button>
           <Button
             variant="contained"
@@ -76,7 +77,7 @@ const ParticipantsPage: React.FC = () => {
             startIcon={<DeleteIcon />}
             onClick={confirmCleanup}
           >
-            Cleanup All
+            {translations.actions.cleanupAll}
           </Button>
         </Box>
       </Box>
@@ -84,7 +85,7 @@ const ParticipantsPage: React.FC = () => {
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <Typography variant="h6" gutterBottom>
-            Male Participants ({maleParticipants.length})
+            {translations.sections.male} ({maleParticipants.length} {translations.sections.count})
           </Typography>
           {isLoading ? (
             <CircularProgress />
@@ -100,7 +101,7 @@ const ParticipantsPage: React.FC = () => {
         </Grid>
         <Grid item xs={12} md={6}>
           <Typography variant="h6" gutterBottom>
-            Female Participants ({femaleParticipants.length})
+            {translations.sections.female} ({femaleParticipants.length} {translations.sections.count})
           </Typography>
           {isLoading ? (
             <CircularProgress />

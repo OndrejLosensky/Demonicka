@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { barrelsApi } from './api';
 import type { Barrel } from './types';
+import translations from '../../../locales/cs/dashboard.barrels.json';
 
 export const useBarrels = (includeDeleted = false) => {
   const [barrels, setBarrels] = useState<Barrel[]>([]);
@@ -19,7 +20,7 @@ export const useBarrels = (includeDeleted = false) => {
       setDeletedBarrels(deleted);
     } catch (error: unknown) {
       console.error('Failed to fetch barrels:', error);
-      toast.error('Failed to fetch barrels');
+      toast.error(translations.errors.fetchFailed);
     } finally {
       setIsLoading(false);
     }
@@ -28,33 +29,33 @@ export const useBarrels = (includeDeleted = false) => {
   const handleDelete = useCallback(async (id: string) => {
     try {
       await barrelsApi.delete(id);
-      toast.success('Barrel deleted');
+      toast.success(translations.dialogs.delete.success);
       await fetchBarrels();
     } catch (error: unknown) {
       console.error('Failed to delete barrel:', error);
-      toast.error('Failed to delete barrel');
+      toast.error(translations.dialogs.delete.error);
     }
   }, [fetchBarrels]);
 
   const handleToggleActive = useCallback(async (id: string) => {
     try {
       await barrelsApi.toggleActive(id);
-      toast.success('Barrel status updated');
+      toast.success(translations.errors.statusUpdated);
       await fetchBarrels();
     } catch (error: unknown) {
       console.error('Failed to update barrel status:', error);
-      toast.error('Failed to update barrel status');
+      toast.error(translations.errors.toggleStatusFailed);
     }
   }, [fetchBarrels]);
 
   const handleCleanup = useCallback(async () => {
     try {
       await barrelsApi.cleanup();
-      toast.success('All barrels cleaned up');
+      toast.success(translations.dialogs.cleanupAll.success);
       await fetchBarrels();
     } catch (error: unknown) {
       console.error('Failed to cleanup barrels:', error);
-      toast.error('Failed to cleanup barrels');
+      toast.error(translations.dialogs.cleanupAll.error);
     }
   }, [fetchBarrels]);
 

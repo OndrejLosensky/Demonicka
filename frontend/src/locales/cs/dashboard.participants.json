@@ -1,0 +1,77 @@
+{
+  "title": "Účastníci",
+  "loading": "Načítání účastníků...",
+  "noData": "Žádní účastníci k zobrazení",
+  "actions": {
+    "showDeleted": "Zobrazit smazané",
+    "addParticipant": "Přidat účastníka",
+    "cleanupAll": "Vyčistit vše"
+  },
+  "sections": {
+    "male": "Muži",
+    "female": "Ženy",
+    "count": "počet"
+  },
+  "table": {
+    "columns": {
+      "name": "Jméno",
+      "beers": "Piva",
+      "gender": "Pohlaví",
+      "lastBeer": "Poslední pivo",
+      "actions": "Akce"
+    },
+    "status": {
+      "deleted": "Smazáno"
+    },
+    "actions": {
+      "addBeer": "Přidat pivo",
+      "removeBeer": "Odebrat pivo",
+      "delete": "Smazat"
+    }
+  },
+  "dialogs": {
+    "add": {
+      "title": "Přidat účastníka",
+      "fields": {
+        "firstName": "Jméno",
+        "lastName": "Příjmení",
+        "gender": {
+          "label": "Pohlaví",
+          "male": "Muž",
+          "female": "Žena"
+        }
+      },
+      "buttons": {
+        "confirm": "Přidat",
+        "cancel": "Zrušit"
+      },
+      "validation": {
+        "required": "Toto pole je povinné",
+        "firstName": "Zadejte jméno",
+        "lastName": "Zadejte příjmení"
+      },
+      "success": "Účastník byl úspěšně přidán",
+      "error": "Nepodařilo se přidat účastníka"
+    },
+    "delete": {
+      "title": "Smazat účastníka",
+      "message": "Opravdu chcete smazat účastníka {name}? Tuto akci nelze vrátit.",
+      "confirm": "Smazat",
+      "cancel": "Zrušit",
+      "success": "Účastník byl úspěšně smazán",
+      "error": "Nepodařilo se smazat účastníka"
+    },
+    "cleanupAll": {
+      "message": "Opravdu chcete smazat všechny účastníky? Tuto akci nelze vrátit.",
+      "success": "Všichni účastníci byli úspěšně smazáni",
+      "error": "Nepodařilo se smazat všechny účastníky"
+    }
+  },
+  "errors": {
+    "fetchFailed": "Nepodařilo se načíst účastníky",
+    "addBeerFailed": "Nepodařilo se přidat pivo",
+    "removeBeerFailed": "Nepodařilo se odebrat pivo",
+    "beerAdded": "Pivo bylo úspěšně přidáno",
+    "beerRemoved": "Pivo bylo úspěšně odebráno"
+  }
+} 

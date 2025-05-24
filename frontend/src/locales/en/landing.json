@@ -1,0 +1,28 @@
+{
+  "hero": {
+    "title": "Welcome to Auth Boilerplate",
+    "subtitle": "Secure, fast, and reliable authentication solution",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More"
+  },
+  "features": {
+    "title": "Features",
+    "security": {
+      "title": "Advanced Security",
+      "description": "State-of-the-art encryption and security practices"
+    },
+    "easy": {
+      "title": "Easy Integration",
+      "description": "Simple to integrate with any application"
+    },
+    "scalable": {
+      "title": "Highly Scalable",
+      "description": "Built to handle millions of users"
+    }
+  },
+  "cta": {
+    "title": "Ready to Get Started?",
+    "description": "Join thousands of developers who trust our solution",
+    "button": "Sign Up Now"
+  }
+} 

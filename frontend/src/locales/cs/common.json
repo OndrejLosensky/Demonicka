@@ -1,0 +1,47 @@
+{
+  "navigation": {
+    "home": "Domů",
+    "profile": "Profil",
+    "settings": "Nastavení",
+    "logout": "Odhlásit"
+  },
+  "buttons": {
+    "submit": "Potvrdit",
+    "cancel": "Zrušit",
+    "save": "Uložit",
+    "delete": "Smazat",
+    "edit": "Upravit"
+  },
+  "errors": {
+    "general": "Něco se pokazilo",
+    "required": "Toto pole je povinné",
+    "invalidEmail": "Zadejte platnou emailovou adresu",
+    "networkError": "Došlo k chybě sítě",
+    "loadFailed": "Nepodařilo se načíst data.",
+    "saveFailed": "Nepodařilo se uložit data.",
+    "deleteFailed": "Nepodařilo se smazat data.",
+    "noData": "Žádná data k dispozici.",
+    "unexpectedError": "Došlo k neočekávané chybě.",
+    "validationError": "Prosím zkontrolujte zadané údaje."
+  },
+  "footer": {
+    "copyright": "© 2024 Auth Boilerplate. Všechna práva vyhrazena.",
+    "terms": "Podmínky služby",
+    "privacy": "Zásady ochrany soukromí"
+  },
+  "loading": {
+    "default": "Načítání...",
+    "saving": "Ukládání...",
+    "deleting": "Mazání...",
+    "processing": "Zpracování..."
+  },
+  "actions": {
+    "confirm": "Potvrdit",
+    "cancel": "Zrušit",
+    "save": "Uložit",
+    "delete": "Smazat",
+    "edit": "Upravit",
+    "add": "Přidat",
+    "close": "Zavřít"
+  }
+} 

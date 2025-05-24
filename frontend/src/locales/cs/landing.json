@@ -1,0 +1,37 @@
+{
+  "hero": {
+    "title": "Démonická",
+    "subtitle": "Připoj se k ultimátní pivní soutěži a dokaž svou hodnotu mezi démony",
+    "getStarted": "Začít soutěžit",
+    "learnMore": "Zobrazit žebříček"
+  },
+  "features": {
+    "title": "Sleduj svůj postup, soutěž s přáteli",
+    "description": "Sleduj svou konzumaci piva, soutěž s ostatními účastníky a šplhej v žebříčku, abys byl ultimátní démon",
+    "list": {
+      "title": "Funkce soutěže",
+      "items": [
+        "Aktualizace žebříčku v reálném čase",
+        "Sledování osobních statistik",
+        "Systém úspěchů",
+        "Sociální funkce",
+        "Týdenní a měsíční žebříčky",
+        "Vlastní výzvy"
+      ]
+    }
+  },
+  "stats": {
+    "totalBeers": "Celkem piv",
+    "activeParticipants": "Aktivní účastníci",
+    "activeBarrels": "Aktivní sudy"
+  },
+  "topParticipants": {
+    "title": "Nejlepší pivní démoni",
+    "beers": "piv"
+  },
+  "cta": {
+    "title": "Připraveni začít?",
+    "description": "Připojte se k tisícům vývojářů, kteří důvěřují našemu řešení",
+    "button": "Zaregistrujte se"
+  }
+} 
