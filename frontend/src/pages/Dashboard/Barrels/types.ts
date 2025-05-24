@@ -12,7 +12,7 @@ export interface Barrel {
 export interface BarrelTableProps {
   barrels: Barrel[];
   onDelete: (id: string) => Promise<void>;
-  onToggleActive: (id: string) => Promise<void>;
+  onToggleActive?: (id: string) => Promise<void>;
   showDeletedStatus?: boolean;
 }
 

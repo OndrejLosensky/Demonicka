@@ -12,9 +12,12 @@ import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { ParticipantsTable } from './ParticipantsTable';
 import { useParticipants } from './useParticipants';
 import { AddParticipantDialog } from './AddParticipantDialog';
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
+import { FeatureFlagKey } from '../../../types/featureFlags';
 
 const ParticipantsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
+  const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_PARTICIPANTS);
   const {
     participants,
     deletedParticipants,
@@ -47,15 +50,17 @@ const ParticipantsPage: React.FC = () => {
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">Participants</Typography>
         <Box>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showDeleted}
-                onChange={(e) => setShowDeleted(e.target.checked)}
-              />
-            }
-            label="Show Deleted"
-          />
+          {showDeletedFeature && (
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showDeleted}
+                  onChange={(e) => setShowDeleted(e.target.checked)}
+                />
+              }
+              label="Show Deleted"
+            />
+          )}
           <Button
             variant="contained"
             color="primary"

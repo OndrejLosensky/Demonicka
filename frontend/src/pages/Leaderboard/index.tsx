@@ -3,9 +3,12 @@ import { motion } from 'framer-motion';
 import { FaBeer } from 'react-icons/fa';
 import { LeaderboardTable } from './LeaderboardTable';
 import { useLeaderboard } from './useLeaderboard';
+import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+import { FeatureFlagKey } from '../../types/featureFlags';
 
 export default function Leaderboard() {
   const { stats, isLoading, selectedYear, setSelectedYear, AVAILABLE_YEARS } = useLeaderboard();
+  const showYearFilter = useFeatureFlag(FeatureFlagKey.LEADERBOARD_YEAR_FILTER);
 
   if (isLoading) {
     return (
@@ -54,22 +57,24 @@ export default function Leaderboard() {
             Who can drink the most? Let's find out! 🍻
           </Typography>
           
-          <FormControl variant="outlined" className="min-w-[200px]">
-            <InputLabel id="year-select-label">Year</InputLabel>
-            <Select
-              labelId="year-select-label"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value as number)}
-              label="Year"
-              className="bg-background-card"
-            >
-              {AVAILABLE_YEARS.map((year) => (
-                <MenuItem key={year} value={year}>
-                  {year}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          {showYearFilter && (
+            <FormControl variant="outlined" className="min-w-[200px]">
+              <InputLabel id="year-select-label">Year</InputLabel>
+              <Select
+                labelId="year-select-label"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value as number)}
+                label="Year"
+                className="bg-background-card"
+              >
+                {AVAILABLE_YEARS.map((year) => (
+                  <MenuItem key={year} value={year}>
+                    {year}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
         </div>
       </motion.div>
 

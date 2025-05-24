@@ -133,8 +133,8 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={barrel.isActive}
-                        onChange={() => !barrel.deletedAt && onToggleActive(barrel.id)}
-                        disabled={!!barrel.deletedAt}
+                        onChange={() => !barrel.deletedAt && onToggleActive && onToggleActive(barrel.id)}
+                        disabled={!!barrel.deletedAt || !onToggleActive}
                         color="primary"
                         size="small"
                         className="mr-2"

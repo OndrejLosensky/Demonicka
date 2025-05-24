@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
+import { useFeatureFlag } from '../hooks/useFeatureFlag';
+import { FeatureFlagKey } from '../types/featureFlags';
 
 export default function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
+  const isHistoryEnabled = useFeatureFlag(FeatureFlagKey.HISTORY_PAGE);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -84,16 +87,18 @@ export default function Header() {
                     >
                       Barrels
                     </Link>
-                    <Link
-                      to="/dashboard/history"
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        isActive('/dashboard/history')
-                          ? 'bg-primary text-white'
-                          : 'text-text-primary hover:text-text-secondary'
-                      }`}
-                    >
-                      History
-                    </Link>
+                    {isHistoryEnabled && (
+                      <Link
+                        to="/dashboard/history"
+                        className={`px-3 py-2 rounded-md text-sm font-medium ${
+                          isActive('/dashboard/history')
+                            ? 'bg-primary text-white'
+                            : 'text-text-primary hover:text-text-secondary'
+                        }`}
+                      >
+                        History
+                      </Link>
+                    )}
                   </div>
                 )}
               </div>

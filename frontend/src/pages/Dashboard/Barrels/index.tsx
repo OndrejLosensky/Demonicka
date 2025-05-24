@@ -11,9 +11,13 @@ import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { BarrelsTable } from './BarrelsTable';
 import { useBarrels } from './useBarrels';
 import { AddBarrelDialog } from './AddBarrelDialog';
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
+import { FeatureFlagKey } from '../../../types/featureFlags';
 
 const BarrelsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
+  const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_BARRELS);
+  const showStatusToggle = useFeatureFlag(FeatureFlagKey.BARREL_STATUS_TOGGLE);
   const {
     barrels,
     deletedBarrels,
@@ -39,15 +43,17 @@ const BarrelsPage: React.FC = () => {
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">Barrels</Typography>
         <Box>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showDeleted}
-                onChange={(e) => setShowDeleted(e.target.checked)}
-              />
-            }
-            label="Show Deleted"
-          />
+          {showDeletedFeature && (
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showDeleted}
+                  onChange={(e) => setShowDeleted(e.target.checked)}
+                />
+              }
+              label="Show Deleted"
+            />
+          )}
           <Button
             variant="contained"
             color="primary"
@@ -74,7 +80,7 @@ const BarrelsPage: React.FC = () => {
         <BarrelsTable
           barrels={allBarrels}
           onDelete={handleDelete}
-          onToggleActive={handleToggleActive}
+          onToggleActive={showStatusToggle ? handleToggleActive : undefined}
           showDeletedStatus={showDeleted}
         />
       )}
