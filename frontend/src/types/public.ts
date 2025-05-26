@@ -8,10 +8,25 @@ export interface BarrelStats {
   count: number;
 }
 
+export interface ActivityEvent {
+  id: string;
+  type: 'beer_added' | 'barrel_finished' | 'achievement_unlocked' | 'new_participant';
+  participantName: string;
+  timestamp: string;
+  details: {
+    beerCount?: number;
+    barrelName?: string;
+    achievementName?: string;
+  };
+}
+
 export interface PublicStats {
   totalBeers: number;
   totalParticipants: number;
   totalBarrels: number;
-  topParticipants: PublicParticipant[];
-  barrelStats: BarrelStats[];
+  topParticipants: Array<{
+    name: string;
+    beerCount: number;
+  }>;
+  latestActivity: ActivityEvent[];
 } 

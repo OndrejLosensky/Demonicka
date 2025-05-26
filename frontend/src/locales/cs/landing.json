@@ -1,37 +1,100 @@
 {
   "hero": {
     "title": "Démonická",
-    "subtitle": "Připoj se k ultimátní pivní soutěži a dokaž svou hodnotu mezi démony",
-    "getStarted": "Začít soutěžit",
-    "learnMore": "Zobrazit žebříček"
+    "subtitle": "Sledujte svou pivní cestu s přáteli",
+    "getStarted": "Začít",
+    "learnMore": "Zjistit více"
   },
   "features": {
-    "title": "Sleduj svůj postup, soutěž s přáteli",
-    "description": "Sleduj svou konzumaci piva, soutěž s ostatními účastníky a šplhej v žebříčku, abys byl ultimátní démon",
+    "title": "Funkce",
+    "description": "Objevte všechny možnosti naší aplikace",
     "list": {
-      "title": "Funkce soutěže",
+      "title": "Co nabízíme",
       "items": [
-        "Aktualizace žebříčku v reálném čase",
-        "Sledování osobních statistik",
-        "Systém úspěchů",
-        "Sociální funkce",
-        "Týdenní a měsíční žebříčky",
-        "Vlastní výzvy"
+        "Sledování vypitých piv",
+        "Žebříček nejlepších",
+        "Statistiky a přehledy",
+        "Správa sudů",
+        "Achievementy"
       ]
     }
   },
   "stats": {
     "totalBeers": "Celkem piv",
-    "activeParticipants": "Aktivní účastníci",
-    "activeBarrels": "Aktivní sudy"
+    "activeParticipants": "Aktivních účastníků",
+    "activeBarrels": "Aktivních sudů"
   },
   "topParticipants": {
-    "title": "Nejlepší pivní démoni",
+    "title": "Nejlepší pivaři",
     "beers": "piv"
   },
   "cta": {
     "title": "Připraveni začít?",
     "description": "Připojte se k tisícům vývojářů, kteří důvěřují našemu řešení",
     "button": "Zaregistrujte se"
+  },
+  "footer": {
+    "allRightsReserved": "Všechna práva vyhrazena.",
+    "sections": {
+      "product": {
+        "title": "Produkt",
+        "items": {
+          "features": "Funkce",
+          "pricing": "Ceník",
+          "changelog": "Co je nového",
+          "status": "Stav služby"
+        }
+      },
+      "company": {
+        "title": "Společnost",
+        "items": {
+          "about": "O nás",
+          "blog": "Blog",
+          "careers": "Kariéra",
+          "contact": "Kontakt"
+        }
+      },
+      "resources": {
+        "title": "Zdroje",
+        "items": {
+          "documentation": "Dokumentace",
+          "help": "Nápověda",
+          "terms": "Podmínky použití",
+          "privacy": "Ochrana soukromí"
+        }
+      },
+      "community": {
+        "title": "Komunita",
+        "items": {
+          "github": "GitHub",
+          "discord": "Discord",
+          "twitter": "Twitter",
+          "facebook": "Facebook"
+        }
+      }
+    },
+    "newsletter": {
+      "title": "Odebírejte novinky",
+      "description": "Získejte nejnovější informace o aktualizacích a novinkách",
+      "placeholder": "Zadejte svůj email",
+      "button": "Přihlásit k odběru",
+      "success": "Děkujeme za přihlášení k odběru!"
+    }
+  },
+  "latestActivity": {
+    "title": "Poslední aktivita",
+    "subtitle": "Co se děje v komunitě",
+    "events": {
+      "beer_added": "přidal(a) {count} piv",
+      "barrel_finished": "dokončil(a) sud {name}",
+      "achievement_unlocked": "získal(a) achievement {name}",
+      "new_participant": "se připojil(a) ke komunitě"
+    },
+    "timeAgo": {
+      "justNow": "právě teď",
+      "minutesAgo": "před {count} minutami",
+      "hoursAgo": "před {count} hodinami",
+      "daysAgo": "před {count} dny"
+    }
   }
 } 
