@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { Participant } from '../../participants/entities/participant.entity';
 import { Barrel } from '../../barrels/entities/barrel.entity';
 
 @Entity()
@@ -22,13 +22,13 @@ export class Event {
     @Column({ default: true })
     isActive: boolean;
 
-    @ManyToMany(() => User)
+    @ManyToMany(() => Participant)
     @JoinTable({
         name: 'event_participants',
         joinColumn: { name: 'event_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'user_id', referencedColumnName: 'id' }
+        inverseJoinColumn: { name: 'participant_id', referencedColumnName: 'id' }
     })
-    participants: User[];
+    participants: Participant[];
 
     @ManyToMany(() => Barrel)
     @JoinTable({

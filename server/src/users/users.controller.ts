@@ -24,7 +24,7 @@ import { VersionGuard } from '../versioning/guards/version.guard';
  */
 @Controller('users')
 @Versions('1')
-@UseGuards(VersionGuard)
+@UseGuards(JwtAuthGuard, VersionGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -33,13 +33,11 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string, @CurrentUser() currentUser: User) {
     // Only allow users to access their own data unless they're an admin
@@ -49,7 +47,6 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -63,7 +60,6 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);

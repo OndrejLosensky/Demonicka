@@ -18,10 +18,10 @@ export class CreateEventTable1710876000000 implements MigrationInterface {
         await queryRunner.query(`
             CREATE TABLE "event_participants" (
                 "event_id" varchar NOT NULL,
-                "user_id" varchar NOT NULL,
-                PRIMARY KEY ("event_id", "user_id"),
+                "participant_id" varchar NOT NULL,
+                PRIMARY KEY ("event_id", "participant_id"),
                 CONSTRAINT "FK_event_participants_event" FOREIGN KEY ("event_id") REFERENCES "event" ("id") ON DELETE CASCADE,
-                CONSTRAINT "FK_event_participants_user" FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE
+                CONSTRAINT "FK_event_participants_participant" FOREIGN KEY ("participant_id") REFERENCES "participants" ("id") ON DELETE CASCADE
             )
         `);
 
