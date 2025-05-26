@@ -13,11 +13,13 @@ import { useBarrels } from './useBarrels';
 import { AddBarrelDialog } from './AddBarrelDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
+import { EventSelector } from '../../../components/EventSelector';
 import translations from '../../../locales/cs/dashboard.barrels.json';
 
 const BarrelsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_BARRELS);
+  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
   const showStatusToggle = useFeatureFlag(FeatureFlagKey.BARREL_STATUS_TOGGLE);
   const {
     barrels,
@@ -42,7 +44,10 @@ const BarrelsPage: React.FC = () => {
   return (
     <Box p={3}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">{translations.title}</Typography>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Typography variant="h4">{translations.title}</Typography>
+          {showEventHistory && <EventSelector />}
+        </Box>
         <Box>
           {showDeletedFeature && (
             <FormControlLabel

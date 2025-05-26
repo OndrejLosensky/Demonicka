@@ -22,6 +22,10 @@ export const featureFlags: FeatureFlags = {
     enabled: false,
     description: 'Enables the status toggle button on barrel items',
   },
+  [FeatureFlagKey.SHOW_EVENT_HISTORY]: {
+    enabled: true,
+    description: 'Shows event history selector in participants and barrels pages',
+  },
 };
 
 export const isFeatureEnabled = (featureKey: FeatureFlagKey): boolean => {

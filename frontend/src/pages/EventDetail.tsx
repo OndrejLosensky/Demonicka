@@ -17,29 +17,34 @@ import {
     MenuItem,
     FormControl,
     InputLabel,
+    Alert,
+    Box,
+    Chip,
 } from '@mui/material';
 import type { Event } from '../types/event';
-import type { User } from '../types/user';
+import type { Participant } from '../types/participant';
 import type { Barrel } from '../types/barrel';
 import { eventService } from '../services/eventService';
-import { userService } from '../services/userService';
+import { participantsService } from '../services/participantsService';
 import { barrelService } from '../services/barrelService';
 import { format } from 'date-fns';
+import { useActiveEvent } from '../contexts/ActiveEventContext';
 
 export const EventDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [event, setEvent] = useState<Event | null>(null);
-    const [users, setUsers] = useState<User[]>([]);
+    const [participants, setParticipants] = useState<Participant[]>([]);
     const [barrels, setBarrels] = useState<Barrel[]>([]);
     const [openParticipant, setOpenParticipant] = useState(false);
     const [openBarrel, setOpenBarrel] = useState(false);
-    const [selectedUser, setSelectedUser] = useState('');
+    const [selectedParticipant, setSelectedParticipant] = useState('');
     const [selectedBarrel, setSelectedBarrel] = useState('');
+    const { loadActiveEvent } = useActiveEvent();
 
     useEffect(() => {
         if (id) {
             loadEventData();
-            loadUsers();
+            loadParticipants();
             loadBarrels();
         }
     }, [id]);
@@ -55,12 +60,12 @@ export const EventDetail: React.FC = () => {
         }
     };
 
-    const loadUsers = async () => {
+    const loadParticipants = async () => {
         try {
-            const data = await userService.getAllUsers();
-            setUsers(data);
+            const data = await participantsService.getAllParticipants();
+            setParticipants(data);
         } catch (error) {
-            console.error('Failed to load users:', error);
+            console.error('Failed to load participants:', error);
         }
     };
 
@@ -75,11 +80,11 @@ export const EventDetail: React.FC = () => {
 
     const handleAddParticipant = async () => {
         try {
-            if (id && selectedUser) {
-                await eventService.addParticipant(id, selectedUser);
+            if (id && selectedParticipant) {
+                await eventService.addParticipant(id, selectedParticipant);
                 loadEventData();
                 setOpenParticipant(false);
-                setSelectedUser('');
+                setSelectedParticipant('');
             }
         } catch (error) {
             console.error('Failed to add participant:', error);
@@ -103,7 +108,7 @@ export const EventDetail: React.FC = () => {
         try {
             if (id) {
                 await eventService.endEvent(id);
-                loadEventData();
+                await Promise.all([loadEventData(), loadActiveEvent()]);
             }
         } catch (error) {
             console.error('Failed to end event:', error);
@@ -118,130 +123,148 @@ export const EventDetail: React.FC = () => {
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Grid container spacing={3}>
                 <Grid item xs={12}>
-                    <Card sx={{ p: 3 }}>
-                        <Typography variant="h4" gutterBottom>
-                            {event.name}
-                        </Typography>
-                        <Typography color="textSecondary" paragraph>
-                            {event.description}
-                        </Typography>
-                        <Typography variant="body1">
-                            Start: {format(new Date(event.startDate), 'PPpp')}
-                        </Typography>
-                        {event.endDate && (
-                            <Typography variant="body1">
-                                End: {format(new Date(event.endDate), 'PPpp')}
-                            </Typography>
-                        )}
-                        <Typography variant="body1" sx={{ mb: 2 }}>
-                            Status: {event.isActive ? 'Active' : 'Ended'}
-                        </Typography>
-
+                    <Card sx={{ p: 3, position: 'relative' }}>
                         {event.isActive && (
-                            <Button
-                                variant="contained"
-                                color="error"
-                                onClick={handleEndEvent}
-                                sx={{ mb: 3 }}
-                            >
-                                End Event
-                            </Button>
+                            <Chip
+                                label="Aktivní událost"
+                                color="primary"
+                                sx={{
+                                    position: 'absolute',
+                                    top: 16,
+                                    right: 16,
+                                }}
+                            />
                         )}
+                        <Box sx={{ mt: event.isActive ? 4 : 0 }}>
+                            <Typography variant="h4" gutterBottom>
+                                {event.name}
+                            </Typography>
+                            <Typography color="textSecondary" paragraph>
+                                {event.description}
+                            </Typography>
+                            <Typography variant="body1">
+                                Začátek: {format(new Date(event.startDate), 'PPpp')}
+                            </Typography>
+                            {event.endDate && (
+                                <Typography variant="body1">
+                                    Konec: {format(new Date(event.endDate), 'PPpp')}
+                                </Typography>
+                            )}
+                            <Typography variant="body1" sx={{ mb: 2 }}>
+                                Status: {event.isActive ? 'Aktivní' : 'Ukončená'}
+                            </Typography>
 
-                        <Grid container spacing={3}>
-                            <Grid item xs={12} md={6}>
-                                <Card variant="outlined" sx={{ p: 2 }}>
-                                    <Typography variant="h6" gutterBottom>
-                                        Participants ({event.participants.length})
-                                    </Typography>
-                                    {event.isActive && (
-                                        <Button
-                                            variant="outlined"
-                                            onClick={() => setOpenParticipant(true)}
-                                            sx={{ mb: 2 }}
-                                        >
-                                            Add Participant
-                                        </Button>
-                                    )}
-                                    <List>
-                                        {event.participants.map((participant) => (
-                                            <ListItem key={participant.id}>
-                                                <ListItemText
-                                                    primary={participant.username}
-                                                    secondary={participant.email}
-                                                />
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                </Card>
-                            </Grid>
+                            {event.isActive && (
+                                <>
+                                    <Alert severity="info" sx={{ mb: 3 }}>
+                                        Toto je aktivní událost. Všichni nově přidaní účastníci a sudy budou automaticky přiřazeni k této události.
+                                    </Alert>
+                                    <Button
+                                        variant="contained"
+                                        color="error"
+                                        onClick={handleEndEvent}
+                                        sx={{ mb: 3 }}
+                                    >
+                                        Ukončit událost
+                                    </Button>
+                                </>
+                            )}
 
-                            <Grid item xs={12} md={6}>
-                                <Card variant="outlined" sx={{ p: 2 }}>
-                                    <Typography variant="h6" gutterBottom>
-                                        Barrels ({event.barrels.length})
-                                    </Typography>
-                                    {event.isActive && (
-                                        <Button
-                                            variant="outlined"
-                                            onClick={() => setOpenBarrel(true)}
-                                            sx={{ mb: 2 }}
-                                        >
-                                            Add Barrel
-                                        </Button>
-                                    )}
-                                    <List>
-                                        {event.barrels.map((barrel) => (
-                                            <ListItem key={barrel.id}>
-                                                <ListItemText
-                                                    primary={barrel.name}
-                                                    secondary={`Volume: ${barrel.volume}L`}
-                                                />
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                </Card>
+                            <Grid container spacing={3}>
+                                <Grid item xs={12} md={6}>
+                                    <Card variant="outlined" sx={{ p: 2 }}>
+                                        <Typography variant="h6" gutterBottom>
+                                            Účastníci ({event.participants.length})
+                                        </Typography>
+                                        {event.isActive && (
+                                            <Button
+                                                variant="outlined"
+                                                onClick={() => setOpenParticipant(true)}
+                                                sx={{ mb: 2 }}
+                                            >
+                                                Přidat účastníka
+                                            </Button>
+                                        )}
+                                        <List>
+                                            {event.participants.map((participant) => (
+                                                <ListItem key={participant.id}>
+                                                    <ListItemText
+                                                        primary={participant.name}
+                                                        secondary={`Počet piv: ${participant.beerCount}`}
+                                                    />
+                                                </ListItem>
+                                            ))}
+                                        </List>
+                                    </Card>
+                                </Grid>
+
+                                <Grid item xs={12} md={6}>
+                                    <Card variant="outlined" sx={{ p: 2 }}>
+                                        <Typography variant="h6" gutterBottom>
+                                            Sudy ({event.barrels.length})
+                                        </Typography>
+                                        {event.isActive && (
+                                            <Button
+                                                variant="outlined"
+                                                onClick={() => setOpenBarrel(true)}
+                                                sx={{ mb: 2 }}
+                                            >
+                                                Přidat sud
+                                            </Button>
+                                        )}
+                                        <List>
+                                            {event.barrels.map((barrel) => (
+                                                <ListItem key={barrel.id}>
+                                                    <ListItemText
+                                                        primary={barrel.name}
+                                                        secondary={`Objem: ${barrel.volume}L`}
+                                                    />
+                                                </ListItem>
+                                            ))}
+                                        </List>
+                                    </Card>
+                                </Grid>
                             </Grid>
-                        </Grid>
+                        </Box>
                     </Card>
                 </Grid>
             </Grid>
 
             <Dialog open={openParticipant} onClose={() => setOpenParticipant(false)}>
-                <DialogTitle>Add Participant</DialogTitle>
+                <DialogTitle>Přidat účastníka</DialogTitle>
                 <DialogContent>
                     <FormControl fullWidth sx={{ mt: 2 }}>
-                        <InputLabel>Select User</InputLabel>
+                        <InputLabel>Vybrat účastníka</InputLabel>
                         <Select
-                            value={selectedUser}
-                            onChange={(e) => setSelectedUser(e.target.value)}
-                            label="Select User"
+                            value={selectedParticipant}
+                            onChange={(e) => setSelectedParticipant(e.target.value)}
+                            label="Vybrat účastníka"
                         >
-                            {users.map((user) => (
-                                <MenuItem key={user.id} value={user.id}>
-                                    {user.username}
+                            {participants.map((participant) => (
+                                <MenuItem key={participant.id} value={participant.id}>
+                                    {participant.name}
                                 </MenuItem>
                             ))}
                         </Select>
                     </FormControl>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenParticipant(false)}>Cancel</Button>
+                    <Button onClick={() => setOpenParticipant(false)}>Zrušit</Button>
                     <Button onClick={handleAddParticipant} variant="contained" color="primary">
-                        Add
+                        Přidat
                     </Button>
                 </DialogActions>
             </Dialog>
 
             <Dialog open={openBarrel} onClose={() => setOpenBarrel(false)}>
-                <DialogTitle>Add Barrel</DialogTitle>
+                <DialogTitle>Přidat sud</DialogTitle>
                 <DialogContent>
                     <FormControl fullWidth sx={{ mt: 2 }}>
-                        <InputLabel>Select Barrel</InputLabel>
+                        <InputLabel>Vybrat sud</InputLabel>
                         <Select
                             value={selectedBarrel}
                             onChange={(e) => setSelectedBarrel(e.target.value)}
-                            label="Select Barrel"
+                            label="Vybrat sud"
                         >
                             {barrels.map((barrel) => (
                                 <MenuItem key={barrel.id} value={barrel.id}>
@@ -252,9 +275,9 @@ export const EventDetail: React.FC = () => {
                     </FormControl>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenBarrel(false)}>Cancel</Button>
+                    <Button onClick={() => setOpenBarrel(false)}>Zrušit</Button>
                     <Button onClick={handleAddBarrel} variant="contained" color="primary">
-                        Add
+                        Přidat
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -22,6 +22,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import translations from '../locales/cs/common.header.json';
+import { useActiveEvent } from '../contexts/ActiveEventContext';
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -31,6 +32,7 @@ export default function Header() {
   const isHistoryEnabled = useFeatureFlag(FeatureFlagKey.HISTORY_PAGE);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const { activeEvent } = useActiveEvent();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -279,6 +281,13 @@ export default function Header() {
                     </Link>
                   </motion.div>
                 )}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {activeEvent && (
+                    <Typography variant="h6" color="primary">
+                      Aktivní událost: {activeEvent.name}
+                    </Typography>
+                  )}
+                </Box>
               </div>
             </div>
           </div>

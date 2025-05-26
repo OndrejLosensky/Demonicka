@@ -13,6 +13,8 @@ import {
 } from '@mui/material';
 import { toast } from 'react-hot-toast';
 import { barrelsApi } from './api';
+import { eventService } from '../../../services/eventService';
+import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.barrels.json';
 
 interface AddBarrelDialogProps {
@@ -28,6 +30,7 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
 }) => {
   const [size, setSize] = useState<15 | 30 | 50>(15);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { activeEvent } = useActiveEvent();
 
   // Reset form state when dialog opens/closes
   useEffect(() => {
@@ -47,7 +50,13 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
         barrelsApi.getDeleted()
       ]);
       const orderNumber = activeBarrels.length + deletedBarrels.length + 1;
-      await barrelsApi.create({ size, orderNumber });
+      const barrel = await barrelsApi.create({ size, orderNumber });
+
+      // If there's an active event, automatically add the barrel to it
+      if (activeEvent) {
+        await eventService.addBarrel(activeEvent.id, barrel.id);
+      }
+
       toast.success(translations.dialogs.add.success);
       onSuccess();
       onClose();

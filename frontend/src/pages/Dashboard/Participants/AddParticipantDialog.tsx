@@ -14,6 +14,8 @@ import {
 } from '@mui/material';
 import { toast } from 'react-hot-toast';
 import { participantsApi } from './api';
+import { eventService } from '../../../services/eventService';
+import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { AxiosError } from 'axios';
 import translations from '../../../locales/cs/dashboard.participants.json';
 
@@ -34,6 +36,7 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   const [gender, setGender] = useState<'MALE' | 'FEMALE'>('MALE');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [nameError, setNameError] = useState('');
+  const { activeEvent, loadActiveEvent } = useActiveEvent();
 
   // Reset form state when dialog opens/closes
   useEffect(() => {
@@ -46,11 +49,18 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
 
   // Validate name on change
   const validateName = (value: string) => {
-    if (!value.trim()) {
+    const trimmedName = value.trim();
+    if (!trimmedName) {
       setNameError(translations.dialogs.add.validation.required);
       return false;
     }
-    if (existingNames.includes(value.trim().toLowerCase())) {
+    
+    // Case-insensitive name comparison
+    const nameExists = existingNames.some(
+      existingName => existingName.toLowerCase() === trimmedName.toLowerCase()
+    );
+    
+    if (nameExists) {
       setNameError(translations.dialogs.add.validation.firstName);
       return false;
     }
@@ -73,9 +83,16 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
 
     try {
       setIsSubmitting(true);
-      await participantsApi.create({ name: name.trim(), gender });
+      const participant = await participantsApi.create({ name: name.trim(), gender });
+      
+      // If there's an active event, automatically add the participant to it
+      if (activeEvent) {
+        await eventService.addParticipant(activeEvent.id, participant.id);
+        await loadActiveEvent(); // Refresh the active event data
+      }
+      
       toast.success(translations.dialogs.add.success);
-      onSuccess();
+      onSuccess(); // This will refresh the participants list
       onClose();
     } catch (error) {
       if ((error as AxiosError)?.response?.status === 409) {

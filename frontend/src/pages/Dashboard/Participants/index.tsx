@@ -14,11 +14,13 @@ import { useParticipants } from './useParticipants';
 import { AddParticipantDialog } from './AddParticipantDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
+import { EventSelector } from '../../../components/EventSelector';
 import translations from '../../../locales/cs/dashboard.participants.json';
 
 const ParticipantsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_PARTICIPANTS);
+  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
   const {
     participants,
     deletedParticipants,
@@ -49,7 +51,10 @@ const ParticipantsPage: React.FC = () => {
   return (
     <Box p={3}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">{translations.title}</Typography>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Typography variant="h4">{translations.title}</Typography>
+          {showEventHistory && <EventSelector />}
+        </Box>
         <Box>
           {showDeletedFeature && (
             <FormControlLabel

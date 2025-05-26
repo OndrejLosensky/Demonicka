@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Container, Grid, Typography, Dialog, DialogTitle, DialogContent, TextField, DialogActions } from '@mui/material';
+import { Button, Card, Container, Grid, Typography, Dialog, DialogTitle, DialogContent, TextField, DialogActions, Alert, Box, Chip } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import type { Event } from '../types/event';
 import { eventService } from '../services/eventService';
 import { format } from 'date-fns';
+import { useActiveEvent } from '../contexts/ActiveEventContext';
 
 export const Events: React.FC = () => {
     const [events, setEvents] = useState<Event[]>([]);
@@ -15,6 +16,7 @@ export const Events: React.FC = () => {
         startDate: new Date(),
     });
     const navigate = useNavigate();
+    const { loadActiveEvent } = useActiveEvent();
 
     useEffect(() => {
         loadEvents();
@@ -37,7 +39,7 @@ export const Events: React.FC = () => {
                 startDate: newEvent.startDate.toISOString(),
             });
             setOpen(false);
-            loadEvents();
+            await Promise.all([loadEvents(), loadActiveEvent()]);
             setNewEvent({ name: '', description: '', startDate: new Date() });
         } catch (error) {
             console.error('Failed to create event:', error);
@@ -47,7 +49,7 @@ export const Events: React.FC = () => {
     const handleEndEvent = async (eventId: string) => {
         try {
             await eventService.endEvent(eventId);
-            loadEvents();
+            await Promise.all([loadEvents(), loadActiveEvent()]);
         } catch (error) {
             console.error('Failed to end event:', error);
         }
@@ -66,71 +68,94 @@ export const Events: React.FC = () => {
                 </Grid>
             </Grid>
 
+            <Alert severity="info" sx={{ mb: 3 }}>
+                <Typography variant="body1">
+                    V aplikaci může být vždy pouze jedna aktivní událost. Při vytvoření nové události se automaticky ukončí předchozí aktivní událost.
+                    Aktivní událost se zobrazuje v záhlaví a všichni nově přidaní účastníci a sudy jsou automaticky přiřazeni k této události.
+                </Typography>
+            </Alert>
+
             <Grid container spacing={3}>
                 {events.map((event) => (
                     <Grid item xs={12} md={6} lg={4} key={event.id}>
-                        <Card sx={{ p: 2 }}>
-                            <Typography variant="h6">{event.name}</Typography>
-                            <Typography color="textSecondary" gutterBottom>
-                                {event.description}
-                            </Typography>
-                            <Typography variant="body2">
-                                Start: {format(new Date(event.startDate), 'PPpp')}
-                            </Typography>
-                            {event.endDate && (
-                                <Typography variant="body2">
-                                    End: {format(new Date(event.endDate), 'PPpp')}
-                                </Typography>
+                        <Card sx={{ p: 2, position: 'relative' }}>
+                            {event.isActive && (
+                                <Chip
+                                    label="Aktivní událost"
+                                    color="primary"
+                                    sx={{
+                                        position: 'absolute',
+                                        top: 16,
+                                        right: 16,
+                                    }}
+                                />
                             )}
-                            <Typography variant="body2" sx={{ mb: 2 }}>
-                                Status: {event.isActive ? 'Active' : 'Ended'}
-                            </Typography>
-                            <Typography variant="body2">
-                                Participants: {event.participants.length}
-                            </Typography>
-                            <Typography variant="body2" sx={{ mb: 2 }}>
-                                Barrels: {event.barrels.length}
-                            </Typography>
-                            <Grid container spacing={1}>
-                                <Grid item>
-                                    <Button
-                                        variant="outlined"
-                                        onClick={() => navigate(`/events/${event.id}`)}
-                                    >
-                                        View Details
-                                    </Button>
-                                </Grid>
-                                {event.isActive && (
+                            <Box sx={{ mt: event.isActive ? 4 : 0 }}>
+                                <Typography variant="h6">{event.name}</Typography>
+                                <Typography color="textSecondary" gutterBottom>
+                                    {event.description}
+                                </Typography>
+                                <Typography variant="body2">
+                                    Start: {format(new Date(event.startDate), 'PPpp')}
+                                </Typography>
+                                {event.endDate && (
+                                    <Typography variant="body2">
+                                        End: {format(new Date(event.endDate), 'PPpp')}
+                                    </Typography>
+                                )}
+                                <Typography variant="body2" sx={{ mb: 2 }}>
+                                    Status: {event.isActive ? 'Aktivní' : 'Ukončená'}
+                                </Typography>
+                                <Typography variant="body2">
+                                    Účastníci: {event.participants.length}
+                                </Typography>
+                                <Typography variant="body2" sx={{ mb: 2 }}>
+                                    Sudy: {event.barrels.length}
+                                </Typography>
+                                <Grid container spacing={1}>
                                     <Grid item>
                                         <Button
                                             variant="outlined"
-                                            color="error"
-                                            onClick={() => handleEndEvent(event.id)}
+                                            onClick={() => navigate(`/events/${event.id}`)}
                                         >
-                                            End Event
+                                            Zobrazit detail
                                         </Button>
                                     </Grid>
-                                )}
-                            </Grid>
+                                    {event.isActive && (
+                                        <Grid item>
+                                            <Button
+                                                variant="outlined"
+                                                color="error"
+                                                onClick={() => handleEndEvent(event.id)}
+                                            >
+                                                Ukončit událost
+                                            </Button>
+                                        </Grid>
+                                    )}
+                                </Grid>
+                            </Box>
                         </Card>
                     </Grid>
                 ))}
             </Grid>
 
             <Dialog open={open} onClose={() => setOpen(false)}>
-                <DialogTitle>Create New Event</DialogTitle>
+                <DialogTitle>Vytvořit novou událost</DialogTitle>
                 <DialogContent>
+                    <Alert severity="warning" sx={{ mb: 2, mt: 2 }}>
+                        Vytvořením nové události se automaticky ukončí aktuálně aktivní událost.
+                    </Alert>
                     <TextField
                         autoFocus
                         margin="dense"
-                        label="Event Name"
+                        label="Název události"
                         fullWidth
                         value={newEvent.name}
                         onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })}
                     />
                     <TextField
                         margin="dense"
-                        label="Description"
+                        label="Popis"
                         fullWidth
                         multiline
                         rows={4}
@@ -138,16 +163,16 @@ export const Events: React.FC = () => {
                         onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                     />
                     <DateTimePicker
-                        label="Start Date"
+                        label="Datum začátku"
                         value={newEvent.startDate}
                         onChange={(date: Date | null) => date && setNewEvent({ ...newEvent, startDate: date })}
                         sx={{ mt: 2, width: '100%' }}
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpen(false)}>Cancel</Button>
+                    <Button onClick={() => setOpen(false)}>Zrušit</Button>
                     <Button onClick={handleCreateEvent} variant="contained" color="primary">
-                        Create
+                        Vytvořit
                     </Button>
                 </DialogActions>
             </Dialog>

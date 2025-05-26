@@ -1,7 +1,6 @@
 import axios from 'axios';
 import type { Participant } from './types';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { API_URL } from '../../../config';
 
 // Create an axios instance with proper configuration
 const api = axios.create({
