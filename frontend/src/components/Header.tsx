@@ -151,6 +151,16 @@ export default function Header() {
                     >
                       {translations.navigation.leaderboard}
                     </Link>
+                    <Link
+                      to="/events"
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        isActive('/events')
+                          ? 'bg-primary text-white'
+                          : 'text-text-primary hover:text-text-secondary'
+                      }`}
+                    >
+                      {translations.navigation.events}
+                    </Link>
                   </div>
                 )}
               </div>

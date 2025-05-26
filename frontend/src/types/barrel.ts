@@ -1,8 +1,10 @@
 export interface Barrel {
   id: string;
-  size: number;
+  name: string;
+  volume: number;
+  remaining: number;
+  order: number;
   isActive: boolean;
-  orderNumber: number;
   remainingBeers: number;
   createdAt: string;
   updatedAt: string;
