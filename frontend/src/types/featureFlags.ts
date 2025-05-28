@@ -1,21 +1,18 @@
-export type FeatureFlag = {
-  enabled: boolean;
-  description: string;
-};
-
-export type FeatureFlags = {
-  [key: string]: FeatureFlag;
-};
-
-// Define the available feature flag keys
 export enum FeatureFlagKey {
+  SHOW_DELETED_USERS = 'SHOW_DELETED_USERS',
+  SHOW_EVENT_HISTORY = 'SHOW_EVENT_HISTORY',
+  SHOW_USER_HISTORY = 'SHOW_USER_HISTORY',
+  ACTIVE_EVENT_FUNCTIONALITY = 'ACTIVE_EVENT_FUNCTIONALITY',
   HISTORY_PAGE = 'HISTORY_PAGE',
   LEADERBOARD_YEAR_FILTER = 'LEADERBOARD_YEAR_FILTER',
-  SHOW_DELETED_PARTICIPANTS = 'SHOW_DELETED_PARTICIPANTS',
   SHOW_DELETED_BARRELS = 'SHOW_DELETED_BARRELS',
   BARREL_STATUS_TOGGLE = 'BARREL_STATUS_TOGGLE',
-  SHOW_EVENT_HISTORY = 'SHOW_EVENT_HISTORY',
-  SHOW_PARTICIPANTS_HISTORY = 'SHOW_PARTICIPANTS_HISTORY',
   SHOW_BARRELS_HISTORY = 'SHOW_BARRELS_HISTORY',
-  ACTIVE_EVENT_FUNCTIONALITY = 'ACTIVE_EVENT_FUNCTIONALITY'
-} 
+}
+
+export interface FeatureFlag {
+  enabled: boolean;
+  description: string;
+}
+
+export type FeatureFlags = Record<FeatureFlagKey, FeatureFlag>; 

@@ -3,16 +3,16 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { ParticipantsModule } from './participants/participants.module';
 import { BeersModule } from './beers/beers.module';
 import { BarrelsModule } from './barrels/barrels.module';
-import { DashboardModule } from './dashboard/dashboard.module';
-import { VersioningModule } from './versioning/versioning.module';
-import { LoggingModule } from './logging/logging.module';
 import { EventsModule } from './events/events.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { LoggingModule } from './logging/logging.module';
+import { VersioningModule } from './versioning/versioning.module';
 import { DocsModule } from './docs/docs.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
+import { AppDataSource } from './data-source';
 
 @Module({
   imports: [
@@ -20,21 +20,15 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'data/database.sqlite',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-    }),
+    TypeOrmModule.forRoot(AppDataSource.options),
     AuthModule,
     UsersModule,
-    ParticipantsModule,
     BeersModule,
     BarrelsModule,
-    DashboardModule,
-    VersioningModule,
-    LoggingModule,
     EventsModule,
+    DashboardModule,
+    LoggingModule,
+    VersioningModule,
     DocsModule,
   ],
 })

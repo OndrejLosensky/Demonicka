@@ -10,26 +10,23 @@
     "title": "Přehled",
     "cards": {
       "totalBeers": "Celkem piv",
-      "totalParticipants": "Celkem účastníků",
+      "totalUsers": "Celkem uživatelů",
       "totalBarrels": "Celkem sudů",
-      "avgBeersPerParticipant": "Průměr piv na účastníka"
+      "avgBeersPerUser": "Průměr piv na uživatele"
     },
     "charts": {
-      "topParticipants": {
-        "title": "Nejlepší účastníci",
+      "topUsers": {
+        "title": "Nejlepší uživatelé",
         "columns": {
           "name": "Jméno",
           "beers": "Piva"
         }
       },
-      "barrelDistribution": {
-        "title": "Distribuce sudů",
-        "axis": {
-          "size": "Velikost (L)",
+      "barrelStats": {
+        "title": "Statistiky sudů",
+        "columns": {
+          "size": "Velikost",
           "count": "Počet"
-        },
-        "legend": {
-          "barrels": "Počet sudů"
         }
       }
     }

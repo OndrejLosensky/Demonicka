@@ -1,44 +1,33 @@
 import {
-  IsEmail,
   IsOptional,
   IsString,
-  Matches,
   MinLength,
+  Matches,
+  IsEnum,
 } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
-  @MinLength(3, { message: 'Uživatelské jméno musí mít alespoň 3 znaky' })
+  @MinLength(3, { message: 'Username must be at least 3 characters long' })
   @Matches(/^[a-zA-Z0-9_-]+$/, {
-    message:
-      'Uživatelské jméno může obsahovat pouze písmena, čísla, podtržítka a pomlčky',
+    message: 'Username can only contain letters, numbers, underscores, and hyphens',
   })
   username?: string;
 
   @IsOptional()
   @IsString()
-  @MinLength(8, { message: 'Heslo musí mít alespoň 8 znaků' })
-  @Matches(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-    {
-      message:
-        'Heslo musí obsahovat alespoň jedno velké písmeno, jedno malé písmeno, jedno číslo a jeden speciální znak',
-    },
-  )
+  @MinLength(8, { message: 'Password must be at least 8 characters long' })
   password?: string;
 
   @IsOptional()
-  @IsEmail({}, { message: 'Prosím zadejte platnou emailovou adresu' })
-  email?: string;
+  @IsString()
+  @MinLength(2, { message: 'Name must be at least 2 characters long' })
+  name?: string;
 
   @IsOptional()
-  @IsString()
-  @MinLength(2, { message: 'Křestní jméno musí mít alespoň 2 znaky' })
-  firstName?: string;
-
-  @IsOptional()
-  @IsString()
-  @MinLength(2, { message: 'Příjmení musí mít alespoň 2 znaky' })
-  lastName?: string;
+  @IsEnum(['MALE', 'FEMALE'], {
+    message: 'Gender must be either MALE or FEMALE',
+  })
+  gender?: 'MALE' | 'FEMALE';
 }

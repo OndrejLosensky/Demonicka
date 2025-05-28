@@ -1,4 +1,4 @@
-export interface ParticipantStats {
+export interface UserStats {
   id: string;
   name: string;
   beerCount: number;
@@ -9,11 +9,11 @@ export interface BarrelStats {
   count: number;
 }
 
-export interface DashboardData {
+export interface DashboardStats {
   totalBeers: number;
-  totalParticipants: number;
+  totalUsers: number;
   totalBarrels: number;
-  averageBeersPerParticipant: number;
-  topParticipants: ParticipantStats[];
+  averageBeersPerUser: number;
+  topUsers: UserStats[];
   barrelStats: BarrelStats[];
 } 

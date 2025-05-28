@@ -1,32 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Participant } from '../participants/entities/participant.entity';
+import { User } from '../users/entities/user.entity';
 import { Beer } from '../beers/entities/beer.entity';
 import { Barrel } from '../barrels/entities/barrel.entity';
 import { Event } from '../events/entities/event.entity';
 import {
   DashboardResponseDto,
-  ParticipantStatsDto,
+  UserStatsDto,
   BarrelStatsDto,
 } from './dto/dashboard.dto';
 import {
   LeaderboardDto,
-  ParticipantLeaderboardDto,
+  UserLeaderboardDto,
 } from './dto/leaderboard.dto';
 import { PublicStatsDto } from './dto/public-stats.dto';
 
 @Injectable()
 export class DashboardService {
   constructor(
-    @InjectRepository(Participant)
-    private participantRepository: Repository<Participant>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(Beer)
-    private beerRepository: Repository<Beer>,
+    private readonly beerRepository: Repository<Beer>,
     @InjectRepository(Barrel)
-    private barrelRepository: Repository<Barrel>,
+    private readonly barrelRepository: Repository<Barrel>,
     @InjectRepository(Event)
-    private eventRepository: Repository<Event>,
+    private readonly eventRepository: Repository<Event>,
   ) {}
 
   async getPublicStats(eventId?: string): Promise<PublicStatsDto> {
@@ -35,7 +35,7 @@ export class DashboardService {
     if (eventId) {
       event = await this.eventRepository.findOne({
         where: { id: eventId },
-        relations: ['participants', 'barrels']
+        relations: ['users', 'barrels'],
       });
       
       if (!event) {
@@ -45,33 +45,33 @@ export class DashboardService {
 
     if (event) {
       // Event-specific stats
-      const eventParticipantIds = event.participants.map(p => p.id);
-      const eventBarrelIds = event.barrels.map(b => b.id);
+      const eventUserIds = event.users.map((u) => u.id);
+      const eventBarrelIds = event.barrels.map((b) => b.id);
 
-      // Get beer count for event participants
-      const totalBeers = eventParticipantIds.length > 0 
+      // Get beer count for event users
+      const totalBeers = eventUserIds.length > 0
         ? await this.beerRepository
             .createQueryBuilder('beer')
-            .where('beer.participantId IN (:...ids)', { ids: eventParticipantIds })
+            .where('beer.userId IN (:...ids)', { ids: eventUserIds })
             .getCount()
         : 0;
 
-      // Get top participants for this event
-      const participantsWithBeerCounts = eventParticipantIds.length > 0
-        ? await this.participantRepository
-            .createQueryBuilder('participant')
-            .leftJoin('participant.beers', 'beer')
-            .select(['participant.name as name', 'COUNT(beer.id) as beerCount'])
-            .where('participant.id IN (:...ids)', { ids: eventParticipantIds })
-            .groupBy('participant.id')
+      // Get top users for this event
+      const usersWithBeerCounts = eventUserIds.length > 0
+        ? await this.userRepository
+            .createQueryBuilder('user')
+            .leftJoin('user.beers', 'beer')
+            .select(['user.name as name', 'COUNT(beer.id) as beerCount'])
+            .where('user.id IN (:...ids)', { ids: eventUserIds })
+            .groupBy('user.id')
             .orderBy('beerCount', 'DESC')
             .limit(6)
             .getRawMany<{ name: string; beerCount: string }>()
         : [];
 
-      const topParticipants = participantsWithBeerCounts.map((p) => ({
-        name: p.name,
-        beerCount: parseInt(p.beerCount),
+      const topUsers = usersWithBeerCounts.map((u) => ({
+        name: u.name,
+        beerCount: parseInt(u.beerCount),
       }));
 
       // Get barrel statistics for this event
@@ -91,29 +91,29 @@ export class DashboardService {
 
       return {
         totalBeers,
-        totalParticipants: event.participants.length,
+        totalUsers: event.users.length,
         totalBarrels: event.barrels.length,
-        topParticipants,
+        topUsers,
         barrelStats: formattedBarrelStats,
       };
     } else {
-      // Global stats (existing logic)
-      const totalParticipants = await this.participantRepository.count();
+      // Global stats
+      const totalUsers = await this.userRepository.count();
       const totalBeers = await this.beerRepository.count();
       const totalBarrels = await this.barrelRepository.count();
 
-      const participantsWithBeerCounts = await this.participantRepository
-        .createQueryBuilder('participant')
-        .leftJoin('participant.beers', 'beer')
-        .select(['participant.name as name', 'COUNT(beer.id) as beerCount'])
-        .groupBy('participant.id')
+      const usersWithBeerCounts = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoin('user.beers', 'beer')
+        .select(['user.name as name', 'COUNT(beer.id) as beerCount'])
+        .groupBy('user.id')
         .orderBy('beerCount', 'DESC')
         .limit(6)
         .getRawMany<{ name: string; beerCount: string }>();
 
-      const topParticipants = participantsWithBeerCounts.map((p) => ({
-        name: p.name,
-        beerCount: parseInt(p.beerCount),
+      const topUsers = usersWithBeerCounts.map((u) => ({
+        name: u.name,
+        beerCount: parseInt(u.beerCount),
       }));
 
       const barrelStats = await this.barrelRepository
@@ -129,9 +129,9 @@ export class DashboardService {
 
       return {
         totalBeers,
-        totalParticipants,
+        totalUsers,
         totalBarrels,
-        topParticipants,
+        topUsers,
         barrelStats: formattedBarrelStats,
       };
     }
@@ -143,7 +143,7 @@ export class DashboardService {
     if (eventId) {
       event = await this.eventRepository.findOne({
         where: { id: eventId },
-        relations: ['participants', 'barrels']
+        relations: ['users', 'barrels'],
       });
       
       if (!event) {
@@ -153,41 +153,43 @@ export class DashboardService {
 
     if (event) {
       // Event-specific stats
-      const eventParticipantIds = event.participants.map(p => p.id);
-      const eventBarrelIds = event.barrels.map(b => b.id);
+      const eventUserIds = event.users.map((u) => u.id);
+      const eventBarrelIds = event.barrels.map((b) => b.id);
 
-      // Get beer count for event participants
-      const totalBeers = eventParticipantIds.length > 0 
+      // Get beer count for event users
+      const totalBeers = eventUserIds.length > 0
         ? await this.beerRepository
             .createQueryBuilder('beer')
-            .where('beer.participantId IN (:...ids)', { ids: eventParticipantIds })
+            .where('beer.userId IN (:...ids)', { ids: eventUserIds })
             .getCount()
         : 0;
 
-      const totalParticipants = event.participants.length;
+      const totalUsers = event.users.length;
       const totalBarrels = event.barrels.length;
-      const averageBeersPerParticipant = totalParticipants ? totalBeers / totalParticipants : 0;
+      const averageBeersPerUser = totalUsers
+        ? totalBeers / totalUsers
+        : 0;
 
-      // Get top participants for this event
-      const participantsWithBeerCounts = eventParticipantIds.length > 0
-        ? await this.participantRepository
-            .createQueryBuilder('participant')
-            .leftJoin('participant.beers', 'beer')
+      // Get top users for this event
+      const usersWithBeerCounts = eventUserIds.length > 0
+        ? await this.userRepository
+            .createQueryBuilder('user')
+            .leftJoin('user.beers', 'beer')
             .select([
-              'participant.id as id',
-              'participant.name as name',
+              'user.id as id',
+              'user.name as name',
               'COUNT(beer.id) as beerCount',
             ])
-            .where('participant.id IN (:...ids)', { ids: eventParticipantIds })
-            .groupBy('participant.id')
+            .where('user.id IN (:...ids)', { ids: eventUserIds })
+            .groupBy('user.id')
             .orderBy('beerCount', 'DESC')
             .getRawMany<{ id: string; name: string; beerCount: string }>()
         : [];
 
-      const topParticipants: ParticipantStatsDto[] = participantsWithBeerCounts.map((p) => ({
-        id: p.id,
-        name: p.name,
-        beerCount: parseInt(p.beerCount),
+      const topUsers: UserStatsDto[] = usersWithBeerCounts.map((u) => ({
+        id: u.id,
+        name: u.name,
+        beerCount: parseInt(u.beerCount),
       }));
 
       // Get barrel statistics for this event
@@ -207,35 +209,37 @@ export class DashboardService {
 
       return {
         totalBeers,
-        totalParticipants,
+        totalUsers,
         totalBarrels,
-        averageBeersPerParticipant,
-        topParticipants,
+        averageBeersPerUser,
+        topUsers,
         barrelStats: formattedBarrelStats,
       };
     } else {
-      // Global stats (existing logic)
-      const totalParticipants = await this.participantRepository.count();
+      // Global stats
+      const totalUsers = await this.userRepository.count();
       const totalBeers = await this.beerRepository.count();
       const totalBarrels = await this.barrelRepository.count();
-      const averageBeersPerParticipant = totalParticipants ? totalBeers / totalParticipants : 0;
+      const averageBeersPerUser = totalUsers
+        ? totalBeers / totalUsers
+        : 0;
 
-      const participantsWithBeerCounts = await this.participantRepository
-        .createQueryBuilder('participant')
-        .leftJoin('participant.beers', 'beer')
+      const usersWithBeerCounts = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoin('user.beers', 'beer')
         .select([
-          'participant.id as id',
-          'participant.name as name',
+          'user.id as id',
+          'user.name as name',
           'COUNT(beer.id) as beerCount',
         ])
-        .groupBy('participant.id')
+        .groupBy('user.id')
         .orderBy('beerCount', 'DESC')
         .getRawMany<{ id: string; name: string; beerCount: string }>();
 
-      const topParticipants: ParticipantStatsDto[] = participantsWithBeerCounts.map((p) => ({
-        id: p.id,
-        name: p.name,
-        beerCount: parseInt(p.beerCount),
+      const topUsers: UserStatsDto[] = usersWithBeerCounts.map((u) => ({
+        id: u.id,
+        name: u.name,
+        beerCount: parseInt(u.beerCount),
       }));
 
       const barrelStats = await this.barrelRepository
@@ -251,10 +255,10 @@ export class DashboardService {
 
       return {
         totalBeers,
-        totalParticipants,
+        totalUsers,
         totalBarrels,
-        averageBeersPerParticipant,
-        topParticipants,
+        averageBeersPerUser,
+        topUsers,
         barrelStats: formattedBarrelStats,
       };
     }
@@ -266,7 +270,7 @@ export class DashboardService {
     if (eventId) {
       event = await this.eventRepository.findOne({
         where: { id: eventId },
-        relations: ['participants']
+        relations: ['users'],
       });
       
       if (!event) {
@@ -276,65 +280,65 @@ export class DashboardService {
 
     if (event) {
       // Event-specific leaderboard
-      const eventParticipantIds = event.participants.map(p => p.id);
+      const eventUserIds = event.users.map((u) => u.id);
       
-      const participants = eventParticipantIds.length > 0
-        ? await this.participantRepository
-            .createQueryBuilder('participant')
-            .leftJoin('participant.beers', 'beer')
+      const users = eventUserIds.length > 0
+        ? await this.userRepository
+            .createQueryBuilder('user')
+            .leftJoin('user.beers', 'beer')
             .select([
-              'participant.id as id',
-              'participant.name as name',
-              'participant.gender as gender',
+              'user.id as id',
+              'user.name as name',
+              'user.gender as gender',
               'COUNT(beer.id) as beerCount',
             ])
-            .where('participant.id IN (:...ids)', { ids: eventParticipantIds })
-            .groupBy('participant.id')
+            .where('user.id IN (:...ids)', { ids: eventUserIds })
+            .groupBy('user.id')
             .orderBy('beerCount', 'DESC')
-            .getRawMany<ParticipantLeaderboardDto>()
+            .getRawMany<UserLeaderboardDto>()
         : [];
 
       return {
-        males: participants
-          .filter((p) => p.gender === 'MALE')
-          .map((p) => ({
-            ...p,
-            beerCount: parseInt(p.beerCount as unknown as string),
+        males: users
+          .filter((u) => u.gender === 'MALE')
+          .map((u) => ({
+            ...u,
+            beerCount: parseInt(u.beerCount as unknown as string),
           })),
-        females: participants
-          .filter((p) => p.gender === 'FEMALE')
-          .map((p) => ({
-            ...p,
-            beerCount: parseInt(p.beerCount as unknown as string),
+        females: users
+          .filter((u) => u.gender === 'FEMALE')
+          .map((u) => ({
+            ...u,
+            beerCount: parseInt(u.beerCount as unknown as string),
           })),
       };
     } else {
-      // Global leaderboard (existing logic)
-      const participants = await this.participantRepository
-        .createQueryBuilder('participant')
-        .leftJoin('participant.beers', 'beer')
+      // Global leaderboard
+      const users = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoin('user.beers', 'beer')
         .select([
-          'participant.id as id',
-          'participant.name as name',
-          'participant.gender as gender',
+          'user.id as id',
+          'user.name as name',
+          'user.gender as gender',
           'COUNT(beer.id) as beerCount',
         ])
-        .groupBy('participant.id')
+        .groupBy('user.id')
         .orderBy('beerCount', 'DESC')
-        .getRawMany<ParticipantLeaderboardDto>();
+        .getRawMany<UserLeaderboardDto>();
 
       return {
-        males: participants
-          .filter((p) => p.gender === 'MALE')
-          .map((p) => ({
-            ...p,
-            beerCount: parseInt(p.beerCount as unknown as string),
+        males: users
+          .filter((u) => u.gender === 'MALE')
+          .map((u) => ({
+            ...u,
+            beerCount: parseInt(u.beerCount as unknown as string),
           })),
-        females: participants
-          .filter((p) => p.gender === 'FEMALE')
-          .map((p) => ({
-            ...p,
-            beerCount: parseInt(p.beerCount as unknown as string),
+        females: users
+          .filter((u) => u.gender === 'FEMALE')
+          .map((u) => ({
+            ...u,
+            beerCount: parseInt(u.beerCount as unknown as string),
           })),
       };
     }

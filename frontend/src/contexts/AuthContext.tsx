@@ -14,8 +14,8 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (usernameOrEmail: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string, firstName: string, lastName: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, password: string, name: string, gender: 'MALE' | 'FEMALE') => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
 }
@@ -32,6 +32,20 @@ const api = axios.create({
     'Content-Type': 'application/json',
   }
 });
+
+// Add a request interceptor to set the Authorization header
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -57,12 +71,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchUser().finally(() => setIsLoading(false));
   }, []);
 
-  const login = async (usernameOrEmail: string, password: string) => {
+  const login = async (username: string, password: string) => {
     try {
       const response = await api.post('/auth/login', {
-        usernameOrEmail,
+        username,
         password,
       });
+      localStorage.setItem('access_token', response.data.access_token);
       setUser(response.data.user);
     } catch (error) {
       console.error('Login failed:', error);
@@ -70,14 +85,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (username: string, email: string, password: string, firstName: string, lastName: string) => {
+  const register = async (username: string, password: string, name: string, gender: 'MALE' | 'FEMALE') => {
     try {
       const response = await api.post('/auth/register', {
         username,
-        email,
         password,
-        firstName,
-        lastName
+        name,
+        gender
       });
       setUser(response.data.user);
     } catch (error) {
@@ -89,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await api.post('/auth/logout');
+      localStorage.removeItem('access_token');
       setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);
@@ -109,4 +124,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}

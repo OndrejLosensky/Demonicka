@@ -1,19 +1,52 @@
-import axios from 'axios';
+import { api } from './api';
 import type { User } from '../types/user';
-import { API_URL } from '../config';
-
-// Create an axios instance with proper configuration
-const api = axios.create({
-    baseURL: API_URL,
-    withCredentials: true,
-    headers: {
-        'Content-Type': 'application/json'
-    }
-});
 
 export const userService = {
-    async getAllUsers(): Promise<User[]> {
-        const response = await api.get('/users');
-        return response.data;
-    }
+  async getAllUsers(withDeleted?: boolean): Promise<User[]> {
+    const response = await api.get('/users', {
+      params: { withDeleted }
+    });
+    return response.data;
+  },
+
+  async getUser(id: string): Promise<User> {
+    const response = await api.get(`/users/${id}`);
+    return response.data;
+  },
+
+  async createUser(user: { name: string; gender: 'MALE' | 'FEMALE' }): Promise<User> {
+    const response = await api.post('/users', user);
+    return response.data;
+  },
+
+  async updateUser(id: string, user: Partial<User>): Promise<User> {
+    const response = await api.patch(`/users/${id}`, user);
+    return response.data;
+  },
+
+  async deleteUser(id: string): Promise<void> {
+    await api.delete(`/users/${id}`);
+  },
+
+  async addBeer(id: string): Promise<void> {
+    await api.post(`/users/${id}/beers`);
+  },
+
+  async removeBeer(id: string): Promise<void> {
+    await api.delete(`/users/${id}/beers`);
+  },
+
+  async cleanup(): Promise<void> {
+    await api.post('/users/cleanup');
+  },
+
+  async getDeleted(): Promise<User[]> {
+    const response = await api.get('/users/deleted');
+    return response.data;
+  },
+
+  async getByEvent(eventId: string): Promise<User[]> {
+    const response = await api.get(`/events/${eventId}/users`);
+    return response.data;
+  }
 }; 

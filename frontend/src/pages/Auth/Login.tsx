@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthLayout } from '../../components/auth/AuthLayout';
 import { Input } from '../../components/ui/Input';
@@ -7,7 +7,8 @@ import { Button } from '../../components/ui/Button';
 import translations from '../../locales/cs/auth.json';
 
 export default function Login() {
-  const [usernameOrEmail, setUsernameOrEmail] = useState('');
+  const navigate = useNavigate();
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +20,8 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(usernameOrEmail, password);
+      await login(username, password);
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Něco se pokazilo');
     } finally {
@@ -35,15 +37,15 @@ export default function Login() {
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div className="space-y-5">
           <Input
-            id="usernameOrEmail"
-            name="usernameOrEmail"
+            id="username"
+            name="username"
             type="text"
-            label={translations.login.usernameOrEmail}
-            autoComplete="username email"
+            label={translations.login.username}
+            autoComplete="username"
             required
-            value={usernameOrEmail}
-            onChange={(e) => setUsernameOrEmail(e.target.value)}
-            placeholder={translations.login.usernameOrEmail}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder={translations.login.username}
             error={error}
           />
           <Input

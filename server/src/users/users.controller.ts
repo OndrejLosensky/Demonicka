@@ -11,12 +11,14 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from './entities/user.entity';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
+import { Public } from '../auth/decorators/public.decorator';
 
 /**
  * Users controller handling user profile management.
@@ -28,9 +30,10 @@ import { VersionGuard } from '../versioning/guards/version.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Public()
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  createParticipant(@Body() createParticipantDto: CreateParticipantDto) {
+    return this.usersService.createParticipant(createParticipantDto);
   }
 
   @Get()

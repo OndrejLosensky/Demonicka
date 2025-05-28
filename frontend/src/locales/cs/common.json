@@ -15,14 +15,23 @@
   "errors": {
     "general": "Něco se pokazilo",
     "required": "Toto pole je povinné",
-    "invalidEmail": "Zadejte platnou emailovou adresu",
-    "networkError": "Došlo k chybě sítě",
-    "loadFailed": "Nepodařilo se načíst data.",
-    "saveFailed": "Nepodařilo se uložit data.",
-    "deleteFailed": "Nepodařilo se smazat data.",
-    "noData": "Žádná data k dispozici.",
-    "unexpectedError": "Došlo k neočekávané chybě.",
-    "validationError": "Prosím zkontrolujte zadané údaje."
+    "invalidEmail": "Neplatná emailová adresa",
+    "networkError": "Chyba připojení",
+    "loadFailed": "Načítání dat selhalo",
+    "saveFailed": "Uložení dat selhalo",
+    "deleteFailed": "Smazání dat selhalo",
+    "noData": "Žádná data k zobrazení",
+    "unexpectedError": "Neočekávaná chyba",
+    "validationError": "Chyba validace",
+    "network": {
+      "default": "Chyba připojení k serveru",
+      "unauthorized": "Nejste přihlášeni nebo vypršela platnost přihlášení",
+      "forbidden": "Nemáte oprávnění k této akci",
+      "notFound": "Požadovaný zdroj nebyl nalezen",
+      "conflict": "Konflikt dat",
+      "server": "Chyba serveru",
+      "unknown": "Neznámá chyba"
+    }
   },
   "footer": {
     "copyright": "© 2024 Auth Boilerplate. Všechna práva vyhrazena.",

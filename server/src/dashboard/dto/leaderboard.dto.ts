@@ -1,11 +1,11 @@
-export class ParticipantLeaderboardDto {
+export class UserLeaderboardDto {
   id: string;
   name: string;
-  beerCount: number;
   gender: 'MALE' | 'FEMALE';
+  beerCount: number;
 }
 
 export class LeaderboardDto {
-  males: ParticipantLeaderboardDto[];
-  females: ParticipantLeaderboardDto[];
+  males: UserLeaderboardDto[];
+  females: UserLeaderboardDto[];
 }

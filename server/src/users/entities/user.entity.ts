@@ -4,10 +4,12 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   OneToMany,
 } from 'typeorm';
-import { IsEmail, IsNotEmpty, Matches, MinLength } from 'class-validator';
+import { IsNotEmpty, MinLength, Matches, IsEnum } from 'class-validator';
 import { RefreshToken } from '../../auth/entities/refresh-token.entity';
+import { Beer } from '../../beers/entities/beer.entity';
 
 @Entity('users')
 export class User {
@@ -18,42 +20,44 @@ export class User {
   @IsNotEmpty({ message: 'Uživatelské jméno je povinné' })
   @MinLength(3, { message: 'Uživatelské jméno musí mít alespoň 3 znaky' })
   @Matches(/^[a-zA-Z0-9_-]+$/, {
-    message:
-      'Username can only contain letters, numbers, underscores, and hyphens',
+    message: 'Uživatelské jméno může obsahovat pouze písmena, čísla, podtržítka a pomlčky',
   })
   username: string;
 
-  @Column()
-  @IsNotEmpty({ message: 'Heslo je povinné' })
+  @Column({ nullable: true, type: 'varchar' })
   @MinLength(8, { message: 'Heslo musí mít alespoň 8 znaků' })
-  @Matches(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-    {
-      message:
-        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-    },
-  )
-  password: string;
+  password: string | null;
 
-  @Column({ unique: true })
-  @IsEmail({}, { message: 'Prosím zadejte platnou emailovou adresu' })
-  @IsNotEmpty({ message: 'Email je povinný' })
-  email: string;
+  @Column({ nullable: true, type: 'varchar' })
+  name: string | null;
 
-  @Column()
-  @MinLength(2, { message: 'Křestní jméno musí mít alespoň 2 znaky' })
-  firstName: string;
+  @Column({ type: 'varchar' })
+  @IsEnum(['MALE', 'FEMALE'], {
+    message: 'Pohlaví musí být buď MALE nebo FEMALE',
+  })
+  gender: 'MALE' | 'FEMALE';
 
-  @Column()
-  @MinLength(2, { message: 'Příjmení musí mít alespoň 2 znaky' })
-  lastName: string;
+  @Column({ default: 0 })
+  beerCount: number;
+
+  @Column({ type: 'datetime', nullable: true })
+  lastBeerTime: Date | null;
+
+  @OneToMany(() => Beer, (beer) => beer.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  beers: Beer[];
 
   @OneToMany(() => RefreshToken, (token) => token.user)
   refreshTokens: RefreshToken[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ type: 'datetime' })
+  deletedAt: Date | null;
 }

@@ -15,10 +15,10 @@ export interface LandingTranslations {
   };
   stats: {
     totalBeers: string;
-    activeParticipants: string;
-    activeBarrels: string;
+    activeUsers: string;
+    totalBarrels: string;
   };
-  topParticipants: {
+  topUsers: {
     title: string;
     beers: string;
   };
@@ -38,6 +38,12 @@ export interface AuthTranslations {
     title: string;
     subtitle: string;
     username: string;
+    name: string;
+    gender: string;
+    genders: {
+      male: string;
+      female: string;
+    };
     email: string;
     firstName: string;
     lastName: string;
@@ -88,6 +94,46 @@ export interface ProfileTranslations {
       cs: string;
       en: string;
       sk: string;
+    };
+  };
+}
+
+export interface Translations {
+  navigation: {
+    home: string;
+    users: string;
+    barrels: string;
+    events: string;
+    leaderboard: string;
+  };
+  table: {
+    noUsers: string;
+  };
+  sections: {
+    men: string;
+    women: string;
+  };
+  overview: {
+    cards: {
+      totalBeers: string;
+      totalUsers: string;
+      totalBarrels: string;
+    };
+    charts: {
+      topUsers: {
+        title: string;
+        columns: {
+          name: string;
+          beers: string;
+        };
+      };
+      barrelStats: {
+        title: string;
+        columns: {
+          size: string;
+          count: string;
+        };
+      };
     };
   };
 } 

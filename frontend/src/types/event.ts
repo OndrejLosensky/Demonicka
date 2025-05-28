@@ -1,4 +1,4 @@
-import type { Participant } from './participant';
+import type { User } from './user';
 import type { Barrel } from './barrel';
 
 export interface Event {
@@ -8,10 +8,11 @@ export interface Event {
     startDate: string;
     endDate?: string;
     isActive: boolean;
-    participants: Participant[];
+    users: User[];
     barrels: Barrel[];
     createdAt: string;
     updatedAt: string;
+    deletedAt?: string;
 }
 
 export interface CreateEventDto {

@@ -13,7 +13,7 @@ export interface LogEntry {
   message: string;
   service: string;
   event?: string;
-  participantId?: string;
+  userId?: string;
   barrelId?: string;
   [key: string]: unknown;
 }
@@ -147,11 +147,12 @@ export class LoggingService {
       logs = logs.slice(offset, offset + limit);
 
       return { logs, total };
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('ENOENT')) {
+    } catch (err) {
+      const error = err as Error;
+      if (error.message.includes('ENOENT')) {
         return { logs: [], total: 0 };
       }
-      throw error;
+      throw new Error(`Failed to get logs: ${error.message}`);
     }
   }
 
@@ -168,7 +169,7 @@ export class LoggingService {
     errorCount: number;
     warnCount: number;
     eventCounts: Record<string, number>;
-    participantActivity: Record<string, number>;
+    userActivity: Record<string, number>;
     barrelActivity: Record<string, number>;
   }> {
     try {
@@ -185,7 +186,7 @@ export class LoggingService {
         errorCount: logs.filter((log) => log.level === 'error').length,
         warnCount: logs.filter((log) => log.level === 'warn').length,
         eventCounts: {} as Record<string, number>,
-        participantActivity: {} as Record<string, number>,
+        userActivity: {} as Record<string, number>,
         barrelActivity: {} as Record<string, number>,
       };
 
@@ -195,9 +196,9 @@ export class LoggingService {
           stats.eventCounts[event] = (stats.eventCounts[event] || 0) + 1;
         }
 
-        if (log.participantId) {
-          const id = String(log.participantId);
-          stats.participantActivity[id] = (stats.participantActivity[id] || 0) + 1;
+        if (log.userId) {
+          const id = String(log.userId);
+          stats.userActivity[id] = (stats.userActivity[id] || 0) + 1;
         }
 
         if (log.barrelId) {
@@ -208,7 +209,7 @@ export class LoggingService {
 
       return stats;
     } catch (error) {
-      this.error('Nepodařilo se získat statistiky logů', {
+      this.error('Failed to get log statistics', {
         error: error instanceof Error ? error.message : String(error),
       });
       throw error;
@@ -252,38 +253,38 @@ export class LoggingService {
   }
 
   /**
-   * Logs a beer addition event
-   * @param participantId - ID of the participant who received the beer
+   * Logs when a beer is added to a user's record
+   * @param userId - ID of the user
    * @param barrelId - Optional ID of the barrel the beer came from
    */
-  logBeerAdded(participantId: string, barrelId?: string | null) {
-    this.info('Pivo přidáno účastníkovi', {
+  logBeerAdded(userId: string, barrelId?: string | null) {
+    this.info('Beer added', {
       event: 'BEER_ADDED',
-      participantId,
+      userId,
       barrelId,
     });
   }
 
   /**
-   * Logs a beer removal event
-   * @param participantId - ID of the participant who had beer removed
-   * @param barrelId - Optional ID of the barrel the beer was associated with
+   * Logs when a beer is removed from a user's record
+   * @param userId - ID of the user
+   * @param barrelId - Optional ID of the barrel the beer came from
    */
-  logBeerRemoved(participantId: string, barrelId?: string | null) {
-    this.info('Pivo odebráno účastníkovi', {
+  logBeerRemoved(userId: string, barrelId?: string | null) {
+    this.info('Beer removed', {
       event: 'BEER_REMOVED',
-      participantId,
+      userId,
       barrelId,
     });
   }
 
   /**
-   * Logs a barrel creation event
-   * @param barrelId - ID of the created barrel
+   * Logs when a new barrel is created
+   * @param barrelId - ID of the barrel
    * @param size - Size of the barrel in liters
    */
   logBarrelCreated(barrelId: string, size: number) {
-    this.info('Sud vytvořen', {
+    this.info('Barrel created', {
       event: 'BARREL_CREATED',
       barrelId,
       size,
@@ -291,23 +292,23 @@ export class LoggingService {
   }
 
   /**
-   * Logs a barrel deletion event
-   * @param barrelId - ID of the deleted barrel
+   * Logs when a barrel is deleted
+   * @param barrelId - ID of the barrel
    */
   logBarrelDeleted(barrelId: string) {
-    this.info('Sud smazán', {
+    this.info('Barrel deleted', {
       event: 'BARREL_DELETED',
       barrelId,
     });
   }
 
   /**
-   * Logs a barrel update event
-   * @param barrelId - ID of the updated barrel
-   * @param changes - Object containing the changes made to the barrel
+   * Logs when a barrel's details are updated
+   * @param barrelId - ID of the barrel
+   * @param changes - Object containing the changes made
    */
   logBarrelUpdated(barrelId: string, changes: Record<string, any>) {
-    this.info('Sud aktualizován', {
+    this.info('Barrel updated', {
       event: 'BARREL_UPDATED',
       barrelId,
       changes,
@@ -315,12 +316,12 @@ export class LoggingService {
   }
 
   /**
-   * Logs a barrel status change event
+   * Logs when a barrel's active status changes
    * @param barrelId - ID of the barrel
    * @param isActive - New active status
    */
   logBarrelStatusChanged(barrelId: string, isActive: boolean) {
-    this.info('Stav sudu změněn', {
+    this.info('Barrel status changed', {
       event: 'BARREL_STATUS_CHANGED',
       barrelId,
       isActive,
@@ -329,182 +330,109 @@ export class LoggingService {
 
   /**
    * Logs when a barrel becomes empty
-   * @param barrelId - ID of the empty barrel
+   * @param barrelId - ID of the barrel
    */
   logBarrelEmpty(barrelId: string) {
-    this.info('Sud je prázdný', {
+    this.info('Barrel is empty', {
       event: 'BARREL_EMPTY',
       barrelId,
     });
   }
 
   /**
-   * Logs a participant creation event
-   * @param participantId - ID of the created participant
-   * @param name - Name of the participant
-   * @param gender - Gender of the participant
+   * Logs when a new user is created
+   * @param userId - ID of the user
+   * @param name - Name of the user
+   * @param gender - Gender of the user
    */
-  logParticipantCreated(participantId: string, name: string, gender: string) {
-    this.info('Účastník vytvořen', {
-      event: 'PARTICIPANT_CREATED',
-      participantId,
+  logUserCreated(userId: string, name: string, gender: string) {
+    this.info('User created', {
+      event: 'USER_CREATED',
+      userId,
       name,
       gender,
     });
   }
 
   /**
-   * Logs a participant update event
-   * @param participantId - ID of the updated participant
-   * @param changes - Object containing the changes made to the participant
+   * Logs when a user's details are updated
+   * @param userId - ID of the user
+   * @param changes - Object containing the changes made
    */
-  logParticipantUpdated(participantId: string, changes: Record<string, any>) {
-    this.info('Účastník aktualizován', {
-      event: 'PARTICIPANT_UPDATED',
-      participantId,
+  logUserUpdated(userId: string, changes: Record<string, any>) {
+    this.info('User updated', {
+      event: 'USER_UPDATED',
+      userId,
       changes,
     });
   }
 
   /**
-   * Logs a participant deletion event
-   * @param participantId - ID of the deleted participant
+   * Logs when a user is deleted
+   * @param userId - ID of the user
    */
-  logParticipantDeleted(participantId: string) {
-    this.info('Účastník smazán', {
-      event: 'PARTICIPANT_DELETED',
-      participantId,
+  logUserDeleted(userId: string) {
+    this.info('User deleted', {
+      event: 'USER_DELETED',
+      userId,
     });
   }
 
   /**
-   * Logs a change in participant's beer count
-   * @param participantId - ID of the participant
+   * Logs when a user's beer count is updated
+   * @param userId - ID of the user
    * @param oldCount - Previous beer count
    * @param newCount - New beer count
    */
-  logParticipantBeerCountUpdated(
-    participantId: string,
-    oldCount: number,
-    newCount: number,
-  ) {
-    this.info('Počet piv účastníka aktualizován', {
-      event: 'PARTICIPANT_BEER_COUNT_UPDATED',
-      participantId,
+  logUserBeerCountUpdated(userId: string, oldCount: number, newCount: number) {
+    this.info('User beer count updated', {
+      event: 'USER_BEER_COUNT_UPDATED',
+      userId,
       oldCount,
       newCount,
-      change: newCount - oldCount,
     });
   }
 
   /**
-   * Logs a cleanup operation
+   * Logs cleanup operations
    * @param type - Type of cleanup performed
    * @param details - Additional details about the cleanup
    */
-  logCleanup(
-    type: 'BARRELS' | 'PARTICIPANTS' | 'ALL',
-    details?: Record<string, any>,
-  ) {
-    this.info('Provedeno vyčištění', {
+  logCleanup(type: 'BARRELS' | 'USERS' | 'ALL', details?: Record<string, any>) {
+    this.info('Cleanup performed', {
       event: 'CLEANUP',
       type,
-      ...details,
+      details,
     });
   }
 
   /**
    * Performs cleanup of log files based on specified options
-   * @param options - Cleanup configuration options
+   * @param options - Cleanup options
    */
   async cleanup(
     options: CleanupOptions = {},
   ): Promise<{ deletedCount: number }> {
     try {
-      const logFiles = await fs.readdir(this.logDir);
+      const files = await fs.readdir(this.logDir);
       let deletedCount = 0;
 
-      for (const file of logFiles) {
+      for (const file of files) {
         if (!file.endsWith('.log')) continue;
 
         const filePath = path.join(this.logDir, file);
         const stats = await fs.stat(filePath);
-        const shouldDelete = this.shouldDeleteFile(file, stats, options);
 
-        if (shouldDelete) {
+        if (this.shouldDeleteFile(file, stats, options)) {
           await fs.unlink(filePath);
           deletedCount++;
         }
       }
 
-      // Ensure log directory exists after cleanup
-      await fs.mkdir(this.logDir, { recursive: true });
-
-      // Close existing transports
-      const promises = this.logger.transports.map(
-        (t) => new Promise((resolve) => t.on('finish', resolve)),
-      );
-      await Promise.all(promises);
-      this.logger.clear();
-
-      // Reinitialize transports
-      const rotateConfig: DailyRotateFileTransportOptions = {
-        filename: path.join(this.logDir, '%DATE%-combined.log'),
-        datePattern: 'YYYY-MM-DD',
-        maxSize: '20m',
-        maxFiles: '14d',
-        format: format.combine(format.timestamp(), format.json()),
-      };
-
-      const errorRotateConfig: DailyRotateFileTransportOptions = {
-        filename: path.join(this.logDir, '%DATE%-error.log'),
-        datePattern: 'YYYY-MM-DD',
-        maxSize: '20m',
-        maxFiles: '30d',
-        level: 'error',
-        format: format.combine(format.timestamp(), format.json()),
-      };
-
-      const rotateFileTransport = new winston.transports.DailyRotateFile(rotateConfig);
-      const errorRotateFileTransport = new winston.transports.DailyRotateFile(errorRotateConfig);
-
-      this.logger.add(rotateFileTransport);
-      this.logger.add(errorRotateFileTransport);
-
-      // Add console transport back if in development
-      if (process.env.NODE_ENV !== 'production') {
-        this.logger.add(
-          new winston.transports.Console({
-            format: format.combine(
-              format.colorize(),
-              format.simple(),
-              format.printf(({ timestamp, level, message, ...meta }) => {
-                const safeTimestamp = String(timestamp);
-                const safeLevel = String(level);
-                const safeMessage = String(message);
-                const metaStr = Object.keys(meta).length
-                  ? JSON.stringify(meta, null, 2)
-                  : '';
-                return `${safeTimestamp} [${safeLevel}]: ${safeMessage} ${metaStr}`;
-              }),
-            ),
-          }),
-        );
-      }
-
-      // Log the cleanup operation
-      this.info('Logs cleanup performed', {
-        event: 'CLEANUP',
-        type: 'LOGS',
-        deletedCount,
-        options,
-      });
-
       return { deletedCount };
     } catch (error) {
       this.error('Failed to cleanup logs', {
         error: error instanceof Error ? error.message : String(error),
-        options,
       });
       throw error;
     }
@@ -514,26 +442,35 @@ export class LoggingService {
    * Determines if a log file should be deleted based on cleanup options
    * @param fileName - Name of the log file
    * @param stats - File statistics
-   * @param options - Cleanup configuration options
+   * @param options - Cleanup options
    */
   private shouldDeleteFile(
     fileName: string,
     stats: Stats,
     options: CleanupOptions,
   ): boolean {
-    // If olderThan is specified, check file age
-    if (options.olderThan && stats.mtime > options.olderThan) {
-      return false;
-    }
-
-    // If no other filters are specified, we can delete the file
-    if (!options.levels?.length && !options.eventTypes?.length) {
+    if (options.olderThan && stats.mtime < options.olderThan) {
       return true;
     }
 
-    // For more specific filtering, we need to check file contents
-    // This is a simple implementation - in production, you might want to use
-    // more efficient methods like indexing or metadata storage
-    return true;
+    if (options.levels?.length) {
+      const fileLevel = fileName.split('-')[0].toLowerCase();
+      if (options.levels.includes(fileLevel)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Generic log method
+   * @param message - Message to log
+   * @param type - Type of log entry
+   */
+  log(message: string, type: 'BARRELS' | 'USERS' | 'ALL'): void {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] [${type}] ${message}\n`;
+    console.log(logEntry);
   }
 }

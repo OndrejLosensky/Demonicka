@@ -33,63 +33,77 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   onSuccess,
   existingNames,
 }) => {
-  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [gender, setGender] = useState<'MALE' | 'FEMALE'>('MALE');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [nameError, setNameError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
   const { activeEvent, loadActiveEvent } = useActiveEvent();
   const { setSelectedEvent } = useSelectedEvent();
 
   // Reset form state when dialog opens/closes
   useEffect(() => {
     if (open) {
-      setName('');
+      setUsername('');
       setGender('MALE');
-      setNameError('');
+      setUsernameError('');
     }
   }, [open]);
 
-  // Validate name on change
-  const validateName = (value: string) => {
-    const trimmedName = value.trim();
-    if (!trimmedName) {
-      setNameError(translations.dialogs.add.validation.required);
+  // Validate username
+  const validateUsername = (value: string) => {
+    const trimmedUsername = value.trim();
+    if (!trimmedUsername) {
+      setUsernameError('Uživatelské jméno je povinné');
       return false;
     }
     
-    // Case-insensitive name comparison
-    const nameExists = existingNames.some(
-      existingName => existingName.toLowerCase() === trimmedName.toLowerCase()
+    if (trimmedUsername.length < 3) {
+      setUsernameError('Uživatelské jméno musí mít alespoň 3 znaky');
+      return false;
+    }
+
+    if (!/^[a-zA-Z0-9_-]+$/.test(trimmedUsername)) {
+      setUsernameError('Uživatelské jméno může obsahovat pouze písmena, čísla, podtržítka a pomlčky');
+      return false;
+    }
+
+    // Case-insensitive username comparison
+    const usernameExists = existingNames.some(
+      existingName => existingName.toLowerCase() === trimmedUsername.toLowerCase()
     );
     
-    if (nameExists) {
-      setNameError(translations.dialogs.add.validation.firstName);
+    if (usernameExists) {
+      setUsernameError('Toto uživatelské jméno již existuje');
       return false;
     }
-    setNameError('');
+
+    setUsernameError('');
     return true;
   };
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newName = e.target.value;
-    setName(newName);
-    validateName(newName);
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newUsername = e.target.value;
+    setUsername(newUsername);
+    validateUsername(newUsername);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateName(name)) {
+    if (!validateUsername(username)) {
       return;
     }
 
     try {
       setIsSubmitting(true);
-      const participant = await participantsApi.create({ name: name.trim(), gender });
+      const participant = await participantsApi.create({ 
+        username: username.trim(),
+        gender 
+      });
       
       // If there's an active event, automatically add the participant to it
       if (activeEvent) {
-        await eventService.addParticipant(activeEvent.id, participant.id);
+        await eventService.addUser(activeEvent.id, participant.id);
         await loadActiveEvent(); // Refresh the active event data
         
         // Force refresh of selected event to ensure participants list updates
@@ -102,8 +116,8 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
       onClose();
     } catch (error) {
       if ((error as AxiosError)?.response?.status === 409) {
-        setNameError(translations.dialogs.add.validation.firstName);
-        toast.error(translations.dialogs.add.validation.firstName);
+        setUsernameError('Uživatelské jméno již existuje');
+        toast.error('Uživatelské jméno již existuje');
       } else {
         console.error('Failed to add participant:', error);
         toast.error(translations.dialogs.add.error);
@@ -121,11 +135,11 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
             <TextField
               autoFocus
-              label={translations.dialogs.add.fields.firstName}
-              value={name}
-              onChange={handleNameChange}
-              error={!!nameError}
-              helperText={nameError}
+              label="Uživatelské jméno"
+              value={username}
+              onChange={handleUsernameChange}
+              error={!!usernameError}
+              helperText={usernameError}
               fullWidth
               required
             />
@@ -148,7 +162,7 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
             type="submit"
             variant="contained"
             color="primary"
-            disabled={isSubmitting || !!nameError}
+            disabled={isSubmitting || !!usernameError}
           >
             {translations.dialogs.add.buttons.confirm}
           </Button>

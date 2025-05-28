@@ -69,6 +69,12 @@ const documentationStructure: DocCategory[] = [
         title: 'Správa uživatelů',
         description: 'Systém uživatelů, rolí a oprávnění',
         path: 'features/user-management.md'
+      },
+      {
+        name: 'user-participant-unification',
+        title: 'Jednotný uživatelský systém',
+        description: 'Nový unifikovaný systém pro uživatele a účastníky',
+        path: 'features/user-participant-unification.md'
       }
     ]
   },

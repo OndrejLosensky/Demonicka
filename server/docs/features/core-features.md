@@ -18,10 +18,16 @@ Démonická aplikace poskytuje komplexní řešení pro správu událostí a sle
 - Analýza spotřeby
 - Export dat
 
-## Správa účastníků
+## Správa uživatelů a účastníků
+
+### Jednotný uživatelský systém
+- Unifikovaný systém pro uživatele a účastníky
+- Flexibilní registrační proces
+- Možnost dodatečné aktivace účtu
+- Detailní dokumentace v [User-Participant System](user-participant-unification.md)
 
 ### Registrace a profily
-- Rychlá registrace účastníků
+- Rychlá registrace účastníků s možností pozdější aktivace
 - Profilové informace
 - Historie konzumace
 - Osobní statistiky

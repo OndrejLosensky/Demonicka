@@ -119,10 +119,10 @@ export const Events: React.FC = () => {
                                     Status: {event.isActive ? 'Aktivní' : 'Ukončená'}
                                 </Typography>
                                 <Typography variant="body2">
-                                    Účastníci: {event.participants.length}
+                                    Účastníci: {event.users?.length || 0}
                                 </Typography>
                                 <Typography variant="body2" sx={{ mb: 2 }}>
-                                    Sudy: {event.barrels.length}
+                                    Sudy: {event.barrels?.length || 0}
                                 </Typography>
                                 <Grid container spacing={1}>
                                     <Grid item>

@@ -1,6 +1,6 @@
 export interface Participant {
   id: string;
-  name: string;
+  username: string;
   gender: 'MALE' | 'FEMALE';
   beerCount: number;
   lastBeerTime: string | null;

@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
-import { api } from '../api';
+import { api } from '../services/api';
 
 interface AddBarrelDialogProps {
   open: boolean;

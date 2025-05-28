@@ -7,17 +7,18 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Public } from './decorators/public.decorator';
 import { User } from '../users/entities/user.entity';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
+import { UsersService } from '../users/users.service';
+import { QueryFailedError } from 'typeorm';
 
 interface RequestWithUser extends Request {
   user: User;
@@ -25,6 +26,8 @@ interface RequestWithUser extends Request {
     refresh_token?: string;
   };
 }
+
+type UserResponse = Omit<User, 'password'>;
 
 /**
  * Authentication controller handling user registration, login, token refresh, and session management.
@@ -34,7 +37,10 @@ interface RequestWithUser extends Request {
 @Versions('1')
 @UseGuards(VersionGuard)
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   /**
    * Register a new user
@@ -44,12 +50,18 @@ export class AuthController {
    */
   @Public()
   @Post('register')
-  async register(
-    @Body() registerDto: RegisterDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    const { user } = await this.authService.register(registerDto);
-    return this.authService.login(user, response);
+  async register(@Body() registerDto: RegisterDto): Promise<UserResponse> {
+    try {
+      return await this.usersService.create(registerDto);
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        error.message.includes('UNIQUE constraint failed')
+      ) {
+        throw new BadRequestException('Uživatelské jméno již existuje');
+      }
+      throw error;
+    }
   }
 
   /**
@@ -63,14 +75,30 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(
-    @Body() loginDto: LoginDto,
     @Req() req: RequestWithUser,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    if (!req.user) {
-      throw new UnauthorizedException('Uživatel nebyl nalezen v požadavku');
+  ): Promise<{ access_token: string; user: UserResponse }> {
+    const { user } = req;
+    const { access_token } = await this.authService.login(user);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userWithoutPassword } = user as User;
+    return { access_token, user: userWithoutPassword };
+  }
+
+  /**
+   * Get current user data
+   * @param req Request object containing user data from JWT
+   * @returns Current user data
+   */
+  @Get('me')
+  async getCurrentUser(@Req() req: RequestWithUser): Promise<UserResponse> {
+    const { user } = req;
+    const currentUser = await this.usersService.findOne(user.id);
+    if (!currentUser) {
+      throw new UnauthorizedException('Uživatel nebyl nalezen');
     }
-    return this.authService.login(req.user, response);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userWithoutPassword } = currentUser as User;
+    return userWithoutPassword;
   }
 
   /**
@@ -79,6 +107,7 @@ export class AuthController {
    * @returns New access token
    * @throws UnauthorizedException if refresh token is invalid or missing
    */
+  @Public()
   @Post('refresh')
   async refresh(@Req() req: RequestWithUser) {
     const refreshToken = req.cookies?.['refresh_token'];
@@ -102,9 +131,15 @@ export class AuthController {
    * @param req Request object containing user data from JWT
    * @returns Current user profile
    */
-  @UseGuards(JwtAuthGuard)
-  @Get('me')
-  getProfile(@Req() req: RequestWithUser) {
-    return req.user;
+  @Get('profile')
+  async getProfile(@Body('user') user: User): Promise<UserResponse> {
+    if (!user) {
+      throw new UnauthorizedException('Uživatel není přihlášen');
+    }
+    const profile = await this.usersService.findOne(user.id);
+    if (!profile) {
+      throw new UnauthorizedException('Uživatel nebyl nalezen');
+    }
+    return profile;
   }
 }

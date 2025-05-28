@@ -33,4 +33,6 @@ Welcome to Démonická! This guide will help you get started with the applicatio
 Check out our detailed documentation sections:
 - [Core Features](features/core-features.md)
 - [API Documentation](api/overview.md)
-- [User Management](features/user-management.md) 
+- [User Management](features/user-management.md)
+- [Event System](features/event-system.md)
+- [User-Participant System](features/user-participant-unification.md) - New unified user system 

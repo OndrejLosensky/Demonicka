@@ -1,0 +1,132 @@
+{
+  "common": {
+    "loading": "Načítání...",
+    "error": "Chyba",
+    "success": "Úspěch",
+    "cancel": "Zrušit",
+    "save": "Uložit",
+    "delete": "Smazat",
+    "edit": "Upravit",
+    "add": "Přidat",
+    "remove": "Odebrat",
+    "confirm": "Potvrdit",
+    "back": "Zpět"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "users": "Uživatelé",
+    "barrels": "Sudy",
+    "events": "Události",
+    "settings": "Nastavení"
+  },
+  "users": {
+    "title": "Uživatelé",
+    "addUser": "Přidat uživatele",
+    "editUser": "Upravit uživatele",
+    "deleteUser": "Smazat uživatele",
+    "name": "Jméno",
+    "gender": "Pohlaví",
+    "genders": {
+      "male": "Muž",
+      "female": "Žena"
+    },
+    "beerCount": "Počet piv",
+    "lastBeer": "Poslední pivo",
+    "actions": "Akce",
+    "noUsers": "Žádní uživatelé",
+    "validation": {
+      "nameRequired": "Jméno je povinné",
+      "nameExists": "Uživatel s tímto jménem již existuje"
+    },
+    "messages": {
+      "addSuccess": "Uživatel byl úspěšně přidán",
+      "editSuccess": "Uživatel byl úspěšně upraven",
+      "deleteSuccess": "Uživatel byl úspěšně smazán",
+      "addError": "Nepodařilo se přidat uživatele",
+      "editError": "Nepodařilo se upravit uživatele",
+      "deleteError": "Nepodařilo se smazat uživatele"
+    }
+  },
+  "barrels": {
+    "title": "Sudy",
+    "addBarrel": "Přidat sud",
+    "editBarrel": "Upravit sud",
+    "deleteBarrel": "Smazat sud",
+    "size": "Velikost",
+    "brand": "Značka",
+    "status": "Stav",
+    "statuses": {
+      "full": "Plný",
+      "inUse": "Načatý",
+      "empty": "Prázdný"
+    },
+    "actions": "Akce",
+    "noBarrels": "Žádné sudy",
+    "validation": {
+      "sizeRequired": "Velikost je povinná",
+      "brandRequired": "Značka je povinná"
+    },
+    "messages": {
+      "addSuccess": "Sud byl úspěšně přidán",
+      "editSuccess": "Sud byl úspěšně upraven",
+      "deleteSuccess": "Sud byl úspěšně smazán",
+      "addError": "Nepodařilo se přidat sud",
+      "editError": "Nepodařilo se upravit sud",
+      "deleteError": "Nepodařilo se smazat sud"
+    }
+  },
+  "events": {
+    "title": "Události",
+    "addEvent": "Přidat událost",
+    "editEvent": "Upravit událost",
+    "deleteEvent": "Smazat událost",
+    "name": "Název",
+    "description": "Popis",
+    "startDate": "Datum začátku",
+    "endDate": "Datum konce",
+    "status": "Stav",
+    "statuses": {
+      "active": "Aktivní",
+      "ended": "Ukončená"
+    },
+    "actions": "Akce",
+    "noEvents": "Žádné události",
+    "validation": {
+      "nameRequired": "Název je povinný",
+      "startDateRequired": "Datum začátku je povinné"
+    },
+    "messages": {
+      "addSuccess": "Událost byla úspěšně přidána",
+      "editSuccess": "Událost byla úspěšně upravena",
+      "deleteSuccess": "Událost byla úspěšně smazána",
+      "addError": "Nepodařilo se přidat událost",
+      "editError": "Nepodařilo se upravit událost",
+      "deleteError": "Nepodařilo se smazat událost"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "stats": {
+      "totalBeers": "Celkem piv",
+      "totalUsers": "Celkem uživatelů",
+      "totalBarrels": "Celkem sudů",
+      "avgBeersPerUser": "Průměr piv na uživatele"
+    },
+    "charts": {
+      "topUsers": {
+        "title": "Nejlepší uživatelé",
+        "columns": {
+          "name": "Jméno",
+          "beers": "Piva"
+        }
+      },
+      "barrelStats": {
+        "title": "Statistiky sudů",
+        "columns": {
+          "size": "Velikost",
+          "count": "Počet"
+        }
+      }
+    }
+  }
+} 

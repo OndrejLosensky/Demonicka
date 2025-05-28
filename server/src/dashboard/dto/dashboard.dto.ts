@@ -1,4 +1,4 @@
-export class ParticipantStatsDto {
+export class UserStatsDto {
   id: string;
   name: string;
   beerCount: number;
@@ -11,9 +11,9 @@ export class BarrelStatsDto {
 
 export class DashboardResponseDto {
   totalBeers: number;
-  totalParticipants: number;
+  totalUsers: number;
   totalBarrels: number;
-  averageBeersPerParticipant: number;
-  topParticipants: ParticipantStatsDto[];
+  averageBeersPerUser: number;
+  topUsers: UserStatsDto[];
   barrelStats: BarrelStatsDto[];
 }

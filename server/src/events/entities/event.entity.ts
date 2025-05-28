@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable } from 'typeorm';
-import { Participant } from '../../participants/entities/participant.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToMany, JoinTable } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 import { Barrel } from '../../barrels/entities/barrel.entity';
 
 @Entity()
@@ -19,16 +19,16 @@ export class Event {
     @Column({ type: 'datetime', nullable: true })
     endDate: Date | null;
 
-    @Column({ default: true })
+    @Column({ default: false })
     isActive: boolean;
 
-    @ManyToMany(() => Participant)
+    @ManyToMany(() => User)
     @JoinTable({
-        name: 'event_participants',
+        name: 'event_users',
         joinColumn: { name: 'event_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'participant_id', referencedColumnName: 'id' }
+        inverseJoinColumn: { name: 'user_id', referencedColumnName: 'id' }
     })
-    participants: Participant[];
+    users: User[];
 
     @ManyToMany(() => Barrel)
     @JoinTable({
@@ -43,4 +43,7 @@ export class Event {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @DeleteDateColumn()
+    deletedAt: Date;
 } 

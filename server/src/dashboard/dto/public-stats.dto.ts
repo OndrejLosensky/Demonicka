@@ -1,8 +1,8 @@
 export class PublicStatsDto {
   totalBeers: number;
-  totalParticipants: number;
+  totalUsers: number;
   totalBarrels: number;
-  topParticipants: {
+  topUsers: {
     name: string;
     beerCount: number;
   }[];

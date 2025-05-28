@@ -1,116 +1,90 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Beer } from './entities/beer.entity';
-import { ParticipantsService } from '../participants/participants.service';
-import { BarrelsService } from '../barrels/barrels.service';
-import { LoggingService } from '../logging/logging.service';
+import { User } from '../users/entities/user.entity';
+import { Barrel } from '../barrels/entities/barrel.entity';
 
 @Injectable()
 export class BeersService {
+  private readonly logger = new Logger(BeersService.name);
+
   constructor(
     @InjectRepository(Beer)
-    private beersRepository: Repository<Beer>,
-    private participantsService: ParticipantsService,
-    private barrelsService: BarrelsService,
-    private loggingService: LoggingService,
+    private readonly beerRepository: Repository<Beer>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Barrel)
+    private readonly barrelRepository: Repository<Barrel>,
   ) {}
 
-  async addBeer(participantId: string): Promise<Beer> {
-    const participant = await this.participantsService.findOne(participantId);
-    if (!participant) {
-      this.loggingService.error(
-        'Nepodařilo se přidat pivo - účastník nenalezen',
-        {
-          participantId,
-        },
-      );
-      throw new NotFoundException(
-        `Účastník s ID ${participantId} nebyl nalezen`,
-      );
-    }
-
-    // Find the oldest active barrel with remaining beers
-    const activeBarrels = await this.barrelsService.findAll();
-    const availableBarrel = activeBarrels
-      .filter((barrel) => barrel.isActive && barrel.remainingBeers > 0)
-      .sort((a, b) => a.orderNumber - b.orderNumber)[0];
-
-    // Create the beer record
-    const beer = this.beersRepository.create({
-      participantId,
-      participant,
-      // Only set barrel info if there is an available barrel
-      ...(availableBarrel && {
-        barrelId: availableBarrel.id,
-        barrel: availableBarrel,
-      }),
+  async create(userId: string, barrelId?: string): Promise<Beer> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
     });
 
-    // Update participant's lastBeerTime and beerCount
-    await this.participantsService.update(participantId, {
-      lastBeerTime: new Date(),
-      beerCount: participant.beerCount + 1,
-    });
-
-    // If there is an available barrel, decrement its remaining beers
-    if (availableBarrel) {
-      await this.barrelsService.decrementBeers(availableBarrel.id);
+    if (!user) {
+      throw new Error('User not found');
     }
 
-    const savedBeer = await this.beersRepository.save(beer);
-    this.loggingService.logBeerAdded(participantId, availableBarrel?.id);
+    let barrel: Barrel | null = null;
+    if (barrelId) {
+      barrel = await this.barrelRepository.findOne({
+        where: { id: barrelId },
+      });
+
+      if (!barrel) {
+        throw new Error('Barrel not found');
+      }
+    }
+
+    const beer = this.beerRepository.create({
+      userId,
+      barrelId: barrel?.id || null,
+    });
+
+    const savedBeer = await this.beerRepository.save(beer);
+
+    // Update user's beer count and last beer time
+    user.beerCount = (user.beerCount || 0) + 1;
+    user.lastBeerTime = new Date();
+    await this.userRepository.save(user);
+
     return savedBeer;
   }
 
-  async removeLastBeer(participantId: string): Promise<void> {
-    const lastBeer = await this.beersRepository.findOne({
-      where: { participantId },
-      order: { createdAt: 'DESC' },
+  async findByUserId(userId: string): Promise<Beer[]> {
+    return this.beerRepository.find({
+      where: { userId },
       relations: ['barrel'],
     });
-
-    if (!lastBeer) {
-      this.loggingService.error(
-        'Nepodařilo se odebrat pivo - žádná piva nenalezena',
-        {
-          participantId,
-        },
-      );
-      throw new NotFoundException(
-        `Pro účastníka ${participantId} nebyla nalezena žádná piva`,
-      );
-    }
-
-    const participant = await this.participantsService.findOne(participantId);
-    if (participant) {
-      await this.participantsService.update(participantId, {
-        beerCount: Math.max(0, participant.beerCount - 1),
-      });
-    }
-
-    // Increment the barrel's remaining beers if the beer was associated with a barrel
-    if (lastBeer.barrelId && lastBeer.barrel) {
-      await this.barrelsService.update(lastBeer.barrelId, {
-        remainingBeers: lastBeer.barrel.remainingBeers + 1,
-      });
-    }
-
-    await this.beersRepository.remove(lastBeer);
-    this.loggingService.logBeerRemoved(participantId, lastBeer.barrelId);
   }
 
-  async getParticipantBeers(participantId: string): Promise<Beer[]> {
-    return this.beersRepository.find({
-      where: { participantId },
+  async findAll(): Promise<Beer[]> {
+    return this.beerRepository.find({
+      relations: ['user', 'barrel'],
+    });
+  }
+
+  async findOne(id: string): Promise<Beer | null> {
+    return this.beerRepository.findOne({
+      where: { id },
+      relations: ['user', 'barrel'],
+    });
+  }
+
+  async getUserBeerCount(userId: string): Promise<number> {
+    const beers = await this.beerRepository.find({
+      where: { userId },
+    });
+    return beers.length;
+  }
+
+  async getLastBeerTime(userId: string): Promise<Date | null> {
+    const lastBeer = await this.beerRepository.findOne({
+      where: { userId },
       order: { createdAt: 'DESC' },
-      relations: ['participant', 'barrel'],
     });
-  }
-
-  async getBeerCount(participantId: string): Promise<number> {
-    return this.beersRepository.count({
-      where: { participantId },
-    });
+    return lastBeer?.createdAt || null;
   }
 }

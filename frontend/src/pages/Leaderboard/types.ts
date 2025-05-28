@@ -1,16 +1,11 @@
-export interface ParticipantLeaderboard {
+export interface UserLeaderboard {
   id: number;
   name: string;
   beerCount: number;
   gender: 'MALE' | 'FEMALE';
 }
 
-export interface LeaderboardData {
-  males: ParticipantLeaderboard[];
-  females: ParticipantLeaderboard[];
-}
-
 export interface LeaderboardTableProps {
-  participants: ParticipantLeaderboard[];
+  users: UserLeaderboard[];
   title: string;
 } 

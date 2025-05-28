@@ -3,14 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BeersController } from './beers.controller';
 import { BeersService } from './beers.service';
 import { Beer } from './entities/beer.entity';
-import { ParticipantsModule } from '../participants/participants.module';
+import { User } from '../users/entities/user.entity';
+import { Barrel } from '../barrels/entities/barrel.entity';
 import { BarrelsModule } from '../barrels/barrels.module';
 import { LoggingModule } from '../logging/logging.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Beer]),
-    ParticipantsModule,
+    TypeOrmModule.forFeature([Beer, User, Barrel]),
     BarrelsModule,
     LoggingModule,
   ],

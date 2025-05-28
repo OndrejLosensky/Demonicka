@@ -22,10 +22,10 @@ import {
     Chip,
 } from '@mui/material';
 import type { Event } from '../types/event';
-import type { Participant } from '../types/participant';
+import type { User } from '../types/user';
 import type { Barrel } from '../types/barrel';
 import { eventService } from '../services/eventService';
-import { participantsService } from '../services/participantsService';
+import { userService } from '../services/userService';
 import { barrelService } from '../services/barrelService';
 import { format } from 'date-fns';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
@@ -35,11 +35,11 @@ import { FeatureFlagKey } from '../types/featureFlags';
 export const EventDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [event, setEvent] = useState<Event | null>(null);
-    const [participants, setParticipants] = useState<Participant[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [barrels, setBarrels] = useState<Barrel[]>([]);
-    const [openParticipant, setOpenParticipant] = useState(false);
+    const [openUser, setOpenUser] = useState(false);
     const [openBarrel, setOpenBarrel] = useState(false);
-    const [selectedParticipant, setSelectedParticipant] = useState('');
+    const [selectedUser, setSelectedUser] = useState('');
     const [selectedBarrel, setSelectedBarrel] = useState('');
     const { loadActiveEvent } = useActiveEvent();
     const showActiveEventFunctionality = useFeatureFlag(FeatureFlagKey.ACTIVE_EVENT_FUNCTIONALITY);
@@ -47,7 +47,7 @@ export const EventDetail: React.FC = () => {
     useEffect(() => {
         if (id) {
             loadEventData();
-            loadParticipants();
+            loadUsers();
             loadBarrels();
         }
     }, [id]);
@@ -63,12 +63,12 @@ export const EventDetail: React.FC = () => {
         }
     };
 
-    const loadParticipants = async () => {
+    const loadUsers = async () => {
         try {
-            const data = await participantsService.getAllParticipants();
-            setParticipants(data);
+            const data = await userService.getAllUsers();
+            setUsers(data);
         } catch (error) {
-            console.error('Failed to load participants:', error);
+            console.error('Failed to load users:', error);
         }
     };
 
@@ -81,19 +81,27 @@ export const EventDetail: React.FC = () => {
         }
     };
 
-    const handleAddParticipant = async () => {
+    const handleAddUser = async () => {
         try {
-            if (id && selectedParticipant) {
-                await eventService.addParticipant(id, selectedParticipant);
-                await Promise.all([loadEventData(), loadParticipants()]);
-                if (event?.isActive) {
-                    await loadActiveEvent();
-                }
-                setOpenParticipant(false);
-                setSelectedParticipant('');
+            if (id && selectedUser) {
+                await eventService.addUser(id, selectedUser);
+                await loadEventData();
+                setOpenUser(false);
+                setSelectedUser('');
             }
         } catch (error) {
-            console.error('Failed to add participant:', error);
+            console.error('Failed to add user:', error);
+        }
+    };
+
+    const handleRemoveUser = async (userId: string) => {
+        try {
+            if (id) {
+                await eventService.removeUser(id, userId);
+                await loadEventData();
+            }
+        } catch (error) {
+            console.error('Failed to remove user:', error);
         }
     };
 
@@ -101,10 +109,7 @@ export const EventDetail: React.FC = () => {
         try {
             if (id && selectedBarrel) {
                 await eventService.addBarrel(id, selectedBarrel);
-                await Promise.all([loadEventData(), loadBarrels()]);
-                if (event?.isActive) {
-                    await loadActiveEvent();
-                }
+                await loadEventData();
                 setOpenBarrel(false);
                 setSelectedBarrel('');
             }
@@ -113,202 +118,205 @@ export const EventDetail: React.FC = () => {
         }
     };
 
+    const handleRemoveBarrel = async (barrelId: string) => {
+        try {
+            if (id) {
+                await eventService.removeBarrel(id, barrelId);
+                await loadEventData();
+            }
+        } catch (error) {
+            console.error('Failed to remove barrel:', error);
+        }
+    };
+
+    const handleSetActive = async () => {
+        try {
+            if (id) {
+                await eventService.setActive(id);
+                await loadActiveEvent();
+            }
+        } catch (error) {
+            console.error('Failed to set event as active:', error);
+        }
+    };
+
     const handleEndEvent = async () => {
         try {
             if (id) {
                 await eventService.endEvent(id);
-                await Promise.all([loadEventData(), loadActiveEvent()]);
+                await loadEventData();
+                await loadActiveEvent();
             }
         } catch (error) {
             console.error('Failed to end event:', error);
         }
     };
 
-    const handleMakeActive = async () => {
-        try {
-            if (id) {
-                await eventService.makeEventActive(id);
-                await Promise.all([loadEventData(), loadActiveEvent()]);
-            }
-        } catch (error) {
-            console.error('Failed to make event active:', error);
-        }
-    };
-
     if (!event) {
-        return <Typography>Loading...</Typography>;
+        return (
+            <Container>
+                <Typography>Loading...</Typography>
+            </Container>
+        );
     }
 
+    const availableUsers = users.filter(
+        user => !event.users?.some(eventUser => eventUser.id === user.id)
+    );
+
+    const availableBarrels = barrels.filter(
+        barrel => !event.barrels?.some(eventBarrel => eventBarrel.id === barrel.id)
+    );
+
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Grid container spacing={3}>
-                <Grid item xs={12}>
-                    <Card sx={{ p: 3, position: 'relative' }}>
-                        {event.isActive && (
-                            <Chip
-                                label="Aktivní událost"
-                                color="primary"
-                                sx={{
-                                    position: 'absolute',
-                                    top: 16,
-                                    right: 16,
-                                }}
-                            />
-                        )}
-                        <Box sx={{ mt: event.isActive ? 4 : 0 }}>
-                            <Typography variant="h4" gutterBottom>
-                                {event.name}
-                            </Typography>
-                            <Typography color="textSecondary" paragraph>
-                                {event.description}
-                            </Typography>
-                            <Typography variant="body1">
-                                Začátek: {format(new Date(event.startDate), 'PPpp')}
-                            </Typography>
-                            {event.endDate && (
-                                <Typography variant="body1">
-                                    Konec: {format(new Date(event.endDate), 'PPpp')}
-                                </Typography>
-                            )}
-                            <Typography variant="body1" sx={{ mb: 2 }}>
-                                Status: {event.isActive ? 'Aktivní' : 'Ukončená'}
-                            </Typography>
-
-                            {event.isActive && (
-                                <>
-                                    <Alert severity="info" sx={{ mb: 3 }}>
-                                        Toto je aktivní událost. Všichni nově přidaní účastníci a sudy budou automaticky přiřazeni k této události.
-                                    </Alert>
-                                    <Button
-                                        variant="contained"
-                                        color="error"
-                                        onClick={handleEndEvent}
-                                        sx={{ mb: 3 }}
-                                    >
-                                        Ukončit událost
-                                    </Button>
-                                </>
-                            )}
-
-                            {!event.isActive && showActiveEventFunctionality && (
-                                <Button
-                                    variant="contained"
-                                    color="success"
-                                    onClick={handleMakeActive}
-                                    sx={{ mb: 3 }}
-                                >
-                                    Aktivovat událost
+        <Container>
+            <Box mb={4}>
+                <Typography variant="h4" gutterBottom>
+                    {event.name}
+                </Typography>
+                <Typography variant="body1" color="textSecondary" gutterBottom>
+                    {event.description}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                    Start: {format(new Date(event.startDate), 'dd.MM.yyyy HH:mm')}
+                    {event.endDate && ` | End: ${format(new Date(event.endDate), 'dd.MM.yyyy HH:mm')}`}
+                </Typography>
+                {showActiveEventFunctionality && (
+                    <Box mt={2}>
+                        {event.isActive ? (
+                            <>
+                                <Chip color="success" label="Active Event" sx={{ mr: 1 }} />
+                                <Button variant="outlined" color="warning" onClick={handleEndEvent}>
+                                    End Event
                                 </Button>
-                            )}
+                            </>
+                        ) : (
+                            <Button variant="contained" color="primary" onClick={handleSetActive}>
+                                Set as Active
+                            </Button>
+                        )}
+                    </Box>
+                )}
+            </Box>
 
-                            <Grid container spacing={3}>
-                                <Grid item xs={12} md={6}>
-                                    <Card variant="outlined" sx={{ p: 2 }}>
-                                        <Typography variant="h6" gutterBottom>
-                                            Účastníci ({event.participants.length})
-                                        </Typography>
-                                        {event.isActive && (
+            <Grid container spacing={4}>
+                <Grid item xs={12} md={6}>
+                    <Card>
+                        <Box p={2}>
+                            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                                <Typography variant="h6">Users</Typography>
+                                <Button variant="contained" onClick={() => setOpenUser(true)}>
+                                    Add User
+                                </Button>
+                            </Box>
+                            <List>
+                                {event.users?.map(user => (
+                                    <ListItem
+                                        key={user.id}
+                                        secondaryAction={
                                             <Button
                                                 variant="outlined"
-                                                onClick={() => setOpenParticipant(true)}
-                                                sx={{ mb: 2 }}
+                                                color="error"
+                                                onClick={() => handleRemoveUser(user.id)}
                                             >
-                                                Přidat účastníka
+                                                Remove
                                             </Button>
-                                        )}
-                                        <List>
-                                            {event.participants.map((participant) => (
-                                                <ListItem key={participant.id}>
-                                                    <ListItemText
-                                                        primary={participant.name}
-                                                        secondary={`Počet piv: ${participant.beerCount}`}
-                                                    />
-                                                </ListItem>
-                                            ))}
-                                        </List>
-                                    </Card>
-                                </Grid>
+                                        }
+                                    >
+                                        <ListItemText
+                                            primary={user.name}
+                                            secondary={`Beers: ${user.beerCount}`}
+                                        />
+                                    </ListItem>
+                                ))}
+                            </List>
+                        </Box>
+                    </Card>
+                </Grid>
 
-                                <Grid item xs={12} md={6}>
-                                    <Card variant="outlined" sx={{ p: 2 }}>
-                                        <Typography variant="h6" gutterBottom>
-                                            Sudy ({event.barrels.length})
-                                        </Typography>
-                                        {event.isActive && (
+                <Grid item xs={12} md={6}>
+                    <Card>
+                        <Box p={2}>
+                            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                                <Typography variant="h6">Barrels</Typography>
+                                <Button variant="contained" onClick={() => setOpenBarrel(true)}>
+                                    Add Barrel
+                                </Button>
+                            </Box>
+                            <List>
+                                {event.barrels?.map(barrel => (
+                                    <ListItem
+                                        key={barrel.id}
+                                        secondaryAction={
                                             <Button
                                                 variant="outlined"
-                                                onClick={() => setOpenBarrel(true)}
-                                                sx={{ mb: 2 }}
+                                                color="error"
+                                                onClick={() => handleRemoveBarrel(barrel.id)}
                                             >
-                                                Přidat sud
+                                                Remove
                                             </Button>
-                                        )}
-                                        <List>
-                                            {event.barrels.map((barrel) => (
-                                                <ListItem key={barrel.id}>
-                                                    <ListItemText
-                                                        primary={`Sud ${barrel.size}L (#${barrel.orderNumber})`}
-                                                        secondary={`Zbývá piv: ${barrel.remainingBeers}`}
-                                                    />
-                                                </ListItem>
-                                            ))}
-                                        </List>
-                                    </Card>
-                                </Grid>
-                            </Grid>
+                                        }
+                                    >
+                                        <ListItemText
+                                            primary={`${barrel.size}l - ${barrel.brand}`}
+                                            secondary={`Status: ${barrel.status}`}
+                                        />
+                                    </ListItem>
+                                ))}
+                            </List>
                         </Box>
                     </Card>
                 </Grid>
             </Grid>
 
-            <Dialog open={openParticipant} onClose={() => setOpenParticipant(false)}>
-                <DialogTitle>Přidat účastníka</DialogTitle>
+            <Dialog open={openUser} onClose={() => setOpenUser(false)}>
+                <DialogTitle>Add User</DialogTitle>
                 <DialogContent>
                     <FormControl fullWidth sx={{ mt: 2 }}>
-                        <InputLabel>Vybrat účastníka</InputLabel>
+                        <InputLabel>Select User</InputLabel>
                         <Select
-                            value={selectedParticipant}
-                            onChange={(e) => setSelectedParticipant(e.target.value)}
-                            label="Vybrat účastníka"
+                            value={selectedUser}
+                            onChange={(e) => setSelectedUser(e.target.value)}
+                            label="Select User"
                         >
-                            {participants.map((participant) => (
-                                <MenuItem key={participant.id} value={participant.id}>
-                                    {participant.name}
+                            {availableUsers.map(user => (
+                                <MenuItem key={user.id} value={user.id}>
+                                    {user.name}
                                 </MenuItem>
                             ))}
                         </Select>
                     </FormControl>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenParticipant(false)}>Zrušit</Button>
-                    <Button onClick={handleAddParticipant} variant="contained" color="primary">
-                        Přidat
+                    <Button onClick={() => setOpenUser(false)}>Cancel</Button>
+                    <Button onClick={handleAddUser} variant="contained" disabled={!selectedUser}>
+                        Add
                     </Button>
                 </DialogActions>
             </Dialog>
 
             <Dialog open={openBarrel} onClose={() => setOpenBarrel(false)}>
-                <DialogTitle>Přidat sud</DialogTitle>
+                <DialogTitle>Add Barrel</DialogTitle>
                 <DialogContent>
                     <FormControl fullWidth sx={{ mt: 2 }}>
-                        <InputLabel>Vybrat sud</InputLabel>
+                        <InputLabel>Select Barrel</InputLabel>
                         <Select
                             value={selectedBarrel}
                             onChange={(e) => setSelectedBarrel(e.target.value)}
-                            label="Vybrat sud"
+                            label="Select Barrel"
                         >
-                            {barrels.map((barrel) => (
+                            {availableBarrels.map(barrel => (
                                 <MenuItem key={barrel.id} value={barrel.id}>
-                                    Sud {barrel.size}L (#{barrel.orderNumber})
+                                    {`${barrel.size}l - ${barrel.brand}`}
                                 </MenuItem>
                             ))}
                         </Select>
                     </FormControl>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenBarrel(false)}>Zrušit</Button>
-                    <Button onClick={handleAddBarrel} variant="contained" color="primary">
-                        Přidat
+                    <Button onClick={() => setOpenBarrel(false)}>Cancel</Button>
+                    <Button onClick={handleAddBarrel} variant="contained" disabled={!selectedBarrel}>
+                        Add
                     </Button>
                 </DialogActions>
             </Dialog>

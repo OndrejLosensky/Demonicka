@@ -3,73 +3,124 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Event } from './entities/event.entity';
 import { CreateEventDto } from './dto/create-event.dto';
-import { Participant } from '../participants/entities/participant.entity';
+import { UpdateEventDto } from './dto/update-event.dto';
+import { User } from '../users/entities/user.entity';
 import { Barrel } from '../barrels/entities/barrel.entity';
 
 @Injectable()
 export class EventsService {
     constructor(
         @InjectRepository(Event)
-        private eventRepository: Repository<Event>,
-        @InjectRepository(Participant)
-        private participantRepository: Repository<Participant>,
+        private readonly eventRepository: Repository<Event>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
         @InjectRepository(Barrel)
-        private barrelRepository: Repository<Barrel>
+        private readonly barrelRepository: Repository<Barrel>
     ) {}
 
     async create(createEventDto: CreateEventDto): Promise<Event> {
-        // End any currently active event
-        const activeEvent = await this.getActiveEvent();
-        if (activeEvent) {
-            activeEvent.isActive = false;
-            activeEvent.endDate = new Date();
-            await this.eventRepository.save(activeEvent);
-        }
+        // First, deactivate all events
+        await this.eventRepository.update({ isActive: true }, { isActive: false });
 
-        // Create new event
+        // Create and activate the new event
         const event = this.eventRepository.create({
             ...createEventDto,
-            startDate: new Date(createEventDto.startDate),
-            isActive: true
+            isActive: true,
+            users: [],
+            barrels: []
         });
-
-        return await this.eventRepository.save(event);
+        return this.eventRepository.save(event);
     }
 
     async findAll(): Promise<Event[]> {
-        return await this.eventRepository.find({
-            relations: ['participants', 'barrels'],
-            order: { createdAt: 'DESC' }
+        return this.eventRepository.find({
+            relations: ['users', 'barrels'],
         });
     }
 
     async findOne(id: string): Promise<Event> {
         const event = await this.eventRepository.findOne({
             where: { id },
-            relations: ['participants', 'barrels']
+            relations: ['users', 'barrels'],
         });
+
         if (!event) {
             throw new NotFoundException(`Event with ID ${id} not found`);
         }
+
         return event;
     }
 
+    async update(id: string, updateEventDto: UpdateEventDto): Promise<Event> {
+        const event = await this.findOne(id);
+        Object.assign(event, updateEventDto);
+        return this.eventRepository.save(event);
+    }
+
+    async remove(id: string): Promise<void> {
+        const event = await this.findOne(id);
+        await this.eventRepository.remove(event);
+    }
+
+    async addUser(eventId: string, userId: string): Promise<Event> {
+        const event = await this.findOne(eventId);
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            throw new NotFoundException(`User with ID ${userId} not found`);
+        }
+
+        if (!event.users) {
+            event.users = [];
+        }
+
+        if (!event.users.some((u) => u.id === userId)) {
+            event.users.push(user);
+            await this.eventRepository.save(event);
+        }
+
+        return event;
+    }
+
+    async removeUser(eventId: string, userId: string): Promise<Event> {
+        const event = await this.findOne(eventId);
+        
+        if (!event.users) {
+            return event;
+        }
+
+        event.users = event.users.filter((u) => u.id !== userId);
+        return this.eventRepository.save(event);
+    }
+
     async getActiveEvent(): Promise<Event | null> {
-        return await this.eventRepository.findOne({
+        return this.eventRepository.findOne({
             where: { isActive: true },
-            relations: ['participants', 'barrels']
+            relations: ['users', 'barrels'],
         });
     }
 
-    async getEventParticipants(eventId: string): Promise<Participant[]> {
+    async setActiveEvent(id: string): Promise<Event> {
+        // First, deactivate all currently active events
+        await this.eventRepository.update({ isActive: true }, { isActive: false });
+
+        // Then activate the specified event
+        const event = await this.findOne(id);
+        event.isActive = true;
+        return this.eventRepository.save(event);
+    }
+
+    async getEventUsers(eventId: string): Promise<User[]> {
         const event = await this.eventRepository.findOne({
             where: { id: eventId },
-            relations: ['participants']
+            relations: ['users']
         });
         if (!event) {
             throw new NotFoundException(`Event with ID ${eventId} not found`);
         }
-        return event.participants || [];
+        return event.users || [];
     }
 
     async getEventBarrels(eventId: string): Promise<Barrel[]> {
@@ -83,31 +134,12 @@ export class EventsService {
         return event.barrels || [];
     }
 
-    async addParticipant(eventId: string, participantId: string): Promise<Event> {
-        const event = await this.findOne(eventId);
-        const participant = await this.participantRepository.findOne({ where: { id: participantId } });
-        
-        if (!participant) {
-            throw new NotFoundException(`Participant with ID ${participantId} not found`);
-        }
-
-        if (!event.participants) {
-            event.participants = [];
-        }
-
-        // Check if participant is already in the event
-        const isParticipantInEvent = event.participants.some(p => p.id === participantId);
-        if (!isParticipantInEvent) {
-            event.participants.push(participant);
-        }
-
-        return await this.eventRepository.save(event);
-    }
-
     async addBarrel(eventId: string, barrelId: string): Promise<Event> {
         const event = await this.findOne(eventId);
-        const barrel = await this.barrelRepository.findOne({ where: { id: barrelId } });
-        
+        const barrel = await this.barrelRepository.findOne({
+            where: { id: barrelId },
+        });
+
         if (!barrel) {
             throw new NotFoundException(`Barrel with ID ${barrelId} not found`);
         }
@@ -116,35 +148,18 @@ export class EventsService {
             event.barrels = [];
         }
 
-        // Check if barrel is already in the event
-        const isBarrelInEvent = event.barrels.some(b => b.id === barrelId);
-        if (!isBarrelInEvent) {
+        if (!event.barrels.some((b) => b.id === barrelId)) {
             event.barrels.push(barrel);
+            await this.eventRepository.save(event);
         }
 
-        return await this.eventRepository.save(event);
+        return event;
     }
 
     async endEvent(id: string): Promise<Event> {
         const event = await this.findOne(id);
         event.isActive = false;
         event.endDate = new Date();
-        return await this.eventRepository.save(event);
-    }
-
-    async makeEventActive(id: string): Promise<Event> {
-        // End any currently active event
-        const activeEvent = await this.getActiveEvent();
-        if (activeEvent && activeEvent.id !== id) {
-            activeEvent.isActive = false;
-            activeEvent.endDate = new Date();
-            await this.eventRepository.save(activeEvent);
-        }
-
-        // Make the specified event active
-        const event = await this.findOne(id);
-        event.isActive = true;
-        event.endDate = null; // Clear end date if it was previously ended
-        return await this.eventRepository.save(event);
+        return this.eventRepository.save(event);
     }
 } 

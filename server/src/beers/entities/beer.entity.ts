@@ -6,7 +6,7 @@ import {
   Column,
   DeleteDateColumn,
 } from 'typeorm';
-import { Participant } from '../../participants/entities/participant.entity';
+import { User } from '../../users/entities/user.entity';
 import { Barrel } from '../../barrels/entities/barrel.entity';
 
 @Entity()
@@ -14,13 +14,13 @@ export class Beer {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Participant, (participant) => participant.beers, {
+  @ManyToOne(() => User, (user) => user.beers, {
     onDelete: 'CASCADE',
   })
-  participant: Participant;
+  user: User;
 
   @Column()
-  participantId: string;
+  userId: string;
 
   @ManyToOne(() => Barrel, { onDelete: 'CASCADE', nullable: true })
   barrel: Barrel | null;

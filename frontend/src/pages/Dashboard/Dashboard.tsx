@@ -1,173 +1,128 @@
-import { useQuery } from '@tanstack/react-query';
-import { dashboardApi } from './api';
-import { CircularProgress, Paper, Grid, Typography, Card, CardContent, Box } from '@mui/material';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import type { DashboardData } from '../../types/dashboard';
-import { useSelectedEvent } from '../../contexts/SelectedEventContext';
-import { EventSelector } from '../../components/EventSelector';
-import { useFeatureFlag } from '../../hooks/useFeatureFlag';
-import { FeatureFlagKey } from '../../types/featureFlags';
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, Typography } from '@mui/material';
+import type { DashboardStats } from '../../types/dashboard';
+import { dashboardService } from '../../services/dashboardService';
 import translations from '../../locales/cs/dashboard.json';
+import { useParams } from 'react-router-dom';
 
-export default function Dashboard() {
-  const { selectedEvent } = useSelectedEvent();
-  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
-  
-  const { data: stats, isLoading, error } = useQuery<DashboardData>({
-    queryKey: ['dashboard', selectedEvent?.id],
-    queryFn: () => dashboardApi.getOverview(selectedEvent?.id),
-    refetchInterval: 30000,
-    refetchOnWindowFocus: false,
-    staleTime: 30000,
+const Dashboard: React.FC = () => {
+  const { eventId } = useParams<{ eventId?: string }>();
+  const [stats, setStats] = useState<DashboardStats>({
+    totalBeers: 0,
+    totalUsers: 0,
+    totalBarrels: 0,
+    averageBeersPerUser: 0,
+    topUsers: [],
+    barrelStats: [],
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <CircularProgress />
-      </div>
-    );
-  }
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const data = await dashboardService.getDashboardStats(eventId);
+        setStats(data);
+      } catch (error) {
+        console.error('Failed to load dashboard stats:', error);
+      }
+    };
 
-  if (error) {
-    return (
-      <div className="p-6">
-        <Typography color="error">{translations.errors.loadFailed}</Typography>
-      </div>
-    );
-  }
-
-  if (!stats) {
-    return (
-      <div className="p-6">
-        <Typography>{translations.errors.noData}</Typography>
-      </div>
-    );
-  }
-
-  const formatNumber = (num: number | undefined) => {
-    if (num === undefined || num === null) return '0';
-    return typeof num === 'number' ? num.toFixed(1) : '0';
-  };
+    loadStats();
+  }, [eventId]);
 
   return (
-    <div className="p-6">
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">
-          {translations.overview.title}
-          {selectedEvent && ` - ${selectedEvent.name}`}
-        </Typography>
-        {showEventHistory && <EventSelector />}
-      </Box>
+    <div className="p-4">
+      <Typography variant="h4" className="mb-4">
+        {translations.overview.title}
+      </Typography>
 
-      <Grid container spacing={3} className="mb-6">
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                {translations.overview.cards.totalBeers}
-              </Typography>
-              <Typography variant="h5">{stats.totalBeers || 0}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                {translations.overview.cards.totalParticipants}
-              </Typography>
-              <Typography variant="h5">{stats.totalParticipants || 0}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                {translations.overview.cards.totalBarrels}
-              </Typography>
-              <Typography variant="h5">{stats.totalBarrels || 0}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                {translations.overview.cards.avgBeersPerParticipant}
-              </Typography>
-              <Typography variant="h5">
-                {formatNumber(stats.averageBeersPerParticipant)}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Paper className="p-4">
-            <Typography variant="h6" gutterBottom>
-              {translations.overview.charts.topParticipants.title}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <Card>
+          <CardContent>
+            <Typography color="textSecondary" gutterBottom>
+              {translations.overview.cards.totalBeers}
             </Typography>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr>
-                    <th className="text-left p-2">{translations.overview.charts.topParticipants.columns.name}</th>
-                    <th className="text-right p-2">{translations.overview.charts.topParticipants.columns.beers}</th>
+            <Typography variant="h5">{stats.totalBeers}</Typography>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography color="textSecondary" gutterBottom>
+              {translations.overview.cards.totalUsers}
+            </Typography>
+            <Typography variant="h5">{stats.totalUsers}</Typography>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography color="textSecondary" gutterBottom>
+              {translations.overview.cards.totalBarrels}
+            </Typography>
+            <Typography variant="h5">{stats.totalBarrels}</Typography>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardContent>
+            <Typography variant="h6" className="mb-4">
+              {translations.overview.charts.topUsers.title}
+            </Typography>
+            <table className="w-full">
+              <thead>
+                <tr>
+                  <th className="text-left p-2">
+                    {translations.overview.charts.topUsers.columns.name}
+                  </th>
+                  <th className="text-right p-2">
+                    {translations.overview.charts.topUsers.columns.beers}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.topUsers.map((user) => (
+                  <tr key={user.id}>
+                    <td className="text-left p-2">{user.name}</td>
+                    <td className="text-right p-2">{user.beerCount}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {(stats.topParticipants || []).map((participant) => (
-                    <tr key={participant.id}>
-                      <td className="p-2">{participant.name}</td>
-                      <td className="text-right p-2">{participant.beerCount}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Paper className="p-4">
-            <Typography variant="h6" gutterBottom>
-              {translations.overview.charts.barrelDistribution.title}
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6" className="mb-4">
+              {translations.overview.charts.barrelStats.title}
             </Typography>
-            <BarChart
-              width={500}
-              height={300}
-              data={stats.barrelStats || []}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="size" 
-                label={{ 
-                  value: translations.overview.charts.barrelDistribution.axis.size, 
-                  position: 'bottom' 
-                }} 
-              />
-              <YAxis 
-                label={{ 
-                  value: translations.overview.charts.barrelDistribution.axis.count, 
-                  angle: -90, 
-                  position: 'insideLeft' 
-                }} 
-              />
-              <Tooltip />
-              <Legend />
-              <Bar 
-                dataKey="count" 
-                fill="#8884d8" 
-                name={translations.overview.charts.barrelDistribution.legend.barrels} 
-              />
-            </BarChart>
-          </Paper>
-        </Grid>
-      </Grid>
+            <table className="w-full">
+              <thead>
+                <tr>
+                  <th className="text-left p-2">
+                    {translations.overview.charts.barrelStats.columns.size}
+                  </th>
+                  <th className="text-right p-2">
+                    {translations.overview.charts.barrelStats.columns.count}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.barrelStats.map((stat, index) => (
+                  <tr key={index}>
+                    <td className="text-left p-2">{stat.size}l</td>
+                    <td className="text-right p-2">{stat.count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-} 
+};
+
+export default Dashboard; 

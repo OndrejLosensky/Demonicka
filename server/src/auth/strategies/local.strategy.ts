@@ -10,19 +10,19 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
   constructor(private authService: AuthService) {
     super({
-      usernameField: 'usernameOrEmail',
+      usernameField: 'username',
     });
   }
 
   async validate(
-    usernameOrEmail: string,
+    username: string,
     password: string,
   ): Promise<Omit<User, 'password'>> {
     this.logger.debug(
-      `Attempting to validate user with username/email: ${usernameOrEmail}`,
+      `Attempting to validate user with username: ${username}`,
     );
 
-    const user = await this.authService.validateUser(usernameOrEmail, password);
+    const user = await this.authService.validateUser(username, password);
     if (!user) {
       this.logger.debug('User validation failed - invalid credentials');
       throw new UnauthorizedException('Neplatné přihlašovací údaje');

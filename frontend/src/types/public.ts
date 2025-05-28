@@ -1,4 +1,4 @@
-export interface PublicParticipant {
+export interface PublicUser {
   name: string;
   beerCount: number;
 }
@@ -10,8 +10,8 @@ export interface BarrelStats {
 
 export interface ActivityEvent {
   id: string;
-  type: 'beer_added' | 'barrel_finished' | 'achievement_unlocked' | 'new_participant';
-  participantName: string;
+  type: 'beer_added' | 'barrel_finished' | 'achievement_unlocked' | 'new_user';
+  userName: string;
   timestamp: string;
   details: {
     beerCount?: number;
@@ -22,11 +22,15 @@ export interface ActivityEvent {
 
 export interface PublicStats {
   totalBeers: number;
-  totalParticipants: number;
+  totalUsers: number;
   totalBarrels: number;
-  topParticipants: Array<{
+  topUsers: Array<{
     name: string;
     beerCount: number;
+  }>;
+  barrelStats: Array<{
+    size: number;
+    count: number;
   }>;
   latestActivity: ActivityEvent[];
 } 

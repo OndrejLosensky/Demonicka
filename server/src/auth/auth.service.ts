@@ -10,6 +10,8 @@ import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 
+type UserWithoutPassword = Omit<User, 'password'>;
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -36,36 +38,29 @@ export class AuthService {
   }
 
   async validateUser(
-    usernameOrEmail: string,
+    username: string,
     password: string,
-  ): Promise<Omit<User, 'password'> | null> {
-    this.logger.debug(`Looking up user by username: ${usernameOrEmail}`);
-    let user = await this.usersService.findByUsername(usernameOrEmail);
-
+  ): Promise<UserWithoutPassword> {
+    const user = await this.usersService.findByUsername(username);
+    
     if (!user) {
-      this.logger.debug('User not found by username, trying email');
-      user = await this.usersService.findByEmail(usernameOrEmail);
+      throw new UnauthorizedException('Neplatné přihlašovací údaje');
     }
 
-    if (!user) {
-      this.logger.debug('User not found');
-      return null;
+    // If user has no password, they are a participant and cannot log in
+    if (!user.password) {
+      throw new UnauthorizedException('Tento účet je pouze pro účastníky a nelze se s ním přihlásit');
     }
 
-    this.logger.debug('Comparing passwords');
-    this.logger.debug(`Input password length: ${password.length}`);
-    this.logger.debug(`Stored hash length: ${user.password.length}`);
+    this.logger.debug(`Validating password for user: ${username}`);
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    this.logger.debug(`Password comparison result: ${isPasswordValid}`);
 
     if (!isPasswordValid) {
-      this.logger.debug('Password comparison failed');
-      return null;
+      throw new UnauthorizedException('Neplatné přihlašovací údaje');
     }
 
-    this.logger.debug('User validated successfully');
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: omitted, ...result } = user;
+    const { password: passwordOmitted, ...result } = user;
     return result;
   }
 
@@ -76,26 +71,12 @@ export class AuthService {
     return { user };
   }
 
-  async login(user: Omit<User, 'password'>, response: Response) {
-    const payload = { sub: user.id, username: user.username };
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = await this.createRefreshToken(user.id);
-
-    // Set cookies
-    response.cookie('access_token', accessToken, this.getCookieOptions());
-    response.cookie(
-      'refresh_token',
-      refreshToken.token,
-      this.getCookieOptions(true),
-    );
-
-    // Set Authorization header
-    response.setHeader('Authorization', `Bearer ${accessToken}`);
-
+  async login(user: UserWithoutPassword): Promise<{ access_token: string; user: UserWithoutPassword }> {
+    const payload = { username: user.username, sub: user.id };
+    const token = await this.jwtService.signAsync(payload);
     return {
+      access_token: token,
       user,
-      accessToken,
-      refreshToken: refreshToken.token,
     };
   }
 

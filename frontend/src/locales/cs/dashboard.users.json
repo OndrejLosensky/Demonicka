@@ -1,0 +1,63 @@
+{
+  "title": "Uživatelé",
+  "sections": {
+    "men": "Muži",
+    "women": "Ženy"
+  },
+  "table": {
+    "columns": {
+      "name": "Jméno",
+      "beers": "Piva",
+      "gender": "Pohlaví",
+      "lastBeer": "Poslední pivo",
+      "actions": "Akce"
+    },
+    "noUsers": "Žádní uživatelé"
+  },
+  "actions": {
+    "addUser": "Přidat uživatele",
+    "cleanupAll": "Vyčistit vše",
+    "showDeleted": "Zobrazit smazané",
+    "addBeer": "Přidat pivo",
+    "removeBeer": "Odebrat pivo",
+    "delete": "Smazat",
+    "addBeerSuccess": "Pivo přidáno",
+    "removeBeerSuccess": "Pivo odebráno",
+    "deleteSuccess": "Uživatel smazán",
+    "cleanupSuccess": "Vyčištění dokončeno"
+  },
+  "dialogs": {
+    "add": {
+      "title": "Přidat uživatele",
+      "name": "Jméno",
+      "gender": "Pohlaví",
+      "genders": {
+        "male": "Muž",
+        "female": "Žena"
+      },
+      "submit": "Přidat",
+      "cancel": "Zrušit",
+      "success": "Uživatel přidán",
+      "validation": {
+        "required": "Toto pole je povinné",
+        "firstName": "Uživatel s tímto jménem již existuje"
+      }
+    },
+    "delete": {
+      "title": "Smazat uživatele",
+      "message": "Opravdu chcete smazat tohoto uživatele?",
+      "confirm": "Smazat",
+      "cancel": "Zrušit"
+    },
+    "cleanupAll": {
+      "message": "Opravdu chcete vyčistit všechny smazané uživatele?"
+    }
+  },
+  "errors": {
+    "fetchFailed": "Nepodařilo se načíst uživatele",
+    "addBeerFailed": "Nepodařilo se přidat pivo",
+    "removeBeerFailed": "Nepodařilo se odebrat pivo",
+    "deleteFailed": "Nepodařilo se smazat uživatele",
+    "cleanupFailed": "Nepodařilo se vyčistit uživatele"
+  }
+} 

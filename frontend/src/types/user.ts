@@ -1,5 +1,10 @@
 export interface User {
     id: string;
-    username: string;
-    email: string;
+    name: string;
+    gender: 'MALE' | 'FEMALE';
+    beerCount: number;
+    lastBeerTime: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 } 

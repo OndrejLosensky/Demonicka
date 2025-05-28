@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthLayout } from '../../components/auth/AuthLayout';
 import { Input } from '../../components/ui/Input';
@@ -7,19 +7,19 @@ import { Button } from '../../components/ui/Button';
 import translations from '../../locales/cs/auth.json';
 
 export default function Register() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
-    email: '',
     password: '',
     confirmPassword: '',
-    firstName: '',
-    lastName: ''
+    name: '',
+    gender: 'MALE' as 'MALE' | 'FEMALE'
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -39,8 +39,9 @@ export default function Register() {
     }
 
     try {
-      const { username, email, password, firstName, lastName } = formData;
-      await register(username, email, password, firstName, lastName);
+      const { username, password, name, gender } = formData;
+      await register(username, password, name, gender);
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Něco se pokazilo');
     } finally {
@@ -66,35 +67,34 @@ export default function Register() {
             placeholder={translations.register.username}
           />
           <Input
-            id="email"
-            name="email"
-            type="email"
-            label={translations.register.email}
-            required
-            value={formData.email}
-            onChange={handleChange}
-            placeholder={translations.register.email}
-          />
-          <Input
-            id="firstName"
-            name="firstName"
+            id="name"
+            name="name"
             type="text"
-            label={translations.register.firstName}
+            label={translations.register.name}
             required
-            value={formData.firstName}
+            value={formData.name}
             onChange={handleChange}
-            placeholder={translations.register.firstName}
+            placeholder={translations.register.name}
           />
-          <Input
-            id="lastName"
-            name="lastName"
-            type="text"
-            label={translations.register.lastName}
-            required
-            value={formData.lastName}
-            onChange={handleChange}
-            placeholder={translations.register.lastName}
-          />
+          <div className="space-y-1">
+            <label 
+              htmlFor="gender" 
+              className="block text-sm font-medium text-text-primary dark:text-text-dark-primary"
+            >
+              {translations.register.gender}
+            </label>
+            <select
+              id="gender"
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              className="block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 border-gray-300 dark:border-dark-primary text-text-primary dark:text-text-dark-primary bg-background-card dark:bg-background-dark-card"
+              required
+            >
+              <option value="MALE">{translations.register.genders.male}</option>
+              <option value="FEMALE">{translations.register.genders.female}</option>
+            </select>
+          </div>
           <Input
             id="password"
             name="password"

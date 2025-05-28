@@ -1,16 +1,31 @@
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import translations from '../locales/cs/common.api.json';
+import translations from '../locales/cs/common.json';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-export const api = axios.create({
+// Create an axios instance with proper configuration
+const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   }
 });
+
+// Add request interceptor to include auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Add response interceptor for handling errors
 api.interceptors.response.use(
@@ -24,7 +39,6 @@ api.interceptors.response.use(
     switch (error.response.status) {
       case 401:
         toast.error(translations.errors.network.unauthorized);
-        window.location.href = '/login';
         break;
       case 403:
         toast.error(translations.errors.network.forbidden);
@@ -44,4 +58,7 @@ api.interceptors.response.use(
 
     return Promise.reject(error);
   }
-); 
+);
+
+export { api };
+export default api; 
