@@ -16,6 +16,7 @@ import { toast } from 'react-hot-toast';
 import { participantsApi } from './api';
 import { eventService } from '../../../services/eventService';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
+import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
 import { AxiosError } from 'axios';
 import translations from '../../../locales/cs/dashboard.participants.json';
 
@@ -37,6 +38,7 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [nameError, setNameError] = useState('');
   const { activeEvent, loadActiveEvent } = useActiveEvent();
+  const { setSelectedEvent } = useSelectedEvent();
 
   // Reset form state when dialog opens/closes
   useEffect(() => {
@@ -89,6 +91,10 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
       if (activeEvent) {
         await eventService.addParticipant(activeEvent.id, participant.id);
         await loadActiveEvent(); // Refresh the active event data
+        
+        // Force refresh of selected event to ensure participants list updates
+        const updatedActiveEvent = await eventService.getEvent(activeEvent.id);
+        setSelectedEvent(updatedActiveEvent);
       }
       
       toast.success(translations.dialogs.add.success);

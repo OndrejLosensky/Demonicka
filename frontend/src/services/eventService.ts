@@ -45,5 +45,10 @@ export const eventService = {
     async endEvent(id: string): Promise<Event> {
         const response = await api.put(`/events/${id}/end`, {});
         return response.data;
+    },
+
+    async makeEventActive(id: string): Promise<Event> {
+        const response = await api.put(`/events/${id}/activate`, {});
+        return response.data;
     }
 }; 

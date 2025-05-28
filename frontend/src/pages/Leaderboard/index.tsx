@@ -1,15 +1,16 @@
-import { Typography, Grid, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Typography, Grid, Box } from '@mui/material';
 import { motion } from 'framer-motion';
 import { FaBeer } from 'react-icons/fa';
 import { LeaderboardTable } from './LeaderboardTable';
 import { useLeaderboard } from './useLeaderboard';
+import { EventSelector } from '../../components/EventSelector';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../types/featureFlags';
 import translations from '../../locales/cs/dashboard.leaderboard.json';
 
 export default function Leaderboard() {
-  const { stats, isLoading, selectedYear, setSelectedYear, AVAILABLE_YEARS } = useLeaderboard();
-  const showYearFilter = useFeatureFlag(FeatureFlagKey.LEADERBOARD_YEAR_FILTER);
+  const { stats, isLoading, selectedEvent } = useLeaderboard();
+  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
 
   if (isLoading) {
     return (
@@ -56,25 +57,17 @@ export default function Leaderboard() {
         <div className="flex flex-col items-center gap-4">
           <Typography variant="h6" className="text-text-secondary font-medium">
             {translations.subtitle}
+            {selectedEvent && (
+              <span className="block text-primary font-bold mt-2">
+                {selectedEvent.name}
+              </span>
+            )}
           </Typography>
           
-          {showYearFilter && (
-            <FormControl variant="outlined" className="min-w-[200px]">
-              <InputLabel id="year-select-label">{translations.filters.year.label}</InputLabel>
-              <Select
-                labelId="year-select-label"
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value as number)}
-                label={translations.filters.year.label}
-                className="bg-background-card"
-              >
-                {AVAILABLE_YEARS.map((year) => (
-                  <MenuItem key={year} value={year}>
-                    {year}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+          {showEventHistory && (
+            <Box>
+              <EventSelector />
+            </Box>
           )}
         </div>
       </motion.div>

@@ -29,6 +29,8 @@ import { participantsService } from '../services/participantsService';
 import { barrelService } from '../services/barrelService';
 import { format } from 'date-fns';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
+import { useFeatureFlag } from '../hooks/useFeatureFlag';
+import { FeatureFlagKey } from '../types/featureFlags';
 
 export const EventDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -40,6 +42,7 @@ export const EventDetail: React.FC = () => {
     const [selectedParticipant, setSelectedParticipant] = useState('');
     const [selectedBarrel, setSelectedBarrel] = useState('');
     const { loadActiveEvent } = useActiveEvent();
+    const showActiveEventFunctionality = useFeatureFlag(FeatureFlagKey.ACTIVE_EVENT_FUNCTIONALITY);
 
     useEffect(() => {
         if (id) {
@@ -82,7 +85,10 @@ export const EventDetail: React.FC = () => {
         try {
             if (id && selectedParticipant) {
                 await eventService.addParticipant(id, selectedParticipant);
-                loadEventData();
+                await Promise.all([loadEventData(), loadParticipants()]);
+                if (event?.isActive) {
+                    await loadActiveEvent();
+                }
                 setOpenParticipant(false);
                 setSelectedParticipant('');
             }
@@ -95,7 +101,10 @@ export const EventDetail: React.FC = () => {
         try {
             if (id && selectedBarrel) {
                 await eventService.addBarrel(id, selectedBarrel);
-                loadEventData();
+                await Promise.all([loadEventData(), loadBarrels()]);
+                if (event?.isActive) {
+                    await loadActiveEvent();
+                }
                 setOpenBarrel(false);
                 setSelectedBarrel('');
             }
@@ -112,6 +121,17 @@ export const EventDetail: React.FC = () => {
             }
         } catch (error) {
             console.error('Failed to end event:', error);
+        }
+    };
+
+    const handleMakeActive = async () => {
+        try {
+            if (id) {
+                await eventService.makeEventActive(id);
+                await Promise.all([loadEventData(), loadActiveEvent()]);
+            }
+        } catch (error) {
+            console.error('Failed to make event active:', error);
         }
     };
 
@@ -170,6 +190,17 @@ export const EventDetail: React.FC = () => {
                                 </>
                             )}
 
+                            {!event.isActive && showActiveEventFunctionality && (
+                                <Button
+                                    variant="contained"
+                                    color="success"
+                                    onClick={handleMakeActive}
+                                    sx={{ mb: 3 }}
+                                >
+                                    Aktivovat událost
+                                </Button>
+                            )}
+
                             <Grid container spacing={3}>
                                 <Grid item xs={12} md={6}>
                                     <Card variant="outlined" sx={{ p: 2 }}>
@@ -216,8 +247,8 @@ export const EventDetail: React.FC = () => {
                                             {event.barrels.map((barrel) => (
                                                 <ListItem key={barrel.id}>
                                                     <ListItemText
-                                                        primary={barrel.name}
-                                                        secondary={`Objem: ${barrel.volume}L`}
+                                                        primary={`Sud ${barrel.size}L (#${barrel.orderNumber})`}
+                                                        secondary={`Zbývá piv: ${barrel.remainingBeers}`}
                                                     />
                                                 </ListItem>
                                             ))}
@@ -268,7 +299,7 @@ export const EventDetail: React.FC = () => {
                         >
                             {barrels.map((barrel) => (
                                 <MenuItem key={barrel.id} value={barrel.id}>
-                                    {barrel.name} ({barrel.volume}L)
+                                    Sud {barrel.size}L (#{barrel.orderNumber})
                                 </MenuItem>
                             ))}
                         </Select>

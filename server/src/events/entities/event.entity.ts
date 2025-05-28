@@ -17,7 +17,7 @@ export class Event {
     startDate: Date;
 
     @Column({ type: 'datetime', nullable: true })
-    endDate: Date;
+    endDate: Date | null;
 
     @Column({ default: true })
     isActive: boolean;

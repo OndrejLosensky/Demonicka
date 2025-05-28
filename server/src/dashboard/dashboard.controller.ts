@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Header } from '@nestjs/common';
+import { Controller, Get, UseGuards, Header, Query } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { DashboardResponseDto } from './dto/dashboard.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -17,20 +17,20 @@ export class DashboardController {
   @Public()
   @Get('public')
   @Header('Cache-Control', 'public, max-age=30')
-  async getPublicStats(): Promise<PublicStatsDto> {
-    return this.dashboardService.getPublicStats();
+  async getPublicStats(@Query('eventId') eventId?: string): Promise<PublicStatsDto> {
+    return this.dashboardService.getPublicStats(eventId);
   }
 
   @Get('overview')
   @UseGuards(JwtAuthGuard)
   @Header('Cache-Control', 'public, max-age=30')
-  async getDashboardStats(): Promise<DashboardResponseDto> {
-    return this.dashboardService.getDashboardStats();
+  async getDashboardStats(@Query('eventId') eventId?: string): Promise<DashboardResponseDto> {
+    return this.dashboardService.getDashboardStats(eventId);
   }
 
   @Get('leaderboard')
   @Header('Cache-Control', 'public, max-age=30')
-  async getLeaderboard(): Promise<LeaderboardDto> {
-    return this.dashboardService.getLeaderboard();
+  async getLeaderboard(@Query('eventId') eventId?: string): Promise<LeaderboardDto> {
+    return this.dashboardService.getLeaderboard(eventId);
   }
 }

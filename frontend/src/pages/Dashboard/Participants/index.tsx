@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -15,12 +15,14 @@ import { AddParticipantDialog } from './AddParticipantDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
+import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.participants.json';
 
 const ParticipantsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_PARTICIPANTS);
-  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
+  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_PARTICIPANTS_HISTORY);
+  const { activeEvent } = useActiveEvent();
   const {
     participants,
     deletedParticipants,
@@ -33,6 +35,11 @@ const ParticipantsPage: React.FC = () => {
   } = useParticipants(showDeleted);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Force refresh when active event changes
+  useEffect(() => {
+    fetchParticipants();
+  }, [activeEvent?.id, activeEvent?.updatedAt, fetchParticipants]);
 
   const { maleParticipants, femaleParticipants } = useMemo(() => {
     const activeParticipants = showDeleted ? [...participants, ...deletedParticipants] : participants;

@@ -1,14 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from './api';
-import { CircularProgress, Paper, Grid, Typography, Card, CardContent } from '@mui/material';
+import { CircularProgress, Paper, Grid, Typography, Card, CardContent, Box } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import type { DashboardData } from '../../types/dashboard';
+import { useSelectedEvent } from '../../contexts/SelectedEventContext';
+import { EventSelector } from '../../components/EventSelector';
+import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+import { FeatureFlagKey } from '../../types/featureFlags';
 import translations from '../../locales/cs/dashboard.json';
 
 export default function Dashboard() {
+  const { selectedEvent } = useSelectedEvent();
+  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
+  
   const { data: stats, isLoading, error } = useQuery<DashboardData>({
-    queryKey: ['dashboard'],
-    queryFn: dashboardApi.getOverview,
+    queryKey: ['dashboard', selectedEvent?.id],
+    queryFn: () => dashboardApi.getOverview(selectedEvent?.id),
     refetchInterval: 30000,
     refetchOnWindowFocus: false,
     staleTime: 30000,
@@ -45,9 +52,13 @@ export default function Dashboard() {
 
   return (
     <div className="p-6">
-      <Typography variant="h4" gutterBottom>
-        {translations.overview.title}
-      </Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4">
+          {translations.overview.title}
+          {selectedEvent && ` - ${selectedEvent.name}`}
+        </Typography>
+        {showEventHistory && <EventSelector />}
+      </Box>
 
       <Grid container spacing={3} className="mb-6">
         <Grid item xs={12} sm={6} md={3}>

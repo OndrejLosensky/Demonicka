@@ -19,7 +19,7 @@ import translations from '../../../locales/cs/dashboard.barrels.json';
 const BarrelsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_BARRELS);
-  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
+  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_BARRELS_HISTORY);
   const showStatusToggle = useFeatureFlag(FeatureFlagKey.BARREL_STATUS_TOGGLE);
   const {
     barrels,

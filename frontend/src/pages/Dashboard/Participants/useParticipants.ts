@@ -2,28 +2,37 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { participantsApi } from './api';
 import type { Participant } from './types';
+import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
 import translations from '../../../locales/cs/dashboard.participants.json';
 
 export const useParticipants = (includeDeleted = false) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [deletedParticipants, setDeletedParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { selectedEvent } = useSelectedEvent();
 
   const fetchParticipants = useCallback(async () => {
     try {
       setIsLoading(true);
-      if (includeDeleted) {
-        // When showing deleted, get all participants with deleted flag
-        const data = await participantsApi.getAll(true);
-        const active = data.filter(p => !p.deletedAt);
-        const deleted = data.filter(p => p.deletedAt);
-        setParticipants(active);
-        setDeletedParticipants(deleted);
-      } else {
-        // When not showing deleted, just get active participants
-        const data = await participantsApi.getAll(false);
-        setParticipants(data);
+      
+      if (selectedEvent) {
+        // Get participants for the selected event
+        const eventParticipants = await participantsApi.getByEvent(selectedEvent.id);
+        setParticipants(eventParticipants);
         setDeletedParticipants([]);
+      } else {
+        // Fallback to all participants if no event is selected
+        if (includeDeleted) {
+          const data = await participantsApi.getAll(true);
+          const active = data.filter(p => !p.deletedAt);
+          const deleted = data.filter(p => p.deletedAt);
+          setParticipants(active);
+          setDeletedParticipants(deleted);
+        } else {
+          const data = await participantsApi.getAll(false);
+          setParticipants(data);
+          setDeletedParticipants([]);
+        }
       }
     } catch (error: unknown) {
       console.error('Failed to fetch participants:', error);
@@ -31,7 +40,7 @@ export const useParticipants = (includeDeleted = false) => {
     } finally {
       setIsLoading(false);
     }
-  }, [includeDeleted]);
+  }, [includeDeleted, selectedEvent?.id, selectedEvent?.updatedAt, selectedEvent?.participants?.length]);
 
   const handleDelete = useCallback(async (id: string) => {
     try {
@@ -44,9 +53,9 @@ export const useParticipants = (includeDeleted = false) => {
     }
   }, [fetchParticipants]);
 
-  const handleAddBeer = useCallback(async (participantId: string) => {
+  const handleAddBeer = useCallback(async (id: string) => {
     try {
-      await participantsApi.addBeer(participantId);
+      await participantsApi.addBeer(id);
       toast.success(translations.errors.beerAdded);
       await fetchParticipants();
     } catch (error: unknown) {
@@ -55,9 +64,9 @@ export const useParticipants = (includeDeleted = false) => {
     }
   }, [fetchParticipants]);
 
-  const handleRemoveBeer = useCallback(async (participantId: string) => {
+  const handleRemoveBeer = useCallback(async (id: string) => {
     try {
-      await participantsApi.removeBeer(participantId);
+      await participantsApi.removeBeer(id);
       toast.success(translations.errors.beerRemoved);
       await fetchParticipants();
     } catch (error: unknown) {

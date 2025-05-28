@@ -19,6 +19,11 @@ export const participantsApi = {
     return response.data;
   },
 
+  getByEvent: async (eventId: string): Promise<Participant[]> => {
+    const response = await api.get(`/events/${eventId}/participants`);
+    return response.data;
+  },
+
   getDeleted: async (): Promise<Participant[]> => {
     const response = await api.get('/participants/deleted');
     return response.data;

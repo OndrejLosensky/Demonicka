@@ -10,6 +10,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { VersioningModule } from './versioning/versioning.module';
 import { LoggingModule } from './logging/logging.module';
 import { EventsModule } from './events/events.module';
+import { DocsModule } from './docs/docs.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
 
@@ -34,6 +35,7 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
     VersioningModule,
     LoggingModule,
     EventsModule,
+    DocsModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -20,6 +20,7 @@ import {
   FormControl,
   InputLabel,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   Email as EmailIcon, 
@@ -90,7 +91,7 @@ export default function ProfilePage() {
     }
   });
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
@@ -107,7 +108,7 @@ export default function ProfilePage() {
     }));
   };
 
-  const handleSelectChange = (setting: string) => (event: any) => {
+  const handleSelectChange = (setting: string) => (event: SelectChangeEvent<string>) => {
     setPreferences(prev => ({
       ...prev,
       [setting]: event.target.value

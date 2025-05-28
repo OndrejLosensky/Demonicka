@@ -23,8 +23,20 @@ export const featureFlags: FeatureFlags = {
     description: 'Enables the status toggle button on barrel items',
   },
   [FeatureFlagKey.SHOW_EVENT_HISTORY]: {
+    enabled: false,
+    description: 'Shows event history selector in dashboard, leaderboard, participants and barrels pages',
+  },
+  [FeatureFlagKey.SHOW_PARTICIPANTS_HISTORY]: {
+    enabled: false,
+    description: 'Shows event history functionality specifically for participants page',
+  },
+  [FeatureFlagKey.SHOW_BARRELS_HISTORY]: {
+    enabled: false,
+    description: 'Shows event history functionality specifically for barrels page',
+  },
+  [FeatureFlagKey.ACTIVE_EVENT_FUNCTIONALITY]: {
     enabled: true,
-    description: 'Shows event history selector in participants and barrels pages',
+    description: 'Enables active event management and force active event buttons',
   },
 };
 

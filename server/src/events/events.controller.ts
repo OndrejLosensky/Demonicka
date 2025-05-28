@@ -32,6 +32,16 @@ export class EventsController {
         return this.eventsService.findOne(id);
     }
 
+    @Get(':id/participants')
+    getEventParticipants(@Param('id') id: string) {
+        return this.eventsService.getEventParticipants(id);
+    }
+
+    @Get(':id/barrels')
+    getEventBarrels(@Param('id') id: string) {
+        return this.eventsService.getEventBarrels(id);
+    }
+
     @Put(':id/participants/:participantId')
     addParticipant(
         @Param('id') id: string,
@@ -51,5 +61,10 @@ export class EventsController {
     @Put(':id/end')
     endEvent(@Param('id') id: string): Promise<Event> {
         return this.eventsService.endEvent(id);
+    }
+
+    @Put(':id/activate')
+    makeEventActive(@Param('id') id: string): Promise<Event> {
+        return this.eventsService.makeEventActive(id);
     }
 } 

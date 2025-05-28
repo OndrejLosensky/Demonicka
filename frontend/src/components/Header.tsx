@@ -164,6 +164,16 @@ export default function Header() {
                     >
                       {translations.navigation.events}
                     </Link>
+                    <Link
+                      to="/docs"
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        isActive('/docs')
+                          ? 'bg-primary text-white'
+                          : 'text-text-primary hover:text-text-secondary'
+                      }`}
+                    >
+                      Dokumentace
+                    </Link>
                   </div>
                 )}
               </div>

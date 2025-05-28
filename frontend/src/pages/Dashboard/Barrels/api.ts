@@ -18,12 +18,17 @@ export const barrelsApi = {
     return response.data;
   },
 
+  getByEvent: async (eventId: string): Promise<Barrel[]> => {
+    const response = await api.get(`/events/${eventId}/barrels`);
+    return response.data;
+  },
+
   getDeleted: async (): Promise<Barrel[]> => {
     const response = await api.get('/barrels/deleted');
     return response.data;
   },
 
-  create: async (data: { size: 15 | 30 | 50; orderNumber: number }): Promise<Barrel> => {
+  create: async (data: { size: number; orderNumber: number }): Promise<Barrel> => {
     const response = await api.post('/barrels', data);
     return response.data;
   },

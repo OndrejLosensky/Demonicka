@@ -6,6 +6,8 @@ import type { Event } from '../types/event';
 import { eventService } from '../services/eventService';
 import { format } from 'date-fns';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
+import { useFeatureFlag } from '../hooks/useFeatureFlag';
+import { FeatureFlagKey } from '../types/featureFlags';
 
 export const Events: React.FC = () => {
     const [events, setEvents] = useState<Event[]>([]);
@@ -17,6 +19,7 @@ export const Events: React.FC = () => {
     });
     const navigate = useNavigate();
     const { loadActiveEvent } = useActiveEvent();
+    const showActiveEventFunctionality = useFeatureFlag(FeatureFlagKey.ACTIVE_EVENT_FUNCTIONALITY);
 
     useEffect(() => {
         loadEvents();
@@ -52,6 +55,15 @@ export const Events: React.FC = () => {
             await Promise.all([loadEvents(), loadActiveEvent()]);
         } catch (error) {
             console.error('Failed to end event:', error);
+        }
+    };
+
+    const handleMakeActive = async (eventId: string) => {
+        try {
+            await eventService.makeEventActive(eventId);
+            await Promise.all([loadEvents(), loadActiveEvent()]);
+        } catch (error) {
+            console.error('Failed to make event active:', error);
         }
     };
 
@@ -121,7 +133,7 @@ export const Events: React.FC = () => {
                                             Zobrazit detail
                                         </Button>
                                     </Grid>
-                                    {event.isActive && (
+                                    {event.isActive ? (
                                         <Grid item>
                                             <Button
                                                 variant="outlined"
@@ -131,6 +143,18 @@ export const Events: React.FC = () => {
                                                 Ukončit událost
                                             </Button>
                                         </Grid>
+                                    ) : (
+                                        showActiveEventFunctionality && (
+                                            <Grid item>
+                                                <Button
+                                                    variant="outlined"
+                                                    color="success"
+                                                    onClick={() => handleMakeActive(event.id)}
+                                                >
+                                                    Aktivovat událost
+                                                </Button>
+                                            </Grid>
+                                        )
                                     )}
                                 </Grid>
                             </Box>

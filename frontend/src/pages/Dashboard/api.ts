@@ -13,8 +13,9 @@ const api = axios.create({
 });
 
 export const dashboardApi = {
-  getOverview: async (): Promise<DashboardData> => {
-    const response = await api.get('/dashboard/overview');
+  getOverview: async (eventId?: string): Promise<DashboardData> => {
+    const params = eventId ? { eventId } : {};
+    const response = await api.get('/dashboard/overview', { params });
     return response.data;
   },
 }; 

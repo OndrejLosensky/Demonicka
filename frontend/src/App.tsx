@@ -16,9 +16,11 @@ import { History } from './pages/Dashboard/history';
 import ProfilePage from './pages/Profile';
 import { Events } from './pages/Events';
 import { EventDetail } from './pages/EventDetail';
+import { Docs } from './pages/Docs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ActiveEventProvider } from './contexts/ActiveEventContext';
+import { SelectedEventProvider } from './contexts/SelectedEventContext';
 
 const queryClient = new QueryClient();
 
@@ -37,89 +39,99 @@ function App() {
       <ThemeProvider theme={theme}>
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <ActiveEventProvider>
-            <AuthProvider>
-              <Router>
-                <Routes>
-                  <Route path="/" element={<Header />}>
-                    <Route index element={<Landing />} />
-                    <Route path="leaderboard" element={<Leaderboard />} />
+            <SelectedEventProvider>
+              <AuthProvider>
+                <Router>
+                  <Routes>
+                    <Route path="/" element={<Header />}>
+                      <Route index element={<Landing />} />
+                      <Route path="leaderboard" element={<Leaderboard />} />
+                      <Route
+                        path="dashboard"
+                        element={
+                          <PrivateRoute>
+                            <Dashboard />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="profile"
+                        element={
+                          <PrivateRoute>
+                            <ProfilePage />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="dashboard/ucastnici"
+                        element={
+                          <PrivateRoute>
+                            <Participants />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="dashboard/barrels"
+                        element={
+                          <PrivateRoute>
+                            <Barrels />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="dashboard/history"
+                        element={
+                          <PrivateRoute>
+                            <History />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="events"
+                        element={
+                          <PrivateRoute>
+                            <Events />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="events/:id"
+                        element={
+                          <PrivateRoute>
+                            <EventDetail />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="docs"
+                        element={
+                          <PrivateRoute>
+                            <Docs />
+                          </PrivateRoute>
+                        }
+                      />
+                    </Route>
                     <Route
-                      path="dashboard"
+                      path="/login"
                       element={
-                        <PrivateRoute>
-                          <Dashboard />
-                        </PrivateRoute>
+                        <GuestRoute>
+                          <Login />
+                        </GuestRoute>
                       }
                     />
                     <Route
-                      path="profile"
+                      path="/register"
                       element={
-                        <PrivateRoute>
-                          <ProfilePage />
-                        </PrivateRoute>
+                        <GuestRoute>
+                          <Register />
+                        </GuestRoute>
                       }
                     />
-                    <Route
-                      path="dashboard/ucastnici"
-                      element={
-                        <PrivateRoute>
-                          <Participants />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="dashboard/barrels"
-                      element={
-                        <PrivateRoute>
-                          <Barrels />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="dashboard/history"
-                      element={
-                        <PrivateRoute>
-                          <History />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="events"
-                      element={
-                        <PrivateRoute>
-                          <Events />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="events/:id"
-                      element={
-                        <PrivateRoute>
-                          <EventDetail />
-                        </PrivateRoute>
-                      }
-                    />
-                  </Route>
-                  <Route
-                    path="/login"
-                    element={
-                      <GuestRoute>
-                        <Login />
-                      </GuestRoute>
-                    }
-                  />
-                  <Route
-                    path="/register"
-                    element={
-                      <GuestRoute>
-                        <Register />
-                      </GuestRoute>
-                    }
-                  />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </Router>
-            </AuthProvider>
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Router>
+              </AuthProvider>
+            </SelectedEventProvider>
           </ActiveEventProvider>
         </LocalizationProvider>
       </ThemeProvider>
