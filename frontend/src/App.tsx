@@ -21,6 +21,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ActiveEventProvider } from './contexts/ActiveEventContext';
 import { SelectedEventProvider } from './contexts/SelectedEventContext';
+import { CompleteRegistration } from './pages/CompleteRegistration';
+import { EnterToken } from './pages/Auth/EnterToken';
 
 const queryClient = new QueryClient();
 
@@ -124,6 +126,15 @@ function App() {
                       element={
                         <GuestRoute>
                           <Register />
+                        </GuestRoute>
+                      }
+                    />
+                    <Route path="/complete-registration" element={<CompleteRegistration />} />
+                    <Route
+                      path="/enter-token"
+                      element={
+                        <GuestRoute>
+                          <EnterToken />
                         </GuestRoute>
                       }
                     />

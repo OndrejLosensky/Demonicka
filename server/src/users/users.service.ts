@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -7,6 +7,7 @@ import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
+import { CompleteRegistrationDto } from './dto/complete-registration.dto';
 
 type UserWithoutPassword = Omit<User, 'password'>;
 
@@ -112,5 +113,35 @@ export class UsersService {
     for (const user of users) {
       await this.usersRepository.softRemove(user);
     }
+  }
+
+  async completeRegistration(completeRegistrationDto: CompleteRegistrationDto): Promise<UserWithoutPassword> {
+    const user = await this.findByRegistrationToken(completeRegistrationDto.registrationToken);
+    
+    if (!user) {
+      throw new NotFoundException('Neplatný registrační token');
+    }
+
+    if (user.isRegistrationComplete) {
+      throw new BadRequestException('Registrace již byla dokončena');
+    }
+
+    // Check if username is already taken
+    const existingUser = await this.findByUsername(completeRegistrationDto.username);
+    if (existingUser) {
+      throw new BadRequestException('Uživatelské jméno již existuje');
+    }
+
+    // Update user with new information
+    user.username = completeRegistrationDto.username;
+    user.password = await bcrypt.hash(completeRegistrationDto.password, 10);
+    user.isRegistrationComplete = true;
+    user.registrationToken = null; // Clear the token after successful registration
+
+    const savedUser = await this.usersRepository.save(user);
+    
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...result } = savedUser;
+    return result;
   }
 }

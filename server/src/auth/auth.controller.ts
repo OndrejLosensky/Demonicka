@@ -19,6 +19,7 @@ import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { UsersService } from '../users/users.service';
 import { QueryFailedError } from 'typeorm';
+import { CompleteRegistrationDto } from '../users/dto/complete-registration.dto';
 
 interface RequestWithUser extends Request {
   user: User;
@@ -145,5 +146,25 @@ export class AuthController {
       throw new UnauthorizedException('Uživatel nebyl nalezen');
     }
     return profile;
+  }
+
+  /**
+   * Complete registration for users with registration token
+   * @param completeRegistrationDto Registration completion data including token, username, and password
+   * @returns Completed user data and access token
+   */
+  @Public()
+  @Post('complete-registration')
+  async completeRegistration(
+    @Body() completeRegistrationDto: CompleteRegistrationDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<{ access_token: string; user: UserResponse }> {
+    const user = await this.usersService.completeRegistration(completeRegistrationDto);
+    const { access_token, refresh_token } = await this.authService.login(user);
+    
+    // Set refresh token as an HTTP-only cookie
+    response.cookie('refresh_token', refresh_token, this.authService.getCookieOptions(true));
+
+    return { access_token, user };
   }
 }

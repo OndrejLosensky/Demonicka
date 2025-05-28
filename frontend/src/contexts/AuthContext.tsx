@@ -16,6 +16,7 @@ interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, password: string, name: string, gender: 'MALE' | 'FEMALE') => Promise<void>;
+  completeRegistration: (token: string, username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
 }
@@ -100,6 +101,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const completeRegistration = async (token: string, username: string, password: string) => {
+    try {
+      const response = await api.post('/auth/complete-registration', {
+        registrationToken: token,
+        username,
+        password,
+      });
+      localStorage.setItem('access_token', response.data.access_token);
+      setUser(response.data.user);
+    } catch (error) {
+      console.error('Registration completion failed:', error);
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
       await api.post('/auth/logout');
@@ -112,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, completeRegistration, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

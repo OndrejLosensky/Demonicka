@@ -72,12 +72,12 @@ export default function Login() {
         </div>
       </form>
 
-      <div className="text-sm text-center mt-8 text-text-primary">
-        <Link 
-          to="/register" 
-          className="font-medium text-primary-500 hover:text-primary-600 transition-colors duration-200"
-        >
-          {translations.login.noAccount}
+      <div className="flex flex-col space-y-4 text-center mt-8">
+        <Link to="/register" className="text-sm text-indigo-600 hover:text-indigo-500">
+          Nemáte účet? Zaregistrujte se
+        </Link>
+        <Link to="/enter-token" className="text-sm text-indigo-600 hover:text-indigo-500">
+          Máte registrační token? Dokončete registraci
         </Link>
       </div>
     </AuthLayout>
