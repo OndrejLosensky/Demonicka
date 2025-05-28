@@ -174,4 +174,12 @@ export class EventsService {
         event.barrels = event.barrels.filter((barrel) => barrel.id !== barrelId);
         return this.eventRepository.save(event);
     }
+
+    async findUserEvents(userId: string): Promise<Event[]> {
+        return this.eventRepository
+            .createQueryBuilder('event')
+            .innerJoin('event.participants', 'participant')
+            .where('participant.id = :userId', { userId })
+            .getMany();
+    }
 } 

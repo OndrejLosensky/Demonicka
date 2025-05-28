@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { useFeatureFlag } from '../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../types/featureFlags';
+import { USER_ROLE } from '../types/user';
 import {
   Avatar,
   Menu,
@@ -13,7 +14,6 @@ import {
   IconButton,
   Tooltip,
   Box,
-  Fade,
   Typography,
 } from '@mui/material';
 import {
@@ -26,7 +26,7 @@ import translations from '../locales/cs/common.header.json';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
 
 export default function Header() {
-  const { user, logout } = useAuth();
+  const { user, logout, hasRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -68,7 +68,11 @@ export default function Header() {
 
   const handleProfileClick = () => {
     handleCloseMenu();
-    navigate('/profile');
+    if (hasRole([USER_ROLE.ADMIN, USER_ROLE.USER])) {
+      navigate('/profile');
+    } else {
+      navigate('/');
+    }
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -103,47 +107,51 @@ export default function Header() {
                 </motion.div>
                 {user && (
                   <div className="ml-10 flex items-center space-x-4">
-                    <Link
-                      to="/dashboard"
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        isActive('/dashboard')
-                          ? 'bg-primary text-white'
-                          : 'text-text-primary hover:text-text-secondary'
-                      }`}
-                    >
-                      {translations.navigation.dashboard}
-                    </Link>
-                    <Link
-                      to="/dashboard/ucastnici"
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        isActive('/dashboard/ucastnici')
-                          ? 'bg-primary text-white'
-                          : 'text-text-primary hover:text-text-secondary'
-                      }`}
-                    >
-                      {translations.navigation.participants}
-                    </Link>
-                    <Link
-                      to="/dashboard/barrels"
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        isActive('/dashboard/barrels')
-                          ? 'bg-primary text-white'
-                          : 'text-text-primary hover:text-text-secondary'
-                      }`}
-                    >
-                      {translations.navigation.barrels}
-                    </Link>
-                    {isHistoryEnabled && (
-                      <Link
-                        to="/dashboard/history"
-                        className={`px-3 py-2 rounded-md text-sm font-medium ${
-                          isActive('/dashboard/history')
-                            ? 'bg-primary text-white'
-                            : 'text-text-primary hover:text-text-secondary'
-                        }`}
-                      >
-                        {translations.navigation.history}
-                      </Link>
+                    {hasRole([USER_ROLE.ADMIN]) && (
+                      <>
+                        <Link
+                          to="/dashboard"
+                          className={`px-3 py-2 rounded-md text-sm font-medium ${
+                            isActive('/dashboard')
+                              ? 'bg-primary text-white'
+                              : 'text-text-primary hover:text-text-secondary'
+                          }`}
+                        >
+                          {translations.navigation.dashboard}
+                        </Link>
+                        <Link
+                          to="/dashboard/ucastnici"
+                          className={`px-3 py-2 rounded-md text-sm font-medium ${
+                            isActive('/dashboard/ucastnici')
+                              ? 'bg-primary text-white'
+                              : 'text-text-primary hover:text-text-secondary'
+                          }`}
+                        >
+                          {translations.navigation.participants}
+                        </Link>
+                        <Link
+                          to="/dashboard/barrels"
+                          className={`px-3 py-2 rounded-md text-sm font-medium ${
+                            isActive('/dashboard/barrels')
+                              ? 'bg-primary text-white'
+                              : 'text-text-primary hover:text-text-secondary'
+                          }`}
+                        >
+                          {translations.navigation.barrels}
+                        </Link>
+                        {isHistoryEnabled && (
+                          <Link
+                            to="/dashboard/history"
+                            className={`px-3 py-2 rounded-md text-sm font-medium ${
+                              isActive('/dashboard/history')
+                                ? 'bg-primary text-white'
+                                : 'text-text-primary hover:text-text-secondary'
+                            }`}
+                          >
+                            {translations.navigation.history}
+                          </Link>
+                        )}
+                      </>
                     )}
                     <Link
                       to="/leaderboard"
@@ -155,82 +163,69 @@ export default function Header() {
                     >
                       {translations.navigation.leaderboard}
                     </Link>
-                    <Link
-                      to="/events"
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        isActive('/events')
-                          ? 'bg-primary text-white'
-                          : 'text-text-primary hover:text-text-secondary'
-                      }`}
-                    >
-                      {translations.navigation.events}
-                    </Link>
+                    {hasRole([USER_ROLE.ADMIN, USER_ROLE.USER]) && (
+                      <Link
+                        to="/events"
+                        className={`px-3 py-2 rounded-md text-sm font-medium ${
+                          isActive('/events')
+                            ? 'bg-primary text-white'
+                            : 'text-text-primary hover:text-text-secondary'
+                        }`}
+                      >
+                        {translations.navigation.events}
+                      </Link>
+                    )}
                   </div>
                 )}
               </div>
               <div className="flex items-center">
                 {user ? (
-                  <div className="flex items-center space-x-6">
-                    {!isLandingPage && (
-                      <Typography variant="body2" className="text-text-secondary font-medium min-w-[48px] text-center">
-                        {format(currentTime, 'HH:mm')}
-                      </Typography>
-                    )}
+                  <div className="flex items-center">
                     {activeEvent && (
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-full border border-primary/10">
-                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                        <Typography variant="body2" className="text-primary font-medium">
+                      <div className="mr-4">
+                        <Typography variant="body2" className="text-text-secondary">
+                          {format(new Date(currentTime), 'HH:mm:ss')}
+                        </Typography>
+                        <Typography variant="caption" className="text-text-secondary">
                           {activeEvent.name}
                         </Typography>
                       </div>
                     )}
-                    <Tooltip 
-                      title={translations.auth.accountSettings}
-                      TransitionComponent={Fade}
-                      arrow
-                    >
+                    <Tooltip title={translations.auth.profile}>
                       <IconButton
                         onClick={handleOpenMenu}
                         size="small"
-                        className="relative"
-                        sx={{
-                          padding: '3px',
-                          '&:hover': {
-                            backgroundColor: 'transparent',
-                          },
-                        }}
+                        sx={{ ml: 2 }}
+                        aria-controls={anchorEl ? 'account-menu' : undefined}
+                        aria-haspopup="true"
+                        aria-expanded={anchorEl ? 'true' : undefined}
                       >
-                        <Avatar
-                          sx={{
-                            width: 34,
-                            height: 34,
-                            bgcolor: 'primary.main',
-                            fontSize: '1rem',
-                            fontWeight: 'bold',
-                            transition: 'transform 0.2s ease',
-                            '&:hover': {
-                              transform: 'scale(1.05)',
-                            },
-                          }}
-                        >
-                          {user.username[0].toUpperCase()}
+                        <Avatar sx={{ width: 32, height: 32 }}>
+                          {user.username.charAt(0).toUpperCase()}
                         </Avatar>
                       </IconButton>
                     </Tooltip>
                     <Menu
                       anchorEl={anchorEl}
-                      open={Boolean(anchorEl)}
+                      id="account-menu"
+                      open={!!anchorEl}
                       onClose={handleCloseMenu}
                       onClick={handleCloseMenu}
-                      transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                      anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                      aria-controls={anchorEl ? 'account-menu' : undefined}
+                      aria-haspopup="true"
+                      aria-expanded={anchorEl ? 'true' : undefined}
                       PaperProps={{
-                        elevation: 4,
+                        elevation: 0,
                         sx: {
-                          mt: 1.5,
-                          minWidth: 180,
                           overflow: 'visible',
-                          filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))',
+                          filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                          mt: 1.5,
+                          '& .MuiAvatar-root': {
+                            width: 32,
+                            height: 32,
+                            ml: -0.5,
+                            mr: 1,
+                          },
                           '&:before': {
                             content: '""',
                             display: 'block',
@@ -245,19 +240,12 @@ export default function Header() {
                           },
                         },
                       }}
+                      transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                      anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                     >
-                      <Box className="px-3 py-2 border-b border-gray-100">
-                        <Typography className="text-sm font-medium text-text-primary">
-                          {user.username}
-                        </Typography>
-                      </Box>
-                      <MenuItem 
-                        onClick={handleProfileClick}
-                        className="hover:bg-primary/5"
-                        sx={{ py: 1.5 }}
-                      >
+                      <MenuItem onClick={handleProfileClick} sx={{ py: 1.5 }}>
                         <ListItemIcon>
-                          <PersonIcon fontSize="small" className="text-primary" />
+                          <PersonIcon fontSize="small" />
                         </ListItemIcon>
                         <ListItemText 
                           primary={translations.auth.profile}
@@ -266,24 +254,19 @@ export default function Header() {
                           }}
                         />
                       </MenuItem>
-                      <MenuItem 
-                        onClick={() => {
-                          handleCloseMenu();
-                          navigate('/docs');
-                        }}
-                        className="hover:bg-primary/5"
-                        sx={{ py: 1.5 }}
-                      >
-                        <ListItemIcon>
-                          <FaBook className="text-primary text-lg" />
-                        </ListItemIcon>
-                        <ListItemText 
-                          primary="Dokumentace"
-                          primaryTypographyProps={{
-                            className: "font-medium"
-                          }}
-                        />
-                      </MenuItem>
+                      {hasRole([USER_ROLE.ADMIN]) && (
+                        <MenuItem onClick={() => navigate('/docs')} sx={{ py: 1.5 }}>
+                          <ListItemIcon>
+                            <FaBook className="text-lg" />
+                          </ListItemIcon>
+                          <ListItemText 
+                            primary="Dokumentace"
+                            primaryTypographyProps={{
+                              className: "font-medium"
+                            }}
+                          />
+                        </MenuItem>
+                      )}
                       <MenuItem 
                         onClick={handleLogout} 
                         className="hover:bg-red-50 text-red-600"

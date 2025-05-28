@@ -23,7 +23,8 @@
     "migration:run": "npm run typeorm migration:run",
     "migration:revert": "npm run typeorm migration:revert",
     "cleanup:all": "ts-node scripts/cleanupAll.ts",
-    "cleanup:data": "ts-node scripts/cleanupData.ts"
+    "cleanup:data": "ts-node scripts/cleanupData.ts",
+    "promote:admin": "ts-node promote-admin.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

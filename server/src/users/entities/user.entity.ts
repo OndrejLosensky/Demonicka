@@ -6,10 +6,13 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 import { IsNotEmpty, MinLength, Matches, IsEnum } from 'class-validator';
 import { RefreshToken } from '../../auth/entities/refresh-token.entity';
 import { Beer } from '../../beers/entities/beer.entity';
+import { UserRole } from '../enums/user-role.enum';
+import { Event } from '../../events/entities/event.entity';
 
 @Entity('users')
 export class User {
@@ -38,6 +41,12 @@ export class User {
   })
   gender: 'MALE' | 'FEMALE';
 
+  @Column({ type: 'varchar', enum: UserRole, default: UserRole.PARTICIPANT })
+  @IsEnum(UserRole, {
+    message: 'Role musí být jedna z: ADMIN, USER, PARTICIPANT',
+  })
+  role: UserRole;
+
   @Column({ default: 0 })
   beerCount: number;
 
@@ -58,6 +67,9 @@ export class User {
 
   @OneToMany(() => RefreshToken, (token) => token.user)
   refreshTokens: RefreshToken[];
+
+  @ManyToMany(() => Event, (event) => event.users)
+  events: Event[];
 
   @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;

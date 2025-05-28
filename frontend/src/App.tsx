@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import PrivateRoute from './components/PrivateRoute';
+import RoleRoute from './components/RoleRoute';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import { Dashboard } from './pages/Dashboard/Dashboard';
@@ -23,6 +23,7 @@ import { ActiveEventProvider } from './contexts/ActiveEventContext';
 import { SelectedEventProvider } from './contexts/SelectedEventContext';
 import { CompleteRegistration } from './pages/CompleteRegistration';
 import { EnterToken } from './pages/Auth/EnterToken';
+import { USER_ROLE } from './types/user';
 
 const queryClient = new QueryClient();
 
@@ -51,65 +52,65 @@ function App() {
                       <Route
                         path="dashboard"
                         element={
-                          <PrivateRoute>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <Dashboard />
-                          </PrivateRoute>
+                          </RoleRoute>
                         }
                       />
                       <Route
                         path="profile"
                         element={
-                          <PrivateRoute>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
                             <ProfilePage />
-                          </PrivateRoute>
+                          </RoleRoute>
                         }
                       />
                       <Route
                         path="dashboard/ucastnici"
                         element={
-                          <PrivateRoute>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <Participants />
-                          </PrivateRoute>
+                          </RoleRoute>
                         }
                       />
                       <Route
                         path="dashboard/barrels"
                         element={
-                          <PrivateRoute>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <Barrels />
-                          </PrivateRoute>
+                          </RoleRoute>
                         }
                       />
                       <Route
                         path="dashboard/history"
                         element={
-                          <PrivateRoute>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <History />
-                          </PrivateRoute>
+                          </RoleRoute>
                         }
                       />
                       <Route
                         path="events"
                         element={
-                          <PrivateRoute>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
                             <Events />
-                          </PrivateRoute>
+                          </RoleRoute>
                         }
                       />
                       <Route
                         path="events/:id"
                         element={
-                          <PrivateRoute>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
                             <EventDetail />
-                          </PrivateRoute>
+                          </RoleRoute>
                         }
                       />
                       <Route
                         path="docs"
                         element={
-                          <PrivateRoute>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <Docs />
-                          </PrivateRoute>
+                          </RoleRoute>
                         }
                       />
                     </Route>

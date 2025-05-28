@@ -5,6 +5,7 @@ import {
   Matches,
   IsEnum,
 } from 'class-validator';
+import { UserRole } from '../enums/user-role.enum';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -30,4 +31,10 @@ export class UpdateUserDto {
     message: 'Gender must be either MALE or FEMALE',
   })
   gender?: 'MALE' | 'FEMALE';
+
+  @IsOptional()
+  @IsEnum(UserRole, {
+    message: 'Role must be one of: ADMIN, USER, PARTICIPANT',
+  })
+  role?: UserRole;
 }

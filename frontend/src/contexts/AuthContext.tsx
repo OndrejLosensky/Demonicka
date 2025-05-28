@@ -1,16 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import type { User, UserRole } from '../types/user';
 import axios from 'axios';
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface AuthContextType {
   user: User | null;
@@ -19,6 +10,7 @@ interface AuthContextType {
   completeRegistration: (token: string, username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
+  hasRole: (roles: UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -127,8 +119,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const hasRole = (roles: UserRole[]) => {
+    if (!user) return false;
+    if (user.role === 'ADMIN') return true;
+    return roles.includes(user.role);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, completeRegistration, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, completeRegistration, logout, isLoading, hasRole }}>
       {children}
     </AuthContext.Provider>
   );

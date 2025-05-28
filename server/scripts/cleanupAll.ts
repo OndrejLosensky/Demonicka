@@ -12,9 +12,10 @@ async function cleanupAll() {
     try {
       console.log('Cleaning up events and related data...');
       await queryRunner.query('DELETE FROM "event"');
+      await queryRunner.query('DELETE FROM "event_users"');
+      await queryRunner.query('DELETE FROM "event_barrels"');
       
       console.log('Cleaning up participants and related data...');
-      await queryRunner.query('DELETE FROM "participants"');
       
       console.log('Cleaning up barrels and related data...');
       await queryRunner.query('DELETE FROM "barrels"');

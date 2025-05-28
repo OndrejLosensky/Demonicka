@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, Not, LessThan } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateParticipantDto } from './dto/create-participant.dto';
@@ -8,6 +12,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { CompleteRegistrationDto } from './dto/complete-registration.dto';
+import { UserRole } from './enums/user-role.enum';
+import { subDays } from 'date-fns';
 
 type UserWithoutPassword = Omit<User, 'password'>;
 
@@ -25,6 +31,7 @@ export class UsersService {
         ? await bcrypt.hash(createUserDto.password, 10)
         : null,
       isRegistrationComplete: true,
+      role: UserRole.USER,
     });
     const savedUser = await this.usersRepository.save(user);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -41,6 +48,7 @@ export class UsersService {
       username: `participant_${Date.now()}`,
       registrationToken,
       isRegistrationComplete: false,
+      role: UserRole.PARTICIPANT,
     });
     const savedUser = await this.usersRepository.save(user);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,7 +67,7 @@ export class UsersService {
     return this.usersRepository.find({
       withDeleted: true,
       where: {
-        deletedAt: IsNull(),
+        deletedAt: Not(IsNull()),
       },
     });
   }
@@ -94,29 +102,26 @@ export class UsersService {
 
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
-    await this.usersRepository.softRemove(user);
+    await this.usersRepository.softDelete(id);
   }
 
-  async restore(id: string): Promise<User> {
-    const user = await this.usersRepository.findOne({
-      where: { id },
-      withDeleted: true,
-    });
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-    return this.usersRepository.recover(user);
+  async restore(id: string): Promise<void> {
+    await this.usersRepository.restore(id);
   }
 
   async cleanup(): Promise<void> {
-    const users = await this.findAll(true);
-    for (const user of users) {
-      await this.usersRepository.softRemove(user);
-    }
+    await this.usersRepository.delete({
+      isRegistrationComplete: false,
+      createdAt: LessThan(subDays(new Date(), 7)),
+    });
   }
 
-  async completeRegistration(completeRegistrationDto: CompleteRegistrationDto): Promise<UserWithoutPassword> {
-    const user = await this.findByRegistrationToken(completeRegistrationDto.registrationToken);
+  async completeRegistration(
+    completeRegistrationDto: CompleteRegistrationDto,
+  ): Promise<UserWithoutPassword> {
+    const user = await this.findByRegistrationToken(
+      completeRegistrationDto.registrationToken,
+    );
     
     if (!user) {
       throw new NotFoundException('Neplatný registrační token');
@@ -127,7 +132,9 @@ export class UsersService {
     }
 
     // Check if username is already taken
-    const existingUser = await this.findByUsername(completeRegistrationDto.username);
+    const existingUser = await this.findByUsername(
+      completeRegistrationDto.username,
+    );
     if (existingUser) {
       throw new BadRequestException('Uživatelské jméno již existuje');
     }
@@ -137,7 +144,27 @@ export class UsersService {
     user.password = await bcrypt.hash(completeRegistrationDto.password, 10);
     user.isRegistrationComplete = true;
     user.registrationToken = null; // Clear the token after successful registration
+    user.role = UserRole.USER; // Update role to USER
 
+    const savedUser = await this.usersRepository.save(user);
+    
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...result } = savedUser;
+    return result;
+  }
+
+  async promoteToAdmin(username: string): Promise<UserWithoutPassword> {
+    const user = await this.findByUsername(username);
+    
+    if (!user) {
+      throw new NotFoundException(`Uživatel ${username} nebyl nalezen`);
+    }
+
+    if (user.role === UserRole.ADMIN) {
+      throw new BadRequestException(`Uživatel ${username} je již admin`);
+    }
+
+    user.role = UserRole.ADMIN;
     const savedUser = await this.usersRepository.save(user);
     
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

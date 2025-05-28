@@ -22,7 +22,7 @@ export class Event {
     @Column({ default: false })
     isActive: boolean;
 
-    @ManyToMany(() => User)
+    @ManyToMany(() => User, (user) => user.events)
     @JoinTable({
         name: 'event_users',
         joinColumn: { name: 'event_id', referencedColumnName: 'id' },

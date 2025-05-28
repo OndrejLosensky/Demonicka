@@ -10,6 +10,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { LoggingModule } from './logging/logging.module';
 import { VersioningModule } from './versioning/versioning.module';
 import { DocsModule } from './docs/docs.module';
+import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
 import { AppDataSource } from './data-source';
@@ -30,6 +31,7 @@ import { AppDataSource } from './data-source';
     LoggingModule,
     VersioningModule,
     DocsModule,
+    LeaderboardModule,
   ],
 })
 export class AppModule implements NestModule {

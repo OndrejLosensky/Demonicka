@@ -20,6 +20,9 @@ import { Barrel } from '../barrels/entities/barrel.entity';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { Public } from '../auth/decorators/public.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../users/enums/user-role.enum';
+import { GetUser } from '../auth/decorators/get-user.decorator';
 
 @Controller('events')
 @Versions('1')
@@ -28,13 +31,17 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
+  @Roles(UserRole.ADMIN)
   create(@Body() createEventDto: CreateEventDto): Promise<Event> {
     return this.eventsService.create(createEventDto);
   }
 
   @Get()
-  @Public()
-  findAll(): Promise<Event[]> {
+  @Roles(UserRole.ADMIN, UserRole.USER)
+  findAll(@GetUser() user: User): Promise<Event[]> {
+    if (user.role !== UserRole.ADMIN) {
+      return this.eventsService.findUserEvents(user.id);
+    }
     return this.eventsService.findAll();
   }
 
@@ -45,12 +52,20 @@ export class EventsController {
   }
 
   @Get(':id')
-  @Public()
-  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
-    return this.eventsService.findOne(id);
+  @Roles(UserRole.ADMIN, UserRole.USER)
+  async findOne(@Param('id', ParseUUIDPipe) id: string, @GetUser() user: User): Promise<Event> {
+    const event = await this.eventsService.findOne(id);
+    if (user.role !== UserRole.ADMIN) {
+      const userEvents = await this.eventsService.findUserEvents(user.id);
+      if (!userEvents.some(e => e.id === event.id)) {
+        throw new Error('You do not have access to this event');
+      }
+    }
+    return event;
   }
 
   @Put(':id')
+  @Roles(UserRole.ADMIN)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateEventDto: UpdateEventDto,
@@ -59,6 +74,7 @@ export class EventsController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.eventsService.remove(id);
   }
