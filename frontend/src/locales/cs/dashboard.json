@@ -4,7 +4,11 @@
     "totalBeers": "Celkem piv",
     "totalParticipants": "Celkem účastníků",
     "totalBarrels": "Celkem sudů",
-    "avgBeersPerParticipant": "Průměr piv na účastníka"
+    "avgBeersPerParticipant": "Průměr piv na účastníka",
+    "participants": "účastníků",
+    "topDrinker": "Největší pivař",
+    "beers": "piv",
+    "averagePerHour": "Průměr piv za hodinu"
   },
   "overview": {
     "title": "Přehled",
@@ -34,5 +38,16 @@
   "errors": {
     "loadFailed": "Nepodařilo se načíst data přehledu",
     "noData": "Žádná data k zobrazení"
+  },
+  "loading": "Načítání...",
+  "noActiveEvent": {
+    "title": "Žádná aktivní akce",
+    "subtitle": "Momentálně neprobíhá žádná akce"
+  },
+  "barrelStatus": {
+    "title": "Stav sudů",
+    "remainingBeers": "Zbývá piv",
+    "activeBarrels": "Aktivní sudy",
+    "totalBarrels": "Celkem sudů"
   }
 } 

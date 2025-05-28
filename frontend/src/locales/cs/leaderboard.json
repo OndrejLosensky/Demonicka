@@ -1,0 +1,18 @@
+{
+    "loading": "Načítání...",
+    "title": "Žebříček",
+    "subtitle": "Kdo vypil nejvíc piv?",
+    "timeRanges": {
+        "allTime": "Celkem",
+        "thisMonth": "Tento měsíc",
+        "thisWeek": "Tento týden",
+        "today": "Dnes"
+    },
+    "stats": {
+        "totalBeers": "Celkem vypito piv",
+        "totalParticipants": "Celkem účastníků",
+        "averageBeers": "Průměr piv na osobu",
+        "mostActiveDay": "Nejaktivnější den"
+    },
+    "fullLeaderboard": "Kompletní žebříček"
+} 

@@ -1,135 +1,434 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, Typography, Box } from '@mui/material';
-import type { DashboardStats } from '../../types/dashboard';
+import React, { useState, useEffect } from 'react';
+import {
+    Container,
+    Typography,
+    Box,
+    Paper,
+    Grid,
+    Card,
+    LinearProgress,
+    useTheme,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+} from '@mui/material';
+import {
+    LocalBar as BeerIcon,
+    EmojiEvents as TrophyIcon,
+    Group as GroupIcon,
+    Timer as TimeIcon,
+    Celebration as PartyIcon,
+    TrendingUp as TrendIcon,
+} from '@mui/icons-material';
+import { FaBeer } from 'react-icons/fa';
+import { format } from 'date-fns';
+import { cs } from 'date-fns/locale';
+import { eventService } from '../../services/eventService';
+import { barrelService } from '../../services/barrelService';
 import { dashboardService } from '../../services/dashboardService';
+import type { Event } from '../../types/event';
+import type { Barrel } from '../../types/barrel';
+import type { DashboardStats } from '../../types/dashboard';
 import translations from '../../locales/cs/dashboard.json';
 import { useSelectedEvent } from '../../contexts/SelectedEventContext';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../types/featureFlags';
 import { EventSelector } from '../../components/EventSelector';
 
-const Dashboard: React.FC = () => {
-  const { selectedEvent } = useSelectedEvent();
-  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
-  const [stats, setStats] = useState<DashboardStats>({
-    totalBeers: 0,
-    totalUsers: 0,
-    totalBarrels: 0,
-    averageBeersPerUser: 0,
-    topUsers: [],
-    barrelStats: [],
-  });
+export const Dashboard: React.FC = () => {
+    const theme = useTheme();
+    const { selectedEvent } = useSelectedEvent();
+    const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
+    const [isLoading, setIsLoading] = useState(true);
+    const [activeEvent, setActiveEvent] = useState<Event | null>(null);
+    const [barrels, setBarrels] = useState<Barrel[]>([]);
+    const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
+        totalBeers: 0,
+        totalUsers: 0,
+        totalBarrels: 0,
+        averageBeersPerUser: 0,
+        topUsers: [],
+        barrelStats: [],
+    });
+    const [stats, setStats] = useState({
+        totalBeers: 0,
+        activeBarrels: 0,
+        remainingBeers: 0,
+        topDrinker: { name: '', count: 0 },
+        averageBeersPerHour: 0,
+        participantsCount: 0,
+        eventDuration: '',
+    });
 
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const data = await dashboardService.getDashboardStats(selectedEvent?.id);
-        setStats(data);
-      } catch (error) {
-        console.error('Failed to load dashboard stats:', error);
-      }
+    useEffect(() => {
+        loadData();
+    }, [selectedEvent?.id]);
+
+    const loadData = async () => {
+        try {
+            setIsLoading(true);
+            const [eventData, barrelsData, dashboardData] = await Promise.all([
+                eventService.getActiveEvent(),
+                barrelService.getAllBarrels(),
+                dashboardService.getDashboardStats(selectedEvent?.id),
+            ]);
+
+            setActiveEvent(eventData);
+            setBarrels(barrelsData);
+            setDashboardStats(dashboardData);
+
+            if (eventData) {
+                const activeBarrels = barrelsData.filter(b => b.status === 'TAPPED').length;
+                const remainingBeers = barrelsData.reduce((sum, barrel) => {
+                    if (barrel.status === 'FULL') return sum + (barrel.size * 8);
+                    if (barrel.status === 'TAPPED') return sum + ((barrel.size * 8) / 2); // Rough estimate
+                    return sum;
+                }, 0);
+
+                const eventStart = new Date(eventData.startDate);
+                const now = new Date();
+                const hoursSinceStart = Math.max(1, (now.getTime() - eventStart.getTime()) / (1000 * 60 * 60));
+                
+                setStats({
+                    totalBeers: dashboardData.totalBeers,
+                    activeBarrels,
+                    remainingBeers,
+                    topDrinker: dashboardData.topUsers[0] ? 
+                        { name: dashboardData.topUsers[0].name, count: dashboardData.topUsers[0].beerCount || 0 } : 
+                        { name: '', count: 0 },
+                    averageBeersPerHour: dashboardData.totalBeers / hoursSinceStart,
+                    participantsCount: dashboardData.totalUsers,
+                    eventDuration: format(eventStart, 'PPp', { locale: cs }),
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load dashboard data:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    loadStats();
-  }, [selectedEvent?.id]);
+    const getBarrelFillPercentage = (): number => {
+        if (!barrels.length) return 0;
+        const totalCapacity = barrels.reduce((sum, barrel) => sum + (barrel.size * 8), 0);
+        return (stats.remainingBeers / totalCapacity) * 100;
+    };
 
-  return (
-    <div className="p-4">
-      <Box display="flex" alignItems="center" gap={2} mb={4}>
-        <Typography variant="h4">
-          {translations.overview.title}
-        </Typography>
-        {showEventHistory && <EventSelector />}
-      </Box>
+    if (isLoading) {
+        return (
+            <Container>
+                <Box sx={{ width: '100%', mt: 4 }}>
+                    <LinearProgress />
+                    <Typography align="center" sx={{ mt: 2 }}>{translations.loading}</Typography>
+                </Box>
+            </Container>
+        );
+    }
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card>
-          <CardContent>
-            <Typography color="textSecondary" gutterBottom>
-              {translations.overview.cards.totalBeers}
-            </Typography>
-            <Typography variant="h5">{stats.totalBeers}</Typography>
-          </CardContent>
-        </Card>
+    if (!activeEvent) {
+        return (
+            <Container>
+                <Box sx={{ textAlign: 'center', mt: 8 }}>
+                    <PartyIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+                    <Typography variant="h4" gutterBottom>
+                        {translations.noActiveEvent.title}
+                    </Typography>
+                    <Typography color="textSecondary">
+                        {translations.noActiveEvent.subtitle}
+                    </Typography>
+                </Box>
+            </Container>
+        );
+    }
 
-        <Card>
-          <CardContent>
-            <Typography color="textSecondary" gutterBottom>
-              {translations.overview.cards.totalUsers}
-            </Typography>
-            <Typography variant="h5">{stats.totalUsers}</Typography>
-          </CardContent>
-        </Card>
+    return (
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            {/* Header with Event Selector */}
+            <Box display="flex" alignItems="center" gap={2} mb={4}>
+                <Typography variant="h4">
+                    {translations.overview.title}
+                </Typography>
+                {showEventHistory && <EventSelector />}
+            </Box>
 
-        <Card>
-          <CardContent>
-            <Typography color="textSecondary" gutterBottom>
-              {translations.overview.cards.totalBarrels}
-            </Typography>
-            <Typography variant="h5">{stats.totalBarrels}</Typography>
-          </CardContent>
-        </Card>
-      </div>
+            {/* Event Info Header */}
+            <Paper
+                elevation={0}
+                sx={{
+                    p: 4,
+                    mb: 4,
+                    background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+                    color: 'white',
+                    borderRadius: 3,
+                    position: 'relative',
+                    overflow: 'hidden',
+                }}
+            >
+                <Box sx={{ position: 'relative', zIndex: 1 }}>
+                    <Typography variant="h3" fontWeight="bold" gutterBottom>
+                        {activeEvent.name}
+                    </Typography>
+                    <Typography variant="h6" sx={{ opacity: 0.9, mb: 2 }}>
+                        {activeEvent.description}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 3, color: 'rgba(255, 255, 255, 0.9)' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <TimeIcon />
+                            <Typography>{stats.eventDuration}</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <GroupIcon />
+                            <Typography>{stats.participantsCount} {translations.stats.participants}</Typography>
+                        </Box>
+                    </Box>
+                </Box>
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        right: -100,
+                        bottom: -100,
+                        width: 400,
+                        height: 400,
+                        borderRadius: '50%',
+                        background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)',
+                    }}
+                />
+            </Paper>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardContent>
-            <Typography variant="h6" className="mb-4">
-              {translations.overview.charts.topUsers.title}
-            </Typography>
-            <table className="w-full">
-              <thead>
-                <tr>
-                  <th className="text-left p-2">
-                    {translations.overview.charts.topUsers.columns.name}
-                  </th>
-                  <th className="text-right p-2">
-                    {translations.overview.charts.topUsers.columns.beers}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.topUsers.map((user) => (
-                  <tr key={user.id}>
-                    <td className="text-left p-2">{user.name}</td>
-                    <td className="text-right p-2">{user.beerCount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+            <Grid container spacing={4}>
+                {/* Barrel Visualization */}
+                <Grid item xs={12} md={6}>
+                    <Card sx={{ p: 3, height: '100%', position: 'relative' }}>
+                        <Typography variant="h5" fontWeight="bold" gutterBottom>
+                            {translations.barrelStatus.title}
+                        </Typography>
+                        <Box sx={{ 
+                            position: 'relative', 
+                            height: 400,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            <Box sx={{ position: 'relative', width: '100%', maxWidth: 300 }}>
+                                {/* Barrel Shape */}
+                                <Box sx={{
+                                    position: 'relative',
+                                    width: '100%',
+                                    paddingBottom: '150%',
+                                    backgroundColor: theme.palette.grey[200],
+                                    borderRadius: '20px',
+                                    overflow: 'hidden',
+                                }}>
+                                    {/* Beer Fill */}
+                                    <Box sx={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: `${getBarrelFillPercentage()}%`,
+                                        background: 'linear-gradient(180deg, #ffc107 0%, #ff9800 100%)',
+                                        transition: 'height 1s ease-in-out',
+                                    }} />
+                                    
+                                    {/* Barrel Overlay */}
+                                    <Box sx={{
+                                        position: 'absolute',
+                                        top: '5%',
+                                        left: '10%',
+                                        width: '80%',
+                                        height: '90%',
+                                        borderLeft: `4px solid ${theme.palette.grey[300]}`,
+                                        borderRight: `4px solid ${theme.palette.grey[300]}`,
+                                        borderRadius: '20px',
+                                    }} />
+                                    
+                                    {/* Barrel Rings */}
+                                    {[20, 40, 60, 80].map((position) => (
+                                        <Box
+                                            key={position}
+                                            sx={{
+                                                position: 'absolute',
+                                                top: `${position}%`,
+                                                left: 0,
+                                                width: '100%',
+                                                height: '4px',
+                                                backgroundColor: theme.palette.grey[300],
+                                                transform: 'translateY(-50%)',
+                                            }}
+                                        />
+                                    ))}
+                                </Box>
 
-        <Card>
-          <CardContent>
-            <Typography variant="h6" className="mb-4">
-              {translations.overview.charts.barrelStats.title}
-            </Typography>
-            <table className="w-full">
-              <thead>
-                <tr>
-                  <th className="text-left p-2">
-                    {translations.overview.charts.barrelStats.columns.size}
-                  </th>
-                  <th className="text-right p-2">
-                    {translations.overview.charts.barrelStats.columns.count}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.barrelStats.map((stat, index) => (
-                  <tr key={index}>
-                    <td className="text-left p-2">{stat.size}l</td>
-                    <td className="text-right p-2">{stat.count}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-};
+                                {/* Stats Overlay */}
+                                <Box sx={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    textAlign: 'center',
+                                    zIndex: 1,
+                                }}>
+                                    <Typography variant="h4" fontWeight="bold" color="primary">
+                                        {Math.round(stats.remainingBeers)}
+                                    </Typography>
+                                    <Typography variant="body1" color="textSecondary">
+                                        {translations.barrelStatus.remainingBeers}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </Box>
+                        <Box sx={{ mt: 2 }}>
+                            <Grid container spacing={2}>
+                                <Grid item xs={6}>
+                                    <Box sx={{ textAlign: 'center' }}>
+                                        <Typography variant="h6" color="primary">
+                                            {stats.activeBarrels}
+                                        </Typography>
+                                        <Typography variant="body2" color="textSecondary">
+                                            {translations.barrelStatus.activeBarrels}
+                                        </Typography>
+                                    </Box>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <Box sx={{ textAlign: 'center' }}>
+                                        <Typography variant="h6" color="primary">
+                                            {barrels.length}
+                                        </Typography>
+                                        <Typography variant="body2" color="textSecondary">
+                                            {translations.barrelStatus.totalBarrels}
+                                        </Typography>
+                                    </Box>
+                                </Grid>
+                            </Grid>
+                        </Box>
+                    </Card>
+                </Grid>
 
-export default Dashboard; 
+                {/* Stats and Tables */}
+                <Grid item xs={12} md={6}>
+                    <Grid container spacing={3}>
+                        {/* Top Drinker Card */}
+                        <Grid item xs={12}>
+                            <Card sx={{ p: 3 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <TrophyIcon sx={{ fontSize: 40, color: theme.palette.warning.main }} />
+                                    <Box>
+                                        <Typography variant="overline" color="textSecondary">
+                                            {translations.stats.topDrinker}
+                                        </Typography>
+                                        <Typography variant="h5" fontWeight="bold">
+                                            {stats.topDrinker.name}
+                                        </Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <FaBeer style={{ color: theme.palette.primary.main }} />
+                                            <Typography>
+                                                {stats.topDrinker.count} {translations.stats.beers}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </Box>
+                            </Card>
+                        </Grid>
+
+                        {/* Stats Cards */}
+                        <Grid item xs={12} sm={6}>
+                            <Card sx={{ p: 3, height: '100%' }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                                        <BeerIcon sx={{ fontSize: 30, color: 'primary.main' }} />
+                                        <Typography variant="h6">
+                                            {stats.totalBeers}
+                                        </Typography>
+                                    </Box>
+                                    <Typography color="textSecondary">
+                                        {translations.stats.totalBeers}
+                                    </Typography>
+                                </Box>
+                            </Card>
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                            <Card sx={{ p: 3, height: '100%' }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                                        <TrendIcon sx={{ fontSize: 30, color: 'success.main' }} />
+                                        <Typography variant="h6">
+                                            {stats.averageBeersPerHour.toFixed(1)}
+                                        </Typography>
+                                    </Box>
+                                    <Typography color="textSecondary">
+                                        {translations.stats.averagePerHour}
+                                    </Typography>
+                                </Box>
+                            </Card>
+                        </Grid>
+
+                        {/* Top Users Table */}
+                        <Grid item xs={12}>
+                            <Card>
+                                <Box sx={{ p: 3 }}>
+                                    <Typography variant="h6" gutterBottom>
+                                        {translations.overview.charts.topUsers.title}
+                                    </Typography>
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>
+                                                    {translations.overview.charts.topUsers.columns.name}
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    {translations.overview.charts.topUsers.columns.beers}
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {dashboardStats.topUsers.map((user) => (
+                                                <TableRow key={user.id}>
+                                                    <TableCell>{user.name}</TableCell>
+                                                    <TableCell align="right">{user.beerCount}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </Box>
+                            </Card>
+                        </Grid>
+
+                        {/* Barrel Stats Table */}
+                        <Grid item xs={12}>
+                            <Card>
+                                <Box sx={{ p: 3 }}>
+                                    <Typography variant="h6" gutterBottom>
+                                        {translations.overview.charts.barrelStats.title}
+                                    </Typography>
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>
+                                                    {translations.overview.charts.barrelStats.columns.size}
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    {translations.overview.charts.barrelStats.columns.count}
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {dashboardStats.barrelStats.map((stat, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell>{stat.size}l</TableCell>
+                                                    <TableCell align="right">{stat.count}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </Box>
+                            </Card>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Container>
+    );
+}; 

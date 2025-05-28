@@ -1,0 +1,51 @@
+{
+    "loading": "Načítání...",
+    "status": {
+        "active": "Aktivní událost",
+        "ended": "Ukončená událost"
+    },
+    "startDate": "Začátek",
+    "endDate": "Konec",
+    "actions": {
+        "endEvent": "Ukončit událost",
+        "setActive": "Aktivovat událost",
+        "addUser": "Přidat účastníka",
+        "removeUser": "Odebrat účastníka",
+        "addBarrel": "Přidat sud",
+        "removeBarrel": "Odebrat sud"
+    },
+    "sections": {
+        "users": "Účastníci",
+        "barrels": "Sudy"
+    },
+    "stats": {
+        "totalParticipants": "Celkem účastníků",
+        "totalBeers": "Celkem piv",
+        "averageBeers": "Průměr piv na osobu",
+        "totalBarrels": "Celkem sudů",
+        "beers": "piv"
+    },
+    "empty": {
+        "users": "Zatím zde nejsou žádní účastníci",
+        "barrels": "Zatím zde nejsou žádné sudy"
+    },
+    "dialogs": {
+        "addUser": {
+            "title": "Přidat účastníka",
+            "selectLabel": "Vyberte účastníka"
+        },
+        "addBarrel": {
+            "title": "Přidat sud",
+            "selectLabel": "Vyberte sud"
+        },
+        "common": {
+            "cancel": "Zrušit",
+            "add": "Přidat"
+        }
+    },
+    "barrelStatus": {
+        "FULL": "Plný",
+        "TAPPED": "Načatý",
+        "EMPTY": "Prázdný"
+    }
+} 

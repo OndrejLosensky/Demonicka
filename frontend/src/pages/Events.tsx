@@ -6,8 +6,6 @@ import type { Event } from '../types/event';
 import { eventService } from '../services/eventService';
 import { format } from 'date-fns';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
-import { useFeatureFlag } from '../hooks/useFeatureFlag';
-import { FeatureFlagKey } from '../types/featureFlags';
 
 export const Events: React.FC = () => {
     const [events, setEvents] = useState<Event[]>([]);
@@ -19,7 +17,6 @@ export const Events: React.FC = () => {
     });
     const navigate = useNavigate();
     const { loadActiveEvent } = useActiveEvent();
-    const showActiveEventFunctionality = useFeatureFlag(FeatureFlagKey.ACTIVE_EVENT_FUNCTIONALITY);
 
     useEffect(() => {
         loadEvents();
@@ -58,15 +55,6 @@ export const Events: React.FC = () => {
         }
     };
 
-    const handleMakeActive = async (eventId: string) => {
-        try {
-            await eventService.makeEventActive(eventId);
-            await Promise.all([loadEvents(), loadActiveEvent()]);
-        } catch (error) {
-            console.error('Failed to make event active:', error);
-        }
-    };
-
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Grid container spacing={3} justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
@@ -90,73 +78,57 @@ export const Events: React.FC = () => {
             <Grid container spacing={3}>
                 {events.map((event) => (
                     <Grid item xs={12} md={6} lg={4} key={event.id}>
-                        <Card sx={{ p: 2, position: 'relative' }}>
-                            {event.isActive && (
-                                <Chip
-                                    label="Aktivní událost"
-                                    color="primary"
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 16,
-                                        right: 16,
-                                    }}
-                                />
-                            )}
-                            <Box sx={{ mt: event.isActive ? 4 : 0 }}>
-                                <Typography variant="h6">{event.name}</Typography>
-                                <Typography color="textSecondary" gutterBottom>
-                                    {event.description}
-                                </Typography>
-                                <Typography variant="body2">
+                        <Card sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                            <Box sx={{ flex: 1 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                    <Typography variant="h6" sx={{ mr: 2 }}>{event.name}</Typography>
+                                    {event.isActive && (
+                                        <Chip
+                                            label="Aktivní událost"
+                                            color="primary"
+                                            size="small"
+                                        />
+                                    )}
+                                </Box>
+                                {event.description && (
+                                    <Typography color="textSecondary" gutterBottom>
+                                        {event.description}
+                                    </Typography>
+                                )}
+                                <Typography variant="body2" gutterBottom>
                                     Start: {format(new Date(event.startDate), 'PPpp')}
                                 </Typography>
                                 {event.endDate && (
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" gutterBottom>
                                         End: {format(new Date(event.endDate), 'PPpp')}
                                     </Typography>
                                 )}
-                                <Typography variant="body2" sx={{ mb: 2 }}>
+                                <Typography variant="body2" gutterBottom>
                                     Status: {event.isActive ? 'Aktivní' : 'Ukončená'}
                                 </Typography>
                                 <Typography variant="body2">
                                     Účastníci: {event.users?.length || 0}
                                 </Typography>
-                                <Typography variant="body2" sx={{ mb: 2 }}>
+                                <Typography variant="body2" gutterBottom>
                                     Sudy: {event.barrels?.length || 0}
                                 </Typography>
-                                <Grid container spacing={1}>
-                                    <Grid item>
-                                        <Button
-                                            variant="outlined"
-                                            onClick={() => navigate(`/events/${event.id}`)}
-                                        >
-                                            Zobrazit detail
-                                        </Button>
-                                    </Grid>
-                                    {event.isActive ? (
-                                        <Grid item>
-                                            <Button
-                                                variant="outlined"
-                                                color="error"
-                                                onClick={() => handleEndEvent(event.id)}
-                                            >
-                                                Ukončit událost
-                                            </Button>
-                                        </Grid>
-                                    ) : (
-                                        showActiveEventFunctionality && (
-                                            <Grid item>
-                                                <Button
-                                                    variant="outlined"
-                                                    color="success"
-                                                    onClick={() => handleMakeActive(event.id)}
-                                                >
-                                                    Aktivovat událost
-                                                </Button>
-                                            </Grid>
-                                        )
-                                    )}
-                                </Grid>
+                            </Box>
+                            <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => navigate(`/events/${event.id}`)}
+                                >
+                                    Zobrazit detail
+                                </Button>
+                                {event.isActive && (
+                                    <Button
+                                        variant="outlined"
+                                        color="error"
+                                        onClick={() => handleEndEvent(event.id)}
+                                    >
+                                        Ukončit událost
+                                    </Button>
+                                )}
                             </Box>
                         </Card>
                     </Grid>
