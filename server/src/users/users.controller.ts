@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ForbiddenException,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateParticipantDto } from './dto/create-participant.dto';
@@ -35,10 +36,19 @@ export class UsersController {
     return this.usersService.createParticipant(createParticipantDto);
   }
 
-  @Public()
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query('withDeleted') withDeleted?: boolean) {
+    return this.usersService.findAll(withDeleted);
+  }
+
+  @Get('deleted')
+  findDeleted() {
+    return this.usersService.findDeleted();
+  }
+
+  @Post('cleanup')
+  cleanup() {
+    return this.usersService.cleanup();
   }
 
   @Get(':id')
@@ -66,5 +76,10 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
+  }
+
+  @Post(':id/restore')
+  restore(@Param('id') id: string) {
+    return this.usersService.restore(id);
   }
 }

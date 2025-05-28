@@ -17,20 +17,27 @@ export class DashboardController {
   @Public()
   @Get('public')
   @Header('Cache-Control', 'public, max-age=30')
-  async getPublicStats(@Query('eventId') eventId?: string): Promise<PublicStatsDto> {
+  async getPublicStats(
+    @Query('eventId') eventId?: string,
+  ): Promise<PublicStatsDto> {
     return this.dashboardService.getPublicStats(eventId);
   }
 
   @Get('overview')
   @UseGuards(JwtAuthGuard)
   @Header('Cache-Control', 'public, max-age=30')
-  async getDashboardStats(@Query('eventId') eventId?: string): Promise<DashboardResponseDto> {
+  async getDashboardStats(
+    @Query('eventId') eventId?: string,
+  ): Promise<DashboardResponseDto> {
     return this.dashboardService.getDashboardStats(eventId);
   }
 
   @Get('leaderboard')
+  @Public()
   @Header('Cache-Control', 'public, max-age=30')
-  async getLeaderboard(@Query('eventId') eventId?: string): Promise<LeaderboardDto> {
+  async getLeaderboard(
+    @Query('eventId') eventId?: string,
+  ): Promise<LeaderboardDto> {
     return this.dashboardService.getLeaderboard(eventId);
   }
 }

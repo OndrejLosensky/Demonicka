@@ -6,6 +6,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { User } from '../users/entities/user.entity';
 import { Barrel } from '../barrels/entities/barrel.entity';
+import { In } from 'typeorm';
 
 @Injectable()
 export class EventsService {
@@ -85,14 +86,25 @@ export class EventsService {
         });
     }
 
-    async getEventUsers(id: string): Promise<User[]> {
+    async getEventUsers(id: string, withDeleted?: boolean): Promise<User[]> {
         const event = await this.eventRepository.findOne({
             where: { id },
-            relations: ['users']
+            relations: ['users'],
+            withDeleted: withDeleted
         });
         if (!event) {
             throw new NotFoundException(`Event with ID ${id} not found`);
         }
+        
+        // If withDeleted is true, return all users including deleted ones
+        if (withDeleted) {
+            const userIds = event.users.map(user => user.id);
+            return this.userRepository.find({
+                where: { id: In(userIds) },
+                withDeleted: true
+            });
+        }
+        
         return event.users || [];
     }
 

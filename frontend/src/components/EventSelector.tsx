@@ -111,7 +111,7 @@ export const EventSelector: React.FC = () => {
                                 {event.endDate && ` - ${format(new Date(event.endDate), 'PPpp')}`}
                             </Typography>
                             <Typography variant="caption" color="textSecondary">
-                                Účastníci: {event.participants.length} | Sudy: {event.barrels.length}
+                                Účastníci: {event.users.length} | Sudy: {event.barrels.length}
                             </Typography>
                         </MenuItem>
                     ))}

@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { Event } from './entities/event.entity';
@@ -74,8 +75,11 @@ export class EventsController {
 
   @Get(':id/users')
   @Public()
-  getEventUsers(@Param('id', ParseUUIDPipe) id: string): Promise<User[]> {
-    return this.eventsService.getEventUsers(id);
+  getEventUsers(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('withDeleted') withDeleted?: boolean
+  ): Promise<User[]> {
+    return this.eventsService.getEventUsers(id, withDeleted);
   }
 
   @Put(':id/users/:userId')

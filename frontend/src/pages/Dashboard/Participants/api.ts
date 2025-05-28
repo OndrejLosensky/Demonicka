@@ -1,15 +1,5 @@
-import axios from 'axios';
 import type { Participant } from './types';
-import { API_URL } from '../../../config';
-
-// Create an axios instance with proper configuration
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  }
-});
+import { api } from '../../../services/api';
 
 export const participantsApi = {
   getAll: async (withDeleted?: boolean): Promise<Participant[]> => {
@@ -19,8 +9,10 @@ export const participantsApi = {
     return response.data;
   },
 
-  getByEvent: async (eventId: string): Promise<Participant[]> => {
-    const response = await api.get(`/events/${eventId}/users`);
+  getByEvent: async (eventId: string, withDeleted?: boolean): Promise<Participant[]> => {
+    const response = await api.get(`/events/${eventId}/users`, {
+      params: { withDeleted }
+    });
     return response.data;
   },
 

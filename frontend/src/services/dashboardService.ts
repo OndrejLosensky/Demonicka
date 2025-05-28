@@ -4,7 +4,7 @@ import type { PublicStats } from '../types/public';
 
 export const dashboardService = {
   async getDashboardStats(eventId?: string): Promise<DashboardStats> {
-    const response = await api.get('/dashboard', {
+    const response = await api.get('/dashboard/overview', {
       params: { eventId },
     });
     return response.data;

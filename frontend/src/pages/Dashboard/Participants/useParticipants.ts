@@ -17,9 +17,16 @@ export const useParticipants = (includeDeleted = false) => {
       
       if (selectedEvent) {
         // Get participants for the selected event
-        const eventParticipants = await participantsApi.getByEvent(selectedEvent.id);
-        setParticipants(eventParticipants);
-        setDeletedParticipants([]);
+        const eventParticipants = await participantsApi.getByEvent(selectedEvent.id, includeDeleted);
+        if (includeDeleted) {
+          const active = eventParticipants.filter(p => !p.deletedAt);
+          const deleted = eventParticipants.filter(p => p.deletedAt);
+          setParticipants(active);
+          setDeletedParticipants(deleted);
+        } else {
+          setParticipants(eventParticipants);
+          setDeletedParticipants([]);
+        }
       } else {
         // Fallback to all participants if no event is selected
         if (includeDeleted) {

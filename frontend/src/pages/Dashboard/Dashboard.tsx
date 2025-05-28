@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, Typography } from '@mui/material';
+import { Card, CardContent, Typography, Box } from '@mui/material';
 import type { DashboardStats } from '../../types/dashboard';
 import { dashboardService } from '../../services/dashboardService';
 import translations from '../../locales/cs/dashboard.json';
-import { useParams } from 'react-router-dom';
+import { useSelectedEvent } from '../../contexts/SelectedEventContext';
+import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+import { FeatureFlagKey } from '../../types/featureFlags';
+import { EventSelector } from '../../components/EventSelector';
 
 const Dashboard: React.FC = () => {
-  const { eventId } = useParams<{ eventId?: string }>();
+  const { selectedEvent } = useSelectedEvent();
+  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
   const [stats, setStats] = useState<DashboardStats>({
     totalBeers: 0,
     totalUsers: 0,
@@ -19,7 +23,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const data = await dashboardService.getDashboardStats(eventId);
+        const data = await dashboardService.getDashboardStats(selectedEvent?.id);
         setStats(data);
       } catch (error) {
         console.error('Failed to load dashboard stats:', error);
@@ -27,13 +31,16 @@ const Dashboard: React.FC = () => {
     };
 
     loadStats();
-  }, [eventId]);
+  }, [selectedEvent?.id]);
 
   return (
     <div className="p-4">
-      <Typography variant="h4" className="mb-4">
-        {translations.overview.title}
-      </Typography>
+      <Box display="flex" alignItems="center" gap={2} mb={4}>
+        <Typography variant="h4">
+          {translations.overview.title}
+        </Typography>
+        {showEventHistory && <EventSelector />}
+      </Box>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card>

@@ -7,11 +7,11 @@ export const featureFlags: FeatureFlags = {
     description: 'Shows deleted users with option to restore them',
   },
   [FeatureFlagKey.SHOW_EVENT_HISTORY]: {
-    enabled: true,
+    enabled: false,
     description: 'Shows event history selector in dashboard, leaderboard, users and barrels pages',
   },
   [FeatureFlagKey.SHOW_USER_HISTORY]: {
-    enabled: true,
+    enabled: false,
     description: 'Shows event history functionality specifically for users page',
   },
   [FeatureFlagKey.ACTIVE_EVENT_FUNCTIONALITY]: {
@@ -27,16 +27,20 @@ export const featureFlags: FeatureFlags = {
     description: 'Adds year filtering capability to the leaderboard',
   },
   [FeatureFlagKey.SHOW_DELETED_BARRELS]: {
-    enabled: false,
+    enabled: true,
     description: 'Shows deleted barrels with option to restore them',
   },
   [FeatureFlagKey.BARREL_STATUS_TOGGLE]: {
-    enabled: false,
+    enabled: true,
     description: 'Enables the status toggle button on barrel items',
   },
   [FeatureFlagKey.SHOW_BARRELS_HISTORY]: {
     enabled: false,
     description: 'Shows event history functionality specifically for barrels page',
+  },
+  [FeatureFlagKey.SHOW_DELETED_PARTICIPANTS]: {
+    enabled: true,
+    description: 'Shows deleted participants with option to restore them',
   },
 };
 
