@@ -12,13 +12,13 @@ export const eventService = {
         return response.data;
     },
 
-    async createEvent(event: Partial<Event>): Promise<Event> {
-        const response = await api.post('/events', event);
+    async createEvent(data: { name: string; description?: string; startDate: string }): Promise<Event> {
+        const response = await api.post('/events', data);
         return response.data;
     },
 
-    async updateEvent(id: string, event: Partial<Event>): Promise<Event> {
-        const response = await api.patch(`/events/${id}`, event);
+    async updateEvent(id: string, data: { name: string; description?: string; startDate: string }): Promise<Event> {
+        const response = await api.put(`/events/${id}`, data);
         return response.data;
     },
 
@@ -26,8 +26,18 @@ export const eventService = {
         await api.delete(`/events/${id}`);
     },
 
+    async setActive(id: string): Promise<Event> {
+        const response = await api.put(`/events/${id}/activate`);
+        return response.data;
+    },
+
+    async endEvent(id: string): Promise<Event> {
+        const response = await api.put(`/events/${id}/end`);
+        return response.data;
+    },
+
     async addUser(id: string, userId: string): Promise<Event> {
-        const response = await api.post(`/events/${id}/users/${userId}`);
+        const response = await api.put(`/events/${id}/users/${userId}`);
         return response.data;
     },
 
@@ -37,22 +47,12 @@ export const eventService = {
     },
 
     async addBarrel(id: string, barrelId: string): Promise<Event> {
-        const response = await api.post(`/events/${id}/barrels/${barrelId}`);
+        const response = await api.put(`/events/${id}/barrels/${barrelId}`);
         return response.data;
     },
 
     async removeBarrel(id: string, barrelId: string): Promise<Event> {
         const response = await api.delete(`/events/${id}/barrels/${barrelId}`);
-        return response.data;
-    },
-
-    async setActive(id: string): Promise<Event> {
-        const response = await api.post(`/events/${id}/active`);
-        return response.data;
-    },
-
-    async endEvent(id: string): Promise<Event> {
-        const response = await api.post(`/events/${id}/end`);
         return response.data;
     },
 

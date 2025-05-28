@@ -2,10 +2,10 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import translations from '../locales/cs/common.json';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 // Create an axios instance with proper configuration
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
   headers: {
@@ -27,10 +27,37 @@ api.interceptors.request.use(
   }
 );
 
-// Add response interceptor for handling errors
+// Add response interceptor for handling errors and token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const originalRequest = error.config;
+
+    // If the error is 401 and we haven't retried yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        // Try to refresh the token
+        const response = await api.post('/auth/refresh');
+        const { access_token } = response.data;
+        
+        // Save the new token
+        localStorage.setItem('access_token', access_token);
+        
+        // Update the original request with the new token
+        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+        
+        // Retry the original request
+        return api(originalRequest);
+      } catch (refreshError) {
+        // If refresh fails, redirect to login
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // Handle other errors
     if (!error.response) {
       toast.error(translations.errors.network.default);
       return Promise.reject(error);
@@ -60,5 +87,4 @@ api.interceptors.response.use(
   }
 );
 
-export { api };
 export default api; 

@@ -22,12 +22,11 @@ import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('events')
 @Versions('1')
-@UseGuards(VersionGuard)
+@UseGuards(JwtAuthGuard, VersionGuard)
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   create(@Body() createEventDto: CreateEventDto): Promise<Event> {
     return this.eventsService.create(createEventDto);
   }
@@ -44,12 +43,6 @@ export class EventsController {
     return this.eventsService.getActiveEvent();
   }
 
-  @Put(':id/activate')
-  @UseGuards(JwtAuthGuard)
-  setActiveEvent(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
-    return this.eventsService.setActiveEvent(id);
-  }
-
   @Get(':id')
   @Public()
   findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
@@ -57,7 +50,6 @@ export class EventsController {
   }
 
   @Put(':id')
-  @UseGuards(JwtAuthGuard)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateEventDto: UpdateEventDto,
@@ -66,9 +58,18 @@ export class EventsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.eventsService.remove(id);
+  }
+
+  @Put(':id/activate')
+  setActive(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
+    return this.eventsService.setActive(id);
+  }
+
+  @Put(':id/end')
+  endEvent(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
+    return this.eventsService.endEvent(id);
   }
 
   @Get(':id/users')
@@ -78,7 +79,6 @@ export class EventsController {
   }
 
   @Put(':id/users/:userId')
-  @UseGuards(JwtAuthGuard)
   addUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -87,7 +87,6 @@ export class EventsController {
   }
 
   @Delete(':id/users/:userId')
-  @UseGuards(JwtAuthGuard)
   removeUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -102,7 +101,6 @@ export class EventsController {
   }
 
   @Put(':id/barrels/:barrelId')
-  @UseGuards(JwtAuthGuard)
   addBarrel(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('barrelId', ParseUUIDPipe) barrelId: string,
@@ -110,9 +108,11 @@ export class EventsController {
     return this.eventsService.addBarrel(id, barrelId);
   }
 
-  @Put(':id/end')
-  @UseGuards(JwtAuthGuard)
-  endEvent(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
-    return this.eventsService.endEvent(id);
+  @Delete(':id/barrels/:barrelId')
+  removeBarrel(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('barrelId', ParseUUIDPipe) barrelId: string,
+  ): Promise<Event> {
+    return this.eventsService.removeBarrel(id, barrelId);
   }
 } 

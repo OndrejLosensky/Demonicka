@@ -21,6 +21,7 @@ export class UsersService {
     const user = this.usersRepository.create({
       ...createUserDto,
       password: createUserDto.password ? await bcrypt.hash(createUserDto.password, 10) : null,
+      isRegistrationComplete: true,
     });
     const savedUser = await this.usersRepository.save(user);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

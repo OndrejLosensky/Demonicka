@@ -1,7 +1,17 @@
-import { Controller, Get, Post, Delete, Param, UseGuards, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  UseGuards,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { BeersService } from './beers.service';
 import { Beer } from './entities/beer.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Public } from '../auth/decorators/public.decorator';
+import { Versions } from '../versioning/decorators/version.decorator';
+import { VersionGuard } from '../versioning/guards/version.guard';
 
 /**
  * Controller for managing beers.
@@ -9,7 +19,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
  * and require a valid JWT token.
  */
 @Controller('users/:userId/beers')
-@UseGuards(JwtAuthGuard)
+@Versions('1')
+@UseGuards(JwtAuthGuard, VersionGuard)
 export class BeersController {
   constructor(private readonly beersService: BeersService) {}
 
@@ -19,6 +30,7 @@ export class BeersController {
    * @param userId - The ID of the user
    * @returns The created beer
    */
+  @Public()
   @Post()
   create(@Param('userId', ParseUUIDPipe) userId: string): Promise<Beer> {
     return this.beersService.create(userId);
@@ -30,6 +42,7 @@ export class BeersController {
    * @param userId - The ID of the user
    * @returns Array of beers
    */
+  @Public()
   @Get()
   findByUserId(@Param('userId', ParseUUIDPipe) userId: string): Promise<Beer[]> {
     return this.beersService.findByUserId(userId);
@@ -41,6 +54,7 @@ export class BeersController {
    * @param userId - The ID of the user
    * @returns The number of beers
    */
+  @Public()
   @Get('count')
   getBeerCount(@Param('userId', ParseUUIDPipe) userId: string): Promise<number> {
     return this.beersService.getUserBeerCount(userId);

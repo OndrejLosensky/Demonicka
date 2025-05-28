@@ -75,11 +75,16 @@ export class AuthController {
   @Post('login')
   async login(
     @Req() req: RequestWithUser,
+    @Res({ passthrough: true }) response: Response,
   ): Promise<{ access_token: string; user: UserResponse }> {
     const { user } = req;
-    const { access_token } = await this.authService.login(user);
+    const { access_token, refresh_token } = await this.authService.login(user);
+    
+    // Set refresh token as an HTTP-only cookie
+    response.cookie('refresh_token', refresh_token, this.authService.getCookieOptions(true));
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...userWithoutPassword } = user as User;
+    const { password: _, ...userWithoutPassword } = user;
     return { access_token, user: userWithoutPassword };
   }
 

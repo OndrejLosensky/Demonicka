@@ -24,7 +24,7 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  private getCookieOptions(isRefreshToken = false) {
+  public getCookieOptions(isRefreshToken = false) {
     return {
       httpOnly: true, // Prevents client-side access to the cookie
       secure: this.configService.get('NODE_ENV') === 'production', // Only send cookie over HTTPS in production
@@ -71,11 +71,14 @@ export class AuthService {
     return { user };
   }
 
-  async login(user: UserWithoutPassword): Promise<{ access_token: string; user: UserWithoutPassword }> {
+  async login(user: UserWithoutPassword): Promise<{ access_token: string; refresh_token: string; user: UserWithoutPassword }> {
     const payload = { username: user.username, sub: user.id };
-    const token = await this.jwtService.signAsync(payload);
+    const access_token = await this.jwtService.signAsync(payload);
+    const refreshToken = await this.createRefreshToken(user.id);
+    
     return {
-      access_token: token,
+      access_token,
+      refresh_token: refreshToken.token,
       user,
     };
   }

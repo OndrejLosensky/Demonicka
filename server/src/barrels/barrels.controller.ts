@@ -22,9 +22,9 @@ import { VersionGuard } from '../versioning/guards/version.guard';
 export class BarrelsController {
   constructor(private readonly barrelsService: BarrelsService) {}
 
-  @Post('cleanup')
-  cleanup() {
-    return this.barrelsService.cleanup();
+  @Get('active/current')
+  getActiveBarrel() {
+    return this.barrelsService.getActiveBarrel();
   }
 
   @Get('deleted')
@@ -32,14 +32,19 @@ export class BarrelsController {
     return this.barrelsService.findDeleted();
   }
 
-  @Post()
-  create(@Body() createBarrelDto: CreateBarrelDto): Promise<Barrel> {
-    return this.barrelsService.create(createBarrelDto);
+  @Post('cleanup')
+  cleanup() {
+    return this.barrelsService.cleanup();
   }
 
   @Get()
   findAll(): Promise<Barrel[]> {
     return this.barrelsService.findAll();
+  }
+
+  @Post()
+  create(@Body() createBarrelDto: CreateBarrelDto): Promise<Barrel> {
+    return this.barrelsService.create(createBarrelDto);
   }
 
   @Get(':id')
@@ -63,10 +68,5 @@ export class BarrelsController {
   @Patch(':id/toggle-active')
   toggleActive(@Param('id') id: string): Promise<Barrel> {
     return this.barrelsService.toggleActive(id);
-  }
-
-  @Get('active/current')
-  getActiveBarrel() {
-    return this.barrelsService.getActiveBarrel();
   }
 }

@@ -1,14 +1,5 @@
-import axios from 'axios';
 import type { Barrel } from './types';
-import { API_URL } from '../../../config';
-
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  }
-});
+import { api } from '../../../services/api';
 
 export const barrelsApi = {
   getAll: async (withDeleted?: boolean): Promise<Barrel[]> => {

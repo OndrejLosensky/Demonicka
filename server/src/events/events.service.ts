@@ -19,16 +19,7 @@ export class EventsService {
     ) {}
 
     async create(createEventDto: CreateEventDto): Promise<Event> {
-        // First, deactivate all events
-        await this.eventRepository.update({ isActive: true }, { isActive: false });
-
-        // Create and activate the new event
-        const event = this.eventRepository.create({
-            ...createEventDto,
-            isActive: true,
-            users: [],
-            barrels: []
-        });
+        const event = this.eventRepository.create(createEventDto);
         return this.eventRepository.save(event);
     }
 
@@ -62,8 +53,51 @@ export class EventsService {
         await this.eventRepository.remove(event);
     }
 
-    async addUser(eventId: string, userId: string): Promise<Event> {
-        const event = await this.findOne(eventId);
+    async setActive(id: string): Promise<Event> {
+        // First, find the currently active event
+        const activeEvent = await this.eventRepository.findOne({
+            where: { isActive: true }
+        });
+
+        // If there is an active event, deactivate it
+        if (activeEvent) {
+            activeEvent.isActive = false;
+            await this.eventRepository.save(activeEvent);
+        }
+
+        // Then activate the specified event
+        const event = await this.findOne(id);
+        event.isActive = true;
+        return this.eventRepository.save(event);
+    }
+
+    async endEvent(id: string): Promise<Event> {
+        const event = await this.findOne(id);
+        event.isActive = false;
+        event.endDate = new Date();
+        return this.eventRepository.save(event);
+    }
+
+    async getActiveEvent(): Promise<Event | null> {
+        return this.eventRepository.findOne({
+            where: { isActive: true },
+            relations: ['users', 'barrels'],
+        });
+    }
+
+    async getEventUsers(id: string): Promise<User[]> {
+        const event = await this.eventRepository.findOne({
+            where: { id },
+            relations: ['users']
+        });
+        if (!event) {
+            throw new NotFoundException(`Event with ID ${id} not found`);
+        }
+        return event.users || [];
+    }
+
+    async addUser(id: string, userId: string): Promise<Event> {
+        const event = await this.findOne(id);
         const user = await this.userRepository.findOne({
             where: { id: userId },
         });
@@ -84,58 +118,25 @@ export class EventsService {
         return event;
     }
 
-    async removeUser(eventId: string, userId: string): Promise<Event> {
-        const event = await this.findOne(eventId);
-        
-        if (!event.users) {
-            return event;
-        }
-
-        event.users = event.users.filter((u) => u.id !== userId);
-        return this.eventRepository.save(event);
-    }
-
-    async getActiveEvent(): Promise<Event | null> {
-        return this.eventRepository.findOne({
-            where: { isActive: true },
-            relations: ['users', 'barrels'],
-        });
-    }
-
-    async setActiveEvent(id: string): Promise<Event> {
-        // First, deactivate all currently active events
-        await this.eventRepository.update({ isActive: true }, { isActive: false });
-
-        // Then activate the specified event
+    async removeUser(id: string, userId: string): Promise<Event> {
         const event = await this.findOne(id);
-        event.isActive = true;
+        event.users = event.users.filter((user) => user.id !== userId);
         return this.eventRepository.save(event);
     }
 
-    async getEventUsers(eventId: string): Promise<User[]> {
+    async getEventBarrels(id: string): Promise<Barrel[]> {
         const event = await this.eventRepository.findOne({
-            where: { id: eventId },
-            relations: ['users']
-        });
-        if (!event) {
-            throw new NotFoundException(`Event with ID ${eventId} not found`);
-        }
-        return event.users || [];
-    }
-
-    async getEventBarrels(eventId: string): Promise<Barrel[]> {
-        const event = await this.eventRepository.findOne({
-            where: { id: eventId },
+            where: { id },
             relations: ['barrels']
         });
         if (!event) {
-            throw new NotFoundException(`Event with ID ${eventId} not found`);
+            throw new NotFoundException(`Event with ID ${id} not found`);
         }
         return event.barrels || [];
     }
 
-    async addBarrel(eventId: string, barrelId: string): Promise<Event> {
-        const event = await this.findOne(eventId);
+    async addBarrel(id: string, barrelId: string): Promise<Event> {
+        const event = await this.findOne(id);
         const barrel = await this.barrelRepository.findOne({
             where: { id: barrelId },
         });
@@ -156,10 +157,9 @@ export class EventsService {
         return event;
     }
 
-    async endEvent(id: string): Promise<Event> {
+    async removeBarrel(id: string, barrelId: string): Promise<Event> {
         const event = await this.findOne(id);
-        event.isActive = false;
-        event.endDate = new Date();
+        event.barrels = event.barrels.filter((barrel) => barrel.id !== barrelId);
         return this.eventRepository.save(event);
     }
 } 
