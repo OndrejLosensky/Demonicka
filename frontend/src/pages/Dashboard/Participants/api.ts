@@ -29,7 +29,7 @@ export const participantsApi = {
     return response.data;
   },
 
-  create: async (data: { username: string; gender: 'MALE' | 'FEMALE' }): Promise<Participant> => {
+  create: async (data: { name: string; gender: 'MALE' | 'FEMALE' }): Promise<Participant> => {
     const response = await api.post('/users', data);
     return response.data;
   },

@@ -10,7 +10,6 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -36,6 +35,7 @@ export class UsersController {
     return this.usersService.createParticipant(createParticipantDto);
   }
 
+  @Public()
   @Get()
   findAll() {
     return this.usersService.findAll();

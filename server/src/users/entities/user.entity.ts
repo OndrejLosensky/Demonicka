@@ -28,8 +28,9 @@ export class User {
   @MinLength(8, { message: 'Heslo musí mít alespoň 8 znaků' })
   password: string | null;
 
-  @Column({ nullable: true, type: 'varchar' })
-  name: string | null;
+  @Column({ type: 'varchar' })
+  @IsNotEmpty({ message: 'Jméno je povinné' })
+  name: string;
 
   @Column({ type: 'varchar' })
   @IsEnum(['MALE', 'FEMALE'], {
@@ -42,6 +43,12 @@ export class User {
 
   @Column({ type: 'datetime', nullable: true })
   lastBeerTime: Date | null;
+
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  registrationToken: string | null;
+
+  @Column({ type: 'boolean', default: false })
+  isRegistrationComplete: boolean;
 
   @OneToMany(() => Beer, (beer) => beer.user, {
     cascade: true,

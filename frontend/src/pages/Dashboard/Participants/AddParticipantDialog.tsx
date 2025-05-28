@@ -97,7 +97,7 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
     try {
       setIsSubmitting(true);
       const participant = await participantsApi.create({ 
-        username: username.trim(),
+        name: username.trim(),
         gender 
       });
       

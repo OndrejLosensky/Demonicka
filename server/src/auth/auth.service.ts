@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
-import { RegisterDto } from './dto/register.dto';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
@@ -65,9 +65,9 @@ export class AuthService {
   }
 
   async register(
-    registerDto: RegisterDto,
+    createUserDto: CreateUserDto,
   ): Promise<{ user: Omit<User, 'password'> }> {
-    const user = await this.usersService.create(registerDto);
+    const user = await this.usersService.create(createUserDto);
     return { user };
   }
 

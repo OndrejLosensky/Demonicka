@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 import { Public } from './decorators/public.decorator';
 import { User } from '../users/entities/user.entity';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -44,15 +44,14 @@ export class AuthController {
 
   /**
    * Register a new user
-   * @param registerDto User registration data including username, email, password, firstName, lastName
-   * @param response Express response object for setting cookies
-   * @returns User data and authentication tokens
+   * @param createUserDto User registration data including username, password, name, gender
+   * @returns User data without password
    */
   @Public()
   @Post('register')
-  async register(@Body() registerDto: RegisterDto): Promise<UserResponse> {
+  async register(@Body() createUserDto: CreateUserDto): Promise<UserResponse> {
     try {
-      return await this.usersService.create(registerDto);
+      return await this.usersService.create(createUserDto);
     } catch (error) {
       if (
         error instanceof QueryFailedError &&
