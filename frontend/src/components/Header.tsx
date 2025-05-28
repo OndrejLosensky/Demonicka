@@ -20,6 +20,7 @@ import {
   Logout as LogoutIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
+import { FaBook } from 'react-icons/fa';
 import { format } from 'date-fns';
 import translations from '../locales/cs/common.header.json';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
@@ -164,16 +165,6 @@ export default function Header() {
                     >
                       {translations.navigation.events}
                     </Link>
-                    <Link
-                      to="/docs"
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        isActive('/docs')
-                          ? 'bg-primary text-white'
-                          : 'text-text-primary hover:text-text-secondary'
-                      }`}
-                    >
-                      Dokumentace
-                    </Link>
                   </div>
                 )}
               </div>
@@ -270,6 +261,24 @@ export default function Header() {
                         </ListItemIcon>
                         <ListItemText 
                           primary={translations.auth.profile}
+                          primaryTypographyProps={{
+                            className: "font-medium"
+                          }}
+                        />
+                      </MenuItem>
+                      <MenuItem 
+                        onClick={() => {
+                          handleCloseMenu();
+                          navigate('/docs');
+                        }}
+                        className="hover:bg-primary/5"
+                        sx={{ py: 1.5 }}
+                      >
+                        <ListItemIcon>
+                          <FaBook className="text-primary text-lg" />
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary="Dokumentace"
                           primaryTypographyProps={{
                             className: "font-medium"
                           }}
