@@ -201,24 +201,6 @@ export default function Landing() {
 
   return (
     <div className="relative min-h-screen bg-background-primary dark:bg-background-primary transition-colors duration-200">
-      {/* Enhanced Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-background-primary/95 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center space-x-2">
-              <span className="text-xl font-bold text-black">Démonická</span>
-              <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">Beta</span>
-            </Link>
-            <Link
-              to="/login"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors duration-200"
-            >
-              Přihlásit se
-            </Link>
-          </div>
-        </div>
-      </header>
-
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-background-primary via-background-secondary to-background-primary dark:from-background-primary dark:via-background-secondary dark:to-background-primary opacity-50" />

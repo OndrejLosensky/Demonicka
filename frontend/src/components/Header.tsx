@@ -94,9 +94,10 @@ export default function Header() {
                 >
                   <Link
                     to="/"
-                    className="text-2xl font-bold text-primary"
+                    className="text-2xl font-bold text-primary flex items-center gap-2"
                   >
                     {translations.brand}
+                    <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">Beta</span>
                   </Link>
                 </motion.div>
                 {user && (
@@ -169,9 +170,19 @@ export default function Header() {
               <div className="flex items-center">
                 {user ? (
                   <div className="flex items-center space-x-6">
-                    <Typography variant="body2" className="text-text-secondary font-medium min-w-[48px] text-center">
-                      {format(currentTime, 'HH:mm')}
-                    </Typography>
+                    {!isLandingPage && (
+                      <Typography variant="body2" className="text-text-secondary font-medium min-w-[48px] text-center">
+                        {format(currentTime, 'HH:mm')}
+                      </Typography>
+                    )}
+                    {activeEvent && (
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-full border border-primary/10">
+                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                        <Typography variant="body2" className="text-primary font-medium">
+                          {activeEvent.name}
+                        </Typography>
+                      </div>
+                    )}
                     <Tooltip 
                       title={translations.auth.accountSettings}
                       TransitionComponent={Fade}
@@ -282,11 +293,6 @@ export default function Header() {
                   </motion.div>
                 )}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  {activeEvent && (
-                    <Typography variant="h6" color="primary">
-                      Aktivní událost: {activeEvent.name}
-                    </Typography>
-                  )}
                 </Box>
               </div>
             </div>
