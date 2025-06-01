@@ -1,16 +1,16 @@
-# API Documentation
+# API Dokumentace
 
-## Overview
+## Přehled
 
-This document provides comprehensive documentation for the Démonická API endpoints. All API routes are prefixed with `/api/v1/`.
+Tento dokument poskytuje kompletní dokumentaci API endpointů Démonické aplikace. Všechny API cesty začínají prefixem `/api/v1/`.
 
-## Authentication
+## Autentizace
 
-### Login
+### Přihlášení
 ```
 POST /auth/login
 ```
-Request body:
+Tělo požadavku:
 ```json
 {
   "username": "string",
@@ -18,11 +18,11 @@ Request body:
 }
 ```
 
-### Register
+### Registrace
 ```
 POST /auth/register
 ```
-Request body:
+Tělo požadavku:
 ```json
 {
   "username": "string",
@@ -31,53 +31,53 @@ Request body:
 }
 ```
 
-## Events
+## Události
 
-### List Events
+### Seznam událostí
 ```
 GET /events
 ```
 
-### Get Event
+### Detail události
 ```
 GET /events/:id
 ```
 
-### Create Event
+### Vytvoření události
 ```
 POST /events
 ```
-Request body:
+Tělo požadavku:
 ```json
 {
   "name": "string",
   "description": "string",
-  "startDate": "string (ISO date)"
+  "startDate": "string (ISO datum)"
 }
 ```
 
-### End Event
+### Ukončení události
 ```
 POST /events/:id/end
 ```
 
-### Make Event Active
+### Aktivace události
 ```
 POST /events/:id/activate
 ```
 
-## Participants
+## Účastníci
 
-### List Participants
+### Seznam účastníků
 ```
 GET /participants
 ```
 
-### Add Participant
+### Přidání účastníka
 ```
 POST /participants
 ```
-Request body:
+Tělo požadavku:
 ```json
 {
   "name": "string",
@@ -85,18 +85,18 @@ Request body:
 }
 ```
 
-## Barrels
+## Sudy
 
-### List Barrels
+### Seznam sudů
 ```
 GET /barrels
 ```
 
-### Add Barrel
+### Přidání sudu
 ```
 POST /barrels
 ```
-Request body:
+Tělo požadavku:
 ```json
 {
   "size": "number",
@@ -106,29 +106,29 @@ Request body:
 
 ## Dashboard
 
-### Get Statistics
+### Získání statistik
 ```
 GET /dashboard/stats
 ```
 
-### Get Leaderboard
+### Získání žebříčku
 ```
 GET /dashboard/leaderboard
 ```
 
-## Response Formats
+## Formáty odpovědí
 
-All successful responses follow this format:
+Všechny úspěšné odpovědi mají tento formát:
 ```json
 {
   "data": {
-    // Response data
+    // Data odpovědi
   },
   "message": "string"
 }
 ```
 
-Error responses:
+Chybové odpovědi:
 ```json
 {
   "error": {

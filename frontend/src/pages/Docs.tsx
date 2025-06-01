@@ -61,7 +61,7 @@ const documentationStructure: DocCategory[] = [
       {
         name: 'event-system',
         title: 'Systém událostí',
-        description: 'Kompletní dokumentace systému událostí',
+        description: 'Dokumentace použití systému událostí',
         path: 'features/event-system.md'
       },
       {
@@ -85,27 +85,15 @@ const documentationStructure: DocCategory[] = [
     files: [
       {
         name: 'api-overview',
-        title: 'Přehled API',
+        title: 'Základní API dokumentace',
         description: 'Základní informace o API a autentizaci',
+        path: 'API.md'
+      },
+      {
+        name: 'api-details',
+        title: 'Detailní API přehled',
+        description: 'Podrobná dokumentace API včetně příkladů',
         path: 'api/overview.md'
-      },
-      {
-        name: 'api-events',
-        title: 'API Událostí',
-        description: 'Endpointy pro práci s událostmi',
-        path: 'api/events.md'
-      },
-      {
-        name: 'api-users',
-        title: 'API Uživatelů',
-        description: 'Endpointy pro správu uživatelů',
-        path: 'api/users.md'
-      },
-      {
-        name: 'api-stats',
-        title: 'API Statistik',
-        description: 'Endpointy pro statistiky a přehledy',
-        path: 'api/stats.md'
       }
     ]
   },
@@ -115,22 +103,16 @@ const documentationStructure: DocCategory[] = [
     description: 'Architektura a implementační detaily',
     files: [
       {
-        name: 'architecture',
-        title: 'Architektura',
-        description: 'Celková architektura aplikace',
-        path: 'technical/architecture.md'
+        name: 'event-architecture',
+        title: 'Architektura událostí',
+        description: 'Architektura a implementace systému událostí',
+        path: 'system-udalosti.md'
       },
       {
         name: 'security',
         title: 'Bezpečnost',
         description: 'Bezpečnostní prvky a opatření',
-        path: 'technical/security.md'
-      },
-      {
-        name: 'deployment',
-        title: 'Nasazení',
-        description: 'Proces nasazení a konfigurace',
-        path: 'technical/deployment.md'
+        path: 'bezpecnost.md'
       }
     ]
   },
@@ -140,22 +122,10 @@ const documentationStructure: DocCategory[] = [
     description: 'Budoucí vývoj a plánované funkce',
     files: [
       {
-        name: 'planned-features',
-        title: 'Plánované funkce',
-        description: 'Seznam plánovaných funkcí a vylepšení',
-        path: 'roadmap/planned-features.md'
-      },
-      {
-        name: 'enhancement-ideas',
-        title: 'Nápady na vylepšení',
-        description: 'Sbírka nápadů na budoucí vylepšení',
-        path: 'roadmap/enhancement-ideas.md'
-      },
-      {
-        name: 'version-history',
-        title: 'Historie verzí',
-        description: 'Historie změn a vydaných verzí',
-        path: 'roadmap/version-history.md'
+        name: 'roadmap',
+        title: 'Plán vývoje',
+        description: 'Plán vývoje a historie verzí',
+        path: 'roadmap/roadmap.md'
       }
     ]
   }

@@ -77,7 +77,7 @@ const getEventIcon = (type: ActivityEvent['type']) => {
       return <FaTrophy className="h-6 w-6 text-primary" />;
     case 'achievement_unlocked':
       return <FaAward className="h-6 w-6 text-primary" />;
-    case 'new_participant':
+    case 'new_user':
       return <FaUserPlus className="h-6 w-6 text-primary" />;
   }
 };
@@ -90,7 +90,7 @@ const getEventText = (event: ActivityEvent) => {
       return translations.latestActivity.events.barrel_finished.replace('{name}', event.details.barrelName || '');
     case 'achievement_unlocked':
       return translations.latestActivity.events.achievement_unlocked.replace('{name}', event.details.achievementName || '');
-    case 'new_participant':
+    case 'new_user':
       return translations.latestActivity.events.new_participant;
   }
 };
@@ -147,7 +147,7 @@ export default function Landing() {
                   {translations.stats.totalBeers}
                 </h3>
                 <div className="mt-2">
-                  <p className="text-4xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-4xl font-bold text-gray-900 ">
                     {loading ? "..." : stats?.totalBeers || 0}
                   </p>
                 </div>
@@ -167,8 +167,8 @@ export default function Landing() {
                   {translations.stats.activeParticipants}
                 </h3>
                 <div className="mt-2">
-                  <p className="text-4xl font-bold text-gray-900 dark:text-white">
-                    {loading ? "..." : stats?.totalParticipants || 0}
+                  <p className="text-4xl font-bold text-gray-900">
+                    {loading ? "..." : stats?.totalUsers || 0}
                   </p>
                 </div>
               </div>
@@ -187,7 +187,7 @@ export default function Landing() {
                   {translations.stats.activeBarrels}
                 </h3>
                 <div className="mt-2">
-                  <p className="text-4xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-4xl font-bold text-gray-900">
                     {loading ? "..." : stats?.totalBarrels || 0}
                   </p>
                 </div>
@@ -292,30 +292,6 @@ export default function Landing() {
                     className="mx-auto h-40 w-auto mb-8 drop-shadow-2xl relative z-10"
                   />
                   
-                  {/* Stats Badges */}
-                  {stats && (
-                    <div className="absolute -right-24 top-0 space-y-2">
-                      <motion.div
-                        initial={{ x: 20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.5 }}
-                        className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2"
-                      >
-                        <FaBeer className="h-4 w-4" />
-                        {stats.totalBeers} {translations.stats.totalBeers}
-                      </motion.div>
-                      <motion.div
-                        initial={{ x: 20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.7 }}
-                        className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2"
-                      >
-                        <FaUsers className="h-4 w-4" />
-                        {stats.totalParticipants} {translations.stats.activeParticipants}
-                      </motion.div>
-                    </div>
-                  )}
-                  
                   {/* Decorative Icons */}
                   <motion.div
                     animate={{ rotate: 360 }}
@@ -339,7 +315,7 @@ export default function Landing() {
                   transition={{ delay: 0.5, duration: 0.5, type: "spring" }}
                   className="absolute -right-4 -top-4 bg-primary text-white rounded-full px-4 py-2 text-sm font-semibold transform rotate-12 shadow-lg"
                 >
-                  Beta
+                  v2.0
                 </motion.div>
               </motion.div>
 
@@ -408,6 +384,35 @@ export default function Landing() {
           viewport={{ once: true }}
           className="mx-auto mt-40 max-w-7xl px-6 lg:px-8"
         >
+          {/* Fun Icons Grid */}
+          <div className="grid grid-cols-3 md:grid-cols-5 gap-8 mb-20">
+            {[1, 2, 3, 5, 6, 7, 8, 9, 10].map((num) => (
+              <motion.div
+                key={num}
+                initial={{ scale: 0, rotate: -180 }}
+                whileInView={{ scale: 1, rotate: 0 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 260,
+                  damping: 20,
+                  delay: num * 0.1 
+                }}
+                whileHover={{ 
+                  scale: 1.1,
+                  rotate: 10,
+                  transition: { duration: 0.2 }
+                }}
+                className="aspect-square flex items-center justify-center p-4"
+              >
+                <img
+                  src={`/icons/${num}.png`}
+                  alt={`Fun icon ${num}`}
+                  className="w-full h-full object-contain"
+                />
+              </motion.div>
+            ))}
+          </div>
+
           <div className="mx-auto max-w-2xl text-center">
             <motion.h2
               variants={fadeInUp}
@@ -536,7 +541,7 @@ export default function Landing() {
                       </div>
                       <div className="flex-grow">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                          {event.participantName}
+                          {event.userName}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           {getEventText(event)}
@@ -554,7 +559,7 @@ export default function Landing() {
         )}
 
         {/* Top Participants Section */}
-        {stats?.topParticipants && stats.topParticipants.length > 0 && (
+        {stats?.topUsers && stats.topUsers.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -564,7 +569,7 @@ export default function Landing() {
           >
             <div className="p-8">
               <ul role="list" className="space-y-8">
-                {stats.topParticipants.map((participant, index) => (
+                {stats.topUsers.map((participant, index) => (
                   <motion.li
                     key={participant.name}
                     initial={{ opacity: 0, x: -20 }}
@@ -583,7 +588,7 @@ export default function Landing() {
 
                     {/* Participant Info */}
                     <div className="flex-grow">
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                      <h3 className="text-xl font-semibold text-gray-900">
                         {participant.name}
                       </h3>
                       <p className="mt-1 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -629,7 +634,7 @@ export default function Landing() {
                 >
                   <Link to="/" className="flex items-center space-x-2">
                     <span className="text-2xl font-bold text-primary">Démonická</span>
-                    <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">Beta</span>
+                    <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">v2.0</span>
                   </Link>
                   <p className="text-sm text-text-secondary max-w-md">
                     Sledujte svou pivní cestu s přáteli a staňte se součástí naší rostoucí komunity pivních nadšenců.

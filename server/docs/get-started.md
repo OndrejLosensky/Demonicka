@@ -1,38 +1,39 @@
-# Getting Started with Démonická
+# Začínáme s Démonickou aplikací
 
-## Overview
+## Přehled
 
-Welcome to Démonická! This guide will help you get started with the application and understand its basic features.
+Vítejte v Démonické aplikaci! Tento průvodce vám pomůže začít s aplikací a porozumět jejím základním funkcím.
 
-## Quick Start
+## Rychlý start
 
-1. **Installation**
-   - Clone the repository
-   - Install dependencies with `npm install`
-   - Configure environment variables
+1. **Instalace**
+   - Naklonujte repozitář
+   - Nainstalujte závislosti pomocí `npm install`
+   - Nakonfigurujte proměnné prostředí
 
-2. **Running the Application**
-   - Start the server: `npm run start:dev`
-   - Start the frontend: `npm run dev`
-   - Access the application at `http://localhost:3000`
+2. **Spuštění aplikace**
+   - Spusťte server: `npm run start:dev`
+   - Spusťte frontend: `npm run dev`
+   - Přistupte k aplikaci na `http://localhost:3000`
 
-3. **First Steps**
-   - Create your account
-   - Log in to the dashboard
-   - Create your first event
+3. **První kroky**
+   - Vytvořte si účet
+   - Přihlaste se do dashboardu
+   - Vytvořte svou první událost
 
-## Basic Features
+## Základní funkce
 
-- Event Management
-- User Authentication
-- Real-time Statistics
-- Leaderboard System
+- Správa událostí
+- Autentizace uživatelů
+- Statistiky v reálném čase
+- Systém žebříčků
 
-## Need Help?
+## Potřebujete pomoc?
 
-Check out our detailed documentation sections:
-- [Core Features](features/core-features.md)
-- [API Documentation](api/overview.md)
-- [User Management](features/user-management.md)
-- [Event System](features/event-system.md)
-- [User-Participant System](features/user-participant-unification.md) - New unified user system 
+Podívejte se na naši detailní dokumentaci:
+- [Základní funkce](./features/core-features.md)
+- [API dokumentace](./API.md)
+- [Detailní API přehled](./api/overview.md)
+- [Správa uživatelů](./features/user-management.md)
+- [Systém událostí](./features/event-system.md)
+- [Systém uživatelů a účastníků](./features/user-participant-unification.md) 

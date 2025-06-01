@@ -13,7 +13,7 @@ import Leaderboard from './pages/Leaderboard';
 import Landing from './pages/Landing';
 import Header from './components/Header';
 import { History } from './pages/Dashboard/history';
-import ProfilePage from './pages/Profile';
+import ProfilePage from './pages/Profile/index';
 import { Events } from './pages/Events';
 import { EventDetail } from './pages/EventDetail';
 import { Docs } from './pages/Docs';
@@ -61,7 +61,7 @@ function App() {
                         path="profile"
                         element={
                           <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
-                            <ProfilePage />
+                            <ProfilePage/>
                           </RoleRoute>
                         }
                       />

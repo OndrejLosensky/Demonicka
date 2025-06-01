@@ -99,10 +99,21 @@ export default function Header() {
                 >
                   <Link
                     to="/"
-                    className="text-2xl font-bold text-primary flex items-center gap-2"
+                    className="text-2xl font-bold text-primary flex items-center gap-2 relative"
                   >
-                    {translations.brand}
-                    <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">Beta</span>
+                    <img
+                      src="/logo.svg"
+                      alt="Démonická"
+                      className="h-8 w-auto"
+                    />
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.5, duration: 0.5, type: "spring" }}
+                      className="absolute -right-2 -top-2 bg-primary text-white rounded-full px-2 py-1 text-xs font-semibold transform rotate-12 shadow-lg"
+                    >
+                      v2.0
+                    </motion.div>
                   </Link>
                 </motion.div>
                 {user && (
