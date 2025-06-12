@@ -4,6 +4,9 @@ import {
   MinLength,
   Matches,
   IsEnum,
+  IsBoolean,
+  IsArray,
+  IsDate,
 } from 'class-validator';
 import { UserRole } from '../enums/user-role.enum';
 
@@ -37,4 +40,29 @@ export class UpdateUserDto {
     message: 'Role must be one of: ADMIN, USER, PARTICIPANT',
   })
   role?: UserRole;
+
+  @IsBoolean()
+  @IsOptional()
+  isRegistrationComplete?: boolean;
+
+  // Admin-specific fields
+  @IsBoolean()
+  @IsOptional()
+  isTwoFactorEnabled?: boolean;
+
+  @IsString()
+  @IsOptional()
+  twoFactorSecret?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isAdminLoginEnabled?: boolean;
+
+  @IsArray()
+  @IsOptional()
+  allowedIPs?: string[];
+
+  @IsDate()
+  @IsOptional()
+  lastAdminLogin?: Date;
 }

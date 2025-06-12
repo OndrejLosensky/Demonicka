@@ -21,7 +21,7 @@ async function cleanupAll() {
       await queryRunner.query('DELETE FROM "barrels"');
       
       console.log('Cleaning up beers...');
-      await queryRunner.query('DELETE FROM "beer"');
+      await queryRunner.query('DELETE FROM "beers"');
       
       console.log('Cleaning up users and related data...');
       await queryRunner.query('DELETE FROM "refresh_tokens"');

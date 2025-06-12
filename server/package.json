@@ -22,6 +22,7 @@
     "migration:generate": "npm run typeorm migration:generate",
     "migration:run": "npm run typeorm migration:run",
     "migration:revert": "npm run typeorm migration:revert",
+    "migration:mark-complete": "ts-node src/scripts/markMigrationsAsComplete.ts",
     "cleanup:all": "ts-node scripts/cleanupAll.ts",
     "cleanup:data": "ts-node scripts/cleanupData.ts",
     "promote:admin": "ts-node promote-admin.ts"

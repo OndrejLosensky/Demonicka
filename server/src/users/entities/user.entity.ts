@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { IsNotEmpty, MinLength, Matches, IsEnum } from 'class-validator';
 import { RefreshToken } from '../../auth/entities/refresh-token.entity';
+import { DeviceToken } from '../../auth/entities/device-token.entity';
 import { Beer } from '../../beers/entities/beer.entity';
 import { UserRole } from '../enums/user-role.enum';
 import { Event } from '../../events/entities/event.entity';
@@ -59,6 +60,23 @@ export class User {
   @Column({ type: 'boolean', default: false })
   isRegistrationComplete: boolean;
 
+  // Admin-specific fields
+  @Column({ type: 'boolean', default: false })
+  isTwoFactorEnabled: boolean;
+
+  @Column({ type: 'varchar', nullable: true })
+  twoFactorSecret: string | null;
+
+  @Column({ type: 'boolean', default: false })
+  isAdminLoginEnabled: boolean;
+
+  @Column({ type: 'simple-array', nullable: true })
+  allowedIPs: string[] | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  lastAdminLogin: Date | null;
+
+  // Relations
   @OneToMany(() => Beer, (beer) => beer.user, {
     cascade: true,
     onDelete: 'CASCADE',
@@ -67,6 +85,9 @@ export class User {
 
   @OneToMany(() => RefreshToken, (token) => token.user)
   refreshTokens: RefreshToken[];
+
+  @OneToMany(() => DeviceToken, (token) => token.user)
+  deviceTokens: DeviceToken[];
 
   @ManyToMany(() => Event, (event) => event.users)
   events: Event[];
