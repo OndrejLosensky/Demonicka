@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Barrel } from '../../barrels/entities/barrel.entity';
+import { EventBeer } from './event-beer.entity';
 
 @Entity()
 export class Event {
@@ -37,6 +38,9 @@ export class Event {
         inverseJoinColumn: { name: 'barrel_id', referencedColumnName: 'id' }
     })
     barrels: Barrel[];
+
+    @OneToMany(() => EventBeer, (eventBeer) => eventBeer.event)
+    eventBeers: EventBeer[];
 
     @CreateDateColumn()
     createdAt: Date;

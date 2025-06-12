@@ -5,6 +5,7 @@ import { User } from '../users/entities/user.entity';
 import { Beer } from '../beers/entities/beer.entity';
 import { Barrel } from '../barrels/entities/barrel.entity';
 import { Event } from '../events/entities/event.entity';
+import { EventBeer } from '../events/entities/event-beer.entity';
 import {
   DashboardResponseDto,
   UserStatsDto,
@@ -27,6 +28,8 @@ export class DashboardService {
     private readonly barrelRepository: Repository<Barrel>,
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
+    @InjectRepository(EventBeer)
+    private readonly eventBeerRepository: Repository<EventBeer>,
   ) {}
 
   async getPublicStats(eventId?: string): Promise<PublicStatsDto> {
@@ -48,20 +51,26 @@ export class DashboardService {
       const eventUserIds = event.users.map((u) => u.id);
       const eventBarrelIds = event.barrels.map((b) => b.id);
 
-      // Get beer count for event users
-      const totalBeers = eventUserIds.length > 0
-        ? await this.beerRepository
-            .createQueryBuilder('beer')
-            .where('beer.userId IN (:...ids)', { ids: eventUserIds })
-            .getCount()
-        : 0;
+      // Get beer count for event users using event_beers table
+      const totalBeers = await this.eventBeerRepository
+        .createQueryBuilder('event_beer')
+        .where('event_beer.eventId = :eventId', { eventId: event.id })
+        .getCount();
 
-      // Get top users for this event
+      // Get top users for this event using event_beers
       const usersWithBeerCounts = eventUserIds.length > 0
         ? await this.userRepository
             .createQueryBuilder('user')
-            .leftJoin('user.beers', 'beer')
-            .select(['user.name as name', 'COUNT(beer.id) as beerCount'])
+            .leftJoin(
+              'user.eventBeers',
+              'event_beer',
+              'event_beer.eventId = :eventId',
+              { eventId: event.id },
+            )
+            .select([
+              'user.name as name',
+              'COUNT(event_beer.id) as beerCount',
+            ])
             .where('user.id IN (:...ids)', { ids: eventUserIds })
             .groupBy('user.id')
             .orderBy('beerCount', 'DESC')
@@ -156,13 +165,11 @@ export class DashboardService {
       const eventUserIds = event.users.map((u) => u.id);
       const eventBarrelIds = event.barrels.map((b) => b.id);
 
-      // Get beer count for event users
-      const totalBeers = eventUserIds.length > 0
-        ? await this.beerRepository
-            .createQueryBuilder('beer')
-            .where('beer.userId IN (:...ids)', { ids: eventUserIds })
-            .getCount()
-        : 0;
+      // Get beer count for event users using event_beers table
+      const totalBeers = await this.eventBeerRepository
+        .createQueryBuilder('event_beer')
+        .where('event_beer.eventId = :eventId', { eventId: event.id })
+        .getCount();
 
       const totalUsers = event.users.length;
       const totalBarrels = event.barrels.length;
@@ -170,15 +177,20 @@ export class DashboardService {
         ? totalBeers / totalUsers
         : 0;
 
-      // Get top users for this event
+      // Get top users for this event using event_beers
       const usersWithBeerCounts = eventUserIds.length > 0
         ? await this.userRepository
             .createQueryBuilder('user')
-            .leftJoin('user.beers', 'beer')
+            .leftJoin(
+              'user.eventBeers',
+              'event_beer',
+              'event_beer.eventId = :eventId',
+              { eventId: event.id },
+            )
             .select([
               'user.id as id',
               'user.name as name',
-              'COUNT(beer.id) as beerCount',
+              'COUNT(event_beer.id) as beerCount',
             ])
             .where('user.id IN (:...ids)', { ids: eventUserIds })
             .groupBy('user.id')
@@ -285,12 +297,12 @@ export class DashboardService {
       const users = eventUserIds.length > 0
         ? await this.userRepository
             .createQueryBuilder('user')
-            .leftJoin('user.beers', 'beer')
+            .leftJoin('user.eventBeers', 'event_beer', 'event_beer.eventId = :eventId', { eventId: event.id })
             .select([
               'user.id as id',
               'user.name as name',
               'user.gender as gender',
-              'COUNT(beer.id) as beerCount',
+              'COUNT(event_beer.id) as beerCount',
             ])
             .where('user.id IN (:...ids)', { ids: eventUserIds })
             .groupBy('user.id')

@@ -23,12 +23,17 @@ import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/enums/user-role.enum';
 import { GetUser } from '../auth/decorators/get-user.decorator';
+import { EventBeersService } from './services/event-beers.service';
+import { EventBeer } from './entities/event-beer.entity';
 
 @Controller('events')
 @Versions('1')
 @UseGuards(JwtAuthGuard, VersionGuard)
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(
+    private readonly eventsService: EventsService,
+    private readonly eventBeersService: EventBeersService,
+  ) {}
 
   @Post()
   @Roles(UserRole.ADMIN)
@@ -134,5 +139,37 @@ export class EventsController {
     @Param('barrelId', ParseUUIDPipe) barrelId: string,
   ): Promise<Event> {
     return this.eventsService.removeBarrel(id, barrelId);
+  }
+
+  @Post(':id/users/:userId/beers')
+  addEventBeer(
+    @Param('id', ParseUUIDPipe) eventId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<EventBeer> {
+    return this.eventBeersService.create(eventId, userId);
+  }
+
+  @Delete(':id/users/:userId/beers')
+  removeEventBeer(
+    @Param('id', ParseUUIDPipe) eventId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.eventBeersService.remove(eventId, userId);
+  }
+
+  @Get(':id/users/:userId/beers')
+  getEventUserBeers(
+    @Param('id', ParseUUIDPipe) eventId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<EventBeer[]> {
+    return this.eventBeersService.findByEventAndUser(eventId, userId);
+  }
+
+  @Get(':id/users/:userId/beers/count')
+  getEventUserBeerCount(
+    @Param('id', ParseUUIDPipe) eventId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<number> {
+    return this.eventBeersService.getEventBeerCount(eventId, userId);
   }
 } 

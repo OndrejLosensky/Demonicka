@@ -1,8 +1,10 @@
 export interface Participant {
   id: string;
   username: string;
+  name: string;
   gender: 'MALE' | 'FEMALE';
-  beerCount: number;
+  beerCount: number;  // Global beer count
+  eventBeerCount?: number;  // Event-specific beer count
   lastBeerTime: string | null;
   createdAt: string;
   updatedAt: string;

@@ -14,6 +14,8 @@ import { MakeNameNullable1748441344604 } from './migrations/1748441344604-MakeNa
 import { AddDeviceTokenTable1711638000002 } from './migrations/1711638000002-AddDeviceTokenTable';
 import { AddAdminFields1711638000003 } from './migrations/1711638000003-AddAdminFields';
 import { AddRoleColumn1748441344605 } from './migrations/1748441344605-AddRoleColumn';
+import { EventBeer } from './events/entities/event-beer.entity';
+import { CreateEventBeersTable1749757491913 } from './migrations/1749757491913-CreateEventBeersTable';
 
 config();
 
@@ -29,7 +31,7 @@ if (!fs.existsSync(dbDir)) {
 export const AppDataSource = new DataSource({
   type: 'sqlite',
   database: dbPath,
-  entities: [User, RefreshToken, Beer, Barrel, Event, DeviceToken],
+  entities: [User, RefreshToken, Beer, Barrel, Event, DeviceToken, EventBeer],
   migrations: [
     InitialSchema1711638000000,
     AddEventsTable1711638000001,
@@ -37,6 +39,8 @@ export const AppDataSource = new DataSource({
     AddAdminFields1711638000003,
     MakeNameNullable1748441344604,
     AddRoleColumn1748441344605,
+    CreateEventBeersTable1749757491913,
   ],
   synchronize: false,
+  logging: false,
 });

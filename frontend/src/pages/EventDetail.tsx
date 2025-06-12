@@ -51,6 +51,7 @@ export const EventDetail: React.FC = () => {
     const [event, setEvent] = useState<Event | null>(null);
     const [users, setUsers] = useState<User[]>([]);
     const [barrels, setBarrels] = useState<Barrel[]>([]);
+    const [eventBeerCounts, setEventBeerCounts] = useState<Record<string, number>>({});
     const [openUser, setOpenUser] = useState(false);
     const [openBarrel, setOpenBarrel] = useState(false);
     const [selectedUser, setSelectedUser] = useState('');
@@ -65,6 +66,12 @@ export const EventDetail: React.FC = () => {
             loadBarrels();
         }
     }, [id]);
+
+    useEffect(() => {
+        if (id && event?.users) {
+            loadEventBeerCounts();
+        }
+    }, [id, event?.users]);
 
     const loadEventData = async () => {
         try {
@@ -92,6 +99,23 @@ export const EventDetail: React.FC = () => {
             setBarrels(data);
         } catch (error) {
             console.error('Failed to load barrels:', error);
+        }
+    };
+
+    const loadEventBeerCounts = async () => {
+        if (!id || !event?.users) return;
+        
+        try {
+            const counts: Record<string, number> = {};
+            await Promise.all(
+                event.users.map(async (user) => {
+                    const count = await eventService.getUserEventBeerCount(id, user.id);
+                    counts[user.id] = count;
+                })
+            );
+            setEventBeerCounts(counts);
+        } catch (error) {
+            console.error('Failed to load event beer counts:', error);
         }
     };
 
@@ -186,7 +210,7 @@ export const EventDetail: React.FC = () => {
         barrel => !event.barrels?.some(eventBarrel => eventBarrel.id === barrel.id)
     );
 
-    const totalBeers = event.users?.reduce((sum, user) => sum + (user.beerCount || 0), 0) || 0;
+    const totalBeers = event.users?.reduce((sum, user) => sum + (eventBeerCounts[user.id] || 0), 0) || 0;
     const totalBarrels = event.barrels?.length || 0;
     const averageBeersPerUser = event.users?.length ? (totalBeers / event.users.length).toFixed(1) : 0;
 
@@ -401,7 +425,7 @@ export const EventDetail: React.FC = () => {
                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                                                         <FaBeer style={{ fontSize: 16, opacity: 0.8 }} />
                                                         <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                                                            {user.beerCount} {translations.stats.beers}
+                                                            {eventBeerCounts[user.id] || 0} {translations.stats.beers}
                                                         </Typography>
                                                     </Box>
                                                 }

@@ -4,12 +4,14 @@ import { participantsApi } from './api';
 import type { Participant } from './types';
 import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
 import translations from '../../../locales/cs/dashboard.participants.json';
+import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 
 export const useParticipants = (includeDeleted = false) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [deletedParticipants, setDeletedParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { selectedEvent } = useSelectedEvent();
+  const { activeEvent } = useActiveEvent();
 
   const fetchParticipants = useCallback(async () => {
     try {
@@ -62,25 +64,25 @@ export const useParticipants = (includeDeleted = false) => {
 
   const handleAddBeer = useCallback(async (id: string) => {
     try {
-      await participantsApi.addBeer(id);
+      await participantsApi.addBeer(id, activeEvent?.id);
       toast.success(translations.errors.beerAdded);
       await fetchParticipants();
     } catch (error: unknown) {
       console.error('Failed to add beer:', error);
       toast.error(translations.errors.addBeerFailed);
     }
-  }, [fetchParticipants]);
+  }, [fetchParticipants, activeEvent]);
 
   const handleRemoveBeer = useCallback(async (id: string) => {
     try {
-      await participantsApi.removeBeer(id);
+      await participantsApi.removeBeer(id, activeEvent?.id);
       toast.success(translations.errors.beerRemoved);
       await fetchParticipants();
     } catch (error: unknown) {
       console.error('Failed to remove beer:', error);
       toast.error(translations.errors.removeBeerFailed);
     }
-  }, [fetchParticipants]);
+  }, [fetchParticipants, activeEvent]);
 
   const handleCleanup = useCallback(async () => {
     try {

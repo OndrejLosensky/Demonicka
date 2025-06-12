@@ -90,7 +90,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                 </TableCell>
                 <TableCell align="center">
                   <div className="flex items-center gap-2 justify-center bg-primary/5 py-2 px-3 rounded-lg inline-flex">
-                    <span className="font-bold text-lg text-primary">{participant.beerCount}</span>
+                    <span className="font-bold text-lg text-primary">{participant.eventBeerCount ?? participant.beerCount}</span>
                     <FaBeer className="text-primary text-lg" />
                   </div>
                 </TableCell>
@@ -118,10 +118,10 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                           <IconButton
                             size="medium"
                             onClick={() => onRemoveBeer(participant.id)}
-                            disabled={participant.beerCount === 0}
-                            className={`hover:bg-primary/10 border-2 ${participant.beerCount === 0 ? 'border-gray-200' : 'border-primary/20 hover:border-primary'}`}
+                            disabled={(participant.eventBeerCount ?? participant.beerCount) === 0}
+                            className={`hover:bg-primary/10 border-2 ${(participant.eventBeerCount ?? participant.beerCount) === 0 ? 'border-gray-200' : 'border-primary/20 hover:border-primary'}`}
                           >
-                            <RemoveIcon className={participant.beerCount === 0 ? 'text-gray-300' : 'text-primary'} />
+                            <RemoveIcon className={(participant.eventBeerCount ?? participant.beerCount) === 0 ? 'text-gray-300' : 'text-primary'} />
                           </IconButton>
                         </span>
                       </Tooltip>

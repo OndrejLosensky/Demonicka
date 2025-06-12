@@ -1,9 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Beer } from './entities/beer.entity';
 import { User } from '../users/entities/user.entity';
 import { Barrel } from '../barrels/entities/barrel.entity';
+import { EventsService } from '../events/events.service';
+import { EventBeersService } from '../events/services/event-beers.service';
 
 @Injectable()
 export class BeersService {
@@ -16,9 +18,13 @@ export class BeersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Barrel)
     private readonly barrelRepository: Repository<Barrel>,
+    @Inject(forwardRef(() => EventsService))
+    private readonly eventsService: EventsService,
+    @Inject(forwardRef(() => EventBeersService))
+    private readonly eventBeersService: EventBeersService,
   ) {}
 
-  async create(userId: string, barrelId?: string): Promise<Beer> {
+  async create(userId: string, barrelId?: string, skipEventBeer = false): Promise<Beer> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -38,6 +44,7 @@ export class BeersService {
       }
     }
 
+    // Create global beer record
     const beer = this.beerRepository.create({
       userId,
       barrelId: barrel?.id || null,
@@ -49,6 +56,28 @@ export class BeersService {
     user.beerCount = (user.beerCount || 0) + 1;
     user.lastBeerTime = new Date();
     await this.userRepository.save(user);
+
+    // Check for active event and create event beer if user is participant
+    if (!skipEventBeer) {
+      try {
+        const activeEvent = await this.eventsService.getActiveEvent();
+        if (activeEvent) {
+          const eventUsers = await this.eventsService.getEventUsers(
+            activeEvent.id,
+          );
+          if (eventUsers.some((u) => u.id === userId)) {
+            await this.eventBeersService.create(
+              activeEvent.id,
+              userId,
+              barrelId,
+            );
+          }
+        }
+      } catch (error) {
+        this.logger.error('Failed to create event beer:', error);
+        // Don't throw the error as the global beer was already created successfully
+      }
+    }
 
     return savedBeer;
   }

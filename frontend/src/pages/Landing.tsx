@@ -8,6 +8,7 @@ import { FaTrophy, FaUsers, FaChartLine, FaGithub, FaDiscord, FaFire, FaBeer, Fa
 import { BsArrowUpRight, BsLightning } from 'react-icons/bs';
 import { formatDistanceToNow } from 'date-fns';
 import { cs } from 'date-fns/locale';
+import { useActiveEvent } from '../contexts/ActiveEventContext';
 
 const fadeInUp = {
   initial: { y: 20, opacity: 0 },
@@ -104,12 +105,13 @@ const formatTimeAgo = (timestamp: string) => {
 export default function Landing() {
   const [stats, setStats] = useState<PublicStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const { activeEvent } = useActiveEvent();
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const data = await landingApi.getStats();
+        const data = await landingApi.getStats(activeEvent?.id);
         console.log('Fetched stats:', data);
         setStats(data);
       } catch (error) {
@@ -120,7 +122,7 @@ export default function Landing() {
     };
 
     fetchStats();
-  }, []);
+  }, [activeEvent?.id]);
 
   const StatsSection = () => (
     <div className="relative z-10 -mt-20 px-4">

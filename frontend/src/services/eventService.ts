@@ -64,5 +64,10 @@ export const eventService = {
     async makeEventActive(id: string): Promise<Event> {
         const response = await api.put(`/events/${id}/activate`);
         return response.data;
+    },
+
+    async getUserEventBeerCount(eventId: string, userId: string): Promise<number> {
+        const response = await api.get(`/events/${eventId}/users/${userId}/beers/count`);
+        return response.data;
     }
 }; 

@@ -14,6 +14,7 @@ import { DeviceToken } from '../../auth/entities/device-token.entity';
 import { Beer } from '../../beers/entities/beer.entity';
 import { UserRole } from '../enums/user-role.enum';
 import { Event } from '../../events/entities/event.entity';
+import { EventBeer } from '../../events/entities/event-beer.entity';
 
 @Entity('users')
 export class User {
@@ -91,6 +92,9 @@ export class User {
 
   @ManyToMany(() => Event, (event) => event.users)
   events: Event[];
+
+  @OneToMany(() => EventBeer, (eventBeer) => eventBeer.user)
+  eventBeers: EventBeer[];
 
   @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
