@@ -144,7 +144,7 @@ export const Dashboard: React.FC = () => {
     }
 
     return (
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <div>
             {/* Header with Event Selector */}
             <Box display="flex" alignItems="center" gap={2} mb={4}>
                 <Typography variant="h4">
@@ -429,6 +429,6 @@ export const Dashboard: React.FC = () => {
                     </Grid>
                 </Grid>
             </Grid>
-        </Container>
+        </div>
     );
 }; 

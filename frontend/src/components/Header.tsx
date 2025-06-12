@@ -311,7 +311,7 @@ export default function Header() {
             </div>
           </div>
         </motion.nav>
-        <main className={`${isLandingPage ? '' : 'max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 pt-20'}`}>
+        <main className={`${isLandingPage ? '' : 'max-w-7xl mx-auto py-6 pt-20'}`}>
           <Outlet />
         </main>
       </div>
