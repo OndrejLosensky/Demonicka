@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Grid,
@@ -9,13 +9,12 @@ import {
   ListItemButton,
   ListItemText,
   Box,
-  Chip,
   CircularProgress,
   Alert,
   Collapse
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { FaBook, FaFileAlt } from 'react-icons/fa';
+import { FaBook } from 'react-icons/fa';
 import { SimpleMarkdownParser } from '../utils/markdownParser';
 import '../styles/markdown.css';
 
@@ -40,92 +39,78 @@ const documentationStructure: DocCategory[] = [
     description: 'Základní informace a průvodce aplikací',
     files: [
       {
-        name: 'get-started',
-        title: 'Začínáme',
-        description: 'Průvodce pro nové uživatele',
-        path: 'get-started.md'
-      }
-    ]
-  },
-  {
-    name: 'features',
-    title: 'Funkce & Možnosti',
-    description: 'Přehled všech funkcí a možností aplikace',
-    files: [
-      {
-        name: 'core-features',
-        title: 'Základní funkce',
-        description: 'Přehled základních funkcí a možností aplikace',
-        path: 'features/core-features.md'
+        name: 'intro',
+        title: 'Úvod do aplikace',
+        description: 'Základní přehled a koncept aplikace',
+        path: 'getting-started/intro.md'
       },
       {
-        name: 'event-system',
-        title: 'Systém událostí',
-        description: 'Dokumentace použití systému událostí',
-        path: 'features/event-system.md'
+        name: 'first-steps',
+        title: 'První kroky',
+        description: 'Jak začít používat aplikaci',
+        path: 'getting-started/first-steps.md'
       },
       {
         name: 'user-management',
         title: 'Správa uživatelů',
-        description: 'Systém uživatelů, rolí a oprávnění',
-        path: 'features/user-management.md'
+        description: 'Jak vytvářet a spravovat uživatele',
+        path: 'getting-started/user-management.md'
       },
       {
-        name: 'user-participant-unification',
-        title: 'Jednotný uživatelský systém',
-        description: 'Nový unifikovaný systém pro uživatele a účastníky',
-        path: 'features/user-participant-unification.md'
+        name: 'events',
+        title: 'Události',
+        description: 'Vytváření a správa událostí',
+        path: 'getting-started/events.md'
       }
     ]
   },
   {
-    name: 'api',
-    title: 'API Dokumentace',
-    description: 'Technická dokumentace API',
+    name: 'user-guide',
+    title: 'Uživatelská příručka',
+    description: 'Detailní návody pro používání aplikace',
     files: [
       {
-        name: 'api-overview',
-        title: 'Základní API dokumentace',
-        description: 'Základní informace o API a autentizaci',
-        path: 'API.md'
+        name: 'dashboard',
+        title: 'Dashboard',
+        description: 'Přehled a používání dashboardu',
+        path: 'user-guide/dashboard.md'
       },
       {
-        name: 'api-details',
-        title: 'Detailní API přehled',
-        description: 'Podrobná dokumentace API včetně příkladů',
-        path: 'api/overview.md'
+        name: 'participants',
+        title: 'Účastníci',
+        description: 'Správa účastníků a jejich role',
+        path: 'user-guide/participants.md'
+      },
+      {
+        name: 'barrels',
+        title: 'Žebříček',
+        description: 'Jak funguje bodování a žebříček',
+        path: 'user-guide/barrels.md'
       }
     ]
   },
   {
-    name: 'technical',
-    title: 'Technická dokumentace',
-    description: 'Architektura a implementační detaily',
+    name: 'implementation',
+    title: 'Implementace',
+    description: 'Plány implementace a vývoje nových funkcí',
     files: [
       {
-        name: 'event-architecture',
-        title: 'Architektura událostí',
-        description: 'Architektura a implementace systému událostí',
-        path: 'system-udalosti.md'
+        name: 'ui-update',
+        title: 'Aktualizace UI',
+        description: 'Plán implementace nového uživatelského rozhraní',
+        path: 'implementation/ui-update.md'
       },
       {
-        name: 'security',
-        title: 'Bezpečnost',
-        description: 'Bezpečnostní prvky a opatření',
-        path: 'bezpecnost.md'
-      }
-    ]
-  },
-  {
-    name: 'roadmap',
-    title: 'Roadmapa & Plány',
-    description: 'Budoucí vývoj a plánované funkce',
-    files: [
+        name: 'backend-update',
+        title: 'Backend logika',
+        description: 'Plán implementace nové backend logiky',
+        path: 'implementation/backend-update.md'
+      },
       {
-        name: 'roadmap',
-        title: 'Plán vývoje',
-        description: 'Plán vývoje a historie verzí',
-        path: 'roadmap/roadmap.md'
+        name: 'swift-admin',
+        title: 'Swift Admin App',
+        description: 'Plán implementace iOS aplikace pro správu',
+        path: 'implementation/swift-admin.md'
       }
     ]
   }
@@ -133,27 +118,28 @@ const documentationStructure: DocCategory[] = [
 
 export const Docs: React.FC = () => {
   const [selectedDoc, setSelectedDoc] = useState<DocFile | null>(null);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [expandedCategory, setExpandedCategory] = useState<string>('getting-started');
   const [markdownContent, setMarkdownContent] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load intro doc by default
+  useEffect(() => {
+    const introDoc = documentationStructure[0].files[0];
+    loadMarkdownFile(introDoc);
+  }, []);
 
   const loadMarkdownFile = async (docFile: DocFile) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Log the path for debugging
       console.log('Loading doc path:', docFile.path);
       
-      // Create the path segments and encode each one
       const pathSegments = docFile.path.split('/');
       const encodedSegments = pathSegments.map(segment => encodeURIComponent(segment.trim()));
-      
-      // Join with forward slashes and ensure proper encoding
       const encodedPath = encodedSegments.join('%2F');
       
-      // Log the encoded path for debugging
       console.log('Encoded path:', encodedPath);
       
       const response = await fetch(`/api/v1/docs/${encodedPath}`);
@@ -174,46 +160,58 @@ export const Docs: React.FC = () => {
   };
 
   const handleCategoryClick = (categoryName: string) => {
-    setExpandedCategory(expandedCategory === categoryName ? null : categoryName);
+    setExpandedCategory(expandedCategory === categoryName ? categoryName : categoryName);
   };
 
   return (
-    <Container maxWidth={false} sx={{ mt: 4, mb: 4, px: { xs: 2, lg: 8 } }}>
+    <Container maxWidth="xl" sx={{ mt: 2, mb: 4, px: { xs: 2, md: 0 } }}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        className="mb-4"
       >
-        <Box className="text-center mb-12">
-          <Typography variant="h3" className="flex items-center justify-center gap-4 text-primary font-bold mb-4">
-            <FaBook className="text-4xl" />
+        <Box className="text-center mb-6" sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'center' }}>
+          <FaBook className="text-3xl text-primary" />
+          <Typography variant="h4" className="text-primary font-bold">
             Dokumentace
-          </Typography>
-          <Typography variant="h6" color="textSecondary">
-            Kompletní dokumentace aplikace Démonická
           </Typography>
         </Box>
       </motion.div>
 
-      <Grid container spacing={4}>
+      <Grid container spacing={3}>
         {/* Sidebar with document list */}
         <Grid item xs={12} md={3}>
           <Paper 
             sx={{ 
-              p: 3, 
+              p: 2, 
               position: 'sticky', 
               top: 20,
               bgcolor: 'background.paper',
               borderRadius: 2,
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
+              height: { xs: 'auto', md: 'calc(100vh - 120px)' },
+              overflowY: 'auto',
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+              '&::-webkit-scrollbar': {
+                width: '6px'
+              },
+              '&::-webkit-scrollbar-track': {
+                bgcolor: 'transparent'
+              },
+              '&::-webkit-scrollbar-thumb': {
+                bgcolor: (theme) => theme.palette.grey[300],
+                borderRadius: '3px',
+                '&:hover': {
+                  bgcolor: (theme) => theme.palette.grey[400]
+                }
+              }
             }}
           >
             <Typography 
-              variant="h6" 
+              variant="subtitle1" 
               gutterBottom 
               sx={{ 
-                mb: 3,
-                pb: 2,
+                mb: 2,
+                pb: 1,
                 borderBottom: '1px solid',
                 borderColor: 'divider',
                 fontWeight: 'bold'
@@ -221,12 +219,12 @@ export const Docs: React.FC = () => {
             >
               Dostupná dokumentace
             </Typography>
-            <List sx={{ '& .MuiListItem-root': { mb: 1 } }}>
+            <List sx={{ '& .MuiListItem-root': { mb: 0.5 } }}>
               {documentationStructure.map((category) => (
                 <React.Fragment key={category.name}>
                   <ListItem 
                     disablePadding 
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 1 }}
                     onClick={() => handleCategoryClick(category.name)}
                   >
                     <ListItemButton
@@ -241,21 +239,21 @@ export const Docs: React.FC = () => {
                       <ListItemText
                         primary={
                           <Box className="flex items-center justify-between">
-                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
                               {category.title}
                             </Typography>
                             <Box 
                               component="span" 
                               sx={{ 
                                 transform: expandedCategory === category.name ? 'rotate(180deg)' : 'none',
-                                transition: 'transform 0.2s'
+                                transition: 'transform 0.2s',
+                                fontSize: '0.8rem'
                               }}
                             >
                               ▼
                             </Box>
                           </Box>
                         }
-                        secondary={category.description}
                       />
                     </ListItemButton>
                   </ListItem>
@@ -268,48 +266,23 @@ export const Docs: React.FC = () => {
                             onClick={() => loadMarkdownFile(doc)}
                             sx={{
                               borderRadius: 1,
+                              py: 0.5,
                               '&.Mui-selected': {
                                 backgroundColor: 'primary.main',
                                 color: 'white',
                                 '&:hover': {
                                   backgroundColor: 'primary.dark',
-                                },
-                                '.MuiListItemText-secondary': {
-                                  color: 'rgba(255, 255, 255, 0.7)',
-                                },
-                                '.MuiSvgIcon-root': {
-                                  color: 'white',
                                 }
-                              },
-                              '&:hover': {
-                                backgroundColor: selectedDoc?.name === doc.name 
-                                  ? 'primary.dark'
-                                  : 'rgba(0, 0, 0, 0.04)',
-                              },
+                              }
                             }}
                           >
-                            <ListItemText
-                              primary={
-                                <Box className="flex items-center gap-2 mb-1">
-                                  <FaFileAlt className="text-sm" />
-                                  <Typography variant="subtitle2" sx={{ fontWeight: 'medium' }}>
-                                    {doc.title}
-                                  </Typography>
-                                </Box>
-                              }
-                              secondary={
-                                <Typography 
-                                  variant="body2" 
-                                  sx={{ 
-                                    color: selectedDoc?.name === doc.name 
-                                      ? 'rgba(255, 255, 255, 0.7)' 
-                                      : 'text.secondary',
-                                    lineHeight: 1.4
-                                  }}
-                                >
-                                  {doc.description}
-                                </Typography>
-                              }
+                            <ListItemText 
+                              primary={doc.title}
+                              sx={{
+                                '& .MuiTypography-root': {
+                                  fontSize: '0.9rem'
+                                }
+                              }}
                             />
                           </ListItemButton>
                         </ListItem>
@@ -326,63 +299,38 @@ export const Docs: React.FC = () => {
         <Grid item xs={12} md={9}>
           <Paper 
             sx={{ 
-              p: 4, 
-              minHeight: '600px',
+              p: { xs: 2, md: 4 },
+              minHeight: { md: 'calc(100vh - 120px)' },
+              bgcolor: 'background.paper',
               borderRadius: 2,
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
             }}
           >
-            {loading && (
-              <Box className="flex justify-center items-center h-64">
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
                 <CircularProgress />
               </Box>
-            )}
-
-            {error && (
-              <Alert severity="info" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
-
-            {!selectedDoc && !loading && (
-              <Box className="text-center py-16">
-                <FaBook className="text-6xl text-gray-300 mb-4" />
-                <Typography variant="h5" color="textSecondary" gutterBottom>
-                  Vyberte dokumentaci
-                </Typography>
-                <Typography color="textSecondary">
-                  Klikněte na některou z dostupných dokumentací v levém panelu
-                </Typography>
-              </Box>
-            )}
-
-            {selectedDoc && markdownContent && !loading && (
+            ) : error ? (
+              <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+            ) : selectedDoc ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="prose prose-lg max-w-none"
+                transition={{ duration: 0.3 }}
               >
-                <Box className="mb-6">
-                  <Chip 
-                    label={selectedDoc.title} 
-                    color="primary" 
-                    sx={{ 
-                      px: 2, 
-                      py: 2.5,
-                      fontSize: '1rem',
-                      fontWeight: 'medium',
-                      borderRadius: 2
-                    }} 
-                  />
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
+                    {selectedDoc.title}
+                  </Typography>
+                  <Typography variant="body1" color="textSecondary">
+                    {selectedDoc.description}
+                  </Typography>
                 </Box>
-                <div
-                  className="markdown-content"
-                  dangerouslySetInnerHTML={{
-                    __html: SimpleMarkdownParser.parse(markdownContent)
-                  }}
-                />
+                <div className="markdown-content">
+                  <div dangerouslySetInnerHTML={{ __html: SimpleMarkdownParser.parse(markdownContent) }} />
+                </div>
               </motion.div>
-            )}
+            ) : null}
           </Paper>
         </Grid>
       </Grid>
