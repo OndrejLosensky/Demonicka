@@ -24,7 +24,8 @@
         "columns": {
           "name": "Jméno",
           "beers": "Piva"
-        }
+        },
+        "unknownUser": "Neznámý uživatel"
       },
       "barrelStats": {
         "title": "Statistiky sudů",
@@ -42,7 +43,8 @@
   "loading": "Načítání...",
   "noActiveEvent": {
     "title": "Žádná aktivní akce",
-    "subtitle": "Momentálně neprobíhá žádná akce"
+    "subtitle": "Vytvořte novou akci pro sledování piv a účastníků",
+    "createButton": "Vytvořit novou akci"
   },
   "barrelStatus": {
     "title": "Stav sudů",

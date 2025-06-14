@@ -33,8 +33,17 @@ export class AdminAuthController {
       adminLoginDto.password,
     );
 
+    // Check if user exists
+    if (!userWithoutPassword) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
     // Get full user object
     const user = await this.usersService.findOne(userWithoutPassword.id);
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
 
     // Check if user is an admin
     if (user.role !== UserRole.ADMIN) {

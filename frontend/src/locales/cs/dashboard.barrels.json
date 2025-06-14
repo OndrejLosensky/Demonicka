@@ -20,6 +20,9 @@
       "active": "Aktivní",
       "inactive": "Neaktivní",
       "deleted": "Smazáno"
+    },
+    "actions": {
+      "delete": "Smazat"
     }
   },
   "dialogs": {
@@ -50,5 +53,9 @@
     "fetchFailed": "Nepodařilo se načíst sudy",
     "toggleStatusFailed": "Nepodařilo se změnit stav sudu",
     "statusUpdated": "Stav sudu byl úspěšně změněn"
+  },
+  "emptyState": {
+    "title": "Žádná aktivní akce",
+    "subtitle": "Vytvořte novou akci pro správu sudů"
   }
 } 

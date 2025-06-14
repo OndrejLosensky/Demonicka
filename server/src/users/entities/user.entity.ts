@@ -33,9 +33,16 @@ export class User {
   @MinLength(8, { message: 'Heslo musí mít alespoň 8 znaků' })
   password: string | null;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   @IsNotEmpty({ message: 'Jméno je povinné' })
-  name: string;
+  name: string | null;
+
+  // Future columns (nullable for backward compatibility)
+  @Column({ type: 'varchar', nullable: true })
+  firstName: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  lastName: string | null;
 
   @Column({ type: 'varchar' })
   @IsEnum(['MALE', 'FEMALE'], {

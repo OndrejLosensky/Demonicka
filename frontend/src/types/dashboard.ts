@@ -1,7 +1,9 @@
 export interface UserStats {
   id: string;
-  name: string;
+  username: string;
+  name: string | null;
   beerCount: number;
+  lastBeerTime: string | null;
 }
 
 export interface BarrelStats {

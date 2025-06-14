@@ -2,24 +2,22 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { participantsApi } from './api';
 import type { Participant } from './types';
-import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
-import translations from '../../../locales/cs/dashboard.participants.json';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
+import translations from '../../../locales/cs/dashboard.participants.json';
 
 export const useParticipants = (includeDeleted = false) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [deletedParticipants, setDeletedParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { selectedEvent } = useSelectedEvent();
   const { activeEvent } = useActiveEvent();
 
   const fetchParticipants = useCallback(async () => {
     try {
       setIsLoading(true);
       
-      if (selectedEvent) {
-        // Get participants for the selected event
-        const eventParticipants = await participantsApi.getByEvent(selectedEvent.id, includeDeleted);
+      if (activeEvent) {
+        // Get participants for the active event
+        const eventParticipants = await participantsApi.getByEvent(activeEvent.id, includeDeleted);
         if (includeDeleted) {
           const active = eventParticipants.filter(p => !p.deletedAt);
           const deleted = eventParticipants.filter(p => p.deletedAt);
@@ -49,7 +47,7 @@ export const useParticipants = (includeDeleted = false) => {
     } finally {
       setIsLoading(false);
     }
-  }, [includeDeleted, selectedEvent?.id, selectedEvent?.updatedAt, selectedEvent?.participants?.length]);
+  }, [includeDeleted, activeEvent?.id]);
 
   const handleDelete = useCallback(async (id: string) => {
     try {
@@ -71,7 +69,7 @@ export const useParticipants = (includeDeleted = false) => {
       console.error('Failed to add beer:', error);
       toast.error(translations.errors.addBeerFailed);
     }
-  }, [fetchParticipants, activeEvent]);
+  }, [fetchParticipants, activeEvent?.id]);
 
   const handleRemoveBeer = useCallback(async (id: string) => {
     try {
@@ -82,7 +80,7 @@ export const useParticipants = (includeDeleted = false) => {
       console.error('Failed to remove beer:', error);
       toast.error(translations.errors.removeBeerFailed);
     }
-  }, [fetchParticipants, activeEvent]);
+  }, [fetchParticipants, activeEvent?.id]);
 
   const handleCleanup = useCallback(async () => {
     try {

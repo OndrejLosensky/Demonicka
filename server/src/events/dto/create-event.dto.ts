@@ -10,4 +10,8 @@ export class CreateEventDto {
 
     @IsDateString()
     startDate: string;
+
+    @IsDateString()
+    @IsOptional()
+    endDate?: string;
 } 

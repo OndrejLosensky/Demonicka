@@ -12,12 +12,12 @@ export const eventService = {
         return response.data;
     },
 
-    async createEvent(data: { name: string; description?: string; startDate: string }): Promise<Event> {
+    async createEvent(data: { name: string; description?: string; startDate: string; endDate?: string }): Promise<Event> {
         const response = await api.post('/events', data);
         return response.data;
     },
 
-    async updateEvent(id: string, data: { name: string; description?: string; startDate: string }): Promise<Event> {
+    async updateEvent(id: string, data: { name: string; description?: string; startDate: string; endDate?: string }): Promise<Event> {
         const response = await api.put(`/events/${id}`, data);
         return response.data;
     },

@@ -6,6 +6,9 @@ import type { Event } from '../types/event';
 import { eventService } from '../services/eventService';
 import { format } from 'date-fns';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
+import { EmptyEventState } from '../components/EmptyEventState';
+import translations from '../locales/cs/events.json';
+import { Add as AddIcon, CalendarToday as CalendarIcon, Group as GroupIcon, LocalBar as BarIcon } from '@mui/icons-material';
 
 export const Events: React.FC = () => {
     const [events, setEvents] = useState<Event[]>([]);
@@ -14,6 +17,7 @@ export const Events: React.FC = () => {
         name: '',
         description: '',
         startDate: new Date(),
+        endDate: null as Date | null,
     });
     const navigate = useNavigate();
     const { loadActiveEvent } = useActiveEvent();
@@ -37,10 +41,11 @@ export const Events: React.FC = () => {
                 name: newEvent.name,
                 description: newEvent.description,
                 startDate: newEvent.startDate.toISOString(),
+                ...(newEvent.endDate && { endDate: newEvent.endDate.toISOString() }),
             });
             setOpen(false);
             await Promise.all([loadEvents(), loadActiveEvent()]);
-            setNewEvent({ name: '', description: '', startDate: new Date() });
+            setNewEvent({ name: '', description: '', startDate: new Date(), endDate: null });
         } catch (error) {
             console.error('Failed to create event:', error);
         }
@@ -55,18 +60,28 @@ export const Events: React.FC = () => {
         }
     };
 
+    if (!events.length) {
+        return (
+            <EmptyEventState 
+                title={translations.empty.title}
+                subtitle={translations.empty.subtitle}
+            />
+        );
+    }
+
     return (
         <div>
             {/* Header */}
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={4}>
-                <Typography variant="h4">Events</Typography>
+                <Typography variant="h4">{translations.sections.title}</Typography>
                 <Button 
                     variant="contained" 
                     color="primary" 
                     onClick={() => setOpen(true)}
+                    startIcon={<AddIcon />}
                     sx={{ px: 4 }}
                 >
-                    Create New Event
+                    {translations.actions.createEvent}
                 </Button>
             </Box>
 
@@ -89,8 +104,10 @@ export const Events: React.FC = () => {
                             flexDirection: 'column', 
                             position: 'relative',
                             borderRadius: 2,
+                            transition: 'all 0.2s ease-in-out',
                             '&:hover': {
-                                boxShadow: (theme) => theme.shadows[4]
+                                transform: 'translateY(-4px)',
+                                boxShadow: (theme) => theme.shadows[8]
                             }
                         }}>
                             <Box sx={{ flex: 1 }}>
@@ -98,7 +115,7 @@ export const Events: React.FC = () => {
                                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{event.name}</Typography>
                                     {event.isActive && (
                                         <Chip
-                                            label="Aktivní událost"
+                                            label={translations.status.active}
                                             color="primary"
                                             size="small"
                                             sx={{ ml: 2 }}
@@ -110,24 +127,33 @@ export const Events: React.FC = () => {
                                         {event.description}
                                     </Typography>
                                 )}
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Start: {format(new Date(event.startDate), 'PPpp')}
-                                    </Typography>
-                                    {event.endDate && (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <CalendarIcon color="action" fontSize="small" />
                                         <Typography variant="body2" color="text.secondary">
-                                            End: {format(new Date(event.endDate), 'PPpp')}
+                                            {translations.startDate}: {format(new Date(event.startDate), 'PPpp')}
                                         </Typography>
+                                    </Box>
+                                    {event.endDate && (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <CalendarIcon color="action" fontSize="small" />
+                                            <Typography variant="body2" color="text.secondary">
+                                                {translations.endDate}: {format(new Date(event.endDate), 'PPpp')}
+                                            </Typography>
+                                        </Box>
                                     )}
-                                    <Typography variant="body2" color="text.secondary">
-                                        Status: {event.isActive ? 'Aktivní' : 'Ukončená'}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Účastníci: {event.users?.length || 0}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Sudy: {event.barrels?.length || 0}
-                                    </Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <GroupIcon color="action" fontSize="small" />
+                                        <Typography variant="body2" color="text.secondary">
+                                            {translations.sections.users}: {event.users?.length || 0}
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <BarIcon color="action" fontSize="small" />
+                                        <Typography variant="body2" color="text.secondary">
+                                            {translations.sections.barrels}: {event.barrels?.length || 0}
+                                        </Typography>
+                                    </Box>
                                 </Box>
                             </Box>
                             <Box sx={{ display: 'flex', gap: 2 }}>
@@ -136,7 +162,7 @@ export const Events: React.FC = () => {
                                     fullWidth
                                     onClick={() => navigate(`/events/${event.id}`)}
                                 >
-                                    Zobrazit detail
+                                    {translations.actions.showDetail}
                                 </Button>
                                 {event.isActive && (
                                     <Button
@@ -145,7 +171,7 @@ export const Events: React.FC = () => {
                                         fullWidth
                                         onClick={() => handleEndEvent(event.id)}
                                     >
-                                        Ukončit událost
+                                        {translations.actions.endEvent}
                                     </Button>
                                 )}
                             </Box>
@@ -156,22 +182,22 @@ export const Events: React.FC = () => {
 
             {/* Create Event Dialog */}
             <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Vytvořit novou událost</DialogTitle>
+                <DialogTitle>{translations.dialogs.createEvent.title}</DialogTitle>
                 <DialogContent>
                     <Alert severity="warning" sx={{ mb: 3, mt: 2 }}>
-                        Vytvořením nové události se automaticky ukončí aktuálně aktivní událost.
+                        {translations.dialogs.createEvent.warning}
                     </Alert>
                     <TextField
                         autoFocus
                         margin="dense"
-                        label="Název události"
+                        label={translations.dialogs.createEvent.name}
                         fullWidth
                         value={newEvent.name}
                         onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })}
                     />
                     <TextField
                         margin="dense"
-                        label="Popis"
+                        label={translations.dialogs.createEvent.description}
                         fullWidth
                         multiline
                         rows={4}
@@ -180,16 +206,23 @@ export const Events: React.FC = () => {
                         sx={{ mt: 2 }}
                     />
                     <DateTimePicker
-                        label="Datum začátku"
+                        label={translations.dialogs.createEvent.startDate}
                         value={newEvent.startDate}
                         onChange={(date: Date | null) => date && setNewEvent({ ...newEvent, startDate: date })}
                         sx={{ mt: 3, width: '100%' }}
                     />
+                    <DateTimePicker
+                        label={translations.dialogs.createEvent.endDate}
+                        value={newEvent.endDate}
+                        onChange={(date: Date | null) => setNewEvent({ ...newEvent, endDate: date })}
+                        sx={{ mt: 2, width: '100%' }}
+                        minDateTime={newEvent.startDate}
+                    />
                 </DialogContent>
                 <DialogActions sx={{ p: 3 }}>
-                    <Button onClick={() => setOpen(false)}>Zrušit</Button>
+                    <Button onClick={() => setOpen(false)}>{translations.dialogs.common.cancel}</Button>
                     <Button onClick={handleCreateEvent} variant="contained" color="primary">
-                        Vytvořit
+                        {translations.dialogs.common.create}
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -1,6 +1,11 @@
 import type { Participant } from './types';
 import { api } from '../../../services/api';
 
+interface CreateParticipantDto {
+  username: string;
+  gender: 'MALE' | 'FEMALE';
+}
+
 export const participantsApi = {
   getAll: async (withDeleted?: boolean): Promise<Participant[]> => {
     const response = await api.get('/users', {
@@ -10,24 +15,10 @@ export const participantsApi = {
   },
 
   getByEvent: async (eventId: string, withDeleted?: boolean): Promise<Participant[]> => {
-    // Get users in the event
-    const usersResponse = await api.get(`/events/${eventId}/users`, {
+    const response = await api.get(`/events/${eventId}/users`, {
       params: { withDeleted }
     });
-    const users: Participant[] = usersResponse.data;
-
-    // Get event-specific beer counts for each user
-    const usersWithEventBeers = await Promise.all(
-      users.map(async (user: Participant) => {
-        const beerCountResponse = await api.get(`/events/${eventId}/users/${user.id}/beers/count`);
-        return {
-          ...user,
-          eventBeerCount: beerCountResponse.data
-        };
-      })
-    );
-
-    return usersWithEventBeers;
+    return response.data;
   },
 
   getDeleted: async (): Promise<Participant[]> => {
@@ -35,8 +26,8 @@ export const participantsApi = {
     return response.data;
   },
 
-  create: async (data: { name: string; gender: 'MALE' | 'FEMALE' }): Promise<Participant> => {
-    const response = await api.post('/users', data);
+  create: async (data: CreateParticipantDto): Promise<Participant> => {
+    const response = await api.post('/users/participant', data);
     return response.data;
   },
 

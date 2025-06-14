@@ -6,6 +6,7 @@ import {
   Button,
   FormControlLabel,
   Switch,
+  Container,
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { BarrelsTable } from './BarrelsTable';
@@ -14,32 +15,42 @@ import { AddBarrelDialog } from './AddBarrelDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
+import { EmptyEventState } from '../../../components/EmptyEventState';
+import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.barrels.json';
 
 const BarrelsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_BARRELS);
-  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_BARRELS_HISTORY);
-  const showStatusToggle = useFeatureFlag(FeatureFlagKey.BARREL_STATUS_TOGGLE);
+  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
+  const { activeEvent } = useActiveEvent();
   const {
     barrels,
     deletedBarrels,
     isLoading,
     handleDelete,
-    handleToggleActive,
     handleCleanup,
     fetchBarrels,
   } = useBarrels(showDeleted);
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const allBarrels = showDeleted ? [...barrels, ...deletedBarrels] : barrels;
-
   const confirmCleanup = async () => {
     if (window.confirm(translations.dialogs.cleanupAll.message)) {
       await handleCleanup();
     }
   };
+
+  if (!activeEvent) {
+    return (
+      <Container>
+        <EmptyEventState
+          title={translations.emptyState.title}
+          subtitle={translations.emptyState.subtitle}
+        />
+      </Container>
+    );
+  }
 
   return (
     <Box p={3}>
@@ -84,10 +95,10 @@ const BarrelsPage: React.FC = () => {
         <CircularProgress />
       ) : (
         <BarrelsTable
-          barrels={allBarrels}
+          barrels={barrels}
+          deletedBarrels={deletedBarrels}
+          showDeleted={showDeleted}
           onDelete={handleDelete}
-          onToggleActive={showStatusToggle ? handleToggleActive : undefined}
-          showDeletedStatus={showDeleted}
         />
       )}
 

@@ -12,7 +12,6 @@ export default function Register() {
     username: '',
     password: '',
     confirmPassword: '',
-    name: '',
     gender: 'MALE' as 'MALE' | 'FEMALE'
   });
   const [error, setError] = useState('');
@@ -39,8 +38,8 @@ export default function Register() {
     }
 
     try {
-      const { username, password, name, gender } = formData;
-      await register(username, password, name, gender);
+      const { username, password, gender } = formData;
+      await register(username, password, null, gender);
       navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Něco se pokazilo');
@@ -65,16 +64,6 @@ export default function Register() {
             value={formData.username}
             onChange={handleChange}
             placeholder={translations.register.username}
-          />
-          <Input
-            id="name"
-            name="name"
-            type="text"
-            label={translations.register.name}
-            required
-            value={formData.name}
-            onChange={handleChange}
-            placeholder={translations.register.name}
           />
           <div className="space-y-1">
             <label 

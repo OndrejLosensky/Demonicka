@@ -669,9 +669,9 @@ export default function Landing() {
 
               {/* Footer Sections */}
               <div className="grid grid-cols-2 gap-8 lg:col-span-3 lg:grid-cols-4">
-                {Object.entries(translations.footer.sections).map(([key, section]) => (
+                {Object.entries(translations.footer.sections).map(([key, section], index) => (
                   <motion.div
-                    key={key}
+                    key={`footer-section-${key}-${index}`}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
@@ -681,8 +681,8 @@ export default function Landing() {
                       {section.title}
                     </h3>
                     <ul role="list" className="mt-6 space-y-4">
-                      {Object.entries(section.items).map(([itemKey, itemText]) => (
-                        <li key={itemKey}>
+                      {Object.entries(section.items).map(([itemKey, itemText], itemIndex) => (
+                        <li key={`footer-item-${key}-${itemKey}-${itemIndex}`}>
                           <Link
                             to={`/${key}/${itemKey}`}
                             className="text-sm text-text-secondary hover:text-primary transition-colors duration-200"

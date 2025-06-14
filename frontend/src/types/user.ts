@@ -10,6 +10,8 @@ export interface User {
     id: string;
     username: string;
     name: string;
+    firstName: string | null;
+    lastName: string | null;
     gender: 'MALE' | 'FEMALE';
     role: UserRole;
     beerCount: number;

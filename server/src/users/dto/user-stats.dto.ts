@@ -22,7 +22,7 @@ export class UserStatsDto {
   // Basic Info
   userId: string;
   username: string;
-  name: string;
+  name: string | null;
   role: UserRole;
   createdAt: Date;
 

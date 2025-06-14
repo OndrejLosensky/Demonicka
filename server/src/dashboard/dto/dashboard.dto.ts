@@ -1,6 +1,6 @@
 export class UserStatsDto {
   id: string;
-  name: string;
+  username: string;
   beerCount: number;
 }
 

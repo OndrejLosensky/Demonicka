@@ -1,0 +1,57 @@
+{
+  "title": "Barrels",
+  "loading": "Loading barrels...",
+  "noData": "No barrels to display",
+  "actions": {
+    "showDeleted": "Show deleted",
+    "addBarrel": "Add barrel",
+    "cleanupAll": "Clean up all"
+  },
+  "table": {
+    "columns": {
+      "barrel": "Barrel",
+      "size": "Size",
+      "remainingBeers": "Remaining beers",
+      "status": "Status",
+      "createdAt": "Created at",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "deleted": "Deleted"
+    },
+    "actions": {
+      "delete": "Delete"
+    }
+  },
+  "dialogs": {
+    "add": {
+      "title": "Add new barrel",
+      "size": "Size (L)",
+      "confirm": "Add",
+      "cancel": "Cancel",
+      "success": "Barrel was successfully added",
+      "error": "Failed to add barrel"
+    },
+    "delete": {
+      "title": "Delete barrel",
+      "message": "Are you sure you want to delete this {size}L barrel? This action cannot be undone.",
+      "additionalInfo": "All related data will be permanently removed from the system.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "success": "Barrel was successfully deleted",
+      "error": "Failed to delete barrel"
+    },
+    "cleanupAll": {
+      "message": "Are you sure you want to delete all barrels? This action cannot be undone.",
+      "success": "All barrels were successfully deleted",
+      "error": "Failed to delete all barrels"
+    }
+  },
+  "errors": {
+    "fetchFailed": "Failed to load barrels",
+    "toggleStatusFailed": "Failed to change barrel status",
+    "statusUpdated": "Barrel status was successfully updated"
+  }
+} 

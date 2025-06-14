@@ -12,11 +12,14 @@
         "addUser": "Přidat účastníka",
         "removeUser": "Odebrat účastníka",
         "addBarrel": "Přidat sud",
-        "removeBarrel": "Odebrat sud"
+        "removeBarrel": "Odebrat sud",
+        "createEvent": "Vytvořit novou událost",
+        "showDetail": "Zobrazit detail"
     },
     "sections": {
         "users": "Účastníci",
-        "barrels": "Sudy"
+        "barrels": "Sudy",
+        "title": "Události"
     },
     "stats": {
         "totalParticipants": "Celkem účastníků",
@@ -27,7 +30,10 @@
     },
     "empty": {
         "users": "Zatím zde nejsou žádní účastníci",
-        "barrels": "Zatím zde nejsou žádné sudy"
+        "barrels": "Zatím zde nejsou žádné sudy",
+        "events": "Zatím zde nejsou žádné události",
+        "title": "Žádné události",
+        "subtitle": "Vytvořte svou první událost pro sledování piv a účastníků"
     },
     "dialogs": {
         "addUser": {
@@ -38,9 +44,18 @@
             "title": "Přidat sud",
             "selectLabel": "Vyberte sud"
         },
+        "createEvent": {
+            "title": "Vytvořit novou událost",
+            "warning": "Vytvořením nové události se automaticky ukončí aktuálně aktivní událost.",
+            "name": "Název události",
+            "description": "Popis",
+            "startDate": "Datum začátku",
+            "endDate": "Datum konce (volitelné)"
+        },
         "common": {
             "cancel": "Zrušit",
-            "add": "Přidat"
+            "add": "Přidat",
+            "create": "Vytvořit"
         }
     },
     "barrelStatus": {

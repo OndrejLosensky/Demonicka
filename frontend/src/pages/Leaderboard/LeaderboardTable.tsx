@@ -57,7 +57,7 @@ export const LeaderboardTable = ({ participants, title }: LeaderboardTableProps)
                   {getRankIcon(index)}
                 </td>
                 <td className="p-4">
-                  <span className={`font-medium ${index < 3 ? 'text-lg' : ''}`}>{participant.name}</span>
+                  <span className={`font-medium ${index < 3 ? 'text-lg' : ''}`}>{participant.username}</span>
                   {index === 0 && (
                     <motion.div
                       initial={{ scale: 0 }}

@@ -1,6 +1,6 @@
 export class UserLeaderboardDto {
   id: string;
-  name: string;
+  username: string;
   gender: 'MALE' | 'FEMALE';
   beerCount: number;
 }

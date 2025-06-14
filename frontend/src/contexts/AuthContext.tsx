@@ -6,11 +6,12 @@ import axios from 'axios';
 interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<void>;
-  register: (username: string, password: string, name: string, gender: 'MALE' | 'FEMALE') => Promise<void>;
+  register: (username: string, password: string, name: string | null, gender: 'MALE' | 'FEMALE') => Promise<void>;
   completeRegistration: (token: string, username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
   hasRole: (roles: UserRole[]) => boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,6 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshUser = async () => {
+    await fetchUser();
+  };
+
   // Initial auth check
   useEffect(() => {
     fetchUser().finally(() => setIsLoading(false));
@@ -78,12 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (username: string, password: string, name: string, gender: 'MALE' | 'FEMALE') => {
+  const register = async (username: string, password: string, name: string | null, gender: 'MALE' | 'FEMALE') => {
     try {
       const response = await api.post('/auth/register', {
         username,
         password,
-        name,
+        ...(name ? { name } : {}),
         gender
       });
       setUser(response.data.user);
@@ -126,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, completeRegistration, logout, isLoading, hasRole }}>
+    <AuthContext.Provider value={{ user, login, register, completeRegistration, logout, isLoading, hasRole, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

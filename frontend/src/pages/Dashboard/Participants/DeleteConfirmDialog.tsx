@@ -13,33 +13,29 @@ interface DeleteConfirmDialogProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  participantName: string;
+  participantUsername: string;
 }
 
-export const DeleteConfirmDialog = ({
+export const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
   open,
   onClose,
   onConfirm,
-  participantName,
-}: DeleteConfirmDialogProps) => {
+  participantUsername,
+}) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle className="flex items-center gap-3">
-        <div className="p-2 bg-red-500/10 rounded-lg">
-          <FaUserTimes className="text-xl text-red-500" />
-        </div>
-        <span>{translations.dialogs.delete.title}</span>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <FaUserTimes className="text-red-500" />
+        {translations.dialogs.delete.title}
       </DialogTitle>
       <DialogContent>
         <Typography>
-          {translations.dialogs.delete.message.replace('{name}', participantName)}
+          {translations.dialogs.delete.message.replace('{username}', participantUsername)}
         </Typography>
       </DialogContent>
-      <DialogActions className="p-6">
-        <Button onClick={onClose} variant="outlined" color="inherit">
-          {translations.dialogs.delete.cancel}
-        </Button>
-        <Button onClick={onConfirm} variant="contained" color="error" autoFocus>
+      <DialogActions>
+        <Button onClick={onClose}>{translations.dialogs.delete.cancel}</Button>
+        <Button onClick={onConfirm} color="error" variant="contained">
           {translations.dialogs.delete.confirm}
         </Button>
       </DialogActions>

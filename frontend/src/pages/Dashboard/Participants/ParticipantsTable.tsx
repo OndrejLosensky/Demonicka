@@ -15,11 +15,15 @@ import {
   ListItemText,
   Typography,
   Chip,
+  Box,
+  Grid,
 } from '@mui/material';
 import { 
   Delete as DeleteIcon,
   Add as AddIcon,
   Remove as RemoveIcon,
+  Male as MaleIcon,
+  Female as FemaleIcon,
 } from '@mui/icons-material';
 import { FaBeer } from 'react-icons/fa';
 import type { ParticipantTableProps } from './types';
@@ -29,13 +33,15 @@ import translations from '../../../locales/cs/dashboard.participants.json';
 
 export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   participants,
+  deletedParticipants,
+  showDeleted,
   onAddBeer,
   onRemoveBeer,
   onDelete,
-  showGender = true,
-  showDeletedStatus = false,
+  maleCount,
+  femaleCount,
 }) => {
-  const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; participant: { id: string; name: string } }>(null);
+  const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; participant: { id: string; username: string } }>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleCloseMenu = () => {
@@ -55,31 +61,58 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
     setMenuAnchor(null);
   };
 
+  const allParticipants = showDeleted ? [...participants, ...deletedParticipants] : participants;
+
   return (
     <>
-      <TableContainer component={Paper} className="shadow-lg rounded-xl overflow-hidden">
+      <Box sx={{ mb: 3 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6}>
+            <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+              <MaleIcon color="primary" />
+              <Box>
+                <Typography variant="h6">{translations.sections.male}</Typography>
+                <Typography variant="h4" color="primary">{maleCount}</Typography>
+              </Box>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+              <FemaleIcon color="secondary" />
+              <Box>
+                <Typography variant="h6">{translations.sections.female}</Typography>
+                <Typography variant="h4" color="secondary">{femaleCount}</Typography>
+              </Box>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Box>
+
+      <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: 'hidden' }}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell className="font-bold">{translations.table.columns.name}</TableCell>
-              <TableCell align="center" className="font-bold">{translations.table.columns.beers}</TableCell>
-              {showGender && <TableCell className="font-bold">{translations.table.columns.gender}</TableCell>}
-              <TableCell className="font-bold">{translations.table.columns.lastBeer}</TableCell>
-              <TableCell align="right" className="font-bold w-[220px]">{translations.table.columns.actions}</TableCell>
+              <TableCell>{translations.table.columns.name}</TableCell>
+              <TableCell align="center">{translations.table.columns.beers}</TableCell>
+              <TableCell>{translations.table.columns.gender}</TableCell>
+              <TableCell>{translations.table.columns.lastBeer}</TableCell>
+              <TableCell align="right" sx={{ width: 220 }}>{translations.table.columns.actions}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {participants.map((participant) => (
+            {allParticipants.map((participant) => (
               <TableRow 
                 key={participant.id}
-                className="hover:bg-primary/5 transition-colors"
                 sx={{
                   opacity: participant.deletedAt ? 0.5 : 1,
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                  },
                 }}
               >
                 <TableCell>
-                  <Typography className="font-medium">{participant.name}</Typography>
-                  {showDeletedStatus && participant.deletedAt && (
+                  <Typography sx={{ fontWeight: 500 }}>{participant.username}</Typography>
+                  {showDeleted && participant.deletedAt && (
                     <Chip
                       label={translations.table.status.deleted}
                       color="error"
@@ -89,21 +122,33 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                   )}
                 </TableCell>
                 <TableCell align="center">
-                  <div className="flex items-center gap-2 justify-center bg-primary/5 py-2 px-3 rounded-lg inline-flex">
-                    <span className="font-bold text-lg text-primary">{participant.eventBeerCount ?? participant.beerCount}</span>
-                    <FaBeer className="text-primary text-lg" />
-                  </div>
+                  <Box sx={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: 1,
+                    bgcolor: 'primary.light',
+                    color: 'primary.main',
+                    py: 1,
+                    px: 2,
+                    borderRadius: 2,
+                  }}>
+                    <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
+                      {participant.eventBeerCount ?? participant.beerCount}
+                    </Typography>
+                    <FaBeer />
+                  </Box>
                 </TableCell>
-                {showGender && (
-                  <TableCell>
-                    <span className="px-2 py-1 rounded-full text-sm bg-primary/10 text-primary font-medium">
-                      {participant.gender}
-                    </span>
-                  </TableCell>
-                )}
+                <TableCell>
+                  <Chip
+                    icon={participant.gender === 'MALE' ? <MaleIcon /> : <FemaleIcon />}
+                    label={participant.gender}
+                    color={participant.gender === 'MALE' ? 'primary' : 'secondary'}
+                    variant="outlined"
+                  />
+                </TableCell>
                 <TableCell>
                   {participant.lastBeerTime ? (
-                    <Typography variant="body2" className="text-text-secondary">
+                    <Typography variant="body2" color="text.secondary">
                       {format(new Date(participant.lastBeerTime), 'PPp')}
                     </Typography>
                   ) : (
@@ -116,31 +161,51 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                       <Tooltip title={translations.table.actions.removeBeer}>
                         <span>
                           <IconButton
-                            size="medium"
+                            size="small"
                             onClick={() => onRemoveBeer(participant.id)}
                             disabled={(participant.eventBeerCount ?? participant.beerCount) === 0}
-                            className={`hover:bg-primary/10 border-2 ${(participant.eventBeerCount ?? participant.beerCount) === 0 ? 'border-gray-200' : 'border-primary/20 hover:border-primary'}`}
+                            sx={{
+                              mr: 1,
+                              border: 1,
+                              borderColor: (participant.eventBeerCount ?? participant.beerCount) === 0 ? 'grey.300' : 'primary.main',
+                              '&:hover': {
+                                bgcolor: 'primary.light',
+                              },
+                            }}
                           >
-                            <RemoveIcon className={(participant.eventBeerCount ?? participant.beerCount) === 0 ? 'text-gray-300' : 'text-primary'} />
+                            <RemoveIcon fontSize="small" color={(participant.eventBeerCount ?? participant.beerCount) === 0 ? 'disabled' : 'primary'} />
                           </IconButton>
                         </span>
                       </Tooltip>
                       <Tooltip title={translations.table.actions.addBeer}>
                         <IconButton
-                          size="medium"
+                          size="small"
                           onClick={() => onAddBeer(participant.id)}
-                          className="bg-primary hover:bg-primary/90 text-white"
+                          sx={{
+                            mr: 1,
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                              bgcolor: 'primary.dark',
+                            },
+                          }}
                         >
-                          <AddIcon />
+                          <AddIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title={translations.table.actions.delete}>
                         <IconButton
-                          onClick={() => onDelete(participant.id)}
-                          size="medium"
+                          size="small"
+                          onClick={(e) => setMenuAnchor({ 
+                            element: e.currentTarget, 
+                            participant: { 
+                              id: participant.id, 
+                              username: participant.username 
+                            } 
+                          })}
                           color="error"
                         >
-                          <DeleteIcon />
+                          <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                     </>
@@ -159,9 +224,9 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleDeleteClick} className="text-red-500">
+        <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
           <ListItemIcon>
-            <DeleteIcon fontSize="small" className="text-red-500" />
+            <DeleteIcon fontSize="small" color="error" />
           </ListItemIcon>
           <ListItemText>{translations.table.actions.delete}</ListItemText>
         </MenuItem>
@@ -171,7 +236,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
-        participantName={menuAnchor?.participant.name || ''}
+        participantUsername={menuAnchor?.participant.username || ''}
       />
     </>
   );

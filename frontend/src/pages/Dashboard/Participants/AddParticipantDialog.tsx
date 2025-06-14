@@ -24,14 +24,14 @@ interface AddParticipantDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  existingNames: string[];
+  existingUsernames: string[];
 }
 
 export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   open,
   onClose,
   onSuccess,
-  existingNames,
+  existingUsernames,
 }) => {
   const [username, setUsername] = useState('');
   const [gender, setGender] = useState<'MALE' | 'FEMALE'>('MALE');
@@ -49,34 +49,23 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
     }
   }, [open]);
 
-  // Validate username
+  // Validate username on change
   const validateUsername = (value: string) => {
     const trimmedUsername = value.trim();
     if (!trimmedUsername) {
-      setUsernameError('Uživatelské jméno je povinné');
+      setUsernameError(translations.dialogs.add.validation.required);
       return false;
     }
     
-    if (trimmedUsername.length < 3) {
-      setUsernameError('Uživatelské jméno musí mít alespoň 3 znaky');
-      return false;
-    }
-
-    if (!/^[a-zA-Z0-9_-]+$/.test(trimmedUsername)) {
-      setUsernameError('Uživatelské jméno může obsahovat pouze písmena, čísla, podtržítka a pomlčky');
-      return false;
-    }
-
     // Case-insensitive username comparison
-    const usernameExists = existingNames.some(
-      existingName => existingName.toLowerCase() === trimmedUsername.toLowerCase()
+    const usernameExists = existingUsernames.some(
+      existingUsername => existingUsername.toLowerCase() === trimmedUsername.toLowerCase()
     );
     
     if (usernameExists) {
-      setUsernameError('Toto uživatelské jméno již existuje');
+      setUsernameError(translations.dialogs.add.validation.username);
       return false;
     }
-
     setUsernameError('');
     return true;
   };
@@ -96,30 +85,27 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
 
     try {
       setIsSubmitting(true);
-      const participant = await participantsApi.create({ 
-        name: username.trim(),
-        gender 
-      });
+      const user = await participantsApi.create({ username: username.trim(), gender });
       
-      // If there's an active event, automatically add the participant to it
+      // If there's an active event, automatically add the user to it
       if (activeEvent) {
-        await eventService.addUser(activeEvent.id, participant.id);
+        await eventService.addUser(activeEvent.id, user.id);
         await loadActiveEvent(); // Refresh the active event data
         
-        // Force refresh of selected event to ensure participants list updates
+        // Force refresh of selected event to ensure users list updates
         const updatedActiveEvent = await eventService.getEvent(activeEvent.id);
         setSelectedEvent(updatedActiveEvent);
       }
       
       toast.success(translations.dialogs.add.success);
-      onSuccess(); // This will refresh the participants list
+      onSuccess(); // This will refresh the users list
       onClose();
     } catch (error) {
       if ((error as AxiosError)?.response?.status === 409) {
-        setUsernameError('Uživatelské jméno již existuje');
-        toast.error('Uživatelské jméno již existuje');
+        setUsernameError(translations.dialogs.add.validation.username);
+        toast.error(translations.dialogs.add.validation.username);
       } else {
-        console.error('Failed to add participant:', error);
+        console.error('Failed to add user:', error);
         toast.error(translations.dialogs.add.error);
       }
     } finally {
@@ -135,7 +121,7 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
             <TextField
               autoFocus
-              label="Uživatelské jméno"
+              label={translations.dialogs.add.fields.username.label}
               value={username}
               onChange={handleUsernameChange}
               error={!!usernameError}

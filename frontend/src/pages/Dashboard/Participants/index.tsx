@@ -3,10 +3,10 @@ import {
   Box,
   Typography,
   CircularProgress,
-  Grid,
   Button,
   FormControlLabel,
   Switch,
+  Container,
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { ParticipantsTable } from './ParticipantsTable';
@@ -15,13 +15,14 @@ import { AddParticipantDialog } from './AddParticipantDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
+import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.participants.json';
 
 const ParticipantsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_PARTICIPANTS);
-  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_PARTICIPANTS_HISTORY);
+  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
   const { activeEvent } = useActiveEvent();
   const {
     participants,
@@ -54,6 +55,17 @@ const ParticipantsPage: React.FC = () => {
       await handleCleanup();
     }
   };
+
+  if (!activeEvent) {
+    return (
+      <Container>
+        <EmptyEventState
+          title={translations.emptyState.title}
+          subtitle={translations.emptyState.subtitle}
+        />
+      </Container>
+    );
+  }
 
   return (
     <Box p={3}>
@@ -94,40 +106,20 @@ const ParticipantsPage: React.FC = () => {
         </Box>
       </Box>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Typography variant="h6" gutterBottom>
-            {translations.sections.male} ({maleParticipants.length} {translations.sections.count})
-          </Typography>
-          {isLoading ? (
-            <CircularProgress />
-          ) : (
-            <ParticipantsTable
-              participants={maleParticipants}
-              onDelete={handleDelete}
-              onAddBeer={handleAddBeer}
-              onRemoveBeer={handleRemoveBeer}
-              showDeletedStatus={showDeleted}
-            />
-          )}
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Typography variant="h6" gutterBottom>
-            {translations.sections.female} ({femaleParticipants.length} {translations.sections.count})
-          </Typography>
-          {isLoading ? (
-            <CircularProgress />
-          ) : (
-            <ParticipantsTable
-              participants={femaleParticipants}
-              onDelete={handleDelete}
-              onAddBeer={handleAddBeer}
-              onRemoveBeer={handleRemoveBeer}
-              showDeletedStatus={showDeleted}
-            />
-          )}
-        </Grid>
-      </Grid>
+      {isLoading ? (
+        <CircularProgress />
+      ) : (
+        <ParticipantsTable
+          participants={participants}
+          deletedParticipants={deletedParticipants}
+          showDeleted={showDeleted}
+          onDelete={handleDelete}
+          onAddBeer={handleAddBeer}
+          onRemoveBeer={handleRemoveBeer}
+          maleCount={maleParticipants.length}
+          femaleCount={femaleParticipants.length}
+        />
+      )}
 
       <AddParticipantDialog
         open={dialogOpen}
@@ -136,7 +128,7 @@ const ParticipantsPage: React.FC = () => {
           setDialogOpen(false);
           fetchParticipants();
         }}
-        existingNames={participants.map(p => p.name)}
+        existingUsernames={[...participants, ...deletedParticipants].map(p => p.username)}
       />
     </Box>
   );

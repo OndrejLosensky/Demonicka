@@ -130,26 +130,30 @@ export default function Header() {
                         >
                           {translations.navigation.dashboard}
                         </Link>
-                        <Link
-                          to="/dashboard/ucastnici"
-                          className={`px-3 py-2 rounded-md text-sm font-medium ${
-                            isActive('/dashboard/ucastnici')
-                              ? 'bg-primary text-white'
-                              : 'text-text-primary hover:text-text-secondary'
-                          }`}
-                        >
-                          {translations.navigation.participants}
-                        </Link>
-                        <Link
-                          to="/dashboard/barrels"
-                          className={`px-3 py-2 rounded-md text-sm font-medium ${
-                            isActive('/dashboard/barrels')
-                              ? 'bg-primary text-white'
-                              : 'text-text-primary hover:text-text-secondary'
-                          }`}
-                        >
-                          {translations.navigation.barrels}
-                        </Link>
+                        {activeEvent && (
+                          <>
+                            <Link
+                              to="/dashboard/ucastnici"
+                              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                                isActive('/dashboard/ucastnici')
+                                  ? 'bg-primary text-white'
+                                  : 'text-text-primary hover:text-text-secondary'
+                              }`}
+                            >
+                              {translations.navigation.participants}
+                            </Link>
+                            <Link
+                              to="/dashboard/barrels"
+                              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                                isActive('/dashboard/barrels')
+                                  ? 'bg-primary text-white'
+                                  : 'text-text-primary hover:text-text-secondary'
+                              }`}
+                            >
+                              {translations.navigation.barrels}
+                            </Link>
+                          </>
+                        )}
                         {isHistoryEnabled && (
                           <Link
                             to="/dashboard/history"
@@ -164,16 +168,18 @@ export default function Header() {
                         )}
                       </>
                     )}
-                    <Link
-                      to="/leaderboard"
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        isActive('/leaderboard')
-                          ? 'bg-primary text-white'
-                          : 'text-text-primary hover:text-text-secondary'
-                      }`}
-                    >
-                      {translations.navigation.leaderboard}
-                    </Link>
+                    {activeEvent && (
+                      <Link
+                        to="/leaderboard"
+                        className={`px-3 py-2 rounded-md text-sm font-medium ${
+                          isActive('/leaderboard')
+                            ? 'bg-primary text-white'
+                            : 'text-text-primary hover:text-text-secondary'
+                        }`}
+                      >
+                        {translations.navigation.leaderboard}
+                      </Link>
+                    )}
                     {hasRole([USER_ROLE.ADMIN, USER_ROLE.USER]) && (
                       <Link
                         to="/events"

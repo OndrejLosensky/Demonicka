@@ -40,28 +40,18 @@ export class AuthService {
   async validateUser(
     username: string,
     password: string,
-  ): Promise<UserWithoutPassword> {
+  ): Promise<UserWithoutPassword | null> {
     const user = await this.usersService.findByUsername(username);
-    
-    if (!user) {
-      throw new UnauthorizedException('Neplatné přihlašovací údaje');
+    if (
+      user &&
+      user.password &&
+      (await bcrypt.compare(password, user.password))
+    ) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _, ...result } = user;
+      return result;
     }
-
-    // If user has no password, they are a participant and cannot log in
-    if (!user.password) {
-      throw new UnauthorizedException('Tento účet je pouze pro účastníky a nelze se s ním přihlásit');
-    }
-
-    this.logger.debug(`Validating password for user: ${username}`);
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Neplatné přihlašovací údaje');
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: passwordOmitted, ...result } = user;
-    return result;
+    return null;
   }
 
   async register(
@@ -71,11 +61,15 @@ export class AuthService {
     return { user };
   }
 
-  async login(user: UserWithoutPassword): Promise<{ access_token: string; refresh_token: string; user: UserWithoutPassword }> {
+  async login(user: UserWithoutPassword): Promise<{
+    access_token: string;
+    refresh_token: string;
+    user: UserWithoutPassword;
+  }> {
     const payload = { username: user.username, sub: user.id };
     const access_token = await this.jwtService.signAsync(payload);
     const refreshToken = await this.createRefreshToken(user.id);
-    
+
     return {
       access_token,
       refresh_token: refreshToken.token,
@@ -83,12 +77,8 @@ export class AuthService {
     };
   }
 
-  async logout(response: Response) {
-    await Promise.all([
-      response.clearCookie('access_token', this.getCookieOptions()),
-      response.clearCookie('refresh_token', this.getCookieOptions(true)),
-    ]);
-    return { message: 'Odhlášení proběhlo úspěšně' };
+  async logout(response: Response): Promise<void> {
+    response.clearCookie('refresh_token', this.getCookieOptions(true));
   }
 
   async refreshTokens(refreshTokenStr: string) {
@@ -126,15 +116,16 @@ export class AuthService {
   }
 
   private async createRefreshToken(userId: string): Promise<RefreshToken> {
+    const timestamp = Date.now();
     const token = this.jwtService.sign(
-      { sub: userId },
+      { sub: userId, iat: timestamp },
       { expiresIn: '7d' }, // 7 days
     );
 
     const refreshToken = this.refreshTokenRepository.create({
       token,
       userId,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      expiresAt: new Date(timestamp + 7 * 24 * 60 * 60 * 1000), // 7 days
     });
 
     return this.refreshTokenRepository.save(refreshToken);

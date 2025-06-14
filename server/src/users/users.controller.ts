@@ -110,4 +110,10 @@ export class UsersController {
   async getUserStats(@Param('id', ParseUUIDPipe) id: string) {
     return this.userStatsService.getUserStats(id);
   }
+
+  @Patch('me')
+  @Roles(UserRole.ADMIN, UserRole.USER)
+  updateProfile(@GetUser() user: User, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(user.id, updateUserDto);
+  }
 }

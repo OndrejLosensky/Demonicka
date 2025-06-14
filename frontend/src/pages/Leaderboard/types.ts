@@ -1,11 +1,11 @@
 export interface UserLeaderboard {
   id: number;
-  name: string;
+  username: string;
   beerCount: number;
   gender: 'MALE' | 'FEMALE';
 }
 
 export interface LeaderboardTableProps {
-  users: UserLeaderboard[];
+  participants: UserLeaderboard[];
   title: string;
 } 

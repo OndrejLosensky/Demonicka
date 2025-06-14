@@ -15,6 +15,8 @@ import {
   ListItemText,
   Typography,
   Chip,
+  Avatar,
+  Box,
 } from '@mui/material';
 import { 
   Delete as DeleteIcon,
@@ -71,12 +73,12 @@ export const UsersTable: React.FC<UserTableProps> = ({
             {users.map((user) => (
               <TableRow key={user.id}>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Typography>{user.name}</Typography>
-                    {showDeletedStatus && user.deletedAt && (
-                      <Chip size="small" color="error" label="Deleted" />
-                    )}
-                  </div>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Avatar sx={{ mr: 2 }}>
+                      {user.username.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Typography>{user.username}</Typography>
+                  </Box>
                 </TableCell>
                 <TableCell align="center">{user.beerCount}</TableCell>
                 {showGender && (

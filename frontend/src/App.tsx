@@ -44,7 +44,7 @@ function App() {
           <ActiveEventProvider>
             <SelectedEventProvider>
               <AuthProvider>
-                <Router>
+                <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                   <Routes>
                     <Route path="/" element={<Header />}>
                       <Route index element={<Landing />} />

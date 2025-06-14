@@ -12,6 +12,8 @@ import {
   ListItemIcon,
   Chip,
   CircularProgress,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
 import { profileApi } from './api';
@@ -26,12 +28,47 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { UserStatsComponent } from '../../components/UserStats';
+import { PersonalInfoTab } from '../../components/auth/PersonalInfoTab';
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`profile-tabpanel-${index}`}
+      aria-labelledby={`profile-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ py: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `profile-tab-${index}`,
+    'aria-controls': `profile-tabpanel-${index}`,
+  };
+}
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const { id } = useParams();
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<User | null>(null);
+  const [tabValue, setTabValue] = useState(0);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -47,6 +84,10 @@ export default function ProfilePage() {
 
     fetchProfile();
   }, []);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
 
   if (!user || isLoading) {
     return (
@@ -98,71 +139,82 @@ export default function ProfilePage() {
 
           <Divider className="my-4" />
 
-          <List className="space-y-2">
-            <ListItem>
-              <ListItemIcon>
-                <PersonIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Uživatelské jméno"
-                secondary={displayData.username}
-                primaryTypographyProps={{
-                  className: "text-text-secondary font-medium"
-                }}
-                secondaryTypographyProps={{
-                  className: "text-text-primary font-bold"
-                }}
-              />
-            </ListItem>
+          <Tabs value={tabValue} onChange={handleTabChange} aria-label="profile tabs">
+            <Tab label="Basic Information" {...a11yProps(0)} />
+            <Tab label="Personal Information" {...a11yProps(1)} />
+          </Tabs>
 
-            <ListItem>
-              <ListItemIcon>
-                <BadgeIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Celé jméno"
-                secondary={displayData.name}
-                primaryTypographyProps={{
-                  className: "text-text-secondary font-medium"
-                }}
-                secondaryTypographyProps={{
-                  className: "text-text-primary font-bold"
-                }}
-              />
-            </ListItem>
+          <TabPanel value={tabValue} index={0}>
+            <List className="space-y-2">
+              <ListItem>
+                <ListItemIcon>
+                  <PersonIcon color="primary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Uživatelské jméno"
+                  secondary={displayData.username}
+                  primaryTypographyProps={{
+                    className: "text-text-secondary font-medium"
+                  }}
+                  secondaryTypographyProps={{
+                    className: "text-text-primary font-bold"
+                  }}
+                />
+              </ListItem>
 
-            <ListItem>
-              <ListItemIcon>
-                <FingerprintIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary="ID uživatele"
-                secondary={displayData.id}
-                primaryTypographyProps={{
-                  className: "text-text-secondary font-medium"
-                }}
-                secondaryTypographyProps={{
-                  className: "text-text-primary font-mono"
-                }}
-              />
-            </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <BadgeIcon color="primary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Celé jméno"
+                  secondary={displayData.name}
+                  primaryTypographyProps={{
+                    className: "text-text-secondary font-medium"
+                  }}
+                  secondaryTypographyProps={{
+                    className: "text-text-primary font-bold"
+                  }}
+                />
+              </ListItem>
 
-            <ListItem>
-              <ListItemIcon>
-                <CalendarIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Účet vytvořen"
-                secondary={format(new Date(displayData.createdAt), 'PPpp', { locale: cs })}
-                primaryTypographyProps={{
-                  className: "text-text-secondary font-medium"
-                }}
-                secondaryTypographyProps={{
-                  className: "text-text-primary"
-                }}
-              />
-            </ListItem>
-          </List>
+              <ListItem>
+                <ListItemIcon>
+                  <FingerprintIcon color="primary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="ID uživatele"
+                  secondary={displayData.id}
+                  primaryTypographyProps={{
+                    className: "text-text-secondary font-medium"
+                  }}
+                  secondaryTypographyProps={{
+                    className: "text-text-primary font-mono"
+                  }}
+                />
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon>
+                  <CalendarIcon color="primary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Účet vytvořen"
+                  secondary={format(new Date(displayData.createdAt), 'PPpp', { locale: cs })}
+                  primaryTypographyProps={{
+                    className: "text-text-secondary font-medium"
+                  }}
+                  secondaryTypographyProps={{
+                    className: "text-text-primary"
+                  }}
+                />
+              </ListItem>
+            </List>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={1}>
+            <PersonalInfoTab />
+          </TabPanel>
         </Paper>
 
         {/* Beer Statistics */}

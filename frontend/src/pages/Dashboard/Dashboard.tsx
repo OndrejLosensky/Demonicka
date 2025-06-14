@@ -13,13 +13,13 @@ import {
     TableCell,
     TableHead,
     TableRow,
+    Avatar,
 } from '@mui/material';
 import {
     LocalBar as BeerIcon,
     EmojiEvents as TrophyIcon,
     Group as GroupIcon,
     Timer as TimeIcon,
-    Celebration as PartyIcon,
     TrendingUp as TrendIcon,
 } from '@mui/icons-material';
 import { FaBeer } from 'react-icons/fa';
@@ -36,6 +36,7 @@ import { useSelectedEvent } from '../../contexts/SelectedEventContext';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../types/featureFlags';
 import { EventSelector } from '../../components/EventSelector';
+import { EmptyEventState } from '../../components/EmptyEventState';
 
 export const Dashboard: React.FC = () => {
     const theme = useTheme();
@@ -56,7 +57,7 @@ export const Dashboard: React.FC = () => {
         totalBeers: 0,
         activeBarrels: 0,
         remainingBeers: 0,
-        topDrinker: { name: '', count: 0 },
+        topDrinker: { username: null as string | null, count: 0 },
         averageBeersPerHour: 0,
         participantsCount: 0,
         eventDuration: '',
@@ -96,8 +97,8 @@ export const Dashboard: React.FC = () => {
                     activeBarrels,
                     remainingBeers,
                     topDrinker: dashboardData.topUsers[0] ? 
-                        { name: dashboardData.topUsers[0].name, count: dashboardData.topUsers[0].beerCount || 0 } : 
-                        { name: '', count: 0 },
+                        { username: dashboardData.topUsers[0].username, count: dashboardData.topUsers[0].beerCount || 0 } : 
+                        { username: null, count: 0 },
                     averageBeersPerHour: dashboardData.totalBeers / hoursSinceStart,
                     participantsCount: dashboardData.totalUsers,
                     eventDuration: format(eventStart, 'PPp', { locale: cs }),
@@ -130,15 +131,10 @@ export const Dashboard: React.FC = () => {
     if (!activeEvent) {
         return (
             <Container>
-                <Box sx={{ textAlign: 'center', mt: 8 }}>
-                    <PartyIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                    <Typography variant="h4" gutterBottom>
-                        {translations.noActiveEvent.title}
-                    </Typography>
-                    <Typography color="textSecondary">
-                        {translations.noActiveEvent.subtitle}
-                    </Typography>
-                </Box>
+                <EmptyEventState
+                    title={translations.noActiveEvent.title}
+                    subtitle={translations.noActiveEvent.subtitle}
+                />
             </Container>
         );
     }
@@ -319,7 +315,7 @@ export const Dashboard: React.FC = () => {
                                             {translations.stats.topDrinker}
                                         </Typography>
                                         <Typography variant="h5" fontWeight="bold">
-                                            {stats.topDrinker.name}
+                                            {stats.topDrinker.username || translations.overview.charts.topUsers.unknownUser}
                                         </Typography>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                             <FaBeer style={{ color: theme.palette.primary.main }} />
@@ -386,7 +382,14 @@ export const Dashboard: React.FC = () => {
                                         <TableBody>
                                             {dashboardStats.topUsers.map((user) => (
                                                 <TableRow key={user.id}>
-                                                    <TableCell>{user.name}</TableCell>
+                                                    <TableCell>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                            <Avatar sx={{ mr: 2 }}>
+                                                                {user.username ? user.username.charAt(0).toUpperCase() : '?'}
+                                                            </Avatar>
+                                                            <Typography>{user.username || translations.overview.charts.topUsers.unknownUser}</Typography>
+                                                        </Box>
+                                                    </TableCell>
                                                     <TableCell align="right">{user.beerCount}</TableCell>
                                                 </TableRow>
                                             ))}

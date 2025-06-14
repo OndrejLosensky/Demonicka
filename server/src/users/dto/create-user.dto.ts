@@ -4,6 +4,7 @@ import {
   MinLength,
   Matches,
   IsEnum,
+  IsOptional,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -21,9 +22,20 @@ export class CreateUserDto {
   password: string;
 
   @IsString()
-  @IsNotEmpty({ message: 'Jméno je povinné' })
+  @IsOptional()
   @MinLength(2, { message: 'Jméno musí mít alespoň 2 znaky' })
-  name: string;
+  name?: string;
+
+  // Future fields (optional)
+  @IsString()
+  @IsOptional()
+  @MinLength(2, { message: 'Křestní jméno musí mít alespoň 2 znaky' })
+  firstName?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(2, { message: 'Příjmení musí mít alespoň 2 znaky' })
+  lastName?: string;
 
   @IsEnum(['MALE', 'FEMALE'], {
     message: 'Pohlaví musí být buď MALE nebo FEMALE',

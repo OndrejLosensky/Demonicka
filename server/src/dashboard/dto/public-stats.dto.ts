@@ -3,7 +3,7 @@ export class PublicStatsDto {
   totalUsers: number;
   totalBarrels: number;
   topUsers: {
-    name: string;
+    username: string;
     beerCount: number;
   }[];
   barrelStats: {

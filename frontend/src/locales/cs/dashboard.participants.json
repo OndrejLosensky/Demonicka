@@ -14,7 +14,7 @@
   },
   "table": {
     "columns": {
-      "name": "Jméno",
+      "name": "Uživatelské jméno",
       "beers": "Piva",
       "gender": "Pohlaví",
       "lastBeer": "Poslední pivo",
@@ -32,9 +32,14 @@
   "dialogs": {
     "add": {
       "title": "Přidat účastníka",
+      "validation": {
+        "required": "Toto pole je povinné",
+        "username": "Toto uživatelské jméno již existuje"
+      },
       "fields": {
-        "firstName": "Jméno",
-        "lastName": "Příjmení",
+        "username": {
+          "label": "Uživatelské jméno"
+        },
         "gender": {
           "label": "Pohlaví",
           "male": "Muž",
@@ -42,20 +47,15 @@
         }
       },
       "buttons": {
-        "confirm": "Přidat",
-        "cancel": "Zrušit"
-      },
-      "validation": {
-        "required": "Toto pole je povinné",
-        "firstName": "Zadejte jméno",
-        "lastName": "Zadejte příjmení"
+        "cancel": "Zrušit",
+        "confirm": "Přidat"
       },
       "success": "Účastník byl úspěšně přidán",
       "error": "Nepodařilo se přidat účastníka"
     },
     "delete": {
       "title": "Smazat účastníka",
-      "message": "Opravdu chcete smazat účastníka {name}? Tuto akci nelze vrátit.",
+      "message": "Opravdu chcete smazat účastníka {username}? Tuto akci nelze vrátit.",
       "confirm": "Smazat",
       "cancel": "Zrušit",
       "success": "Účastník byl úspěšně smazán",
@@ -73,5 +73,9 @@
     "removeBeerFailed": "Nepodařilo se odebrat pivo",
     "beerAdded": "Pivo bylo úspěšně přidáno",
     "beerRemoved": "Pivo bylo úspěšně odebráno"
+  },
+  "emptyState": {
+    "title": "Žádná aktivní akce",
+    "subtitle": "Vytvořte novou akci pro správu účastníků"
   }
 } 

@@ -3,6 +3,10 @@
   "subtitle": "Kdo vypije nejvíc? Pojďme to zjistit! 🍻",
   "loading": "Načítání žebříčku...",
   "noData": "Žádná data k dispozici.",
+  "emptyState": {
+    "title": "Žádná aktivní akce",
+    "subtitle": "Vytvořte novou akci pro zobrazení žebříčku"
+  },
   "sections": {
     "men": "Žebříček mužů",
     "women": "Žebříček žen"
@@ -10,7 +14,7 @@
   "table": {
     "columns": {
       "rank": "Pořadí",
-      "name": "Jméno",
+      "name": "Uživatelské jméno",
       "beers": "Piva"
     },
     "champion": "ŠAMPION",

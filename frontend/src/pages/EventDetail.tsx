@@ -24,6 +24,8 @@ import {
     Paper,
     LinearProgress,
     Stack,
+    TableCell,
+    Avatar,
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -415,21 +417,14 @@ export const EventDetail: React.FC = () => {
                                                 </Tooltip>
                                             }
                                         >
-                                            <ListItemText
-                                                primary={
-                                                    <Typography variant="subtitle1" fontWeight="medium">
-                                                        {user.name}
-                                                    </Typography>
-                                                }
-                                                secondary={
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                                                        <FaBeer style={{ fontSize: 16, opacity: 0.8 }} />
-                                                        <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                                                            {eventBeerCounts[user.id] || 0} {translations.stats.beers}
-                                                        </Typography>
-                                                    </Box>
-                                                }
-                                            />
+                                            <TableCell>
+                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    <Avatar sx={{ mr: 2 }}>
+                                                        {user.username.charAt(0).toUpperCase()}
+                                                    </Avatar>
+                                                    <Typography>{user.username}</Typography>
+                                                </Box>
+                                            </TableCell>
                                         </ListItem>
                                     ))}
                                 </List>
@@ -545,7 +540,7 @@ export const EventDetail: React.FC = () => {
                         >
                             {availableUsers.map(user => (
                                 <MenuItem key={user.id} value={user.id}>
-                                    {user.name}
+                                    {user.username}
                                 </MenuItem>
                             ))}
                         </Select>

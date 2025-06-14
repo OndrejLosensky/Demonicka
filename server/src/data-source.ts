@@ -16,6 +16,7 @@ import { AddAdminFields1711638000003 } from './migrations/1711638000003-AddAdmin
 import { AddRoleColumn1748441344605 } from './migrations/1748441344605-AddRoleColumn';
 import { EventBeer } from './events/entities/event-beer.entity';
 import { CreateEventBeersTable1749757491913 } from './migrations/1749757491913-CreateEventBeersTable';
+import { AddFirstLastNameToUser1749763388825 } from './migrations/1749763388825-AddFirstLastNameToUser';
 
 config();
 
@@ -40,6 +41,7 @@ export const AppDataSource = new DataSource({
     MakeNameNullable1748441344604,
     AddRoleColumn1748441344605,
     CreateEventBeersTable1749757491913,
+    AddFirstLastNameToUser1749763388825,
   ],
   synchronize: false,
   logging: false,

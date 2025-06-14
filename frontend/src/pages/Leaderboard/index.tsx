@@ -1,4 +1,4 @@
-import { Typography, Grid, Box } from '@mui/material';
+import { Typography, Grid, Box, Container } from '@mui/material';
 import { motion } from 'framer-motion';
 import { FaBeer } from 'react-icons/fa';
 import { LeaderboardTable } from './LeaderboardTable';
@@ -7,10 +7,24 @@ import { EventSelector } from '../../components/EventSelector';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../types/featureFlags';
 import translations from '../../locales/cs/dashboard.leaderboard.json';
+import { EmptyEventState } from '../../components/EmptyEventState';
+import { useActiveEvent } from '../../contexts/ActiveEventContext';
 
 export default function Leaderboard() {
   const { stats, isLoading, selectedEvent } = useLeaderboard();
   const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
+  const { activeEvent } = useActiveEvent();
+
+  if (!activeEvent) {
+    return (
+      <Container>
+        <EmptyEventState
+          title={translations.emptyState.title}
+          subtitle={translations.emptyState.subtitle}
+        />
+      </Container>
+    );
+  }
 
   if (isLoading) {
     return (

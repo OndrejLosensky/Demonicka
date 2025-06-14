@@ -68,18 +68,18 @@ export class DashboardService {
               { eventId: event.id },
             )
             .select([
-              'user.name as name',
+              'user.username as username',
               'COUNT(event_beer.id) as beerCount',
             ])
             .where('user.id IN (:...ids)', { ids: eventUserIds })
             .groupBy('user.id')
             .orderBy('beerCount', 'DESC')
             .limit(6)
-            .getRawMany<{ name: string; beerCount: string }>()
+            .getRawMany<{ username: string; beerCount: string }>()
         : [];
 
       const topUsers = usersWithBeerCounts.map((u) => ({
-        name: u.name,
+        username: u.username,
         beerCount: parseInt(u.beerCount),
       }));
 
@@ -114,14 +114,14 @@ export class DashboardService {
       const usersWithBeerCounts = await this.userRepository
         .createQueryBuilder('user')
         .leftJoin('user.beers', 'beer')
-        .select(['user.name as name', 'COUNT(beer.id) as beerCount'])
+        .select(['user.username as username', 'COUNT(beer.id) as beerCount'])
         .groupBy('user.id')
         .orderBy('beerCount', 'DESC')
         .limit(6)
-        .getRawMany<{ name: string; beerCount: string }>();
+        .getRawMany<{ username: string; beerCount: string }>();
 
       const topUsers = usersWithBeerCounts.map((u) => ({
-        name: u.name,
+        username: u.username,
         beerCount: parseInt(u.beerCount),
       }));
 
@@ -189,18 +189,18 @@ export class DashboardService {
             )
             .select([
               'user.id as id',
-              'user.name as name',
+              'user.username as username',
               'COUNT(event_beer.id) as beerCount',
             ])
             .where('user.id IN (:...ids)', { ids: eventUserIds })
             .groupBy('user.id')
             .orderBy('beerCount', 'DESC')
-            .getRawMany<{ id: string; name: string; beerCount: string }>()
+            .getRawMany<{ id: string; username: string; beerCount: string }>()
         : [];
 
       const topUsers: UserStatsDto[] = usersWithBeerCounts.map((u) => ({
         id: u.id,
-        name: u.name,
+        username: u.username,
         beerCount: parseInt(u.beerCount),
       }));
 
@@ -241,16 +241,16 @@ export class DashboardService {
         .leftJoin('user.beers', 'beer')
         .select([
           'user.id as id',
-          'user.name as name',
+          'user.username as username',
           'COUNT(beer.id) as beerCount',
         ])
         .groupBy('user.id')
         .orderBy('beerCount', 'DESC')
-        .getRawMany<{ id: string; name: string; beerCount: string }>();
+        .getRawMany<{ id: string; username: string; beerCount: string }>();
 
       const topUsers: UserStatsDto[] = usersWithBeerCounts.map((u) => ({
         id: u.id,
-        name: u.name,
+        username: u.username,
         beerCount: parseInt(u.beerCount),
       }));
 
@@ -300,7 +300,7 @@ export class DashboardService {
             .leftJoin('user.eventBeers', 'event_beer', 'event_beer.eventId = :eventId', { eventId: event.id })
             .select([
               'user.id as id',
-              'user.name as name',
+              'user.username as username',
               'user.gender as gender',
               'COUNT(event_beer.id) as beerCount',
             ])
@@ -331,7 +331,7 @@ export class DashboardService {
         .leftJoin('user.beers', 'beer')
         .select([
           'user.id as id',
-          'user.name as name',
+          'user.username as username',
           'user.gender as gender',
           'COUNT(beer.id) as beerCount',
         ])
