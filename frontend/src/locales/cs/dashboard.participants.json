@@ -4,8 +4,7 @@
   "noData": "Žádní účastníci k zobrazení",
   "actions": {
     "showDeleted": "Zobrazit smazané",
-    "addParticipant": "Přidat účastníka",
-    "cleanupAll": "Vyčistit vše"
+    "addParticipant": "Přidat účastníka"
   },
   "sections": {
     "male": "Muži",
@@ -26,7 +25,7 @@
     "actions": {
       "addBeer": "Přidat pivo",
       "removeBeer": "Odebrat pivo",
-      "delete": "Smazat"
+      "delete": "Odebrat z události"
     }
   },
   "dialogs": {
@@ -54,17 +53,12 @@
       "error": "Nepodařilo se přidat účastníka"
     },
     "delete": {
-      "title": "Smazat účastníka",
-      "message": "Opravdu chcete smazat účastníka {username}? Tuto akci nelze vrátit.",
-      "confirm": "Smazat",
+      "title": "Odebrat účastníka z události",
+      "message": "Opravdu chcete odebrat účastníka {username} z této události?",
+      "confirm": "Odebrat",
       "cancel": "Zrušit",
-      "success": "Účastník byl úspěšně smazán",
-      "error": "Nepodařilo se smazat účastníka"
-    },
-    "cleanupAll": {
-      "message": "Opravdu chcete smazat všechny účastníky? Tuto akci nelze vrátit.",
-      "success": "Všichni účastníci byli úspěšně smazáni",
-      "error": "Nepodařilo se smazat všechny účastníky"
+      "success": "Účastník byl úspěšně odebrán z události",
+      "error": "Nepodařilo se odebrat účastníka z události"
     }
   },
   "errors": {

@@ -3,7 +3,7 @@ import type { FeatureFlags } from '../types/featureFlags';
 
 export const featureFlags: FeatureFlags = {
   [FeatureFlagKey.SHOW_DELETED_USERS]: {
-    enabled: true,
+    enabled: false,
     description: 'Shows deleted users with option to restore them',
   },
   [FeatureFlagKey.SHOW_EVENT_HISTORY]: {
@@ -27,7 +27,7 @@ export const featureFlags: FeatureFlags = {
     description: 'Adds year filtering capability to the leaderboard',
   },
   [FeatureFlagKey.SHOW_DELETED_BARRELS]: {
-    enabled: true,
+    enabled: false,
     description: 'Shows deleted barrels with option to restore them',
   },
   [FeatureFlagKey.BARREL_STATUS_TOGGLE]: {
@@ -39,8 +39,12 @@ export const featureFlags: FeatureFlags = {
     description: 'Shows event history functionality specifically for barrels page',
   },
   [FeatureFlagKey.SHOW_DELETED_PARTICIPANTS]: {
-    enabled: true,
+    enabled: false,
     description: 'Shows deleted participants with option to restore them',
+  },
+  [FeatureFlagKey.CLEANUP_FUNCTIONALITY]: {
+    enabled: false,
+    description: 'Enables the cleanup functionality',
   },
 };
 

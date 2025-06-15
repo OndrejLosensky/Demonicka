@@ -16,7 +16,6 @@ import {
   Typography,
   Chip,
   Box,
-  Grid,
 } from '@mui/material';
 import { 
   Delete as DeleteIcon,
@@ -38,56 +37,38 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   onAddBeer,
   onRemoveBeer,
   onDelete,
-  maleCount,
-  femaleCount,
 }) => {
   const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; participant: { id: string; username: string } }>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedParticipant, setSelectedParticipant] = useState<{ id: string; username: string } | null>(null);
 
   const handleCloseMenu = () => {
     setMenuAnchor(null);
   };
 
   const handleDeleteClick = () => {
+    console.log('Delete clicked - opening confirmation dialog');
+    if (menuAnchor?.participant) {
+      setSelectedParticipant(menuAnchor.participant);
+    }
     handleCloseMenu();
     setDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = () => {
-    if (menuAnchor) {
-      onDelete(menuAnchor.participant.id);
+    console.log('Delete confirmed, participant:', selectedParticipant);
+    if (selectedParticipant) {
+      console.log('Calling onDelete with ID:', selectedParticipant.id);
+      onDelete(selectedParticipant.id);
     }
     setDeleteDialogOpen(false);
-    setMenuAnchor(null);
+    setSelectedParticipant(null);
   };
 
   const allParticipants = showDeleted ? [...participants, ...deletedParticipants] : participants;
 
   return (
     <>
-      <Box sx={{ mb: 3 }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-              <MaleIcon color="primary" />
-              <Box>
-                <Typography variant="h6">{translations.sections.male}</Typography>
-                <Typography variant="h4" color="primary">{maleCount}</Typography>
-              </Box>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-              <FemaleIcon color="secondary" />
-              <Box>
-                <Typography variant="h6">{translations.sections.female}</Typography>
-                <Typography variant="h4" color="secondary">{femaleCount}</Typography>
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Box>
-
       <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: 'hidden' }}>
         <Table>
           <TableHead>
@@ -134,9 +115,15 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                 <TableCell>
                   <Chip
                     icon={participant.gender === 'MALE' ? <MaleIcon /> : <FemaleIcon />}
-                    label={participant.gender}
-                    color={participant.gender === 'MALE' ? 'primary' : 'secondary'}
-                    variant="outlined"
+                    label={participant.gender === 'MALE' ? translations.dialogs.add.fields.gender.male : translations.dialogs.add.fields.gender.female}
+                    size="small"
+                    sx={{
+                      bgcolor: participant.gender === 'MALE' ? 'rgba(25, 118, 210, 0.08)' : 'rgba(255, 192, 203, 0.2)',
+                      color: participant.gender === 'MALE' ? 'primary.main' : '#E91E63',
+                      '& .MuiChip-icon': {
+                        color: participant.gender === 'MALE' ? 'primary.main' : '#E91E63',
+                      },
+                    }}
                   />
                 </TableCell>
                 <TableCell>
@@ -229,7 +216,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
-        participantUsername={menuAnchor?.participant.username || ''}
+        participantUsername={selectedParticipant?.username || ''}
       />
     </>
   );

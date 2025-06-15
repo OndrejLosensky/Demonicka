@@ -7,8 +7,17 @@ import {
   FormControlLabel,
   Switch,
   Container,
+  ToggleButton,
+  ToggleButtonGroup,
+  Grid,
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { 
+  Add as AddIcon, 
+  ViewList as ViewListIcon, 
+  ViewModule as ViewModuleIcon,
+  Male as MaleIcon,
+  Female as FemaleIcon,
+} from '@mui/icons-material';
 import { ParticipantsTable } from './ParticipantsTable';
 import { useParticipants } from './useParticipants';
 import { AddParticipantDialog } from './AddParticipantDialog';
@@ -21,6 +30,7 @@ import translations from '../../../locales/cs/dashboard.participants.json';
 
 const ParticipantsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
+  const [viewMode, setViewMode] = useState<'combined' | 'split'>('combined');
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_PARTICIPANTS);
   const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
   const { activeEvent } = useActiveEvent();
@@ -31,16 +41,10 @@ const ParticipantsPage: React.FC = () => {
     handleDelete,
     handleAddBeer,
     handleRemoveBeer,
-    handleCleanup,
     fetchParticipants,
   } = useParticipants(showDeleted);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-
-  // Force refresh when active event changes
-  useEffect(() => {
-    fetchParticipants();
-  }, [activeEvent?.id, activeEvent?.updatedAt, fetchParticipants]);
 
   const { maleParticipants, femaleParticipants } = useMemo(() => {
     const activeParticipants = showDeleted ? [...participants, ...deletedParticipants] : participants;
@@ -50,11 +54,10 @@ const ParticipantsPage: React.FC = () => {
     };
   }, [participants, deletedParticipants, showDeleted]);
 
-  const confirmCleanup = async () => {
-    if (window.confirm(translations.dialogs.cleanupAll.message)) {
-      await handleCleanup();
-    }
-  };
+  // Force refresh when active event changes
+  useEffect(() => {
+    fetchParticipants();
+  }, [activeEvent?.id, activeEvent?.updatedAt, fetchParticipants]);
 
   if (!activeEvent) {
     return (
@@ -74,7 +77,20 @@ const ParticipantsPage: React.FC = () => {
           <Typography variant="h4">{translations.title}</Typography>
           {showEventHistory && <EventSelector />}
         </Box>
-        <Box>
+        <Box display="flex" alignItems="center" gap={2}>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={(_, newMode) => newMode && setViewMode(newMode)}
+            size="small"
+          >
+            <ToggleButton value="combined">
+              <ViewListIcon />
+            </ToggleButton>
+            <ToggleButton value="split">
+              <ViewModuleIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
           {showDeletedFeature && (
             <FormControlLabel
               control={
@@ -91,24 +107,15 @@ const ParticipantsPage: React.FC = () => {
             color="primary"
             startIcon={<AddIcon />}
             onClick={() => setDialogOpen(true)}
-            sx={{ mr: 1 }}
           >
             {translations.actions.addParticipant}
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<DeleteIcon />}
-            onClick={confirmCleanup}
-          >
-            {translations.actions.cleanupAll}
           </Button>
         </Box>
       </Box>
 
       {isLoading ? (
         <CircularProgress />
-      ) : (
+      ) : viewMode === 'combined' ? (
         <ParticipantsTable
           participants={participants}
           deletedParticipants={deletedParticipants}
@@ -116,9 +123,38 @@ const ParticipantsPage: React.FC = () => {
           onDelete={handleDelete}
           onAddBeer={handleAddBeer}
           onRemoveBeer={handleRemoveBeer}
-          maleCount={maleParticipants.length}
-          femaleCount={femaleParticipants.length}
         />
+      ) : (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <MaleIcon color="primary" />
+              {translations.sections.male} ({maleParticipants.length})
+            </Typography>
+            <ParticipantsTable
+              participants={maleParticipants}
+              deletedParticipants={[]}
+              showDeleted={showDeleted}
+              onDelete={handleDelete}
+              onAddBeer={handleAddBeer}
+              onRemoveBeer={handleRemoveBeer}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <FemaleIcon sx={{ color: '#E91E63' }} />
+              {translations.sections.female} ({femaleParticipants.length})
+            </Typography>
+            <ParticipantsTable
+              participants={femaleParticipants}
+              deletedParticipants={[]}
+              showDeleted={showDeleted}
+              onDelete={handleDelete}
+              onAddBeer={handleAddBeer}
+              onRemoveBeer={handleRemoveBeer}
+            />
+          </Grid>
+        </Grid>
       )}
 
       <AddParticipantDialog

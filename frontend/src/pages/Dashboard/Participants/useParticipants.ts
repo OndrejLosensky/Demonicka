@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { participantsApi } from './api';
+import { eventService } from '../../../services/eventService';
 import type { Participant } from './types';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.participants.json';
@@ -50,15 +51,23 @@ export const useParticipants = (includeDeleted = false) => {
   }, [includeDeleted, activeEvent?.id]);
 
   const handleDelete = useCallback(async (id: string) => {
+    console.log('handleDelete called with ID:', id);
+    if (!activeEvent) {
+      console.error('No active event found!');
+      return;
+    }
+    console.log('Active event:', activeEvent);
+    
     try {
-      await participantsApi.delete(id);
+      console.log('Calling eventService.removeUser with eventId:', activeEvent.id, 'and userId:', id);
+      await eventService.removeUser(activeEvent.id, id);
       toast.success(translations.dialogs.delete.success);
       await fetchParticipants();
     } catch (error: unknown) {
-      console.error('Failed to delete participant:', error);
+      console.error('Failed to remove participant from event:', error);
       toast.error(translations.dialogs.delete.error);
     }
-  }, [fetchParticipants]);
+  }, [activeEvent, fetchParticipants]);
 
   const handleAddBeer = useCallback(async (id: string) => {
     try {

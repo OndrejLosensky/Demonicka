@@ -7,7 +7,6 @@ import {
     Grid,
     Card,
     LinearProgress,
-    useTheme,
     Table,
     TableBody,
     TableCell,
@@ -39,7 +38,6 @@ import { EventSelector } from '../../components/EventSelector';
 import { EmptyEventState } from '../../components/EmptyEventState';
 
 export const Dashboard: React.FC = () => {
-    const theme = useTheme();
     const { selectedEvent } = useSelectedEvent();
     const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
     const [isLoading, setIsLoading] = useState(true);
@@ -110,12 +108,6 @@ export const Dashboard: React.FC = () => {
         }
     };
 
-    const getBarrelFillPercentage = (): number => {
-        if (!barrels.length) return 0;
-        const totalCapacity = barrels.reduce((sum, barrel) => sum + (barrel.size * 8), 0);
-        return (stats.remainingBeers / totalCapacity) * 100;
-    };
-
     if (isLoading) {
         return (
             <Container>
@@ -142,9 +134,6 @@ export const Dashboard: React.FC = () => {
         <div>
             {/* Header with Event Selector */}
             <Box display="flex" alignItems="center" gap={2} mb={4}>
-                <Typography variant="h4">
-                    {translations.overview.title}
-                </Typography>
                 {showEventHistory && <EventSelector />}
             </Box>
 
@@ -193,10 +182,21 @@ export const Dashboard: React.FC = () => {
             </Paper>
 
             <Grid container spacing={4}>
-                {/* Barrel Visualization */}
+                {/* Beer Keg Visualization */}
                 <Grid item xs={12} md={6}>
-                    <Card sx={{ p: 3, height: '100%', position: 'relative' }}>
-                        <Typography variant="h5" fontWeight="bold" gutterBottom>
+                    <Card 
+                        sx={{ 
+                            p: 3, 
+                            height: '100%', 
+                            position: 'relative',
+                            transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                            '&:hover': {
+                                transform: 'translateY(-4px)',
+                                boxShadow: (theme) => theme.shadows[8],
+                            },
+                        }}
+                    >
+                        <Typography variant="h6" fontWeight="bold" gutterBottom>
                             {translations.barrelStatus.title}
                         </Typography>
                         <Box sx={{ 
@@ -206,15 +206,35 @@ export const Dashboard: React.FC = () => {
                             alignItems: 'center',
                             justifyContent: 'center'
                         }}>
-                            <Box sx={{ position: 'relative', width: '100%', maxWidth: 300 }}>
-                                {/* Barrel Shape */}
+                            {/* Keg Container */}
+                            <Box sx={{ 
+                                position: 'relative', 
+                                width: '60%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                {/* Keg Body */}
                                 <Box sx={{
                                     position: 'relative',
                                     width: '100%',
-                                    paddingBottom: '150%',
-                                    backgroundColor: theme.palette.grey[200],
-                                    borderRadius: '20px',
+                                    height: '80%',
+                                    bgcolor: '#e0e0e0',
+                                    borderRadius: '40px',
                                     overflow: 'hidden',
+                                    boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)',
+                                    '&::before': {
+                                        content: '""',
+                                        position: 'absolute',
+                                        top: '5%',
+                                        left: '10%',
+                                        right: '10%',
+                                        bottom: '5%',
+                                        borderLeft: '8px solid #d0d0d0',
+                                        borderRight: '8px solid #d0d0d0',
+                                        borderRadius: 'inherit',
+                                    }
                                 }}>
                                     {/* Beer Fill */}
                                     <Box sx={{
@@ -222,38 +242,69 @@ export const Dashboard: React.FC = () => {
                                         bottom: 0,
                                         left: 0,
                                         width: '100%',
-                                        height: `${getBarrelFillPercentage()}%`,
-                                        background: 'linear-gradient(180deg, #ffc107 0%, #ff9800 100%)',
+                                        height: `${(stats.remainingBeers / (stats.activeBarrels * 60)) * 100}%`,
+                                        background: 'linear-gradient(180deg, #ffd700 0%, #ffa000 100%)',
                                         transition: 'height 1s ease-in-out',
                                     }} />
-                                    
-                                    {/* Barrel Overlay */}
+
+                                    {/* Foam Layer */}
                                     <Box sx={{
                                         position: 'absolute',
-                                        top: '5%',
-                                        left: '10%',
-                                        width: '80%',
-                                        height: '90%',
-                                        borderLeft: `4px solid ${theme.palette.grey[300]}`,
-                                        borderRight: `4px solid ${theme.palette.grey[300]}`,
-                                        borderRadius: '20px',
+                                        bottom: `${(stats.remainingBeers / (stats.activeBarrels * 60)) * 100}%`,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '20px',
+                                        background: 'linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.5) 100%)',
+                                        animation: 'foamWave 2s ease-in-out infinite',
+                                        '&::after': {
+                                            content: '""',
+                                            position: 'absolute',
+                                            top: '-10px',
+                                            left: 0,
+                                            width: '100%',
+                                            height: '10px',
+                                            background: 'linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.8) 100%)',
+                                            borderRadius: '50%',
+                                        }
                                     }} />
-                                    
-                                    {/* Barrel Rings */}
+
+                                    {/* Keg Rings */}
                                     {[20, 40, 60, 80].map((position) => (
                                         <Box
                                             key={position}
                                             sx={{
                                                 position: 'absolute',
                                                 top: `${position}%`,
-                                                left: 0,
-                                                width: '100%',
-                                                height: '4px',
-                                                backgroundColor: theme.palette.grey[300],
+                                                left: '-5%',
+                                                width: '110%',
+                                                height: '12px',
+                                                bgcolor: '#d0d0d0',
                                                 transform: 'translateY(-50%)',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                '&::after': {
+                                                    content: '""',
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    width: '100%',
+                                                    height: '50%',
+                                                    background: 'linear-gradient(180deg, rgba(255,255,255,0.5) 0%, transparent 100%)',
+                                                }
                                             }}
                                         />
                                     ))}
+
+                                    {/* Tap */}
+                                    <Box sx={{
+                                        position: 'absolute',
+                                        top: '30%',
+                                        right: '-20px',
+                                        width: '40px',
+                                        height: '20px',
+                                        bgcolor: '#b0b0b0',
+                                        borderRadius: '4px',
+                                        boxShadow: '2px 2px 4px rgba(0,0,0,0.1)',
+                                    }} />
                                 </Box>
 
                                 {/* Stats Overlay */}
@@ -263,22 +314,32 @@ export const Dashboard: React.FC = () => {
                                     left: '50%',
                                     transform: 'translate(-50%, -50%)',
                                     textAlign: 'center',
-                                    zIndex: 1,
+                                    bgcolor: 'rgba(255,255,255,0.9)',
+                                    p: 2,
+                                    borderRadius: 2,
+                                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                                 }}>
-                                    <Typography variant="h4" fontWeight="bold" color="primary">
+                                    <Typography variant="h3" fontWeight="bold" color="primary">
                                         {Math.round(stats.remainingBeers)}
                                     </Typography>
-                                    <Typography variant="body1" color="textSecondary">
+                                    <Typography variant="subtitle1" color="textSecondary">
                                         {translations.barrelStatus.remainingBeers}
                                     </Typography>
                                 </Box>
                             </Box>
                         </Box>
+
+                        {/* Stats Footer */}
                         <Box sx={{ mt: 2 }}>
                             <Grid container spacing={2}>
                                 <Grid item xs={6}>
-                                    <Box sx={{ textAlign: 'center' }}>
-                                        <Typography variant="h6" color="primary">
+                                    <Box sx={{ 
+                                        textAlign: 'center',
+                                        p: 2,
+                                        borderRadius: 2,
+                                        bgcolor: 'primary.light',
+                                    }}>
+                                        <Typography variant="h5" color="primary" fontWeight="bold">
                                             {stats.activeBarrels}
                                         </Typography>
                                         <Typography variant="body2" color="textSecondary">
@@ -287,8 +348,13 @@ export const Dashboard: React.FC = () => {
                                     </Box>
                                 </Grid>
                                 <Grid item xs={6}>
-                                    <Box sx={{ textAlign: 'center' }}>
-                                        <Typography variant="h6" color="primary">
+                                    <Box sx={{ 
+                                        textAlign: 'center',
+                                        p: 2,
+                                        borderRadius: 2,
+                                        bgcolor: 'grey.100',
+                                    }}>
+                                        <Typography variant="h5" color="text.primary" fontWeight="bold">
                                             {barrels.length}
                                         </Typography>
                                         <Typography variant="body2" color="textSecondary">
@@ -306,19 +372,48 @@ export const Dashboard: React.FC = () => {
                     <Grid container spacing={3}>
                         {/* Top Drinker Card */}
                         <Grid item xs={12}>
-                            <Card sx={{ p: 3 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <TrophyIcon sx={{ fontSize: 40, color: theme.palette.warning.main }} />
-                                    <Box>
-                                        <Typography variant="overline" color="textSecondary">
+                            <Card 
+                                sx={{ 
+                                    p: 3,
+                                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                                    '&:hover': {
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: (theme) => theme.shadows[8],
+                                    },
+                                }}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                    <Box sx={{
+                                        width: 80,
+                                        height: 80,
+                                        borderRadius: '50%',
+                                        bgcolor: 'warning.light',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}>
+                                        <TrophyIcon sx={{ fontSize: 40, color: 'warning.main' }} />
+                                    </Box>
+                                    <Box sx={{ flex: 1 }}>
+                                        <Typography variant="overline" color="textSecondary" sx={{ letterSpacing: 1 }}>
                                             {translations.stats.topDrinker}
                                         </Typography>
-                                        <Typography variant="h5" fontWeight="bold">
+                                        <Typography variant="h4" fontWeight="bold" gutterBottom>
                                             {stats.topDrinker.username || translations.overview.charts.topUsers.unknownUser}
                                         </Typography>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <FaBeer style={{ color: theme.palette.primary.main }} />
-                                            <Typography>
+                                        <Box sx={{ 
+                                            display: 'inline-flex', 
+                                            alignItems: 'center', 
+                                            gap: 1,
+                                            bgcolor: 'warning.light',
+                                            color: 'warning.main',
+                                            py: 1,
+                                            px: 2,
+                                            borderRadius: 2,
+                                            fontWeight: 'bold'
+                                        }}>
+                                            <FaBeer size={20} />
+                                            <Typography variant="h6" component="span">
                                                 {stats.topDrinker.count} {translations.stats.beers}
                                             </Typography>
                                         </Box>
@@ -329,15 +424,34 @@ export const Dashboard: React.FC = () => {
 
                         {/* Stats Cards */}
                         <Grid item xs={12} sm={6}>
-                            <Card sx={{ p: 3, height: '100%' }}>
+                            <Card 
+                                sx={{ 
+                                    p: 3, 
+                                    height: '100%',
+                                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                                    '&:hover': {
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: (theme) => theme.shadows[8],
+                                    },
+                                }}
+                            >
                                 <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                        <BeerIcon sx={{ fontSize: 30, color: 'primary.main' }} />
-                                        <Typography variant="h6">
+                                        <Box sx={{ 
+                                            p: 1.5, 
+                                            borderRadius: 2, 
+                                            bgcolor: 'primary.light',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}>
+                                            <BeerIcon sx={{ fontSize: 30, color: 'primary.main' }} />
+                                        </Box>
+                                        <Typography variant="h4" fontWeight="bold">
                                             {stats.totalBeers}
                                         </Typography>
                                     </Box>
-                                    <Typography color="textSecondary">
+                                    <Typography variant="subtitle1" color="textSecondary" sx={{ mt: 'auto' }}>
                                         {translations.stats.totalBeers}
                                     </Typography>
                                 </Box>
@@ -345,15 +459,34 @@ export const Dashboard: React.FC = () => {
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
-                            <Card sx={{ p: 3, height: '100%' }}>
+                            <Card 
+                                sx={{ 
+                                    p: 3, 
+                                    height: '100%',
+                                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                                    '&:hover': {
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: (theme) => theme.shadows[8],
+                                    },
+                                }}
+                            >
                                 <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                        <TrendIcon sx={{ fontSize: 30, color: 'success.main' }} />
-                                        <Typography variant="h6">
+                                        <Box sx={{ 
+                                            p: 1.5, 
+                                            borderRadius: 2, 
+                                            bgcolor: 'success.light',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}>
+                                            <TrendIcon sx={{ fontSize: 30, color: 'success.main' }} />
+                                        </Box>
+                                        <Typography variant="h4" fontWeight="bold">
                                             {stats.averageBeersPerHour.toFixed(1)}
                                         </Typography>
                                     </Box>
-                                    <Typography color="textSecondary">
+                                    <Typography variant="subtitle1" color="textSecondary" sx={{ mt: 'auto' }}>
                                         {translations.stats.averagePerHour}
                                     </Typography>
                                 </Box>
@@ -362,9 +495,17 @@ export const Dashboard: React.FC = () => {
 
                         {/* Top Users Table */}
                         <Grid item xs={12}>
-                            <Card>
+                            <Card 
+                                sx={{ 
+                                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                                    '&:hover': {
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: (theme) => theme.shadows[8],
+                                    },
+                                }}
+                            >
                                 <Box sx={{ p: 3 }}>
-                                    <Typography variant="h6" gutterBottom>
+                                    <Typography variant="h6" fontWeight="bold" gutterBottom>
                                         {translations.overview.charts.topUsers.title}
                                     </Typography>
                                     <Table>
@@ -379,17 +520,55 @@ export const Dashboard: React.FC = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {dashboardStats.topUsers.map((user) => (
-                                                <TableRow key={user.id}>
+                                            {dashboardStats.topUsers.map((user, index) => (
+                                                <TableRow 
+                                                    key={user.id}
+                                                    sx={{
+                                                        transition: 'background-color 0.2s ease-in-out',
+                                                        '&:hover': {
+                                                            bgcolor: 'action.hover',
+                                                        },
+                                                    }}
+                                                >
                                                     <TableCell>
                                                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                            <Avatar sx={{ mr: 2 }}>
+                                                            <Avatar 
+                                                                sx={{ 
+                                                                    mr: 2,
+                                                                    bgcolor: index === 0 ? 'warning.main' : 'primary.main',
+                                                                }}
+                                                            >
                                                                 {user.username ? user.username.charAt(0).toUpperCase() : '?'}
                                                             </Avatar>
-                                                            <Typography>{user.username || translations.overview.charts.topUsers.unknownUser}</Typography>
+                                                            <Box>
+                                                                <Typography fontWeight={index === 0 ? 'bold' : 'regular'}>
+                                                                    {user.username || translations.overview.charts.topUsers.unknownUser}
+                                                                </Typography>
+                                                                {index === 0 && (
+                                                                    <Typography variant="caption" color="warning.main" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                                        <TrophyIcon sx={{ fontSize: 16 }} />
+                                                                        {translations.stats.topDrinker}
+                                                                    </Typography>
+                                                                )}
+                                                            </Box>
                                                         </Box>
                                                     </TableCell>
-                                                    <TableCell align="right">{user.beerCount}</TableCell>
+                                                    <TableCell align="right">
+                                                        <Box sx={{ 
+                                                            display: 'inline-flex', 
+                                                            alignItems: 'center',
+                                                            gap: 1,
+                                                            bgcolor: index === 0 ? 'warning.light' : 'primary.light',
+                                                            color: index === 0 ? 'warning.main' : 'primary.main',
+                                                            py: 0.5,
+                                                            px: 1.5,
+                                                            borderRadius: 1,
+                                                            fontWeight: 'bold'
+                                                        }}>
+                                                            <FaBeer />
+                                                            {user.beerCount}
+                                                        </Box>
+                                                    </TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
@@ -400,9 +579,17 @@ export const Dashboard: React.FC = () => {
 
                         {/* Barrel Stats Table */}
                         <Grid item xs={12}>
-                            <Card>
+                            <Card 
+                                sx={{ 
+                                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                                    '&:hover': {
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: (theme) => theme.shadows[8],
+                                    },
+                                }}
+                            >
                                 <Box sx={{ p: 3 }}>
-                                    <Typography variant="h6" gutterBottom>
+                                    <Typography variant="h6" fontWeight="bold" gutterBottom>
                                         {translations.overview.charts.barrelStats.title}
                                     </Typography>
                                     <Table>
@@ -418,9 +605,48 @@ export const Dashboard: React.FC = () => {
                                         </TableHead>
                                         <TableBody>
                                             {dashboardStats.barrelStats.map((stat, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell>{stat.size}l</TableCell>
-                                                    <TableCell align="right">{stat.count}</TableCell>
+                                                <TableRow 
+                                                    key={index}
+                                                    sx={{
+                                                        transition: 'background-color 0.2s ease-in-out',
+                                                        '&:hover': {
+                                                            bgcolor: 'action.hover',
+                                                        },
+                                                    }}
+                                                >
+                                                    <TableCell>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            <Box sx={{ 
+                                                                width: 32, 
+                                                                height: 32, 
+                                                                borderRadius: 1,
+                                                                bgcolor: 'primary.light',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                color: 'primary.main',
+                                                                fontWeight: 'bold'
+                                                            }}>
+                                                                {stat.size}
+                                                            </Box>
+                                                            <Typography>litrů</Typography>
+                                                        </Box>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Box sx={{ 
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: 1,
+                                                            bgcolor: 'primary.light',
+                                                            color: 'primary.main',
+                                                            py: 0.5,
+                                                            px: 1.5,
+                                                            borderRadius: 1,
+                                                            fontWeight: 'bold'
+                                                        }}>
+                                                            {stat.count} ks
+                                                        </Box>
+                                                    </TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>

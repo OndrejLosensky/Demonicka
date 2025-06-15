@@ -9,8 +9,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormControlLabel,
-  Switch,
 } from '@mui/material';
 import { toast } from 'react-hot-toast';
 import { barrelService } from '../../../services/barrelService';
@@ -29,16 +27,14 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [size, setSize] = useState<15 | 30 | 50>(15);
-  const [makeActive, setMakeActive] = useState(false);
+  const [size, setSize] = useState<15 | 30 | 50>(30);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { activeEvent } = useActiveEvent();
 
   // Reset form state when dialog opens/closes
   useEffect(() => {
     if (open) {
-      setSize(15);
-      setMakeActive(false);
+      setSize(30);
     }
   }, [open]);
 
@@ -60,10 +56,8 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
         await eventService.addBarrel(activeEvent.id, barrel.id);
       }
 
-      // If makeActive is true, activate the barrel
-      if (makeActive) {
-        await barrelService.activate(barrel.id);
-      }
+      // Always activate new barrels
+      await barrelService.activate(barrel.id);
 
       toast.success(translations.dialogs.add.success);
       onSuccess();
@@ -77,9 +71,14 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog 
+      open={open} 
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+    >
       <DialogTitle>{translations.dialogs.add.title}</DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ pb: 4 }}>
         <FormControl fullWidth sx={{ mt: 2 }}>
           <InputLabel id="size-label">{translations.dialogs.add.size}</InputLabel>
           <Select
@@ -93,16 +92,6 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
             <MenuItem value={50}>50L</MenuItem>
           </Select>
         </FormControl>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={makeActive}
-              onChange={(e) => setMakeActive(e.target.checked)}
-            />
-          }
-          label={translations.dialogs.add.makeActive}
-          sx={{ mt: 2 }}
-        />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={isSubmitting}>

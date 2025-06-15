@@ -27,6 +27,7 @@ const BarrelsPage: React.FC = () => {
   const { activeEvent } = useActiveEvent();
   const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_BARRELS);
+  const showCleanupFeature = useFeatureFlag(FeatureFlagKey.CLEANUP_FUNCTIONALITY);
   const { barrels, deletedBarrels, isLoading, fetchBarrels } = useBarrels(showDeleted);
 
   const handleDelete = async (id: string) => {
@@ -68,8 +69,8 @@ const BarrelsPage: React.FC = () => {
     return (
       <Container>
         <EmptyEventState
-          title={translations.noData}
-          subtitle={translations.noActiveEvent.subtitle}
+          title={translations.emptyState.title}
+          subtitle={translations.emptyState.subtitle}
         />
       </Container>
     );
@@ -103,14 +104,16 @@ const BarrelsPage: React.FC = () => {
           >
             {translations.actions.addBarrel}
           </Button>
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<DeleteIcon />}
-            onClick={confirmCleanup}
-          >
-            {translations.actions.cleanupAll}
-          </Button>
+          {showCleanupFeature && (
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={confirmCleanup}
+            >
+              {translations.actions.cleanupAll}
+            </Button>
+          )}
         </Box>
       </Box>
 

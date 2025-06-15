@@ -19,8 +19,6 @@ export interface ParticipantTableProps {
   onAddBeer: (participantId: string) => Promise<void>;
   onRemoveBeer: (participantId: string) => Promise<void>;
   onDelete: (participantId: string) => Promise<void>;
-  maleCount: number;
-  femaleCount: number;
 }
 
 export interface AddParticipantDialogProps {

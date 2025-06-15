@@ -59,7 +59,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
               <TableCell>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography sx={{ fontWeight: 500 }}>
-                    {`Sud ${barrel.id.slice(0, 8)}`}
+                    {`Sud ${barrel.orderNumber}`}
                   </Typography>
                   {showDeleted && barrel.deletedAt && (
                     <Typography

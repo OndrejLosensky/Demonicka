@@ -51,8 +51,15 @@ export const eventService = {
     },
 
     async removeUser(id: string, userId: string): Promise<Event> {
-        const response = await api.delete(`/events/${id}/users/${userId}`);
-        return response.data;
+        console.log('eventService.removeUser called with eventId:', id, 'userId:', userId);
+        try {
+            const response = await api.delete(`/events/${id}/users/${userId}`);
+            console.log('removeUser response:', response);
+            return response.data;
+        } catch (error) {
+            console.error('removeUser error:', error);
+            throw error;
+        }
     },
 
     async addBarrel(id: string, barrelId: string): Promise<Event> {
