@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { barrelsApi } from './api';
-import type { Barrel } from './types';
+import { barrelService } from '../../../services/barrelService';
+import type { Barrel } from '../../../types/barrel';
 import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
 import translations from '../../../locales/cs/dashboard.barrels.json';
 
@@ -17,19 +17,19 @@ export const useBarrels = (includeDeleted = false) => {
       
       if (selectedEvent) {
         // Get barrels for the selected event
-        const eventBarrels = await barrelsApi.getByEvent(selectedEvent.id);
+        const eventBarrels = await barrelService.getByEvent(selectedEvent.id);
         setBarrels(eventBarrels);
         setDeletedBarrels([]);
       } else {
         // Fallback to all barrels if no event is selected
         if (includeDeleted) {
-          const data = await barrelsApi.getAll(true);
+          const data = await barrelService.getAll(true);
           const active = data.filter(b => !b.deletedAt);
           const deleted = data.filter(b => b.deletedAt);
           setBarrels(active);
           setDeletedBarrels(deleted);
         } else {
-          const data = await barrelsApi.getAll(false);
+          const data = await barrelService.getAll(false);
           setBarrels(data);
           setDeletedBarrels([]);
         }
@@ -44,7 +44,7 @@ export const useBarrels = (includeDeleted = false) => {
 
   const handleDelete = useCallback(async (id: string) => {
     try {
-      await barrelsApi.delete(id);
+      await barrelService.delete(id);
       toast.success(translations.dialogs.delete.success);
       await fetchBarrels();
     } catch (error: unknown) {
@@ -55,7 +55,7 @@ export const useBarrels = (includeDeleted = false) => {
 
   const handleToggleActive = useCallback(async (id: string) => {
     try {
-      await barrelsApi.toggleActive(id);
+      await barrelService.toggleActive(id);
       toast.success(translations.errors.statusUpdated);
       await fetchBarrels();
     } catch (error: unknown) {
@@ -66,7 +66,7 @@ export const useBarrels = (includeDeleted = false) => {
 
   const handleCleanup = useCallback(async () => {
     try {
-      await barrelsApi.cleanup();
+      await barrelService.cleanup();
       toast.success(translations.dialogs.cleanupAll.success);
       await fetchBarrels();
     } catch (error: unknown) {

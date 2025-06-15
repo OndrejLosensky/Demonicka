@@ -17,7 +17,7 @@ export const eventService = {
         return response.data;
     },
 
-    async updateEvent(id: string, data: { name: string; description?: string; startDate: string; endDate?: string }): Promise<Event> {
+    async updateEvent(id: string, data: Partial<Event>): Promise<Event> {
         const response = await api.put(`/events/${id}`, data);
         return response.data;
     },
@@ -26,13 +26,22 @@ export const eventService = {
         await api.delete(`/events/${id}`);
     },
 
+    async getActiveEvent(): Promise<Event | null> {
+        try {
+            const response = await api.get('/events/active');
+            return response.data;
+        } catch {
+            return null;
+        }
+    },
+
     async setActive(id: string): Promise<Event> {
-        const response = await api.put(`/events/${id}/activate`);
+        const response = await api.put(`/events/${id}/active`);
         return response.data;
     },
 
-    async endEvent(id: string): Promise<Event> {
-        const response = await api.put(`/events/${id}/end`);
+    async deactivate(id: string): Promise<Event> {
+        const response = await api.delete(`/events/${id}/active`);
         return response.data;
     },
 
@@ -56,18 +65,21 @@ export const eventService = {
         return response.data;
     },
 
-    async getActiveEvent(): Promise<Event | null> {
-        const response = await api.get('/events/active');
-        return response.data;
-    },
-
-    async makeEventActive(id: string): Promise<Event> {
-        const response = await api.put(`/events/${id}/activate`);
+    async getEventUsers(id: string): Promise<Event> {
+        const response = await api.get(`/events/${id}/users`);
         return response.data;
     },
 
     async getUserEventBeerCount(eventId: string, userId: string): Promise<number> {
         const response = await api.get(`/events/${eventId}/users/${userId}/beers/count`);
         return response.data;
+    },
+
+    async addBeerToUser(eventId: string, userId: string): Promise<void> {
+        await api.post(`/events/${eventId}/users/${userId}/beers`);
+    },
+
+    async removeBeerFromUser(eventId: string, userId: string): Promise<void> {
+        await api.delete(`/events/${eventId}/users/${userId}/beers`);
     }
 }; 

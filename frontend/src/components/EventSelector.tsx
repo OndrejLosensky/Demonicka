@@ -18,7 +18,7 @@ import { format } from 'date-fns';
 export const EventSelector: React.FC = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [events, setEvents] = useState<Event[]>([]);
-    const { activeEvent } = useActiveEvent();
+    const { activeEvent, loadActiveEvent } = useActiveEvent();
     const { selectedEvent, setSelectedEvent, isViewingHistory } = useSelectedEvent();
 
     useEffect(() => {
@@ -42,14 +42,18 @@ export const EventSelector: React.FC = () => {
         setAnchorEl(null);
     };
 
-    const handleEventSelect = (event: Event) => {
+    const handleEventSelect = async (event: Event) => {
         setSelectedEvent(event);
+        if (event.isActive) {
+            await loadActiveEvent();
+        }
         handleClose();
     };
 
-    const handleBackToActive = () => {
+    const handleBackToActive = async () => {
         if (activeEvent) {
             setSelectedEvent(activeEvent);
+            await loadActiveEvent();
         }
     };
 

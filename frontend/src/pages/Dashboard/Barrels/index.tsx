@@ -17,27 +17,50 @@ import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
 import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
+import { barrelService } from '../../../services/barrelService';
+import { toast } from 'react-hot-toast';
 import translations from '../../../locales/cs/dashboard.barrels.json';
 
 const BarrelsPage: React.FC = () => {
-  const [showDeleted, setShowDeleted] = useState(false);
-  const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_BARRELS);
-  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
-  const { activeEvent } = useActiveEvent();
-  const {
-    barrels,
-    deletedBarrels,
-    isLoading,
-    handleDelete,
-    handleCleanup,
-    fetchBarrels,
-  } = useBarrels(showDeleted);
-
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showDeleted, setShowDeleted] = useState(false);
+  const { activeEvent } = useActiveEvent();
+  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
+  const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_BARRELS);
+  const { barrels, deletedBarrels, isLoading, fetchBarrels } = useBarrels(showDeleted);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await barrelService.delete(id);
+      toast.success(translations.dialogs.delete.success);
+      await fetchBarrels();
+    } catch (error) {
+      console.error('Failed to delete barrel:', error);
+      toast.error(translations.dialogs.delete.error);
+    }
+  };
+
+  const handleActivate = async (id: string) => {
+    try {
+      await barrelService.activate(id);
+      toast.success(translations.errors.statusUpdated);
+      await fetchBarrels();
+    } catch (error) {
+      console.error('Failed to activate barrel:', error);
+      toast.error(translations.errors.toggleStatusFailed);
+    }
+  };
 
   const confirmCleanup = async () => {
     if (window.confirm(translations.dialogs.cleanupAll.message)) {
-      await handleCleanup();
+      try {
+        await barrelService.cleanup();
+        toast.success(translations.dialogs.cleanupAll.success);
+        await fetchBarrels();
+      } catch (error) {
+        console.error('Failed to cleanup barrels:', error);
+        toast.error(translations.dialogs.cleanupAll.error);
+      }
     }
   };
 
@@ -45,8 +68,8 @@ const BarrelsPage: React.FC = () => {
     return (
       <Container>
         <EmptyEventState
-          title={translations.emptyState.title}
-          subtitle={translations.emptyState.subtitle}
+          title={translations.noData}
+          subtitle={translations.noActiveEvent.subtitle}
         />
       </Container>
     );
@@ -99,6 +122,7 @@ const BarrelsPage: React.FC = () => {
           deletedBarrels={deletedBarrels}
           showDeleted={showDeleted}
           onDelete={handleDelete}
+          onActivate={handleActivate}
         />
       )}
 

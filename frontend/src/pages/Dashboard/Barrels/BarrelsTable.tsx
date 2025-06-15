@@ -7,15 +7,12 @@ import {
   TableHead,
   TableRow,
   Paper,
-  IconButton,
-  Tooltip,
   Typography,
-  Chip,
   Box,
+  LinearProgress,
+  Button,
 } from '@mui/material';
-import { Delete as DeleteIcon } from '@mui/icons-material';
 import type { Barrel } from '../../../types/barrel';
-import { format } from 'date-fns';
 import translations from '../../../locales/cs/dashboard.barrels.json';
 
 interface BarrelTableProps {
@@ -23,6 +20,7 @@ interface BarrelTableProps {
   deletedBarrels: Barrel[];
   showDeleted: boolean;
   onDelete: (id: string) => Promise<void>;
+  onActivate: (id: string) => Promise<void>;
 }
 
 export const BarrelsTable: React.FC<BarrelTableProps> = ({
@@ -30,6 +28,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
   deletedBarrels,
   showDeleted,
   onDelete,
+  onActivate,
 }) => {
   const allBarrels = showDeleted ? [...barrels, ...deletedBarrels] : barrels;
 
@@ -60,15 +59,16 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
               <TableCell>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography sx={{ fontWeight: 500 }}>
-                    {`${barrel.brand} - ${barrel.id.slice(0, 8)}`}
+                    {`Sud ${barrel.id.slice(0, 8)}`}
                   </Typography>
                   {showDeleted && barrel.deletedAt && (
-                    <Chip
-                      label={translations.table.status.deleted}
+                    <Typography
+                      variant="caption"
                       color="error"
-                      size="small"
                       sx={{ ml: 1 }}
-                    />
+                    >
+                      {translations.table.status.deleted}
+                    </Typography>
                   )}
                 </Box>
               </TableCell>
@@ -88,44 +88,73 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                 </Box>
               </TableCell>
               <TableCell>
+                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <LinearProgress
+                      variant="determinate"
+                      value={(barrel.remainingBeers / barrel.totalBeers) * 100}
+                      sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        bgcolor: 'grey.200',
+                        '& .MuiLinearProgress-bar': {
+                          bgcolor: barrel.remainingBeers === 0 ? 'error.main' : 'success.main',
+                        }
+                      }}
+                    />
+                  </Box>
+                  <Typography sx={{ 
+                    minWidth: 80,
+                    fontWeight: 'bold',
+                    color: barrel.remainingBeers === 0 ? 'error.main' : 'success.main'
+                  }}>
+                    {barrel.remainingBeers} / {barrel.totalBeers}
+                  </Typography>
+                </Box>
+              </TableCell>
+              <TableCell>
                 <Box sx={{ 
                   display: 'inline-flex',
                   alignItems: 'center',
-                  bgcolor: barrel.beersLeft === 0 ? 'error.light' : 'success.light',
-                  color: barrel.beersLeft === 0 ? 'error.main' : 'success.main',
+                  bgcolor: barrel.isActive ? 'success.light' : 'grey.100',
+                  color: barrel.isActive ? 'success.main' : 'text.secondary',
                   py: 0.5,
                   px: 1.5,
                   borderRadius: 1,
                 }}>
                   <Typography sx={{ fontWeight: 'bold' }}>
-                    {barrel.beersLeft}
+                    {barrel.isActive ? translations.table.status.active : translations.table.status.inactive}
                   </Typography>
                 </Box>
               </TableCell>
               <TableCell>
-                <Chip
-                  label={translations.table.status[barrel.status === 'ACTIVE' ? 'active' : 'inactive']}
-                  color={barrel.status === 'ACTIVE' ? 'success' : 'default'}
-                  variant="outlined"
-                />
-              </TableCell>
-              <TableCell>
                 <Typography variant="body2" color="text.secondary">
-                  {format(new Date(barrel.createdAt), 'PPp')}
+                  {new Date(barrel.createdAt).toLocaleDateString('cs-CZ')}
                 </Typography>
               </TableCell>
               <TableCell align="right">
-                {!barrel.deletedAt && (
-                  <Tooltip title={translations.table.actions.delete}>
-                    <IconButton
-                      onClick={() => onDelete(barrel.id)}
+                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                  {!barrel.isActive && barrel.remainingBeers > 0 && !barrel.deletedAt && (
+                    <Button
                       size="small"
-                      color="error"
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => onActivate(barrel.id)}
                     >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                )}
+                      {translations.table.actions.activate}
+                    </Button>
+                  )}
+                  {!barrel.deletedAt && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      onClick={() => onDelete(barrel.id)}
+                    >
+                      {translations.table.actions.delete}
+                    </Button>
+                  )}
+                </Box>
               </TableCell>
             </TableRow>
           ))}

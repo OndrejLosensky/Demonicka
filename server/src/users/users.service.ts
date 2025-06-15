@@ -45,7 +45,6 @@ export class UsersService {
     const registrationToken = uuidv4();
     const user = this.usersRepository.create({
       ...createParticipantDto,
-      username: `participant_${Date.now()}`,
       registrationToken,
       isRegistrationComplete: false,
       role: UserRole.PARTICIPANT,

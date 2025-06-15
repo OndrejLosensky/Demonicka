@@ -22,13 +22,15 @@
       "deleted": "Smazáno"
     },
     "actions": {
-      "delete": "Smazat"
+      "delete": "Smazat",
+      "activate": "Aktivovat"
     }
   },
   "dialogs": {
     "add": {
       "title": "Přidat nový sud",
       "size": "Velikost (L)",
+      "makeActive": "Aktivovat ihned",
       "confirm": "Přidat",
       "cancel": "Zrušit",
       "success": "Sud byl úspěšně přidán",
@@ -36,7 +38,7 @@
     },
     "delete": {
       "title": "Smazat sud",
-      "message": "Opravdu chcete smazat tento {size}L sud? Tuto akci nelze vrátit.",
+      "message": "Opravdu chcete smazat tento {size}L sud? Tuto akci nelze vrátit zpět.",
       "additionalInfo": "Všechna související data budou trvale odstraněna ze systému.",
       "confirm": "Smazat",
       "cancel": "Zrušit",
@@ -44,7 +46,7 @@
       "error": "Nepodařilo se smazat sud"
     },
     "cleanupAll": {
-      "message": "Opravdu chcete smazat všechny sudy? Tuto akci nelze vrátit.",
+      "message": "Opravdu chcete smazat všechny sudy? Tuto akci nelze vrátit zpět.",
       "success": "Všechny sudy byly úspěšně smazány",
       "error": "Nepodařilo se smazat všechny sudy"
     }
@@ -52,7 +54,7 @@
   "errors": {
     "fetchFailed": "Nepodařilo se načíst sudy",
     "toggleStatusFailed": "Nepodařilo se změnit stav sudu",
-    "statusUpdated": "Stav sudu byl úspěšně změněn"
+    "statusUpdated": "Stav sudu byl úspěšně aktualizován"
   },
   "emptyState": {
     "title": "Žádná aktivní akce",

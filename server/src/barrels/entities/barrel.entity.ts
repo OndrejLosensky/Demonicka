@@ -19,7 +19,7 @@ export class Barrel {
   })
   size: 15 | 30 | 50;
 
-  @Column({ default: true })
+  @Column({ default: false })
   isActive: boolean;
 
   @Column({ type: 'integer' })
@@ -27,6 +27,9 @@ export class Barrel {
 
   @Column({ type: 'integer' })
   remainingBeers: number;
+
+  @Column({ type: 'integer' })
+  totalBeers: number;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -39,6 +42,7 @@ export class Barrel {
 
   @BeforeInsert()
   setInitialBeers() {
-    this.remainingBeers = this.size * 2;
+    this.totalBeers = this.size * 2;
+    this.remainingBeers = this.totalBeers;
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Event } from './entities/event.entity';
@@ -7,6 +7,10 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { User } from '../users/entities/user.entity';
 import { Barrel } from '../barrels/entities/barrel.entity';
 import { In } from 'typeorm';
+import { EventBeersService } from './services/event-beers.service';
+import { BarrelsService } from '../barrels/barrels.service';
+import { LoggingService } from '../logging/logging.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class EventsService {
@@ -16,7 +20,11 @@ export class EventsService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         @InjectRepository(Barrel)
-        private readonly barrelRepository: Repository<Barrel>
+        private readonly barrelRepository: Repository<Barrel>,
+        private readonly eventBeersService: EventBeersService,
+        private readonly barrelsService: BarrelsService,
+        private readonly loggingService: LoggingService,
+        private readonly usersService: UsersService,
     ) {}
 
     async create(createEventDto: CreateEventDto): Promise<Event> {
@@ -89,7 +97,7 @@ export class EventsService {
     async getEventUsers(id: string, withDeleted?: boolean): Promise<User[]> {
         const event = await this.eventRepository.findOne({
             where: { id },
-            relations: ['users'],
+            relations: ['users', 'eventBeers'],
             withDeleted: withDeleted
         });
         if (!event) {
@@ -97,15 +105,22 @@ export class EventsService {
         }
         
         // If withDeleted is true, return all users including deleted ones
+        let users: User[];
         if (withDeleted) {
             const userIds = event.users.map(user => user.id);
-            return this.userRepository.find({
+            users = await this.userRepository.find({
                 where: { id: In(userIds) },
                 withDeleted: true
             });
+        } else {
+            users = event.users || [];
         }
-        
-        return event.users || [];
+
+        // Add event beer counts to each user
+        return users.map(user => ({
+            ...user,
+            eventBeerCount: event.eventBeers.filter(eb => eb.userId === user.id).length
+        }));
     }
 
     async addUser(id: string, userId: string): Promise<Event> {
@@ -181,5 +196,34 @@ export class EventsService {
             .innerJoin('event.participants', 'participant')
             .where('participant.id = :userId', { userId })
             .getMany();
+    }
+
+    async addBeer(eventId: string, userId: string): Promise<void> {
+        try {
+            await this.findOne(eventId);
+            await this.usersService.findOne(userId);
+
+            // Get active barrel
+            const activeBarrel = await this.barrelsService.getActiveBarrel();
+            let barrelId: string | undefined = undefined;
+
+            if (activeBarrel) {
+                // If there is an active barrel, use it and decrement its beers
+                barrelId = activeBarrel.id;
+                await this.barrelsService.decrementBeers(activeBarrel.id);
+            }
+
+            // Create event beer
+            await this.eventBeersService.create(eventId, userId, barrelId);
+
+            this.loggingService.logBeerAdded(userId, barrelId);
+        } catch (error: unknown) {
+            this.loggingService.error('Failed to add beer to event', {
+                error: error instanceof Error ? error.message : String(error),
+                eventId,
+                userId,
+            });
+            throw error;
+        }
     }
 } 

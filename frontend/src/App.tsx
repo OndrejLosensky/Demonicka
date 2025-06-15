@@ -41,10 +41,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <ActiveEventProvider>
-            <SelectedEventProvider>
-              <AuthProvider>
-                <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <AuthProvider>
+              <ActiveEventProvider>
+                <SelectedEventProvider>
                   <Routes>
                     <Route path="/" element={<Header />}>
                       <Route index element={<Landing />} />
@@ -141,10 +141,10 @@ function App() {
                     />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
-                </Router>
-              </AuthProvider>
-            </SelectedEventProvider>
-          </ActiveEventProvider>
+                </SelectedEventProvider>
+              </ActiveEventProvider>
+            </AuthProvider>
+          </Router>
         </LocalizationProvider>
       </ThemeProvider>
     </QueryClientProvider>

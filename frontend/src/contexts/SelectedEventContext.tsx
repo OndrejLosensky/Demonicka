@@ -35,7 +35,7 @@ export const SelectedEventProvider: React.FC<SelectedEventProviderProps> = ({ ch
       // 3. We're viewing the active event and it wasn't manually selected (to get updated data)
       if (!selectedEvent || 
           selectedEvent.id !== activeEvent.id || 
-          (selectedEvent.id === activeEvent.id && selectedEvent.isActive && !manualSelectionRef.current)) {
+          (selectedEvent.id === activeEvent.id && activeEvent.isActive)) {
         manualSelectionRef.current = false; // Reset manual selection flag
         setSelectedEvent(activeEvent);
       }
@@ -48,8 +48,10 @@ export const SelectedEventProvider: React.FC<SelectedEventProviderProps> = ({ ch
 
   // Reset manual selection flag when active event changes (new event created)
   useEffect(() => {
-    manualSelectionRef.current = false;
-  }, [activeEvent?.id]);
+    if (activeEvent?.id !== selectedEvent?.id) {
+      manualSelectionRef.current = false;
+    }
+  }, [activeEvent?.id, selectedEvent?.id]);
 
   const isViewingHistory = selectedEvent ? !selectedEvent.isActive : false;
 

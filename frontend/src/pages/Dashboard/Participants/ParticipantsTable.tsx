@@ -126,16 +126,9 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                     display: 'inline-flex', 
                     alignItems: 'center', 
                     gap: 1,
-                    bgcolor: 'primary.light',
-                    color: 'primary.main',
-                    py: 1,
-                    px: 2,
-                    borderRadius: 2,
                   }}>
-                    <Typography sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
-                      {participant.eventBeerCount ?? participant.beerCount}
-                    </Typography>
-                    <FaBeer />
+                    <FaBeer style={{ color: 'rgba(0, 0, 0, 0.6)' }} />
+                    <Typography>{participant.eventBeerCount || 0}</Typography>
                   </Box>
                 </TableCell>
                 <TableCell>

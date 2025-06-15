@@ -128,7 +128,6 @@ const ParticipantsPage: React.FC = () => {
           setDialogOpen(false);
           fetchParticipants();
         }}
-        existingUsernames={[...participants, ...deletedParticipants].map(p => p.username)}
       />
     </Box>
   );

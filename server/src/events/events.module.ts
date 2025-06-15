@@ -10,12 +10,16 @@ import { EventBeersService } from './services/event-beers.service';
 import { EventBeersController } from './controllers/event-beers.controller';
 import { BeersModule } from '../beers/beers.module';
 import { BarrelsModule } from '../barrels/barrels.module';
+import { LoggingModule } from '../logging/logging.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Event, User, Barrel, EventBeer]),
         forwardRef(() => BeersModule),
         BarrelsModule,
+        LoggingModule,
+        UsersModule,
     ],
     controllers: [EventsController, EventBeersController],
     providers: [EventsService, EventBeersService],

@@ -72,7 +72,7 @@ export const Dashboard: React.FC = () => {
             setIsLoading(true);
             const [eventData, barrelsData, dashboardData] = await Promise.all([
                 eventService.getActiveEvent(),
-                barrelService.getAllBarrels(),
+                barrelService.getAll(),
                 dashboardService.getDashboardStats(selectedEvent?.id),
             ]);
 
@@ -81,11 +81,10 @@ export const Dashboard: React.FC = () => {
             setDashboardStats(dashboardData);
 
             if (eventData) {
-                const activeBarrels = barrelsData.filter(b => b.status === 'TAPPED').length;
+                const activeBarrels = barrelsData.filter(b => b.isActive).length;
                 const remainingBeers = barrelsData.reduce((sum, barrel) => {
-                    if (barrel.status === 'FULL') return sum + (barrel.size * 8);
-                    if (barrel.status === 'TAPPED') return sum + ((barrel.size * 8) / 2); // Rough estimate
-                    return sum;
+                    if (!barrel.isActive) return sum + barrel.remainingBeers;
+                    return sum + barrel.remainingBeers;
                 }, 0);
 
                 const eventStart = new Date(eventData.startDate);
@@ -97,7 +96,7 @@ export const Dashboard: React.FC = () => {
                     activeBarrels,
                     remainingBeers,
                     topDrinker: dashboardData.topUsers[0] ? 
-                        { username: dashboardData.topUsers[0].username, count: dashboardData.topUsers[0].beerCount || 0 } : 
+                        { username: dashboardData.topUsers[0].username, count: dashboardData.topUsers[0].beerCount } : 
                         { username: null, count: 0 },
                     averageBeersPerHour: dashboardData.totalBeers / hoursSinceStart,
                     participantsCount: dashboardData.totalUsers,

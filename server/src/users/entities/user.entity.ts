@@ -21,7 +21,7 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column()
   @IsNotEmpty({ message: 'Uživatelské jméno je povinné' })
   @MinLength(3, { message: 'Uživatelské jméno musí mít alespoň 3 znaky' })
   @Matches(/^[a-zA-Z0-9_-]+$/, {

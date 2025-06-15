@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { Barrel } from './entities/barrel.entity';
@@ -32,7 +32,7 @@ export class BarrelsService {
 
   async getActiveBarrel(): Promise<Barrel | null> {
     return this.barrelsRepository.findOne({
-      where: { isActive: true },
+      where: { isActive: true, deletedAt: IsNull() },
       order: { createdAt: 'ASC' },
     });
   }
@@ -49,18 +49,11 @@ export class BarrelsService {
 
   async create(createBarrelDto: CreateBarrelDto): Promise<Barrel> {
     try {
-      // Deactivate all existing non-deleted barrels
-      await this.barrelsRepository.update(
-        { deletedAt: IsNull() },
-        { isActive: false },
-      );
-
-      // Create new barrel (active by default)
+      // Create new barrel (inactive by default)
       const barrel = this.barrelsRepository.create({
         ...createBarrelDto,
         size: createBarrelDto.size as 15 | 30 | 50,
-        remainingBeers: createBarrelDto.size * 2,
-        isActive: true,
+        isActive: false,
       });
       const savedBarrel = await this.barrelsRepository.save(barrel);
       this.loggingService.logBarrelCreated(savedBarrel.id, savedBarrel.size);
@@ -91,15 +84,28 @@ export class BarrelsService {
     }
   }
 
-  async toggleActive(id: string): Promise<Barrel> {
+  async setActive(id: string): Promise<Barrel> {
     try {
       const barrel = await this.findOne(id);
-      barrel.isActive = !barrel.isActive;
+      
+      if (barrel.remainingBeers <= 0) {
+        throw new BadRequestException('Nelze aktivovat prázdný sud');
+      }
+
+      // Deactivate current active barrel if exists
+      const currentActive = await this.getActiveBarrel();
+      if (currentActive && currentActive.id !== id) {
+        currentActive.isActive = false;
+        await this.barrelsRepository.save(currentActive);
+      }
+
+      // Activate the new barrel
+      barrel.isActive = true;
       const savedBarrel = await this.barrelsRepository.save(barrel);
-      this.loggingService.logBarrelStatusChanged(id, savedBarrel.isActive);
+      this.loggingService.logBarrelStatusChanged(id, true);
       return savedBarrel;
     } catch (error: unknown) {
-      this.loggingService.error('Failed to toggle barrel active status', {
+      this.loggingService.error('Failed to set barrel active status', {
         id,
         error: error instanceof Error ? error.message : String(error),
       });

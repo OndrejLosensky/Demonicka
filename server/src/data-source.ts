@@ -17,6 +17,7 @@ import { AddRoleColumn1748441344605 } from './migrations/1748441344605-AddRoleCo
 import { EventBeer } from './events/entities/event-beer.entity';
 import { CreateEventBeersTable1749757491913 } from './migrations/1749757491913-CreateEventBeersTable';
 import { AddFirstLastNameToUser1749763388825 } from './migrations/1749763388825-AddFirstLastNameToUser';
+import { AddTotalBeersToBarrels1749975358935 } from './migrations/1749975358935-AddTotalBeersToBarrels';
 
 config();
 
@@ -42,6 +43,7 @@ export const AppDataSource = new DataSource({
     AddRoleColumn1748441344605,
     CreateEventBeersTable1749757491913,
     AddFirstLastNameToUser1749763388825,
+    AddTotalBeersToBarrels1749975358935,
   ],
   synchronize: false,
   logging: false,

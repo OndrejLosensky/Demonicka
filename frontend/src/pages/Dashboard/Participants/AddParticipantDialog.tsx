@@ -24,14 +24,12 @@ interface AddParticipantDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  existingUsernames: string[];
 }
 
 export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   open,
   onClose,
   onSuccess,
-  existingUsernames,
 }) => {
   const [username, setUsername] = useState('');
   const [gender, setGender] = useState<'MALE' | 'FEMALE'>('MALE');
@@ -54,16 +52,6 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
     const trimmedUsername = value.trim();
     if (!trimmedUsername) {
       setUsernameError(translations.dialogs.add.validation.required);
-      return false;
-    }
-    
-    // Case-insensitive username comparison
-    const usernameExists = existingUsernames.some(
-      existingUsername => existingUsername.toLowerCase() === trimmedUsername.toLowerCase()
-    );
-    
-    if (usernameExists) {
-      setUsernameError(translations.dialogs.add.validation.username);
       return false;
     }
     setUsernameError('');
@@ -101,13 +89,8 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
       onSuccess(); // This will refresh the users list
       onClose();
     } catch (error) {
-      if ((error as AxiosError)?.response?.status === 409) {
-        setUsernameError(translations.dialogs.add.validation.username);
-        toast.error(translations.dialogs.add.validation.username);
-      } else {
-        console.error('Failed to add user:', error);
-        toast.error(translations.dialogs.add.error);
-      }
+      console.error('Failed to add user:', error);
+      toast.error(translations.dialogs.add.error);
     } finally {
       setIsSubmitting(false);
     }

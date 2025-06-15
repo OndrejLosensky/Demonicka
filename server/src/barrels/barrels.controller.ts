@@ -65,8 +65,8 @@ export class BarrelsController {
     return this.barrelsService.remove(id);
   }
 
-  @Patch(':id/toggle-active')
-  toggleActive(@Param('id') id: string): Promise<Barrel> {
-    return this.barrelsService.toggleActive(id);
+  @Patch(':id/activate')
+  setActive(@Param('id') id: string): Promise<Barrel> {
+    return this.barrelsService.setActive(id);
   }
 }

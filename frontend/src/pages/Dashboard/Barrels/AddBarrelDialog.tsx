@@ -9,12 +9,13 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Box,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import { toast } from 'react-hot-toast';
-import { barrelsApi } from './api';
-import { eventService } from '../../../services/eventService';
+import { barrelService } from '../../../services/barrelService';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
+import { eventService } from '../../../services/eventService';
 import translations from '../../../locales/cs/dashboard.barrels.json';
 
 interface AddBarrelDialogProps {
@@ -29,6 +30,7 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
   onSuccess,
 }) => {
   const [size, setSize] = useState<15 | 30 | 50>(15);
+  const [makeActive, setMakeActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { activeEvent } = useActiveEvent();
 
@@ -36,6 +38,7 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
   useEffect(() => {
     if (open) {
       setSize(15);
+      setMakeActive(false);
     }
   }, [open]);
 
@@ -46,15 +49,20 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
       setIsSubmitting(true);
       // Get all barrels including deleted ones to get correct order number
       const [activeBarrels, deletedBarrels] = await Promise.all([
-        barrelsApi.getAll(),
-        barrelsApi.getDeleted()
+        barrelService.getAll(),
+        barrelService.getDeleted()
       ]);
       const orderNumber = activeBarrels.length + deletedBarrels.length + 1;
-      const barrel = await barrelsApi.create({ size, orderNumber });
+      const barrel = await barrelService.create({ size, orderNumber });
 
       // If there's an active event, automatically add the barrel to it
       if (activeEvent) {
         await eventService.addBarrel(activeEvent.id, barrel.id);
+      }
+
+      // If makeActive is true, activate the barrel
+      if (makeActive) {
+        await barrelService.activate(barrel.id);
       }
 
       toast.success(translations.dialogs.add.success);
@@ -69,37 +77,46 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <form onSubmit={handleSubmit}>
-        <DialogTitle>{translations.dialogs.add.title}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel>{translations.dialogs.add.size}</InputLabel>
-              <Select
-                value={size}
-                label={translations.dialogs.add.size}
-                onChange={(e) => setSize(e.target.value as 15 | 30 | 50)}
-              >
-                <MenuItem value={15}>15L</MenuItem>
-                <MenuItem value={30}>30L</MenuItem>
-                <MenuItem value={50}>50L</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>{translations.dialogs.add.cancel}</Button>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            disabled={isSubmitting}
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>{translations.dialogs.add.title}</DialogTitle>
+      <DialogContent>
+        <FormControl fullWidth sx={{ mt: 2 }}>
+          <InputLabel id="size-label">{translations.dialogs.add.size}</InputLabel>
+          <Select
+            labelId="size-label"
+            value={size}
+            label={translations.dialogs.add.size}
+            onChange={(e) => setSize(Number(e.target.value) as 15 | 30 | 50)}
           >
-            {translations.dialogs.add.confirm}
-          </Button>
-        </DialogActions>
-      </form>
+            <MenuItem value={15}>15L</MenuItem>
+            <MenuItem value={30}>30L</MenuItem>
+            <MenuItem value={50}>50L</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={makeActive}
+              onChange={(e) => setMakeActive(e.target.checked)}
+            />
+          }
+          label={translations.dialogs.add.makeActive}
+          sx={{ mt: 2 }}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={isSubmitting}>
+          {translations.dialogs.add.cancel}
+        </Button>
+        <Button 
+          onClick={handleSubmit} 
+          variant="contained" 
+          color="primary"
+          disabled={isSubmitting}
+        >
+          {translations.dialogs.add.confirm}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }; 

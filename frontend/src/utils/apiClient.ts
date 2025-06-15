@@ -10,6 +10,20 @@ export const apiClient = axios.create({
   },
 });
 
+let isRefreshing = false;
+let failedQueue: { resolve: (token: string) => void; reject: (error: any) => void }[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token as string);
+    }
+  });
+  failedQueue = [];
+};
+
 // Add request interceptor for auth token
 apiClient.interceptors.request.use(
   (config) => {
@@ -30,27 +44,46 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If error is 401 and we haven't retried yet
+    // If the error is 401 and we haven't retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // If the request was for refresh token and it failed, clear everything
+      if (originalRequest.url === '/auth/refresh') {
+        localStorage.removeItem('access_token');
+        processQueue(error, null);
+        return Promise.reject(error);
+      }
+
+      if (isRefreshing) {
+        try {
+          const token = await new Promise<string>((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          });
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return apiClient(originalRequest);
+        } catch (err) {
+          return Promise.reject(err);
+        }
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
-        // Try to refresh the token
         const response = await apiClient.post('/auth/refresh');
-        const { access_token } = response.data;
+        const { accessToken } = response.data;
         
-        // Save the new token
-        localStorage.setItem('access_token', access_token);
+        localStorage.setItem('access_token', accessToken);
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         
-        // Update the original request with the new token
-        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+        processQueue(null, accessToken);
         
-        // Retry the original request
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, redirect to login
-        window.location.href = '/login';
+        localStorage.removeItem('access_token');
+        processQueue(refreshError, null);
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 
