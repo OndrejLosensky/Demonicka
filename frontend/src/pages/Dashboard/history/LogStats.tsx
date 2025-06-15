@@ -12,6 +12,7 @@ import {
 import { Bar, Pie } from 'react-chartjs-2';
 import { useLogStats } from './useLogStats';
 import translations from '../../../locales/cs/dashboard.history.json';
+import { withPageLoader } from '../../../components/hoc/withPageLoader';
 
 ChartJS.register(
   CategoryScale,
@@ -23,11 +24,11 @@ ChartJS.register(
   ArcElement
 );
 
-export const LogStats: React.FC = () => {
+function LogStatsComponent() {
   const { stats, isLoading, error, dateRange, setDateRange } = useLogStats();
 
   if (isLoading) {
-    return <div>{translations.stats.loading}</div>;
+    return null; // withPageLoader will handle loading state
   }
 
   if (error) {
@@ -196,4 +197,6 @@ export const LogStats: React.FC = () => {
       </div>
     </div>
   );
-}; 
+}
+
+export const LogStats = withPageLoader(LogStatsComponent); 

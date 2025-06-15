@@ -17,6 +17,7 @@ import { motion } from 'framer-motion';
 import { FaBook } from 'react-icons/fa';
 import { SimpleMarkdownParser } from '../utils/markdownParser';
 import '../styles/markdown.css';
+import { withPageLoader } from '../components/hoc/withPageLoader';
 
 interface DocFile {
   name: string;
@@ -116,7 +117,7 @@ const documentationStructure: DocCategory[] = [
   }
 ];
 
-export const Docs: React.FC = () => {
+const DocsComponent: React.FC = () => {
   const [selectedDoc, setSelectedDoc] = useState<DocFile | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string>('getting-started');
   const [markdownContent, setMarkdownContent] = useState<string>('');
@@ -164,22 +165,9 @@ export const Docs: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 2, mb: 4, px: { xs: 2, md: 0 } }}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-4"
-      >
-        <Box className="text-center mb-6" sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'center' }}>
-          <FaBook className="text-3xl text-primary" />
-          <Typography variant="h4" className="text-primary font-bold">
-            Dokumentace
-          </Typography>
-        </Box>
-      </motion.div>
-
-      <Grid container spacing={3}>
-        {/* Sidebar with document list */}
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Grid container spacing={4}>
+        {/* Sidebar */}
         <Grid item xs={12} md={3}>
           <Paper 
             sx={{ 
@@ -295,7 +283,7 @@ export const Docs: React.FC = () => {
           </Paper>
         </Grid>
 
-        {/* Main content area */}
+        {/* Content */}
         <Grid item xs={12} md={9}>
           <Paper 
             sx={{ 
@@ -307,9 +295,7 @@ export const Docs: React.FC = () => {
             }}
           >
             {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                <CircularProgress />
-              </Box>
+              null // withPageLoader will handle loading state
             ) : error ? (
               <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
             ) : selectedDoc ? (
@@ -336,4 +322,6 @@ export const Docs: React.FC = () => {
       </Grid>
     </Container>
   );
-}; 
+};
+
+export const Docs = withPageLoader(DocsComponent); 

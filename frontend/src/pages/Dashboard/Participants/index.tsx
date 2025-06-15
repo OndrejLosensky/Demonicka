@@ -27,6 +27,7 @@ import { EventSelector } from '../../../components/EventSelector';
 import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.participants.json';
+import { withPageLoader } from '../../../components/hoc/withPageLoader';
 
 const ParticipantsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
@@ -169,4 +170,5 @@ const ParticipantsPage: React.FC = () => {
   );
 };
 
-export default ParticipantsPage; 
+const Participants = withPageLoader(ParticipantsPage);
+export default Participants; 

@@ -9,8 +9,9 @@ import { FeatureFlagKey } from '../../types/featureFlags';
 import translations from '../../locales/cs/dashboard.leaderboard.json';
 import { EmptyEventState } from '../../components/EmptyEventState';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
+import { withPageLoader } from '../../components/hoc/withPageLoader';
 
-export default function Leaderboard() {
+const LeaderboardComponent: React.FC = () => {
   const { stats, isLoading, selectedEvent } = useLeaderboard();
   const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
   const { activeEvent } = useActiveEvent();
@@ -27,18 +28,7 @@ export default function Leaderboard() {
   }
 
   if (isLoading) {
-    return (
-      <div className="p-6 flex justify-center items-center min-h-[400px]">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-col items-center gap-4"
-        >
-          <FaBeer className="text-4xl text-primary animate-bounce" />
-          <Typography>{translations.loading}</Typography>
-        </motion.div>
-      </div>
-    );
+    return null; // withPageLoader will handle loading state
   }
 
   if (!stats) {
@@ -96,4 +86,7 @@ export default function Leaderboard() {
       </Grid>
     </motion.div>
   );
-} 
+};
+
+const Leaderboard = withPageLoader(LeaderboardComponent);
+export default Leaderboard; 

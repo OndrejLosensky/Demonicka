@@ -29,6 +29,8 @@ import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { UserStatsComponent } from '../../components/UserStats';
 import { PersonalInfoTab } from '../../components/auth/PersonalInfoTab';
+import { withPageLoader } from '../../components/hoc/withPageLoader';
+import translations from '../../locales/cs/profile.json';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -63,7 +65,7 @@ function a11yProps(index: number) {
   };
 }
 
-export default function ProfilePage() {
+const ProfilePageComponent: React.FC = () => {
   const { user } = useAuth();
   const { id } = useParams();
   const [isLoading, setIsLoading] = useState(true);
@@ -90,11 +92,7 @@ export default function ProfilePage() {
   };
 
   if (!user || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <CircularProgress />
-      </div>
-    );
+    return null; // withPageLoader will handle loading state
   }
 
   const displayData = profileData || user;
@@ -222,4 +220,7 @@ export default function ProfilePage() {
       </Box>
     </motion.div>
   );
-} 
+};
+
+const ProfilePage = withPageLoader(ProfilePageComponent);
+export default ProfilePage; 

@@ -1,0 +1,23 @@
+{
+  "success": {
+    "created": "{{item}} byl úspěšně vytvořen",
+    "updated": "{{item}} byl úspěšně aktualizován",
+    "deleted": "{{item}} byl úspěšně smazán",
+    "restored": "{{item}} byl úspěšně obnoven",
+    "beerAdded": "Pivo bylo přidáno uživateli {{user}}",
+    "beerRemoved": "Pivo bylo odebráno uživateli {{user}}"
+  },
+  "warning": {
+    "lowBeers": "V sudu {{barrel}} zbývá pouze {{count}} piv",
+    "almostEmpty": "Sud {{barrel}} je téměř prázdný",
+    "inactive": "{{item}} je neaktivní"
+  },
+  "error": {
+    "create": "Nepodařilo se vytvořit {{item}}",
+    "update": "Nepodařilo se aktualizovat {{item}}",
+    "delete": "Nepodařilo se smazat {{item}}",
+    "restore": "Nepodařilo se obnovit {{item}}",
+    "fetch": "Nepodařilo se načíst {{item}}",
+    "unknown": "Došlo k neočekávané chybě"
+  }
+} 

@@ -18,8 +18,10 @@ import { EventSelector } from '../../../components/EventSelector';
 import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { barrelService } from '../../../services/barrelService';
-import { toast } from 'react-hot-toast';
+import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/dashboard.barrels.json';
+import toastTranslations from '../../../locales/cs/toasts.json';
+import { withPageLoader } from '../../../components/hoc/withPageLoader';
 
 const BarrelsPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -29,26 +31,27 @@ const BarrelsPage: React.FC = () => {
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_BARRELS);
   const showCleanupFeature = useFeatureFlag(FeatureFlagKey.CLEANUP_FUNCTIONALITY);
   const { barrels, deletedBarrels, isLoading, fetchBarrels } = useBarrels(showDeleted);
+  const toast = useToast();
 
   const handleDelete = async (id: string) => {
     try {
       await barrelService.delete(id);
-      toast.success(translations.dialogs.delete.success);
+      toast.success(toastTranslations.success.deleted.replace('{{item}}', 'Sud'));
       await fetchBarrels();
     } catch (error) {
       console.error('Failed to delete barrel:', error);
-      toast.error(translations.dialogs.delete.error);
+      toast.error(toastTranslations.error.delete.replace('{{item}}', 'sud'));
     }
   };
 
   const handleActivate = async (id: string) => {
     try {
       await barrelService.activate(id);
-      toast.success(translations.errors.statusUpdated);
+      toast.success(toastTranslations.success.updated.replace('{{item}}', 'Sud'));
       await fetchBarrels();
     } catch (error) {
       console.error('Failed to activate barrel:', error);
-      toast.error(translations.errors.toggleStatusFailed);
+      toast.error(toastTranslations.error.update.replace('{{item}}', 'sud'));
     }
   };
 
@@ -60,7 +63,7 @@ const BarrelsPage: React.FC = () => {
         await fetchBarrels();
       } catch (error) {
         console.error('Failed to cleanup barrels:', error);
-        toast.error(translations.dialogs.cleanupAll.error);
+        toast.error(toastTranslations.error.unknown);
       }
     }
   };
@@ -141,4 +144,5 @@ const BarrelsPage: React.FC = () => {
   );
 };
 
-export default BarrelsPage; 
+const Barrels = withPageLoader(BarrelsPage);
+export default Barrels; 

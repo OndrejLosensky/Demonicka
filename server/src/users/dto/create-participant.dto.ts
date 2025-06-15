@@ -8,4 +8,4 @@ export class CreateParticipantDto {
     message: 'Pohlaví musí být buď MALE nebo FEMALE',
   })
   gender: 'MALE' | 'FEMALE';
-} 
+}

@@ -1,15 +1,17 @@
 import { useState, useCallback, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
 import { userService } from '../../../services/userService';
 import type { User } from '../../../types/user';
 import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
+import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/dashboard.users.json';
+import toastTranslations from '../../../locales/cs/toasts.json';
 
 export const useUsers = (includeDeleted = false) => {
   const [users, setUsers] = useState<User[]>([]);
   const [deletedUsers, setDeletedUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { selectedEvent } = useSelectedEvent();
+  const toast = useToast();
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -34,30 +36,31 @@ export const useUsers = (includeDeleted = false) => {
           setDeletedUsers([]);
         }
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Failed to fetch users:', error);
-      toast.error(translations.errors.fetchFailed);
+      toast.error(toastTranslations.error.fetch.replace('{{item}}', 'uživatele'));
     } finally {
       setIsLoading(false);
     }
-  }, [includeDeleted, selectedEvent?.id, selectedEvent?.updatedAt]);
+  }, [includeDeleted, selectedEvent?.id, selectedEvent?.updatedAt, toast]);
 
   const handleDelete = async (userId: string) => {
     try {
       await userService.deleteUser(userId);
       await fetchUsers();
-      toast.success(translations.actions.deleteSuccess);
+      toast.success(toastTranslations.success.deleted.replace('{{item}}', 'Uživatel'));
     } catch (error) {
       console.error('Failed to delete user:', error);
-      toast.error(translations.errors.deleteFailed);
+      toast.error(toastTranslations.error.delete.replace('{{item}}', 'uživatele'));
     }
   };
 
   const handleAddBeer = async (userId: string) => {
+    const user = users.find(u => u.id === userId);
     try {
       await userService.addBeer(userId);
       await fetchUsers();
-      toast.success(translations.actions.addBeerSuccess);
+      toast.success(toastTranslations.success.beerAdded.replace('{{user}}', user?.name || userId));
     } catch (error) {
       console.error('Failed to add beer:', error);
       toast.error(translations.errors.addBeerFailed);
@@ -65,10 +68,11 @@ export const useUsers = (includeDeleted = false) => {
   };
 
   const handleRemoveBeer = async (userId: string) => {
+    const user = users.find(u => u.id === userId);
     try {
       await userService.removeBeer(userId);
       await fetchUsers();
-      toast.success(translations.actions.removeBeerSuccess);
+      toast.success(toastTranslations.success.beerRemoved.replace('{{user}}', user?.name || userId));
     } catch (error) {
       console.error('Failed to remove beer:', error);
       toast.error(translations.errors.removeBeerFailed);
@@ -79,10 +83,10 @@ export const useUsers = (includeDeleted = false) => {
     try {
       await userService.cleanup();
       await fetchUsers();
-      toast.success(translations.actions.cleanupSuccess);
+      toast.success(toastTranslations.success.deleted.replace('{{item}}', 'Smazaní uživatelé'));
     } catch (error) {
       console.error('Failed to cleanup users:', error);
-      toast.error(translations.errors.cleanupFailed);
+      toast.error(toastTranslations.error.delete.replace('{{item}}', 'smazané uživatele'));
     }
   };
 

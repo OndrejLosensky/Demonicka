@@ -25,6 +25,7 @@ import { UserStatsComponent } from '../../../components/UserStats';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Close as CloseIcon, ContentCopy as ContentCopyIcon } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
+import { withPageLoader } from '../../../components/hoc/withPageLoader';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -155,7 +156,11 @@ const TokenDialog: React.FC<TokenDialogProps> = ({ open, token, onClose }) => {
   );
 };
 
-export const SystemPage: React.FC = () => {
+interface SystemPageBaseProps {
+  setIsLoading: (loading: boolean) => void;
+}
+
+const SystemPageBase: React.FC<SystemPageBaseProps> = ({ setIsLoading }) => {
   const [value, setValue] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -168,11 +173,14 @@ export const SystemPage: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
+      setIsLoading(true);
       const response = await userService.getAllUsers();
       setUsers(response);
     } catch (error) {
       console.error('Failed to fetch users:', error);
       toast.error('Nepodařilo se načíst uživatele');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -183,18 +191,16 @@ export const SystemPage: React.FC = () => {
 
   const handleGenerateToken = async (userId: string) => {
     try {
+      setIsLoading(true);
       const response = await userService.generateRegisterToken(userId);
       setCurrentToken(response.token);
       setTokenDialogOpen(true);
-      // Update the users list with the new token
-      setUsers(users.map(user => 
-        user.id === userId 
-          ? { ...user, registerToken: response.token }
-          : user
-      ));
+      // No need to update users list since the token isn't stored in user state
     } catch (error) {
       console.error('Failed to generate token:', error);
       toast.error('Nepodařilo se vygenerovat token');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -315,5 +321,19 @@ export const SystemPage: React.FC = () => {
         onClose={() => setTokenDialogOpen(false)}
       />
     </Box>
+  );
+};
+
+const WrappedSystemPage = withPageLoader(SystemPageBase);
+
+export const SystemPage: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  return (
+    <WrappedSystemPage 
+      isLoading={isLoading} 
+      loadingMessage="Načítám uživatele..." 
+      setIsLoading={setIsLoading}
+    />
   );
 }; 

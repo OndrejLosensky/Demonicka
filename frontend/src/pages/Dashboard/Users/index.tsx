@@ -2,7 +2,6 @@ import React, { useMemo, useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  CircularProgress,
   Grid,
   Button,
   FormControlLabel,
@@ -17,6 +16,7 @@ import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.users.json';
+import { withPageLoader } from '../../../components/hoc/withPageLoader';
 
 const UsersPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
@@ -56,11 +56,7 @@ const UsersPage: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-        <CircularProgress />
-      </Box>
-    );
+    return null; // withPageLoader will handle loading state
   }
 
   return (
@@ -141,4 +137,4 @@ const UsersPage: React.FC = () => {
   );
 };
 
-export default UsersPage; 
+export default withPageLoader(UsersPage); 

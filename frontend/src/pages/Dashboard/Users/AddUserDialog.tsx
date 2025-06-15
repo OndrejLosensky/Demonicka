@@ -10,16 +10,16 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormHelperText,
 } from '@mui/material';
-import { toast } from 'react-hot-toast';
 import type { AxiosError } from 'axios';
 import type { AddUserDialogProps } from './types';
 import { userService } from '../../../services/userService';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
 import { eventService } from '../../../services/eventService';
+import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/dashboard.users.json';
+import toastTranslations from '../../../locales/cs/toasts.json';
 
 export const AddUserDialog: React.FC<AddUserDialogProps> = ({
   open,
@@ -33,6 +33,7 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({
   const [nameError, setNameError] = useState('');
   const { activeEvent, loadActiveEvent } = useActiveEvent();
   const { setSelectedEvent } = useSelectedEvent();
+  const toast = useToast();
 
   // Reset form state when dialog opens/closes
   useEffect(() => {
@@ -91,7 +92,7 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({
         setSelectedEvent(updatedActiveEvent);
       }
       
-      toast.success(translations.dialogs.add.success);
+      toast.success(toastTranslations.success.created.replace('{{item}}', 'Uživatel'));
       onSuccess(); // This will refresh the users list
       onClose();
     } catch (error) {
@@ -100,7 +101,7 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({
         toast.error(translations.dialogs.add.validation.firstName);
       } else {
         console.error('Failed to add user:', error);
-        toast.error(translations.dialogs.add.error);
+        toast.error(toastTranslations.error.create.replace('{{item}}', 'uživatele'));
       }
     } finally {
       setIsSubmitting(false);
