@@ -24,6 +24,7 @@ import { SelectedEventProvider } from './contexts/SelectedEventContext';
 import { CompleteRegistration } from './pages/CompleteRegistration';
 import { EnterToken } from './pages/Auth/EnterToken';
 import { USER_ROLE } from './types/user';
+import { SystemPage } from './pages/Dashboard/System';
 
 const queryClient = new QueryClient();
 
@@ -86,6 +87,14 @@ function App() {
                         element={
                           <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <History />
+                          </RoleRoute>
+                        }
+                      />
+                      <Route
+                        path="dashboard/system"
+                        element={
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                            <SystemPage />
                           </RoleRoute>
                         }
                       />

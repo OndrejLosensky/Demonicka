@@ -19,6 +19,7 @@ import {
 import {
   Logout as LogoutIcon,
   Person as PersonIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { FaBook } from 'react-icons/fa';
 import { format } from 'date-fns';
@@ -272,17 +273,30 @@ export default function Header() {
                         />
                       </MenuItem>
                       {hasRole([USER_ROLE.ADMIN]) && (
-                        <MenuItem onClick={() => navigate('/docs')} sx={{ py: 1.5 }}>
-                          <ListItemIcon>
-                            <FaBook className="text-lg" />
-                          </ListItemIcon>
-                          <ListItemText 
-                            primary="Dokumentace"
-                            primaryTypographyProps={{
-                              className: "font-medium"
-                            }}
-                          />
-                        </MenuItem>
+                        <>
+                          <MenuItem onClick={() => navigate('/dashboard/system')} sx={{ py: 1.5 }}>
+                            <ListItemIcon>
+                              <SettingsIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText 
+                              primary="Systém"
+                              primaryTypographyProps={{
+                                className: "font-medium"
+                              }}
+                            />
+                          </MenuItem>
+                          <MenuItem onClick={() => navigate('/docs')} sx={{ py: 1.5 }}>
+                            <ListItemIcon>
+                              <FaBook className="text-lg" />
+                            </ListItemIcon>
+                            <ListItemText 
+                              primary="Dokumentace"
+                              primaryTypographyProps={{
+                                className: "font-medium"
+                              }}
+                            />
+                          </MenuItem>
+                        </>
                       )}
                       <MenuItem 
                         onClick={handleLogout} 

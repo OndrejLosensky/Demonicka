@@ -170,4 +170,26 @@ export class UsersService {
     const { password: _, ...result } = savedUser;
     return result;
   }
+
+  async generateRegisterToken(userId: string): Promise<{ token: string }> {
+    const user = await this.findOne(userId);
+    
+    if (!user) {
+      throw new NotFoundException('Uživatel nebyl nalezen');
+    }
+
+    if (user.role !== UserRole.PARTICIPANT) {
+      throw new BadRequestException('Registrační token lze vygenerovat pouze pro účastníky');
+    }
+
+    if (user.isRegistrationComplete) {
+      throw new BadRequestException('Uživatel již dokončil registraci');
+    }
+
+    const registrationToken = uuidv4();
+    user.registrationToken = registrationToken;
+    await this.usersRepository.save(user);
+
+    return { token: registrationToken };
+  }
 }

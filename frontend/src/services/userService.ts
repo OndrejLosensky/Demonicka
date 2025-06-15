@@ -48,5 +48,15 @@ export const userService = {
   async getByEvent(eventId: string): Promise<User[]> {
     const response = await api.get(`/events/${eventId}/users`);
     return response.data;
+  },
+
+  async generateRegisterToken(userId: string) {
+    const response = await api.post(`/users/${userId}/register-token`);
+    return response.data;
+  },
+
+  async restoreUser(id: string) {
+    const response = await api.patch(`/users/${id}/restore`);
+    return response.data;
   }
 }; 

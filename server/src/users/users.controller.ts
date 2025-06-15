@@ -116,4 +116,10 @@ export class UsersController {
   updateProfile(@GetUser() user: User, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(user.id, updateUserDto);
   }
+
+  @Post(':id/register-token')
+  @Roles(UserRole.ADMIN)
+  async generateRegisterToken(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.generateRegisterToken(id);
+  }
 }
