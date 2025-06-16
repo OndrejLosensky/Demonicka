@@ -1,70 +1,85 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DeviceToken, DeviceType } from './entities/device-token.entity';
+import { DeviceToken } from './entities/device-token.entity';
 import { User } from '../users/entities/user.entity';
+
+interface DeviceInfo {
+  deviceType?: string;
+  deviceName?: string;
+  deviceModel?: string;
+  osVersion?: string;
+  isAdminDevice?: boolean;
+  isBiometricEnabled?: boolean;
+  biometricType?: string;
+}
 
 @Injectable()
 export class DeviceTokenService {
   constructor(
     @InjectRepository(DeviceToken)
-    private deviceTokenRepository: Repository<DeviceToken>,
+    private readonly deviceTokenRepository: Repository<DeviceToken>,
   ) {}
 
   async createOrUpdateToken(
     user: User,
     token: string,
-    deviceInfo: {
-      deviceType: DeviceType;
-      deviceName: string | null;
-      deviceModel?: string | null;
-      osVersion?: string | null;
-      isAdminDevice?: boolean;
-    },
+    deviceInfo: DeviceInfo,
   ): Promise<DeviceToken> {
-    // Check if device token already exists
+    // Check if token already exists
     const existingToken = await this.deviceTokenRepository.findOne({
-      where: { token, userId: user.id },
+      where: { token },
     });
 
     if (existingToken) {
       // Update existing token
-      existingToken.lastUsed = new Date();
-      existingToken.isActive = true;
-      existingToken.deviceName = deviceInfo.deviceName;
+      existingToken.deviceType = deviceInfo.deviceType ?? null;
+      existingToken.deviceName = deviceInfo.deviceName ?? null;
       existingToken.deviceModel = deviceInfo.deviceModel ?? null;
       existingToken.osVersion = deviceInfo.osVersion ?? null;
       existingToken.isAdminDevice = deviceInfo.isAdminDevice ?? false;
+      existingToken.isBiometricEnabled = deviceInfo.isBiometricEnabled ?? false;
+      existingToken.biometricType = deviceInfo.biometricType ?? null;
+      existingToken.lastUsed = new Date();
 
       return this.deviceTokenRepository.save(existingToken);
     }
 
     // Create new token
     const newDeviceToken = this.deviceTokenRepository.create({
-      userId: user.id,
       token,
-      deviceType: deviceInfo.deviceType,
-      deviceName: deviceInfo.deviceName,
+      userId: user.id,
+      deviceType: deviceInfo.deviceType ?? null,
+      deviceName: deviceInfo.deviceName ?? null,
       deviceModel: deviceInfo.deviceModel ?? null,
       osVersion: deviceInfo.osVersion ?? null,
       isAdminDevice: deviceInfo.isAdminDevice ?? false,
+      isBiometricEnabled: deviceInfo.isBiometricEnabled ?? false,
+      biometricType: deviceInfo.biometricType ?? null,
+      isActive: true,
       lastUsed: new Date(),
     });
 
     return this.deviceTokenRepository.save(newDeviceToken);
   }
 
-  async deactivateToken(userId: string, token: string): Promise<void> {
-    const deviceToken = await this.deviceTokenRepository.findOne({
-      where: { token, userId },
+  async findByToken(token: string): Promise<DeviceToken | null> {
+    return this.deviceTokenRepository.findOne({
+      where: { token },
     });
+  }
 
-    if (!deviceToken) {
-      throw new NotFoundException('Device token not found');
-    }
+  async findByUserId(userId: string): Promise<DeviceToken[]> {
+    return this.deviceTokenRepository.find({
+      where: { userId },
+    });
+  }
 
-    deviceToken.isActive = false;
-    await this.deviceTokenRepository.save(deviceToken);
+  async deactivateToken(token: string): Promise<void> {
+    await this.deviceTokenRepository.update(
+      { token },
+      { isActive: false },
+    );
   }
 
   async deactivateAllUserTokens(userId: string): Promise<void> {
@@ -82,19 +97,20 @@ export class DeviceTokenService {
   }
 
   async updateBiometricStatus(
-    userId: string,
     token: string,
     enabled: boolean,
+    biometricType?: string,
   ): Promise<void> {
-    const deviceToken = await this.deviceTokenRepository.findOne({
-      where: { token, userId },
-    });
-
+    const deviceToken = await this.findByToken(token);
     if (!deviceToken) {
-      throw new NotFoundException('Device token not found');
+      return;
     }
 
-    deviceToken.biometricEnabled = enabled;
+    deviceToken.isBiometricEnabled = enabled;
+    if (biometricType) {
+      deviceToken.biometricType = biometricType;
+    }
+
     await this.deviceTokenRepository.save(deviceToken);
   }
 

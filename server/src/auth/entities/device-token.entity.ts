@@ -1,4 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
 export enum DeviceType {
@@ -7,48 +15,47 @@ export enum DeviceType {
   WEB = 'web'
 }
 
-@Entity('device_token')
+@Entity('device_tokens')
 export class DeviceToken {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ nullable: false })
   token: string;
 
-  @Column({
-    type: 'varchar',
-    default: DeviceType.WEB
-  })
-  deviceType: DeviceType;
+  @Column({ name: 'user_id' })
+  userId: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @Column({ nullable: true })
+  deviceType: string | null;
+
+  @Column({ nullable: true })
   deviceName: string | null;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ nullable: true })
   deviceModel: string | null;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ nullable: true })
   osVersion: string | null;
+
+  @Column({ default: false })
+  isAdminDevice: boolean;
+
+  @Column({ default: false })
+  isBiometricEnabled: boolean;
+
+  @Column({ nullable: true })
+  biometricType: string | null;
 
   @Column({ default: true })
   isActive: boolean;
 
   @Column({ type: 'datetime', nullable: true })
-  lastUsed: Date;
-
-  @Column({ type: 'uuid' })
-  userId: string;
-
-  @ManyToOne(() => User, (user) => user.deviceTokens, {
-    onDelete: 'CASCADE',
-  })
-  user: User;
-
-  @Column({ default: false })
-  isAdminDevice: boolean;
-
-  @Column({ nullable: true })
-  biometricEnabled: boolean;
+  lastUsed: Date | null;
 
   @CreateDateColumn()
   createdAt: Date;

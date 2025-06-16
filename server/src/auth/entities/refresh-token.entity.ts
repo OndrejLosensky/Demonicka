@@ -2,29 +2,35 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
   JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { DeviceToken } from './device-token.entity';
 
 @Entity('refresh_tokens')
 export class RefreshToken {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ nullable: false })
   token: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'user_id' })
   userId: string;
 
-  @ManyToOne(() => User, (user) => user.refreshTokens, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'userId' })
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @Column({ name: 'device_id', nullable: true })
+  deviceId: string | null;
+
+  @ManyToOne(() => DeviceToken, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'device_id' })
+  device: DeviceToken | null;
 
   @Column({ type: 'datetime' })
   expiresAt: Date;
@@ -33,7 +39,7 @@ export class RefreshToken {
   isRevoked: boolean;
 
   @Column({ nullable: true })
-  reasonRevoked?: string;
+  revokedReason: string | null;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { AdminAuthController } from './admin-auth.controller';
+import { BiometricAuthController } from './controllers/biometric-auth.controller';
 import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -30,7 +31,11 @@ import { RolesGuard } from './guards/roles.guard';
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthController, AdminAuthController],
+  controllers: [
+    AuthController,
+    AdminAuthController,
+    BiometricAuthController,
+  ],
   providers: [
     AuthService,
     DeviceTokenService,

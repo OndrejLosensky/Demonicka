@@ -7,9 +7,8 @@ import { Request } from 'express';
 
 interface JwtPayload {
   sub: string;
-  email: string;
-  iat?: number;
-  exp?: number;
+  username: string;
+  deviceId?: string;
 }
 
 interface RequestWithCookies extends Request {
@@ -42,23 +41,25 @@ export class JwtRefreshStrategy extends PassportStrategy(
   async validate(
     request: RequestWithCookies,
     payload: JwtPayload,
-  ): Promise<{ id: string; email: string }> {
+  ): Promise<{ id: string; username: string; deviceId?: string }> {
     const refreshToken = request?.cookies?.refreshToken;
     if (!refreshToken) {
-      throw new UnauthorizedException('Obnovovací token nebyl nalezen');
+      throw new UnauthorizedException('Refresh token not found');
     }
 
     const isValid = await this.authService.validateRefreshToken(
       refreshToken,
-      parseInt(payload.sub, 10),
+      payload.sub,
     );
+
     if (!isValid) {
-      throw new UnauthorizedException('Neplatný obnovovací token');
+      throw new UnauthorizedException('Invalid refresh token');
     }
 
     return {
       id: payload.sub,
-      email: payload.email,
+      username: payload.username,
+      deviceId: payload.deviceId,
     };
   }
 }
