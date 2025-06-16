@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CompleteRegistrationDto } from './dto/complete-registration.dto';
 import { UserRole } from './enums/user-role.enum';
 import { subDays } from 'date-fns';
+import { PaginatedResponse } from '../common/dto/pagination.dto';
 
 type UserWithoutPassword = Omit<User, 'password'>;
 
@@ -55,20 +56,46 @@ export class UsersService {
     return result;
   }
 
-  async findAll(withDeleted = false): Promise<User[]> {
-    return this.usersRepository.find({
+  async findAll(withDeleted = false, take = 20, skip = 0): Promise<PaginatedResponse<User>> {
+    const [users, total] = await this.usersRepository.findAndCount({
       where: withDeleted ? {} : { deletedAt: IsNull() },
       order: { createdAt: 'DESC' },
+      take,
+      skip,
     });
+
+    const totalPages = Math.ceil(total / take);
+    const page = Math.floor(skip / take) + 1;
+
+    return {
+      data: users,
+      total,
+      page,
+      pageSize: take,
+      totalPages,
+    };
   }
 
-  async findDeleted(): Promise<User[]> {
-    return this.usersRepository.find({
+  async findDeleted(take = 20, skip = 0): Promise<PaginatedResponse<User>> {
+    const [users, total] = await this.usersRepository.findAndCount({
       withDeleted: true,
       where: {
         deletedAt: Not(IsNull()),
       },
+      take,
+      skip,
     });
+
+    const totalPages = Math.ceil(total / take);
+    const page = Math.floor(skip / take) + 1;
+
+    return {
+      data: users,
+      total,
+      page,
+      pageSize: take,
+      totalPages,
+    };
   }
 
   async findOne(id: string): Promise<User> {

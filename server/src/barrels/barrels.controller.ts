@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { BarrelsService } from './barrels.service';
 import { CreateBarrelDto } from './dto/create-barrel.dto';
@@ -15,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Barrel } from './entities/barrel.entity';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
+import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 
 @Controller('barrels')
 @Versions('1')
@@ -28,8 +30,8 @@ export class BarrelsController {
   }
 
   @Get('deleted')
-  findDeleted() {
-    return this.barrelsService.findDeleted();
+  findDeleted(@Query() paginationDto: PaginationDto): Promise<PaginatedResponse<Barrel>> {
+    return this.barrelsService.findDeleted(paginationDto.take, paginationDto.skip);
   }
 
   @Post('cleanup')
@@ -38,8 +40,8 @@ export class BarrelsController {
   }
 
   @Get()
-  findAll(): Promise<Barrel[]> {
-    return this.barrelsService.findAll();
+  findAll(@Query() paginationDto: PaginationDto): Promise<PaginatedResponse<Barrel>> {
+    return this.barrelsService.findAll(false, paginationDto.take, paginationDto.skip);
   }
 
   @Post()

@@ -72,4 +72,4 @@ export class ConfigService {
   get isTest(): boolean {
     return this.nodeEnv === 'test';
   }
-} 
+}

@@ -10,6 +10,7 @@ import { LoggingService } from './logging/logging.service';
 import { RateLimitGuard } from './common/guards/rate-limit.guard';
 import { ConfigService } from './config/config.service';
 import { RateLimiterService } from './common/services/rate-limiter.service';
+import * as compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,6 +18,9 @@ async function bootstrap() {
   const loggingService = app.get<LoggingService>(LoggingService);
   const reflector = app.get<Reflector>(Reflector);
   const rateLimiterService = app.get<RateLimiterService>(RateLimiterService);
+
+  // Enable compression
+  app.use(compression());
 
   // Enable cookie parser
   app.use(cookieParser());

@@ -27,6 +27,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserStatsService } from './user-stats.service';
 import { RoleGuard } from '../auth/guards/role.guard';
+import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 
 /**
  * Users controller handling user profile management.
@@ -61,8 +62,8 @@ export class UsersController {
 
   @Get()
   @Roles(UserRole.ADMIN)
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() paginationDto: PaginationDto): Promise<PaginatedResponse<User>> {
+    return this.usersService.findAll(false, paginationDto.take, paginationDto.skip);
   }
 
   @Get('profile')
@@ -72,8 +73,8 @@ export class UsersController {
   }
 
   @Get('deleted')
-  findDeleted() {
-    return this.usersService.findDeleted();
+  findDeleted(@Query() paginationDto: PaginationDto): Promise<PaginatedResponse<User>> {
+    return this.usersService.findDeleted(paginationDto.take, paginationDto.skip);
   }
 
   @Post('cleanup')

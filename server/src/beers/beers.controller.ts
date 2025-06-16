@@ -5,6 +5,7 @@ import {
   Param,
   UseGuards,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { BeersService } from './beers.service';
 import { Beer } from './entities/beer.entity';
@@ -12,6 +13,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
+import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 
 /**
  * Controller for managing beers.
@@ -44,8 +46,11 @@ export class BeersController {
    */
   @Public()
   @Get()
-  findByUserId(@Param('userId', ParseUUIDPipe) userId: string): Promise<Beer[]> {
-    return this.beersService.findByUserId(userId);
+  findByUserId(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResponse<Beer>> {
+    return this.beersService.findByUserId(userId, paginationDto.take, paginationDto.skip);
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Beer } from './entities/beer.entity';
@@ -6,6 +6,8 @@ import { User } from '../users/entities/user.entity';
 import { Barrel } from '../barrels/entities/barrel.entity';
 import { EventsService } from '../events/events.service';
 import { EventBeersService } from '../events/services/event-beers.service';
+import { PaginatedResponse } from '../common/dto/pagination.dto';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class BeersService {
@@ -22,6 +24,7 @@ export class BeersService {
     private readonly eventsService: EventsService,
     @Inject(forwardRef(() => EventBeersService))
     private readonly eventBeersService: EventBeersService,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(userId: string, barrelId?: string, skipEventBeer = false): Promise<Beer> {
@@ -62,10 +65,8 @@ export class BeersService {
       try {
         const activeEvent = await this.eventsService.getActiveEvent();
         if (activeEvent) {
-          const eventUsers = await this.eventsService.getEventUsers(
-            activeEvent.id,
-          );
-          if (eventUsers.some((u) => u.id === userId)) {
+          const eventUsers = await this.eventsService.getEventUsers(activeEvent.id);
+          if (eventUsers.data.some((u) => u.id === userId)) {
             await this.eventBeersService.create(
               activeEvent.id,
               userId,
@@ -82,17 +83,45 @@ export class BeersService {
     return savedBeer;
   }
 
-  async findByUserId(userId: string): Promise<Beer[]> {
-    return this.beerRepository.find({
+  async findByUserId(userId: string, take = 20, skip = 0): Promise<PaginatedResponse<Beer>> {
+    const [beers, total] = await this.beerRepository.findAndCount({
       where: { userId },
-      relations: ['barrel'],
+      relations: ['user', 'barrel'],
+      order: { createdAt: 'DESC' },
+      take,
+      skip,
     });
+
+    const totalPages = Math.ceil(total / take);
+    const page = Math.floor(skip / take) + 1;
+
+    return {
+      data: beers,
+      total,
+      page,
+      pageSize: take,
+      totalPages,
+    };
   }
 
-  async findAll(): Promise<Beer[]> {
-    return this.beerRepository.find({
+  async findAll(take = 20, skip = 0): Promise<PaginatedResponse<Beer>> {
+    const [beers, total] = await this.beerRepository.findAndCount({
       relations: ['user', 'barrel'],
+      order: { createdAt: 'DESC' },
+      take,
+      skip,
     });
+
+    const totalPages = Math.ceil(total / take);
+    const page = Math.floor(skip / take) + 1;
+
+    return {
+      data: beers,
+      total,
+      page,
+      pageSize: take,
+      totalPages,
+    };
   }
 
   async findOne(id: string): Promise<Beer | null> {

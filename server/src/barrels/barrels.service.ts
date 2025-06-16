@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, Not } from 'typeorm';
 import { Barrel } from './entities/barrel.entity';
 import { CreateBarrelDto } from './dto/create-barrel.dto';
 import { UpdateBarrelDto } from './dto/update-barrel.dto';
 import { LoggingService } from '../logging/logging.service';
+import { PaginatedResponse } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class BarrelsService {
@@ -14,20 +19,50 @@ export class BarrelsService {
     private loggingService: LoggingService,
   ) {}
 
-  async findAll(withDeleted = false): Promise<Barrel[]> {
-    return this.barrelsRepository.find({
+  async findAll(
+    withDeleted = false,
+    take = 20,
+    skip = 0,
+  ): Promise<PaginatedResponse<Barrel>> {
+    const [barrels, total] = await this.barrelsRepository.findAndCount({
       where: withDeleted ? {} : { deletedAt: IsNull() },
       order: { orderNumber: 'ASC' },
+      take,
+      skip,
     });
+
+    const totalPages = Math.ceil(total / take);
+    const page = Math.floor(skip / take) + 1;
+
+    return {
+      data: barrels,
+      total,
+      page,
+      pageSize: take,
+      totalPages,
+    };
   }
 
-  async findDeleted(): Promise<Barrel[]> {
-    return this.barrelsRepository.find({
+  async findDeleted(take = 20, skip = 0): Promise<PaginatedResponse<Barrel>> {
+    const [barrels, total] = await this.barrelsRepository.findAndCount({
       withDeleted: true,
       where: {
-        deletedAt: IsNull(),
+        deletedAt: Not(IsNull()),
       },
+      take,
+      skip,
     });
+
+    const totalPages = Math.ceil(total / take);
+    const page = Math.floor(skip / take) + 1;
+
+    return {
+      data: barrels,
+      total,
+      page,
+      pageSize: take,
+      totalPages,
+    };
   }
 
   async getActiveBarrel(): Promise<Barrel | null> {
@@ -127,20 +162,13 @@ export class BarrelsService {
     }
   }
 
-  async cleanup(): Promise<void> {
-    try {
-      const barrels = await this.findAll(true);
-      const count = barrels.length;
-      for (const barrel of barrels) {
-        await this.barrelsRepository.softRemove(barrel);
-      }
-      this.loggingService.logCleanup('BARRELS', { barrelsDeleted: count });
-    } catch (error: unknown) {
-      this.loggingService.error('Failed to cleanup barrels', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
+  async cleanup(): Promise<{ deletedCount: number }> {
+    const barrels = await this.findDeleted();
+    const count = barrels.data.length;
+    for (const barrel of barrels.data) {
+      await this.barrelsRepository.remove(barrel);
     }
+    return { deletedCount: count };
   }
 
   async decrementBeers(id: string): Promise<void> {

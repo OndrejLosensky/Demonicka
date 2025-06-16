@@ -21,6 +21,7 @@ import { VersionGuard } from '../versioning/guards/version.guard';
 import { EventBeersService } from './services/event-beers.service';
 import { EventBeer } from './entities/event-beer.entity';
 import { User } from '../users/entities/user.entity';
+import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 
 @Controller('events')
 @Versions('1')
@@ -32,8 +33,8 @@ export class EventsController {
   ) {}
 
   @Get()
-  findAll(): Promise<Event[]> {
-    return this.eventsService.findAll();
+  findAll(@Query() paginationDto: PaginationDto): Promise<PaginatedResponse<Event>> {
+    return this.eventsService.findAll(paginationDto.take, paginationDto.skip);
   }
 
   @Get('active')
@@ -93,14 +94,18 @@ export class EventsController {
   @Get(':id/users')
   getEventUsers(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query() paginationDto: PaginationDto,
     @Query('withDeleted') withDeleted?: boolean,
-  ): Promise<User[]> {
-    return this.eventsService.getEventUsers(id, withDeleted);
+  ): Promise<PaginatedResponse<User>> {
+    return this.eventsService.getEventUsers(id, withDeleted, paginationDto.take, paginationDto.skip);
   }
 
   @Get(':id/barrels')
-  getEventBarrels(@Param('id', ParseUUIDPipe) id: string): Promise<Barrel[]> {
-    return this.eventsService.getEventBarrels(id);
+  getEventBarrels(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() paginationDto: PaginationDto,
+  ): Promise<PaginatedResponse<Barrel>> {
+    return this.eventsService.getEventBarrels(id, paginationDto.take, paginationDto.skip);
   }
 
   @Put(':id/barrels/:barrelId')

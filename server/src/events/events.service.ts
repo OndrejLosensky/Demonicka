@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { Event } from './entities/event.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -11,6 +11,7 @@ import { EventBeersService } from './services/event-beers.service';
 import { BarrelsService } from '../barrels/barrels.service';
 import { LoggingService } from '../logging/logging.service';
 import { UsersService } from '../users/users.service';
+import { PaginatedResponse } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class EventsService {
@@ -32,10 +33,23 @@ export class EventsService {
         return this.eventRepository.save(event);
     }
 
-    async findAll(): Promise<Event[]> {
-        return this.eventRepository.find({
-            relations: ['users', 'barrels'],
+    async findAll(take = 20, skip = 0): Promise<PaginatedResponse<Event>> {
+        const [events, total] = await this.eventRepository.findAndCount({
+            order: { startDate: 'DESC' },
+            take,
+            skip,
         });
+
+        const totalPages = Math.ceil(total / take);
+        const page = Math.floor(skip / take) + 1;
+
+        return {
+            data: events,
+            total,
+            page,
+            pageSize: take,
+            totalPages,
+        };
     }
 
     async findOne(id: string): Promise<Event> {
@@ -94,33 +108,28 @@ export class EventsService {
         });
     }
 
-    async getEventUsers(id: string, withDeleted?: boolean): Promise<User[]> {
-        const event = await this.eventRepository.findOne({
-            where: { id },
-            relations: ['users', 'eventBeers'],
-            withDeleted: withDeleted
-        });
-        if (!event) {
-            throw new NotFoundException(`Event with ID ${id} not found`);
-        }
-        
-        // If withDeleted is true, return all users including deleted ones
-        let users: User[];
-        if (withDeleted) {
-            const userIds = event.users.map(user => user.id);
-            users = await this.userRepository.find({
-                where: { id: In(userIds) },
-                withDeleted: true
-            });
-        } else {
-            users = event.users || [];
-        }
+    async getEventUsers(eventId: string, withDeleted = false, take = 20, skip = 0): Promise<PaginatedResponse<User>> {
+        const event = await this.findOne(eventId);
+        const [users, total] = await this.eventRepository
+            .createQueryBuilder('event')
+            .leftJoinAndSelect('event.users', 'user')
+            .where('event.id = :eventId', { eventId })
+            .andWhere(withDeleted ? '1=1' : 'user.deletedAt IS NULL')
+            .orderBy('user.username', 'ASC')
+            .take(take)
+            .skip(skip)
+            .getManyAndCount();
 
-        // Add event beer counts to each user
-        return users.map(user => ({
-            ...user,
-            eventBeerCount: event.eventBeers.filter(eb => eb.userId === user.id).length
-        }));
+        const totalPages = Math.ceil(total / take);
+        const page = Math.floor(skip / take) + 1;
+
+        return {
+            data: users[0]?.users || [],
+            total,
+            page,
+            pageSize: take,
+            totalPages,
+        };
     }
 
     async addUser(id: string, userId: string): Promise<Event> {
@@ -151,15 +160,27 @@ export class EventsService {
         return this.eventRepository.save(event);
     }
 
-    async getEventBarrels(id: string): Promise<Barrel[]> {
-        const event = await this.eventRepository.findOne({
-            where: { id },
-            relations: ['barrels']
-        });
-        if (!event) {
-            throw new NotFoundException(`Event with ID ${id} not found`);
-        }
-        return event.barrels || [];
+    async getEventBarrels(eventId: string, take = 20, skip = 0): Promise<PaginatedResponse<Barrel>> {
+        const event = await this.findOne(eventId);
+        const [barrels, total] = await this.eventRepository
+            .createQueryBuilder('event')
+            .leftJoinAndSelect('event.barrels', 'barrel')
+            .where('event.id = :eventId', { eventId })
+            .orderBy('barrel.orderNumber', 'ASC')
+            .take(take)
+            .skip(skip)
+            .getManyAndCount();
+
+        const totalPages = Math.ceil(total / take);
+        const page = Math.floor(skip / take) + 1;
+
+        return {
+            data: barrels[0]?.barrels || [],
+            total,
+            page,
+            pageSize: take,
+            totalPages,
+        };
     }
 
     async addBarrel(id: string, barrelId: string): Promise<Event> {
