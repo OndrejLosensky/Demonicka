@@ -31,7 +31,6 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
-  const isHistoryEnabled = useFeatureFlag(FeatureFlagKey.HISTORY_PAGE);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const { activeEvent } = useActiveEvent();
@@ -134,38 +133,28 @@ export default function Header() {
                         {activeEvent && (
                           <>
                             <Link
-                              to="/dashboard/ucastnici"
+                              to="/dashboard/participants"
                               className={`px-3 py-2 rounded-md text-sm font-medium ${
-                                isActive('/dashboard/ucastnici')
+                                isActive('/dashboard/participants')
                                   ? 'bg-primary text-white'
                                   : 'text-text-primary hover:text-text-secondary'
                               }`}
                             >
                               {translations.navigation.participants}
                             </Link>
-                            <Link
-                              to="/dashboard/barrels"
-                              className={`px-3 py-2 rounded-md text-sm font-medium ${
-                                isActive('/dashboard/barrels')
-                                  ? 'bg-primary text-white'
-                                  : 'text-text-primary hover:text-text-secondary'
-                              }`}
-                            >
-                              {translations.navigation.barrels}
-                            </Link>
+                            {hasRole([USER_ROLE.ADMIN]) && (
+                              <Link
+                                to="/dashboard/barrels"
+                                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                                  isActive('/dashboard/barrels')
+                                    ? 'bg-primary text-white'
+                                    : 'text-text-primary hover:text-text-secondary'
+                                }`}
+                              >
+                                {translations.navigation.barrels}
+                              </Link>
+                            )}
                           </>
-                        )}
-                        {isHistoryEnabled && (
-                          <Link
-                            to="/dashboard/history"
-                            className={`px-3 py-2 rounded-md text-sm font-medium ${
-                              isActive('/dashboard/history')
-                                ? 'bg-primary text-white'
-                                : 'text-text-primary hover:text-text-secondary'
-                            }`}
-                          >
-                            {translations.navigation.history}
-                          </Link>
                         )}
                       </>
                     )}

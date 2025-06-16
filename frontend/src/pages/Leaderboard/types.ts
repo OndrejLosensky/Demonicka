@@ -1,11 +1,18 @@
+import type { ReactNode } from 'react';
+
 export interface UserLeaderboard {
-  id: number;
+  id: string;
   username: string;
   beerCount: number;
-  gender: 'MALE' | 'FEMALE';
 }
 
 export interface LeaderboardTableProps {
   participants: UserLeaderboard[];
   title: string;
+  icon?: ReactNode;
+}
+
+export interface LeaderboardData {
+  males: UserLeaderboard[];
+  females: UserLeaderboard[];
 } 

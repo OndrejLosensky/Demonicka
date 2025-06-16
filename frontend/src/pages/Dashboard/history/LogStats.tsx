@@ -39,7 +39,8 @@ function LogStatsComponent() {
     return null;
   }
 
-  const eventData = {
+  // Ensure eventCounts exists and has data
+  const eventData = stats.eventCounts ? {
     labels: Object.keys(stats.eventCounts),
     datasets: [
       {
@@ -62,7 +63,7 @@ function LogStatsComponent() {
         borderWidth: 1,
       },
     ],
-  };
+  } : null;
 
   const logLevelData = {
     labels: [
@@ -73,9 +74,9 @@ function LogStatsComponent() {
     datasets: [
       {
         data: [
-          stats.errorCount,
-          stats.warnCount,
-          stats.totalLogs - stats.errorCount - stats.warnCount,
+          stats.errorCount || 0,
+          stats.warnCount || 0,
+          (stats.totalLogs || 0) - (stats.errorCount || 0) - (stats.warnCount || 0),
         ],
         backgroundColor: [
           'rgba(255, 99, 132, 0.5)',
@@ -92,7 +93,8 @@ function LogStatsComponent() {
     ],
   };
 
-  const participantData = {
+  // Ensure participantActivity exists and has data
+  const participantData = stats.participantActivity ? {
     labels: Object.keys(stats.participantActivity),
     datasets: [
       {
@@ -103,7 +105,7 @@ function LogStatsComponent() {
         borderWidth: 1,
       },
     ],
-  };
+  } : null;
 
   return (
     <div className="p-4">
@@ -138,24 +140,26 @@ function LogStatsComponent() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">{translations.stats.sections.events.title}</h3>
-          <Bar
-            data={eventData}
-            options={{
-              responsive: true,
-              plugins: {
-                legend: {
-                  position: 'top' as const,
+        {eventData && (
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h3 className="text-lg font-semibold mb-2">{translations.stats.sections.events.title}</h3>
+            <Bar
+              data={eventData}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'top' as const,
+                  },
+                  title: {
+                    display: true,
+                    text: translations.stats.sections.events.chartTitle,
+                  },
                 },
-                title: {
-                  display: true,
-                  text: translations.stats.sections.events.chartTitle,
-                },
-              },
-            }}
-          />
-        </div>
+              }}
+            />
+          </div>
+        )}
 
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-lg font-semibold mb-2">{translations.stats.sections.logLevels.title}</h3>
@@ -176,27 +180,29 @@ function LogStatsComponent() {
           />
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">{translations.stats.sections.participants.title}</h3>
-          <Bar
-            data={participantData}
-            options={{
-              responsive: true,
-              plugins: {
-                legend: {
-                  position: 'top' as const,
+        {participantData && (
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h3 className="text-lg font-semibold mb-2">{translations.stats.sections.participants.title}</h3>
+            <Bar
+              data={participantData}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'top' as const,
+                  },
+                  title: {
+                    display: true,
+                    text: translations.stats.sections.participants.chartTitle,
+                  },
                 },
-                title: {
-                  display: true,
-                  text: translations.stats.sections.participants.chartTitle,
-                },
-              },
-            }}
-          />
-        </div>
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export const LogStats = withPageLoader(LogStatsComponent); 
+export default withPageLoader(LogStatsComponent); 

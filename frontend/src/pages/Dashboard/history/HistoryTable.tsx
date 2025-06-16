@@ -14,6 +14,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Typography
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import { format } from 'date-fns';
@@ -34,7 +35,7 @@ interface HistoryTableProps {
   onLevelChange: (level: LogLevel | '') => void;
 }
 
-const getLogLevelColor = (level: string): 'error' | 'warning' | 'info' | 'default' => {
+const getLevelColor = (level: string) => {
   switch (level.toLowerCase()) {
     case 'error':
       return 'error';
@@ -42,6 +43,8 @@ const getLogLevelColor = (level: string): 'error' | 'warning' | 'info' | 'defaul
       return 'warning';
     case 'info':
       return 'info';
+    case 'debug':
+      return 'default';
     default:
       return 'default';
   }
@@ -78,9 +81,11 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
 
   return (
     <>
-      <Box sx={{ mb: 2 }}>
-        <FormControl sx={{ minWidth: 120 }}>
-          <InputLabel id="level-select-label">{translations.table.filters.logLevel.label}</InputLabel>
+      <Box sx={{ mb: 3 }}>
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel id="level-select-label">
+            {translations.table.filters.logLevel.label}
+          </InputLabel>
           <Select
             labelId="level-select-label"
             value={level}
@@ -97,58 +102,66 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
         </FormControl>
       </Box>
 
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ borderRadius: 2, mb: 2 }}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>{translations.table.columns.timestamp}</TableCell>
-              <TableCell>{translations.table.columns.level}</TableCell>
-              <TableCell>{translations.table.columns.event}</TableCell>
-              <TableCell>{translations.table.columns.message}</TableCell>
-              <TableCell>{translations.table.columns.metadata}</TableCell>
+              <TableCell>Timestamp</TableCell>
+              <TableCell>Level</TableCell>
+              <TableCell>Message</TableCell>
+              <TableCell>Service</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {!isLoading &&
-              logs.map((log, index) => {
-                const { timestamp, level, message, event, metadata } =
-                  formatLogEntry(log);
-                return (
-                  <TableRow key={index}>
-                    <TableCell>{timestamp}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={level.toUpperCase()}
-                        color={getLogLevelColor(level)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {event && (
-                        <Chip label={event} variant="outlined" size="small" />
-                      )}
-                    </TableCell>
-                    <TableCell>{message}</TableCell>
-                    <TableCell>
-                      {metadata && (
-                        <pre style={{ margin: 0 }}>
-                          {JSON.stringify(metadata, null, 2)}
-                        </pre>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+            {logs.map((log) => (
+              <TableRow key={log.id} hover>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  {format(new Date(log.timestamp), 'dd.MM.yyyy HH:mm:ss')}
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={log.level.toUpperCase()}
+                    size="small"
+                    color={getLevelColor(log.level)}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" sx={{ 
+                    fontFamily: 'monospace',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word'
+                  }}>
+                    {log.message}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={log.service}
+                    size="small"
+                    variant="outlined"
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+            {logs.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                  <Typography color="text.secondary">
+                    {translations.table.noData}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
 
       <TablePagination
-        rowsPerPageOptions={[5, 10, 25, 50]}
         component="div"
         count={total}
-        rowsPerPage={rowsPerPage}
         page={page}
+        rowsPerPage={rowsPerPage}
+        rowsPerPageOptions={[5, 10, 25, 50]}
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
         labelRowsPerPage={translations.table.pagination.rowsPerPage}

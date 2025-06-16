@@ -27,6 +27,7 @@ import {
 import { FaBeer } from 'react-icons/fa';
 import type { ParticipantTableProps } from './types';
 import { format } from 'date-fns';
+import { cs } from 'date-fns/locale';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import translations from '../../../locales/cs/dashboard.participants.json';
 
@@ -129,7 +130,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                 <TableCell>
                   {participant.lastBeerTime ? (
                     <Typography variant="body2" color="text.secondary">
-                      {format(new Date(participant.lastBeerTime), 'PPp')}
+                      {format(new Date(participant.lastBeerTime), 'PPp', { locale: cs })}
                     </Typography>
                   ) : (
                     '-'

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -10,10 +10,22 @@ import {
   Typography,
   Box,
   LinearProgress,
-  Button,
+  IconButton,
+  Tooltip,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Chip,
 } from '@mui/material';
+import {
+  Delete as DeleteIcon,
+  PowerSettingsNew as PowerIcon,
+} from '@mui/icons-material';
+import { FaBeer } from 'react-icons/fa';
 import type { Barrel } from '../../../types/barrel';
 import translations from '../../../locales/cs/dashboard.barrels.json';
+import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 
 interface BarrelTableProps {
   barrels: Barrel[];
@@ -30,136 +42,184 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
   onDelete,
   onActivate,
 }) => {
+  const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; barrel: { id: string; size: number } }>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedBarrel, setSelectedBarrel] = useState<{ id: string; size: number } | null>(null);
+
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
+  };
+
+  const handleDeleteClick = () => {
+    if (menuAnchor?.barrel) {
+      setSelectedBarrel(menuAnchor.barrel);
+    }
+    handleCloseMenu();
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedBarrel) {
+      onDelete(selectedBarrel.id);
+    }
+    setDeleteDialogOpen(false);
+    setSelectedBarrel(null);
+  };
+
   const allBarrels = showDeleted ? [...barrels, ...deletedBarrels] : barrels;
 
   return (
-    <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>{translations.table.columns.barrel}</TableCell>
-            <TableCell>{translations.table.columns.size}</TableCell>
-            <TableCell>{translations.table.columns.remainingBeers}</TableCell>
-            <TableCell>{translations.table.columns.status}</TableCell>
-            <TableCell>{translations.table.columns.createdAt}</TableCell>
-            <TableCell align="right">{translations.table.columns.actions}</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {allBarrels.map((barrel) => (
-            <TableRow
-              key={barrel.id}
-              sx={{
-                opacity: barrel.deletedAt ? 0.5 : 1,
-                '&:hover': {
-                  bgcolor: 'action.hover',
-                },
-              }}
-            >
-              <TableCell>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography sx={{ fontWeight: 500 }}>
-                    {`Sud ${barrel.orderNumber}`}
-                  </Typography>
-                  {showDeleted && barrel.deletedAt && (
-                    <Typography
-                      variant="caption"
-                      color="error"
-                      sx={{ ml: 1 }}
-                    >
-                      {translations.table.status.deleted}
-                    </Typography>
-                  )}
-                </Box>
-              </TableCell>
-              <TableCell>
-                <Box sx={{ 
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  bgcolor: 'primary.light',
-                  color: 'primary.main',
-                  py: 0.5,
-                  px: 1.5,
-                  borderRadius: 1,
-                }}>
-                  <Typography sx={{ fontWeight: 'bold' }}>
-                    {barrel.size}L
-                  </Typography>
-                </Box>
-              </TableCell>
-              <TableCell>
-                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ flex: 1 }}>
-                    <LinearProgress
-                      variant="determinate"
-                      value={(barrel.remainingBeers / barrel.totalBeers) * 100}
-                      sx={{
-                        height: 8,
-                        borderRadius: 4,
-                        bgcolor: 'grey.200',
-                        '& .MuiLinearProgress-bar': {
-                          bgcolor: barrel.remainingBeers === 0 ? 'error.main' : 'success.main',
-                        }
-                      }}
-                    />
-                  </Box>
-                  <Typography sx={{ 
-                    minWidth: 80,
-                    fontWeight: 'bold',
-                    color: barrel.remainingBeers === 0 ? 'error.main' : 'success.main'
-                  }}>
-                    {barrel.remainingBeers} / {barrel.totalBeers}
-                  </Typography>
-                </Box>
-              </TableCell>
-              <TableCell>
-                <Box sx={{ 
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  bgcolor: barrel.isActive ? 'success.light' : 'grey.100',
-                  color: barrel.isActive ? 'success.main' : 'text.secondary',
-                  py: 0.5,
-                  px: 1.5,
-                  borderRadius: 1,
-                }}>
-                  <Typography sx={{ fontWeight: 'bold' }}>
-                    {barrel.isActive ? translations.table.status.active : translations.table.status.inactive}
-                  </Typography>
-                </Box>
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2" color="text.secondary">
-                  {new Date(barrel.createdAt).toLocaleDateString('cs-CZ')}
-                </Typography>
-              </TableCell>
-              <TableCell align="right">
-                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                  {!barrel.isActive && barrel.remainingBeers > 0 && !barrel.deletedAt && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="primary"
-                      onClick={() => onActivate(barrel.id)}
-                    >
-                      {translations.table.actions.activate}
-                    </Button>
-                  )}
-                  {!barrel.deletedAt && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="error"
-                      onClick={() => onDelete(barrel.id)}
-                    >
-                      {translations.table.actions.delete}
-                    </Button>
-                  )}
-                </Box>
-              </TableCell>
+    <>
+      <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>{translations.table.columns.barrel}</TableCell>
+              <TableCell>{translations.table.columns.size}</TableCell>
+              <TableCell>{translations.table.columns.remainingBeers}</TableCell>
+              <TableCell>{translations.table.columns.status}</TableCell>
+              <TableCell>{translations.table.columns.createdAt}</TableCell>
+              <TableCell align="right" sx={{ width: 220 }}>{translations.table.columns.actions}</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {allBarrels.map((barrel) => (
+              <TableRow
+                key={barrel.id}
+                sx={{
+                  opacity: barrel.deletedAt ? 0.5 : 1,
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                  },
+                }}
+              >
+                <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 500 }}>
+                      {`Sud ${barrel.orderNumber}`}
+                    </Typography>
+                    {showDeleted && barrel.deletedAt && (
+                      <Chip
+                        label={translations.table.status.deleted}
+                        color="error"
+                        size="small"
+                        sx={{ ml: 1 }}
+                      />
+                    )}
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <FaBeer style={{ color: 'rgba(0, 0, 0, 0.6)', fontSize: '1rem' }} />
+                    <Typography>{barrel.size}L</Typography>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <LinearProgress
+                        variant="determinate"
+                        value={(barrel.remainingBeers / barrel.totalBeers) * 100}
+                        sx={{
+                          height: 8,
+                          borderRadius: 4,
+                          bgcolor: 'grey.200',
+                          '& .MuiLinearProgress-bar': {
+                            bgcolor: barrel.remainingBeers === 0 ? 'error.main' : 'success.main',
+                          }
+                        }}
+                      />
+                    </Box>
+                    <Typography sx={{ 
+                      minWidth: 80,
+                      fontWeight: 'bold',
+                      color: barrel.remainingBeers === 0 ? 'error.main' : 'success.main'
+                    }}>
+                      {barrel.remainingBeers} / {barrel.totalBeers}
+                    </Typography>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={barrel.isActive ? translations.table.status.active : translations.table.status.inactive}
+                    size="small"
+                    sx={{
+                      bgcolor: barrel.isActive ? 'success.light' : 'grey.100',
+                      color: barrel.isActive ? 'success.main' : 'text.secondary',
+                    }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" color="text.secondary">
+                    {new Date(barrel.createdAt).toLocaleDateString('cs-CZ')}
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">
+                  {!barrel.deletedAt && (
+                    <>
+                      {!barrel.isActive && barrel.remainingBeers > 0 && (
+                        <Tooltip title={translations.table.actions.activate}>
+                          <IconButton
+                            size="small"
+                            onClick={() => onActivate(barrel.id)}
+                            sx={{
+                              mr: 1,
+                              border: 1,
+                              borderColor: 'primary.main',
+                              '&:hover': {
+                                bgcolor: 'primary.light',
+                              },
+                            }}
+                          >
+                            <PowerIcon fontSize="small" color="primary" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      <Tooltip title={translations.table.actions.delete}>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => setMenuAnchor({ 
+                            element: e.currentTarget, 
+                            barrel: { 
+                              id: barrel.id, 
+                              size: barrel.size 
+                            } 
+                          })}
+                          color="error"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Menu
+        anchorEl={menuAnchor?.element}
+        open={Boolean(menuAnchor)}
+        onClose={handleCloseMenu}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+      >
+        <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>{translations.table.actions.delete}</ListItemText>
+        </MenuItem>
+      </Menu>
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        barrelSize={selectedBarrel?.size || 0}
+      />
+    </>
   );
 }; 

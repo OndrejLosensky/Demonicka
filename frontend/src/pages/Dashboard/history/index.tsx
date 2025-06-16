@@ -1,8 +1,15 @@
 import { useState } from 'react';
-import { Tabs, Tab, Button } from '@mui/material';
+import { 
+  Tabs, 
+  Tab, 
+  Button, 
+  Box,
+  Typography,
+  Paper
+} from '@mui/material';
 import { HistoryTable } from './HistoryTable';
 import { useHistory } from './useHistory';
-import { LogStats } from './LogStats';
+import LogStats from './LogStats';
 import { CleanupDialog } from './CleanupDialog';
 import { DeleteOutline } from '@mui/icons-material';
 import translations from '../../../locales/cs/dashboard.history.json';
@@ -28,57 +35,78 @@ export const History = () => {
   };
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">{translations.title}</h1>
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h6" fontWeight="bold">
+          {translations.title}
+        </Typography>
         <Button
           variant="outlined"
           color="error"
           startIcon={<DeleteOutline />}
           onClick={() => setIsCleanupOpen(true)}
+          size="small"
         >
           {translations.cleanupLogs.button}
         </Button>
-      </div>
+      </Box>
       
-      <Tabs
-        value={activeTab}
-        onChange={handleTabChange}
-        className="mb-6"
-        textColor="primary"
-        indicatorColor="primary"
-      >
-        <Tab label={translations.tabs.analytics} />
-        <Tab label={translations.tabs.detailedHistory} />
-      </Tabs>
-
-      {activeTab === 0 && (
-        <section>
-          <LogStats />
-        </section>
-      )}
-
-      {activeTab === 1 && (
-        <section>
-          <HistoryTable
-            logs={logs}
-            total={total}
-            isLoading={isLoading}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            level={level}
-            onPageChange={handlePageChange}
-            onRowsPerPageChange={handleRowsPerPageChange}
-            onLevelChange={handleLevelChange}
+      <Paper sx={{ mb: 3, borderRadius: 2 }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          textColor="primary"
+          indicatorColor="primary"
+          sx={{
+            borderBottom: 1,
+            borderColor: 'divider',
+            px: 2
+          }}
+        >
+          <Tab 
+            label={translations.tabs.analytics} 
+            sx={{ 
+              textTransform: 'none',
+              fontWeight: 'medium',
+              minHeight: 48
+            }} 
           />
-        </section>
-      )}
+          <Tab 
+            label={translations.tabs.detailedHistory} 
+            sx={{ 
+              textTransform: 'none',
+              fontWeight: 'medium',
+              minHeight: 48
+            }} 
+          />
+        </Tabs>
+
+        <Box sx={{ p: 3 }}>
+          {activeTab === 0 && (
+            <LogStats />
+          )}
+
+          {activeTab === 1 && (
+            <HistoryTable
+              logs={logs}
+              total={total}
+              isLoading={isLoading}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              level={level}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              onLevelChange={handleLevelChange}
+            />
+          )}
+        </Box>
+      </Paper>
 
       <CleanupDialog
         open={isCleanupOpen}
         onClose={() => setIsCleanupOpen(false)}
         onSuccess={refetch}
       />
-    </div>
+    </Box>
   );
 }; 

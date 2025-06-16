@@ -19,7 +19,7 @@ export const featureFlags: FeatureFlags = {
     description: 'Enables active event functionality',
   },
   [FeatureFlagKey.HISTORY_PAGE]: {
-    enabled: false,
+    enabled: true,
     description: 'Enables the history page functionality showing past activities and events',
   },
   [FeatureFlagKey.LEADERBOARD_YEAR_FILTER]: {

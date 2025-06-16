@@ -1,4 +1,4 @@
-import { Typography, Grid, Box, Container } from '@mui/material';
+import { Typography, Grid, Box, Container, Paper } from '@mui/material';
 import { motion } from 'framer-motion';
 import { FaBeer } from 'react-icons/fa';
 import { LeaderboardTable } from './LeaderboardTable';
@@ -10,9 +10,10 @@ import translations from '../../locales/cs/dashboard.leaderboard.json';
 import { EmptyEventState } from '../../components/EmptyEventState';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
+import type { UserLeaderboard } from './types';
 
 const LeaderboardComponent: React.FC = () => {
-  const { stats, isLoading, selectedEvent } = useLeaderboard();
+  const { stats, isLoading } = useLeaderboard();
   const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
   const { activeEvent } = useActiveEvent();
 
@@ -33,58 +34,67 @@ const LeaderboardComponent: React.FC = () => {
 
   if (!stats) {
     return (
-      <div className="p-6 flex justify-center items-center min-h-[400px]">
+      <Box p={3} display="flex" justifyContent="center" alignItems="center" minHeight={400}>
         <Typography>{translations.noData}</Typography>
-      </div>
+      </Box>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="p-6 space-y-8"
-    >
-      <motion.div
-        initial={{ y: -20 }}
-        animate={{ y: 0 }}
-        className="text-center space-y-6"
+    <Box p={3}>
+      <Paper 
+        elevation={0}
+        sx={{ 
+          p: 4, 
+          mb: 4, 
+          textAlign: 'center',
+          background: 'transparent',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 2
+        }}
       >
-        <div className="inline-block bg-primary/5 p-6 rounded-2xl">
-          <Typography variant="h3" className="flex items-center justify-center gap-4 text-primary font-bold">
-            <FaBeer className="text-4xl" />
+        <Box display="flex" alignItems="center" justifyContent="center" gap={2} mb={2}>
+          <FaBeer style={{ fontSize: '2rem' }} />
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
             {translations.title}
-            <FaBeer className="text-4xl" />
           </Typography>
-        </div>
+          <FaBeer style={{ fontSize: '2rem' }} />
+        </Box>
         
-        <div className="flex flex-col items-center gap-4">
-          <Typography variant="h6" className="text-text-secondary font-medium">
-            {translations.subtitle}
-            {selectedEvent && (
-              <span className="block text-primary font-bold mt-2">
-                {selectedEvent.name}
-              </span>
-            )}
-          </Typography>
-          
-          {showEventHistory && (
-            <Box>
-              <EventSelector />
+        <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
+          {translations.subtitle}
+          {activeEvent && (
+            <Box component="span" display="block" color="error.main" fontWeight="bold" mt={1}>
+              {activeEvent.name}
             </Box>
           )}
-        </div>
-      </motion.div>
+        </Typography>
+        
+        {showEventHistory && (
+          <Box mt={2}>
+            <EventSelector />
+          </Box>
+        )}
+      </Paper>
 
-      <Grid container spacing={4}>
+      <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <LeaderboardTable participants={stats.males} title={translations.sections.men} />
+          <LeaderboardTable 
+            participants={stats.males} 
+            title={translations.sections.men}
+            icon={<FaBeer style={{ fontSize: '1.5rem' }} />}
+          />
         </Grid>
         <Grid item xs={12} md={6}>
-          <LeaderboardTable participants={stats.females} title={translations.sections.women} />
+          <LeaderboardTable 
+            participants={stats.females} 
+            title={translations.sections.women}
+            icon={<FaBeer style={{ fontSize: '1.5rem' }} />}
+          />
         </Grid>
       </Grid>
-    </motion.div>
+    </Box>
   );
 };
 

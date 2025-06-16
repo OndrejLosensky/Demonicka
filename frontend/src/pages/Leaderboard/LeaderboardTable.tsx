@@ -1,91 +1,133 @@
-import { Paper, Typography } from '@mui/material';
-import { motion } from 'framer-motion';
-import { FaBeer, FaTrophy } from 'react-icons/fa';
-import { GiPodiumWinner, GiPodiumSecond, GiPodiumThird } from 'react-icons/gi';
+import { Paper, Typography, Box, Chip } from '@mui/material';
+import { FaBeer } from 'react-icons/fa';
+import { GiTrophy } from 'react-icons/gi';
 import type { LeaderboardTableProps } from './types';
 import translations from '../../locales/cs/dashboard.leaderboard.json';
 
-const getRankIcon = (rank: number) => {
+const getTrophyColor = (rank: number): string => {
   switch (rank) {
     case 0:
-      return <GiPodiumWinner className="text-yellow-500 text-3xl" />;
+      return '#FFD700'; // Gold
     case 1:
-      return <GiPodiumSecond className="text-gray-400 text-3xl" />;
+      return '#C0C0C0'; // Silver
     case 2:
-      return <GiPodiumThird className="text-amber-700 text-3xl" />;
+      return '#CD7F32'; // Bronze
     default:
-      return null;
+      return 'transparent';
   }
 };
 
-export const LeaderboardTable = ({ participants, title }: LeaderboardTableProps) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5 }}
-    className="h-full"
+export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableProps) => (
+  <Paper 
+    elevation={0}
+    sx={{ 
+      p: 3,
+      height: '100%',
+      border: '1px solid',
+      borderColor: 'divider',
+      borderRadius: 2
+    }}
   >
-    <Paper className="p-6 bg-background-card dark:bg-background-tertiary shadow-xl rounded-2xl h-full border border-primary/5">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="p-3 bg-primary/10 rounded-xl">
-          <FaTrophy className="text-2xl text-primary" />
-        </div>
-        <Typography variant="h5" className="font-bold text-primary">
-          {title}
-        </Typography>
-      </div>
-      <div className="overflow-hidden rounded-xl">
-        <table className="min-w-full">
-          <thead>
-            <tr>
-              <th className="text-left p-4 bg-primary/5 dark:bg-primary/10 border-b-2 border-primary/20 font-bold text-primary dark:text-primary">{translations.table.columns.rank}</th>
-              <th className="text-left p-4 bg-primary/5 dark:bg-primary/10 border-b-2 border-primary/20 font-bold text-primary dark:text-primary">{translations.table.columns.name}</th>
-              <th className="text-right p-4 bg-primary/5 dark:bg-primary/10 border-b-2 border-primary/20 font-bold text-primary dark:text-primary">{translations.table.columns.beers}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {participants.map((participant, index) => (
-              <motion.tr
-                key={participant.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                className={`${index < 3 ? 'bg-primary/5 dark:bg-primary/10' : ''} hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors`}
-              >
-                <td className="p-4 flex items-center gap-3">
-                  <span className={`font-bold ${index < 3 ? 'text-xl text-primary' : ''}`}>{index + 1}.</span>
-                  {getRankIcon(index)}
-                </td>
-                <td className="p-4">
-                  <span className={`font-medium ${index < 3 ? 'text-lg' : ''}`}>{participant.username}</span>
-                  {index === 0 && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="inline-block ml-2 px-2 py-1 bg-yellow-500/10 rounded-full"
-                    >
-                      <span className="text-xs font-bold text-yellow-500">{translations.table.champion}</span>
-                    </motion.div>
-                  )}
-                </td>
-                <td className="text-right p-4">
-                  <div className="flex items-center justify-end gap-2">
-                    <span className={`font-bold ${index < 3 ? 'text-lg text-primary' : ''}`}>{participant.beerCount}</span>
-                    <FaBeer className={`${index < 3 ? 'text-xl text-primary' : 'text-primary/50'}`} />
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-            {participants.length === 0 && (
-              <tr>
-                <td colSpan={3} className="text-center p-8 text-text-secondary">
-                  {translations.table.noParticipants}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </Paper>
-  </motion.div>
+    <Box display="flex" alignItems="center" gap={2} mb={3}>
+      <GiTrophy style={{ fontSize: '1.5rem' }} />
+      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+        {title}
+      </Typography>
+    </Box>
+
+    <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px' }}>
+      <thead>
+        <tr>
+          <th style={{ textAlign: 'left', padding: '8px 16px' }}>
+            <Typography color="text.secondary" variant="body2">
+              {translations.table.columns.rank}
+            </Typography>
+          </th>
+          <th style={{ textAlign: 'left', padding: '8px 16px' }}>
+            <Typography color="text.secondary" variant="body2">
+              {translations.table.columns.name}
+            </Typography>
+          </th>
+          <th style={{ textAlign: 'right', padding: '8px 16px' }}>
+            <Typography color="text.secondary" variant="body2">
+              {translations.table.columns.beers}
+            </Typography>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {participants.map((participant, index) => (
+          <tr key={participant.id}>
+            <td style={{ padding: '8px 16px', width: '60px' }}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <Typography 
+                  variant={index < 3 ? 'h6' : 'body1'} 
+                  sx={{ 
+                    fontWeight: 'bold',
+                    color: index < 3 ? 'text.primary' : 'text.secondary'
+                  }}
+                >
+                  {index + 1}.
+                </Typography>
+                {index < 3 && (
+                  <GiTrophy style={{ 
+                    fontSize: '1.5rem',
+                    color: getTrophyColor(index)
+                  }} />
+                )}
+              </Box>
+            </td>
+            <td style={{ padding: '8px 16px' }}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <Typography 
+                  variant={index < 3 ? 'h6' : 'body1'}
+                  sx={{ fontWeight: index < 3 ? 'bold' : 'normal' }}
+                >
+                  {participant.username}
+                </Typography>
+                {index === 0 && (
+                  <Chip 
+                    label={translations.table.champion}
+                    size="small"
+                    sx={{ 
+                      bgcolor: 'warning.light',
+                      color: 'warning.dark',
+                      fontWeight: 'bold',
+                      fontSize: '0.75rem'
+                    }}
+                  />
+                )}
+              </Box>
+            </td>
+            <td style={{ padding: '8px 16px', textAlign: 'right' }}>
+              <Box display="flex" alignItems="center" justifyContent="flex-end" gap={1}>
+                <Typography 
+                  variant={index < 3 ? 'h6' : 'body1'}
+                  sx={{ 
+                    fontWeight: 'bold',
+                    color: index < 3 ? 'error.main' : 'text.primary'
+                  }}
+                >
+                  {participant.beerCount}
+                </Typography>
+                <FaBeer style={{ 
+                  fontSize: index < 3 ? '1.25rem' : '1rem',
+                  opacity: index < 3 ? 1 : 0.5
+                }} />
+              </Box>
+            </td>
+          </tr>
+        ))}
+        {(!participants || participants.length === 0) && (
+          <tr>
+            <td colSpan={3} style={{ textAlign: 'center', padding: '32px 16px' }}>
+              <Typography color="text.secondary">
+                {translations.table.noParticipants}
+              </Typography>
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </Paper>
 ); 

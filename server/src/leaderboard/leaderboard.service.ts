@@ -3,12 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { EventBeer } from '../events/entities/event-beer.entity';
-import { LeaderboardEntryDto } from './dto/leaderboard.dto';
+import { LeaderboardDto, UserLeaderboardDto } from '../dashboard/dto/leaderboard.dto';
 
 interface RawEventBeerStats {
   id: string;
   username: string;
   name: string | null;
+  gender: 'MALE' | 'FEMALE';
   beerCount: string;
   lastBeerTime: Date;
 }
@@ -22,54 +23,58 @@ export class LeaderboardService {
     private eventBeerRepository: Repository<EventBeer>,
   ) {}
 
-  async getLeaderboard(eventId?: string): Promise<LeaderboardEntryDto[]> {
+  async getLeaderboard(eventId?: string): Promise<LeaderboardDto> {
     if (eventId) {
-      // Get event-specific leaderboard using event beers
-      const eventBeers = await this.eventBeerRepository
-        .createQueryBuilder('eventBeer')
-        .leftJoinAndSelect('eventBeer.user', 'user')
-        .where('eventBeer.eventId = :eventId', { eventId })
-        .andWhere('user.isRegistrationComplete = :isComplete', {
-          isComplete: true,
-        })
+      // Get all event participants with their event-specific beer counts
+      const participants = await this.usersRepository
+        .createQueryBuilder('user')
+        .leftJoin('user.events', 'event', 'event.id = :eventId', { eventId })
+        .leftJoin('user.eventBeers', 'eventBeer', 'eventBeer.eventId = :eventId', { eventId })
         .select([
           'user.id as id',
           'user.username as username',
-          'user.name as name',
-          'COUNT(eventBeer.id) as beerCount',
-          'MAX(eventBeer.consumedAt) as lastBeerTime',
+          'user.gender as gender',
+          'COUNT(DISTINCT eventBeer.id) as beerCount'
         ])
-        .groupBy('user.id')
+        .where('event.id = :eventId', { eventId })
+        .groupBy('user.id, user.username, user.gender')
         .orderBy('beerCount', 'DESC')
-        .limit(10)
-        .getRawMany<RawEventBeerStats>();
+        .getRawMany();
 
-      return eventBeers.map((beer) => ({
-        id: beer.id,
-        username: beer.username,
-        name: beer.name,
-        beerCount: parseInt(beer.beerCount, 10),
-        lastBeerTime: beer.lastBeerTime,
+      const users = participants.map(participant => ({
+        ...participant,
+        beerCount: parseInt(participant.beerCount, 10) || 0
       }));
+
+      return {
+        males: users.filter(u => u.gender === 'MALE'),
+        females: users.filter(u => u.gender === 'FEMALE'),
+      };
     }
 
     // Get global leaderboard if no event is specified
-    const users = await this.usersRepository.find({
-      where: {
-        isRegistrationComplete: true,
-      },
-      order: {
-        beerCount: 'DESC',
-      },
-      take: 10,
-    });
+    const users = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.beers', 'beer')
+      .select([
+        'user.id as id',
+        'user.username as username',
+        'user.gender as gender',
+        'COUNT(DISTINCT beer.id) as beerCount',
+      ])
+      .groupBy('user.id, user.username, user.gender')
+      .orderBy('beerCount', 'DESC')
+      .getRawMany<UserLeaderboardDto>();
 
-    return users.map((user) => ({
-      id: user.id,
-      username: user.username,
-      name: user.name,
-      beerCount: user.beerCount,
-      lastBeerTime: user.lastBeerTime,
-    }));
+    return {
+      males: users.map(u => ({
+        ...u,
+        beerCount: parseInt(u.beerCount as unknown as string) || 0
+      })).filter(u => u.gender === 'MALE'),
+      females: users.map(u => ({
+        ...u,
+        beerCount: parseInt(u.beerCount as unknown as string) || 0
+      })).filter(u => u.gender === 'FEMALE'),
+    };
   }
 } 

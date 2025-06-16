@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { Reflector } from '@nestjs/core';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,6 +13,9 @@ async function bootstrap() {
 
   // Enable cookie parser
   app.use(cookieParser());
+
+  // Enable WebSocket support
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   // Enable CORS with credentials
   app.enableCors({

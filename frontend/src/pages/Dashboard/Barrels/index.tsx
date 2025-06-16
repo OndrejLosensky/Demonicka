@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -7,9 +7,18 @@ import {
   FormControlLabel,
   Switch,
   Container,
+  ToggleButton,
+  ToggleButtonGroup,
+  Grid,
+  Paper,
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { 
+  Add as AddIcon,
+  ViewList as ViewListIcon,
+  ViewModule as ViewModuleIcon,
+} from '@mui/icons-material';
 import { BarrelsTable } from './BarrelsTable';
+import { ActiveBarrelGraph } from './ActiveBarrelGraph';
 import { useBarrels } from './useBarrels';
 import { AddBarrelDialog } from './AddBarrelDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
@@ -24,36 +33,31 @@ import toastTranslations from '../../../locales/cs/toasts.json';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
 
 const BarrelsPage: React.FC = () => {
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
-  const { activeEvent } = useActiveEvent();
-  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
+  const [viewMode, setViewMode] = useState<'list' | 'split'>('split');
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_BARRELS);
+  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
+  const { activeEvent } = useActiveEvent();
   const showCleanupFeature = useFeatureFlag(FeatureFlagKey.CLEANUP_FUNCTIONALITY);
-  const { barrels, deletedBarrels, isLoading, fetchBarrels } = useBarrels(showDeleted);
+  const {
+    barrels,
+    deletedBarrels,
+    isLoading,
+    handleDelete,
+    handleToggleActive,
+    fetchBarrels,
+  } = useBarrels(showDeleted);
   const toast = useToast();
 
-  const handleDelete = async (id: string) => {
-    try {
-      await barrelService.delete(id);
-      toast.success(toastTranslations.success.deleted.replace('{{item}}', 'Sud'));
-      await fetchBarrels();
-    } catch (error) {
-      console.error('Failed to delete barrel:', error);
-      toast.error(toastTranslations.error.delete.replace('{{item}}', 'sud'));
-    }
-  };
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const handleActivate = async (id: string) => {
-    try {
-      await barrelService.activate(id);
-      toast.success(toastTranslations.success.updated.replace('{{item}}', 'Sud'));
-      await fetchBarrels();
-    } catch (error) {
-      console.error('Failed to activate barrel:', error);
-      toast.error(toastTranslations.error.update.replace('{{item}}', 'sud'));
-    }
-  };
+  // Get active barrel
+  const activeBarrel = barrels.find(barrel => barrel.isActive);
+
+  // Force refresh when active event changes
+  useEffect(() => {
+    fetchBarrels();
+  }, [activeEvent?.id, activeEvent?.updatedAt, fetchBarrels]);
 
   const confirmCleanup = async () => {
     if (window.confirm(translations.dialogs.cleanupAll.message)) {
@@ -86,7 +90,20 @@ const BarrelsPage: React.FC = () => {
           <Typography variant="h4">{translations.title}</Typography>
           {showEventHistory && <EventSelector />}
         </Box>
-        <Box>
+        <Box display="flex" alignItems="center" gap={2}>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={(_, newMode) => newMode && setViewMode(newMode)}
+            size="small"
+          >
+            <ToggleButton value="list">
+              <ViewListIcon />
+            </ToggleButton>
+            <ToggleButton value="split">
+              <ViewModuleIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
           {showDeletedFeature && (
             <FormControlLabel
               control={
@@ -100,10 +117,9 @@ const BarrelsPage: React.FC = () => {
           )}
           <Button
             variant="contained"
-            color="primary"
+            color="error"
             startIcon={<AddIcon />}
             onClick={() => setDialogOpen(true)}
-            sx={{ mr: 1 }}
           >
             {translations.actions.addBarrel}
           </Button>
@@ -122,14 +138,36 @@ const BarrelsPage: React.FC = () => {
 
       {isLoading ? (
         <CircularProgress />
-      ) : (
+      ) : viewMode === 'list' ? (
         <BarrelsTable
           barrels={barrels}
           deletedBarrels={deletedBarrels}
           showDeleted={showDeleted}
           onDelete={handleDelete}
-          onActivate={handleActivate}
+          onActivate={handleToggleActive}
         />
+      ) : (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={5}>
+            <Paper sx={{ p: 3, height: '100%', borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                {activeBarrel 
+                  ? `Aktivní sud: Sud ${activeBarrel.orderNumber}`
+                  : 'Žádný aktivní sud'}
+              </Typography>
+              <ActiveBarrelGraph barrel={activeBarrel} />
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={7}>
+            <BarrelsTable
+              barrels={barrels}
+              deletedBarrels={deletedBarrels}
+              showDeleted={showDeleted}
+              onDelete={handleDelete}
+              onActivate={handleToggleActive}
+            />
+          </Grid>
+        </Grid>
       )}
 
       <AddBarrelDialog

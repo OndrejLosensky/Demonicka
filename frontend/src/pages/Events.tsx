@@ -1,12 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Grid, Typography, Dialog, DialogTitle, DialogContent, TextField, DialogActions, Box, Chip, IconButton } from '@mui/material';
+import { 
+    Button, 
+    Grid, 
+    Typography, 
+    Dialog, 
+    DialogTitle, 
+    DialogContent, 
+    TextField, 
+    DialogActions, 
+    Box, 
+    Chip, 
+    IconButton,
+    Paper,
+} from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import type { Event } from '../types/event';
 import { eventService } from '../services/eventService';
 import { format } from 'date-fns';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
 import { EmptyEventState } from '../components/EmptyEventState';
-import { Add as AddIcon, Person as PersonIcon, FilterAlt as FilterIcon, Circle as CircleIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
+import { 
+    Add as AddIcon, 
+    Person as PersonIcon, 
+    FilterAlt as FilterIcon, 
+    Circle as CircleIcon, 
+    MoreVert as MoreVertIcon,
+    LocalBar as BeerIcon,
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 export const Events: React.FC = () => {
@@ -76,10 +96,10 @@ export const Events: React.FC = () => {
     };
 
     return (
-        <div>
+        <Box sx={{ p: 4 }}>
             {/* Header */}
             <Box sx={{ 
-                mb: 5,
+                mb: 4,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'flex-start'
@@ -93,33 +113,28 @@ export const Events: React.FC = () => {
                 <Box display="flex" gap={2}>
                     <Button 
                         variant="contained" 
-                        sx={{ 
-                            backgroundColor: '#DC2626',
-                            '&:hover': {
-                                backgroundColor: '#B91C1C',
-                            },
-                            borderRadius: 2,
-                            boxShadow: 'none',
-                            height: 40,
-                        }}
+                        color="error"
                         onClick={() => setOpen(true)}
                         startIcon={<AddIcon />}
+                        sx={{
+                            px: 3,
+                            py: 1,
+                            borderRadius: 2,
+                            boxShadow: 1,
+                        }}
                     >
                         Vytvořit událost
                     </Button>
                     <Button
                         variant="outlined"
-                        sx={{
-                            borderColor: 'rgba(0, 0, 0, 0.12)',
-                            color: 'text.primary',
-                            '&:hover': {
-                                borderColor: 'rgba(0, 0, 0, 0.24)',
-                                backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                            },
-                            borderRadius: 2,
-                            height: 40,
-                        }}
+                        color="inherit"
                         startIcon={<FilterIcon />}
+                        sx={{
+                            px: 3,
+                            py: 1,
+                            borderRadius: 2,
+                            borderColor: 'divider',
+                        }}
                     >
                         Žebříček
                     </Button>
@@ -127,28 +142,26 @@ export const Events: React.FC = () => {
             </Box>
 
             {/* Info Alert */}
-            <Box 
+            <Paper
+                elevation={0}
                 sx={{ 
                     mb: 4,
                     p: 3,
                     backgroundColor: '#FEE2E2',
-                    borderRadius: 3,
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 2,
+                    borderRadius: 2,
                     border: '1px solid #FCA5A5',
                 }}
             >
-                <CircleIcon sx={{ color: '#DC2626', fontSize: 20, mt: 0.5 }} />
-                <Typography sx={{ 
-                    fontSize: '0.95rem', 
-                    color: '#991B1B', 
-                    lineHeight: 1.5,
-                    flex: 1,
-                }}>
-                    V aplikaci může být vždy pouze jedna aktivní událost. Při vytvoření nové události se automaticky ukončí předchozí aktivní událost. Aktivní událost se zobrazuje v záhlaví a všichni nově přidaní účastníci a sudy jsou automaticky přiřazeni k této události.
-                </Typography>
-            </Box>
+                <Box display="flex" alignItems="flex-start" gap={2}>
+                    <CircleIcon sx={{ color: '#DC2626', fontSize: 20, mt: 0.5 }} />
+                    <Typography sx={{ 
+                        color: '#991B1B', 
+                        lineHeight: 1.5,
+                    }}>
+                        V aplikaci může být vždy pouze jedna aktivní událost. Při vytvoření nové události se automaticky ukončí předchozí aktivní událost. Aktivní událost se zobrazuje v záhlaví a všichni nově přidaní účastníci a sudy jsou automaticky přiřazeni k této události.
+                    </Typography>
+                </Box>
+            </Paper>
 
             {/* Events Grid or Empty State */}
             {events.length > 0 ? (
@@ -158,23 +171,24 @@ export const Events: React.FC = () => {
                         
                         return (
                             <Grid item xs={12} md={6} lg={4} key={event.id}>
-                                <Card 
+                                <Paper 
+                                    elevation={2}
+                                    onClick={() => navigate(`/events/${event.id}`)}
                                     sx={{ 
-                                        borderRadius: 3,
+                                        borderRadius: 2,
                                         overflow: 'hidden',
-                                        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                                        cursor: 'pointer',
+                                        transition: 'transform 0.2s ease-in-out',
                                         '&:hover': {
                                             transform: 'translateY(-4px)',
-                                            boxShadow: '0 12px 24px rgba(0, 0, 0, 0.1)',
                                         },
-                                        position: 'relative',
-                                        background: '#DC2626',
+                                        bgcolor: 'white',
                                     }}
                                 >
                                     {/* Card Header */}
-                                    <Box sx={{ p: 3, position: 'relative' }}>
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                            <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', mb: 0.5 }}>
+                                    <Box sx={{ p: 3, bgcolor: 'error.main', color: 'white' }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                                                 {event.name}
                                             </Typography>
                                             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -192,13 +206,18 @@ export const Events: React.FC = () => {
                                                 )}
                                                 <IconButton 
                                                     size="small" 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        // Handle menu open
+                                                    }}
                                                     sx={{ 
                                                         color: 'white', 
                                                         opacity: 0.8, 
                                                         '&:hover': { 
                                                             opacity: 1,
                                                             backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                                                        } 
+                                                        },
+                                                        zIndex: 2,
                                                     }}
                                                 >
                                                     <MoreVertIcon />
@@ -207,8 +226,8 @@ export const Events: React.FC = () => {
                                         </Box>
                                         
                                         {/* Dates */}
-                                        <Box sx={{ mt: 2 }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                 <Box 
                                                     component="span" 
                                                     sx={{ 
@@ -216,14 +235,13 @@ export const Events: React.FC = () => {
                                                         height: 6, 
                                                         borderRadius: '50%', 
                                                         bgcolor: '#22C55E',
-                                                        mr: 1,
                                                     }} 
                                                 />
                                                 <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
                                                     {format(new Date(event.startDate), 'dd.MM.yyyy HH:mm')}
                                                 </Typography>
                                             </Box>
-                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                 <Box 
                                                     component="span" 
                                                     sx={{ 
@@ -231,7 +249,6 @@ export const Events: React.FC = () => {
                                                         height: 6, 
                                                         borderRadius: '50%', 
                                                         bgcolor: '#EF4444',
-                                                        mr: 1,
                                                     }} 
                                                 />
                                                 <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
@@ -243,10 +260,9 @@ export const Events: React.FC = () => {
 
                                     {/* Stats */}
                                     <Box sx={{ 
-                                        bgcolor: 'white', 
                                         p: 3,
                                         display: 'flex',
-                                        justifyContent: 'space-between',
+                                        gap: 3,
                                     }}>
                                         <Box>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -255,10 +271,23 @@ export const Events: React.FC = () => {
                                                     Účastníci
                                                 </Typography>
                                             </Box>
-                                            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                                            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                                                 {event.users?.length || 0}
                                             </Typography>
                                         </Box>
+
+                                        <Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                                <BeerIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Piva
+                                                </Typography>
+                                            </Box>
+                                            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                                                {totalEventBeers}
+                                            </Typography>
+                                        </Box>
+
                                         <Box>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                                                 <FilterIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
@@ -266,52 +295,18 @@ export const Events: React.FC = () => {
                                                     Sudy
                                                 </Typography>
                                             </Box>
-                                            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                                            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                                                 {event.barrels?.length || 0}
                                             </Typography>
                                         </Box>
-                                        <Box>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                                <CircleIcon sx={{ fontSize: 20, color: '#DC2626' }} />
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Piva
-                                                </Typography>
-                                            </Box>
-                                            <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#DC2626' }}>
-                                                {totalEventBeers}
-                                            </Typography>
-                                        </Box>
                                     </Box>
-
-                                    {/* Action Button */}
-                                    <Box sx={{ p: 2, bgcolor: 'white', borderTop: '1px solid rgba(0, 0, 0, 0.08)' }}>
-                                        <Button
-                                            fullWidth
-                                            onClick={() => navigate(`/events/${event.id}`)}
-                                            sx={{
-                                                color: '#DC2626',
-                                                '&:hover': {
-                                                    backgroundColor: 'rgba(220, 38, 38, 0.04)',
-                                                },
-                                                textTransform: 'none',
-                                                fontWeight: 500,
-                                            }}
-                                        >
-                                            Zobrazit detail
-                                        </Button>
-                                    </Box>
-                                </Card>
+                                </Paper>
                             </Grid>
                         );
                     })}
                 </Grid>
             ) : (
-                <Box sx={{ mt: 4 }}>
-                    <EmptyEventState 
-                        title="Zatím zde nejsou žádné události"
-                        subtitle="Vytvořte svou první událost pro sledování piv a účastníků"
-                    />
-                </Box>
+                <EmptyEventState />
             )}
 
             {/* Create Event Dialog */}
@@ -323,7 +318,7 @@ export const Events: React.FC = () => {
                             label="Název události"
                             fullWidth
                             value={newEvent.name}
-                            onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })}
+                            onChange={(e) => setNewEvent(prev => ({ ...prev, name: e.target.value }))}
                         />
                         <TextField
                             label="Popis"
@@ -331,27 +326,32 @@ export const Events: React.FC = () => {
                             multiline
                             rows={3}
                             value={newEvent.description}
-                            onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                            onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
                         />
                         <DateTimePicker
-                            label="Začátek události"
+                            label="Začátek"
                             value={newEvent.startDate}
-                            onChange={(date) => date && setNewEvent({ ...newEvent, startDate: date })}
+                            onChange={(date) => date && setNewEvent(prev => ({ ...prev, startDate: date }))}
                         />
                         <DateTimePicker
-                            label="Konec události (volitelné)"
+                            label="Konec (volitelné)"
                             value={newEvent.endDate}
-                            onChange={(date) => setNewEvent({ ...newEvent, endDate: date })}
+                            onChange={(date) => setNewEvent(prev => ({ ...prev, endDate: date }))}
                         />
                     </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setOpen(false)}>Zrušit</Button>
-                    <Button onClick={handleCreateEvent} variant="contained" color="primary">
+                    <Button 
+                        variant="contained" 
+                        color="error" 
+                        onClick={handleCreateEvent}
+                        disabled={!newEvent.name || !newEvent.startDate}
+                    >
                         Vytvořit
                     </Button>
                 </DialogActions>
             </Dialog>
-        </div>
+        </Box>
     );
 }; 

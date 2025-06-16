@@ -12,6 +12,7 @@ import { BeersModule } from '../beers/beers.module';
 import { BarrelsModule } from '../barrels/barrels.module';
 import { LoggingModule } from '../logging/logging.module';
 import { UsersModule } from '../users/users.module';
+import { LeaderboardModule } from '../leaderboard/leaderboard.module';
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { UsersModule } from '../users/users.module';
         BarrelsModule,
         LoggingModule,
         UsersModule,
+        LeaderboardModule,
     ],
     controllers: [EventsController, EventBeersController],
     providers: [EventsService, EventBeersService],

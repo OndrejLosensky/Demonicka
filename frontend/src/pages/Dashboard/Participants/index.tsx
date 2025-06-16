@@ -105,7 +105,7 @@ const ParticipantsPage: React.FC = () => {
           )}
           <Button
             variant="contained"
-            color="primary"
+            color="error"
             startIcon={<AddIcon />}
             onClick={() => setDialogOpen(true)}
           >

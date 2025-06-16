@@ -26,6 +26,9 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { Close as CloseIcon, ContentCopy as ContentCopyIcon } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
+import { History } from '../history';
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
+import { FeatureFlagKey } from '../../../types/featureFlags';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -166,6 +169,7 @@ const SystemPageBase: React.FC<SystemPageBaseProps> = ({ setIsLoading }) => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
   const [currentToken, setCurrentToken] = useState<string>('');
+  const isHistoryEnabled = useFeatureFlag(FeatureFlagKey.HISTORY_PAGE);
 
   useEffect(() => {
     fetchUsers();
@@ -246,6 +250,7 @@ const SystemPageBase: React.FC<SystemPageBaseProps> = ({ setIsLoading }) => {
         >
           <Tab label="Uživatelé" {...a11yProps(0)} />
           <Tab label="Profily uživatelů" {...a11yProps(1)} />
+          {isHistoryEnabled && <Tab label="Historie" {...a11yProps(2)} />}
         </Tabs>
 
         <TabPanel value={value} index={0}>
@@ -313,6 +318,12 @@ const SystemPageBase: React.FC<SystemPageBaseProps> = ({ setIsLoading }) => {
             </Typography>
           )}
         </TabPanel>
+
+        {isHistoryEnabled && (
+          <TabPanel value={value} index={2}>
+            <History />
+          </TabPanel>
+        )}
       </Paper>
 
       <TokenDialog 

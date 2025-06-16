@@ -12,7 +12,6 @@ import Barrels from './pages/Dashboard/Barrels';
 import Leaderboard from './pages/Leaderboard';
 import Landing from './pages/Landing';
 import Header from './components/Header';
-import { History } from './pages/Dashboard/history';
 import ProfilePage from './pages/Profile/index';
 import { Events } from './pages/Events';
 import { EventDetail } from './pages/EventDetail';
@@ -39,37 +38,28 @@ function App() {
   const theme = createTheme();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <Router>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
             <AuthProvider>
               <ActiveEventProvider>
                 <SelectedEventProvider>
                   <Routes>
                     <Route path="/" element={<Header />}>
                       <Route index element={<Landing />} />
-                      <Route path="leaderboard" element={<Leaderboard />} />
                       <Route
                         path="dashboard"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
                             <Dashboard />
                           </RoleRoute>
                         }
                       />
                       <Route
-                        path="profile"
+                        path="dashboard/participants"
                         element={
                           <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
-                            <ProfilePage/>
-                          </RoleRoute>
-                        }
-                      />
-                      <Route
-                        path="dashboard/ucastnici"
-                        element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <Participants />
                           </RoleRoute>
                         }
@@ -79,14 +69,6 @@ function App() {
                         element={
                           <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <Barrels />
-                          </RoleRoute>
-                        }
-                      />
-                      <Route
-                        path="dashboard/history"
-                        element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
-                            <History />
                           </RoleRoute>
                         }
                       />
@@ -122,6 +104,22 @@ function App() {
                           </RoleRoute>
                         }
                       />
+                      <Route
+                        path="profile"
+                        element={
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
+                            <ProfilePage />
+                          </RoleRoute>
+                        }
+                      />
+                      <Route
+                        path="leaderboard"
+                        element={
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
+                            <Leaderboard />
+                          </RoleRoute>
+                        }
+                      />
                     </Route>
                     <Route
                       path="/login"
@@ -139,7 +137,14 @@ function App() {
                         </GuestRoute>
                       }
                     />
-                    <Route path="/complete-registration" element={<CompleteRegistration />} />
+                    <Route
+                      path="/complete-registration"
+                      element={
+                        <GuestRoute>
+                          <CompleteRegistration />
+                        </GuestRoute>
+                      }
+                    />
                     <Route
                       path="/enter-token"
                       element={
@@ -153,10 +158,10 @@ function App() {
                 </SelectedEventProvider>
               </ActiveEventProvider>
             </AuthProvider>
-          </Router>
-        </LocalizationProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+          </LocalizationProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </Router>
   );
 }
 

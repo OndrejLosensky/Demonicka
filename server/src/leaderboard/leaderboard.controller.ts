@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { LeaderboardService } from './leaderboard.service';
 import { Public } from '../auth/decorators/public.decorator';
-import { LeaderboardEntryDto } from './dto/leaderboard.dto';
+import { LeaderboardDto } from '../dashboard/dto/leaderboard.dto';
 
 @Controller('leaderboard')
 export class LeaderboardController {
@@ -11,7 +11,7 @@ export class LeaderboardController {
   @Public()
   getLeaderboard(
     @Query('eventId') eventId?: string,
-  ): Promise<LeaderboardEntryDto[]> {
+  ): Promise<LeaderboardDto> {
     return this.leaderboardService.getLeaderboard(eventId);
   }
 } 

@@ -6,20 +6,15 @@ import {
     Paper,
     Grid,
     Card,
-    LinearProgress,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
     Avatar,
+    Chip,
 } from '@mui/material';
 import {
     LocalBar as BeerIcon,
-    EmojiEvents as TrophyIcon,
     Group as GroupIcon,
     Timer as TimeIcon,
     TrendingUp as TrendIcon,
+    ShowChart as ChartIcon,
 } from '@mui/icons-material';
 import { FaBeer } from 'react-icons/fa';
 import { format } from 'date-fns';
@@ -108,17 +103,6 @@ export const Dashboard: React.FC = () => {
         }
     };
 
-    if (isLoading) {
-        return (
-            <Container>
-                <Box sx={{ width: '100%', mt: 4 }}>
-                    <LinearProgress />
-                    <Typography align="center" sx={{ mt: 2 }}>{translations.loading}</Typography>
-                </Box>
-            </Container>
-        );
-    }
-
     if (!activeEvent) {
         return (
             <Container>
@@ -130,14 +114,13 @@ export const Dashboard: React.FC = () => {
         );
     }
 
-    return (
-        <div>
-            {/* Header with Event Selector */}
-            <Box display="flex" alignItems="center" gap={2} mb={4}>
-                {showEventHistory && <EventSelector />}
-            </Box>
+    if (isLoading) {
+        return null;
+    }
 
-            {/* Event Info Header */}
+    return (
+        <Box p={3}>
+            {/* Event Header Card */}
             <Paper
                 elevation={0}
                 sx={{
@@ -145,16 +128,19 @@ export const Dashboard: React.FC = () => {
                     mb: 4,
                     background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
                     color: 'white',
-                    borderRadius: 3,
+                    borderRadius: 2,
                     position: 'relative',
                     overflow: 'hidden',
                 }}
             >
                 <Box sx={{ position: 'relative', zIndex: 1 }}>
-                    <Typography variant="h3" fontWeight="bold" gutterBottom>
+                    <Box display="flex" alignItems="center" gap={2} mb={2}>
+                        {showEventHistory && <EventSelector />}
+                    </Box>
+                    <Typography variant="h4" fontWeight="bold" gutterBottom>
                         {activeEvent.name}
                     </Typography>
-                    <Typography variant="h6" sx={{ opacity: 0.9, mb: 2 }}>
+                    <Typography variant="subtitle1" sx={{ opacity: 0.9, mb: 3 }}>
                         {activeEvent.description}
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 3, color: 'rgba(255, 255, 255, 0.9)' }}>
@@ -181,482 +167,151 @@ export const Dashboard: React.FC = () => {
                 />
             </Paper>
 
-            <Grid container spacing={4}>
-                {/* Beer Keg Visualization */}
-                <Grid item xs={12} md={6}>
-                    <Card 
-                        sx={{ 
-                            p: 3, 
-                            height: '100%', 
-                            position: 'relative',
-                            transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                            '&:hover': {
-                                transform: 'translateY(-4px)',
-                                boxShadow: (theme) => theme.shadows[8],
-                            },
-                        }}
-                    >
-                        <Typography variant="h6" fontWeight="bold" gutterBottom>
-                            {translations.barrelStatus.title}
-                        </Typography>
-                        <Box sx={{ 
-                            position: 'relative', 
-                            height: 400,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            {/* Keg Container */}
+            {/* Statistics Cards */}
+            <Grid container spacing={3} mb={4}>
+                <Grid item xs={12} sm={6} md={3}>
+                    <Card sx={{ p: 3, height: '100%', borderRadius: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                             <Box sx={{ 
-                                position: 'relative', 
-                                width: '60%',
-                                height: '100%',
+                                width: 40, 
+                                height: 40, 
+                                borderRadius: '50%', 
+                                bgcolor: '#EEF2FF',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center'
                             }}>
-                                {/* Keg Body */}
-                                <Box sx={{
-                                    position: 'relative',
-                                    width: '100%',
-                                    height: '80%',
-                                    bgcolor: '#e0e0e0',
-                                    borderRadius: '40px',
-                                    overflow: 'hidden',
-                                    boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)',
-                                    '&::before': {
-                                        content: '""',
-                                        position: 'absolute',
-                                        top: '5%',
-                                        left: '10%',
-                                        right: '10%',
-                                        bottom: '5%',
-                                        borderLeft: '8px solid #d0d0d0',
-                                        borderRight: '8px solid #d0d0d0',
-                                        borderRadius: 'inherit',
-                                    }
-                                }}>
-                                    {/* Beer Fill */}
-                                    <Box sx={{
-                                        position: 'absolute',
-                                        bottom: 0,
-                                        left: 0,
-                                        width: '100%',
-                                        height: `${(stats.remainingBeers / (stats.activeBarrels * 60)) * 100}%`,
-                                        background: 'linear-gradient(180deg, #ffd700 0%, #ffa000 100%)',
-                                        transition: 'height 1s ease-in-out',
-                                    }} />
-
-                                    {/* Foam Layer */}
-                                    <Box sx={{
-                                        position: 'absolute',
-                                        bottom: `${(stats.remainingBeers / (stats.activeBarrels * 60)) * 100}%`,
-                                        left: 0,
-                                        width: '100%',
-                                        height: '20px',
-                                        background: 'linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.5) 100%)',
-                                        animation: 'foamWave 2s ease-in-out infinite',
-                                        '&::after': {
-                                            content: '""',
-                                            position: 'absolute',
-                                            top: '-10px',
-                                            left: 0,
-                                            width: '100%',
-                                            height: '10px',
-                                            background: 'linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.8) 100%)',
-                                            borderRadius: '50%',
-                                        }
-                                    }} />
-
-                                    {/* Keg Rings */}
-                                    {[20, 40, 60, 80].map((position) => (
-                                        <Box
-                                            key={position}
-                                            sx={{
-                                                position: 'absolute',
-                                                top: `${position}%`,
-                                                left: '-5%',
-                                                width: '110%',
-                                                height: '12px',
-                                                bgcolor: '#d0d0d0',
-                                                transform: 'translateY(-50%)',
-                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                                '&::after': {
-                                                    content: '""',
-                                                    position: 'absolute',
-                                                    top: 0,
-                                                    left: 0,
-                                                    width: '100%',
-                                                    height: '50%',
-                                                    background: 'linear-gradient(180deg, rgba(255,255,255,0.5) 0%, transparent 100%)',
-                                                }
-                                            }}
-                                        />
-                                    ))}
-
-                                    {/* Tap */}
-                                    <Box sx={{
-                                        position: 'absolute',
-                                        top: '30%',
-                                        right: '-20px',
-                                        width: '40px',
-                                        height: '20px',
-                                        bgcolor: '#b0b0b0',
-                                        borderRadius: '4px',
-                                        boxShadow: '2px 2px 4px rgba(0,0,0,0.1)',
-                                    }} />
-                                </Box>
-
-                                {/* Stats Overlay */}
-                                <Box sx={{
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    textAlign: 'center',
-                                    bgcolor: 'rgba(255,255,255,0.9)',
-                                    p: 2,
-                                    borderRadius: 2,
-                                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                }}>
-                                    <Typography variant="h3" fontWeight="bold" color="primary">
-                                        {Math.round(stats.remainingBeers)}
-                                    </Typography>
-                                    <Typography variant="subtitle1" color="textSecondary">
-                                        {translations.barrelStatus.remainingBeers}
-                                    </Typography>
-                                </Box>
+                                <BeerIcon sx={{ color: '#6366F1' }} />
                             </Box>
+                            <Typography color="text.secondary">{translations.stats.totalBeers}</Typography>
                         </Box>
-
-                        {/* Stats Footer */}
-                        <Box sx={{ mt: 2 }}>
-                            <Grid container spacing={2}>
-                                <Grid item xs={6}>
-                                    <Box sx={{ 
-                                        textAlign: 'center',
-                                        p: 2,
-                                        borderRadius: 2,
-                                        bgcolor: 'primary.light',
-                                    }}>
-                                        <Typography variant="h5" color="primary" fontWeight="bold">
-                                            {stats.activeBarrels}
-                                        </Typography>
-                                        <Typography variant="body2" color="textSecondary">
-                                            {translations.barrelStatus.activeBarrels}
-                                        </Typography>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Box sx={{ 
-                                        textAlign: 'center',
-                                        p: 2,
-                                        borderRadius: 2,
-                                        bgcolor: 'grey.100',
-                                    }}>
-                                        <Typography variant="h5" color="text.primary" fontWeight="bold">
-                                            {barrels.length}
-                                        </Typography>
-                                        <Typography variant="body2" color="textSecondary">
-                                            {translations.barrelStatus.totalBarrels}
-                                        </Typography>
-                                    </Box>
-                                </Grid>
-                            </Grid>
-                        </Box>
+                        <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
+                            {stats.totalBeers}
+                        </Typography>
                     </Card>
                 </Grid>
 
-                {/* Stats and Tables */}
-                <Grid item xs={12} md={6}>
-                    <Grid container spacing={3}>
-                        {/* Top Drinker Card */}
-                        <Grid item xs={12}>
-                            <Card 
-                                sx={{ 
-                                    p: 3,
-                                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        boxShadow: (theme) => theme.shadows[8],
-                                    },
-                                }}
-                            >
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                                    <Box sx={{
-                                        width: 80,
-                                        height: 80,
-                                        borderRadius: '50%',
-                                        bgcolor: 'warning.light',
+                <Grid item xs={12} sm={6} md={3}>
+                    <Card sx={{ p: 3, height: '100%', borderRadius: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                            <Box sx={{ 
+                                width: 40, 
+                                height: 40, 
+                                borderRadius: '50%', 
+                                bgcolor: '#FEF2F2',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <ChartIcon sx={{ color: '#DC2626' }} />
+                            </Box>
+                            <Typography color="text.secondary">{translations.stats.averagePerHour}</Typography>
+                        </Box>
+                        <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
+                            {stats.averageBeersPerHour.toFixed(1)}
+                        </Typography>
+                    </Card>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={3}>
+                    <Card sx={{ p: 3, height: '100%', borderRadius: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                            <Box sx={{ 
+                                width: 40, 
+                                height: 40, 
+                                borderRadius: '50%', 
+                                bgcolor: '#F0FDF4',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <TrendIcon sx={{ color: '#16A34A' }} />
+                            </Box>
+                            <Typography color="text.secondary">{translations.barrelStatus.remainingBeers}</Typography>
+                        </Box>
+                        <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
+                            {stats.remainingBeers}
+                        </Typography>
+                    </Card>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={3}>
+                    <Card sx={{ p: 3, height: '100%', borderRadius: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                            <Box sx={{ 
+                                width: 40, 
+                                height: 40, 
+                                borderRadius: '50%', 
+                                bgcolor: '#FEF3C7',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <GroupIcon sx={{ color: '#D97706' }} />
+                            </Box>
+                            <Typography color="text.secondary">{translations.stats.totalParticipants}</Typography>
+                        </Box>
+                        <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
+                            {stats.participantsCount}
+                        </Typography>
+                    </Card>
+                </Grid>
+            </Grid>
+
+            {/* Top Users */}
+            <Card sx={{ borderRadius: 2 }}>
+                <Box p={3}>
+                    <Typography variant="h6" fontWeight="bold" mb={3}>
+                        {translations.overview.charts.topUsers.title}
+                    </Typography>
+                    <Grid container spacing={2}>
+                        {dashboardStats.topUsers.map((user, index) => (
+                            <Grid item xs={12} sm={6} md={4} key={user.id}>
+                                <Box
+                                    sx={{
+                                        p: 2,
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        borderRadius: 2,
                                         display: 'flex',
                                         alignItems: 'center',
-                                        justifyContent: 'center',
-                                    }}>
-                                        <TrophyIcon sx={{ fontSize: 40, color: 'warning.main' }} />
-                                    </Box>
-                                    <Box sx={{ flex: 1 }}>
-                                        <Typography variant="overline" color="textSecondary" sx={{ letterSpacing: 1 }}>
-                                            {translations.stats.topDrinker}
-                                        </Typography>
-                                        <Typography variant="h4" fontWeight="bold" gutterBottom>
-                                            {stats.topDrinker.username || translations.overview.charts.topUsers.unknownUser}
-                                        </Typography>
-                                        <Box sx={{ 
-                                            display: 'inline-flex', 
-                                            alignItems: 'center', 
-                                            gap: 1,
-                                            bgcolor: 'warning.light',
-                                            color: 'warning.main',
-                                            py: 1,
-                                            px: 2,
-                                            borderRadius: 2,
-                                            fontWeight: 'bold'
-                                        }}>
-                                            <FaBeer size={20} />
-                                            <Typography variant="h6" component="span">
-                                                {stats.topDrinker.count} {translations.stats.beers}
+                                        gap: 2,
+                                    }}
+                                >
+                                    <Avatar sx={{ bgcolor: index === 0 ? '#FEF3C7' : '#F3F4F6' }}>
+                                        {user.username.charAt(0).toUpperCase()}
+                                    </Avatar>
+                                    <Box flex={1}>
+                                        <Box display="flex" alignItems="center" gap={1}>
+                                            <Typography fontWeight="bold">
+                                                {user.username}
+                                            </Typography>
+                                            {index === 0 && (
+                                                <Chip
+                                                    label={translations.stats.topDrinker}
+                                                    size="small"
+                                                    sx={{
+                                                        bgcolor: 'warning.light',
+                                                        color: 'warning.dark',
+                                                        fontWeight: 'bold',
+                                                        fontSize: '0.75rem',
+                                                    }}
+                                                />
+                                            )}
+                                        </Box>
+                                        <Box display="flex" alignItems="center" gap={1}>
+                                            <FaBeer style={{ fontSize: '1rem', opacity: 0.5 }} />
+                                            <Typography variant="body2" color="text.secondary">
+                                                {user.beerCount} {translations.stats.beers}
                                             </Typography>
                                         </Box>
                                     </Box>
                                 </Box>
-                            </Card>
-                        </Grid>
-
-                        {/* Stats Cards */}
-                        <Grid item xs={12} sm={6}>
-                            <Card 
-                                sx={{ 
-                                    p: 3, 
-                                    height: '100%',
-                                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        boxShadow: (theme) => theme.shadows[8],
-                                    },
-                                }}
-                            >
-                                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                        <Box sx={{ 
-                                            p: 1.5, 
-                                            borderRadius: 2, 
-                                            bgcolor: 'primary.light',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>
-                                            <BeerIcon sx={{ fontSize: 30, color: 'primary.main' }} />
-                                        </Box>
-                                        <Typography variant="h4" fontWeight="bold">
-                                            {stats.totalBeers}
-                                        </Typography>
-                                    </Box>
-                                    <Typography variant="subtitle1" color="textSecondary" sx={{ mt: 'auto' }}>
-                                        {translations.stats.totalBeers}
-                                    </Typography>
-                                </Box>
-                            </Card>
-                        </Grid>
-
-                        <Grid item xs={12} sm={6}>
-                            <Card 
-                                sx={{ 
-                                    p: 3, 
-                                    height: '100%',
-                                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        boxShadow: (theme) => theme.shadows[8],
-                                    },
-                                }}
-                            >
-                                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                        <Box sx={{ 
-                                            p: 1.5, 
-                                            borderRadius: 2, 
-                                            bgcolor: 'success.light',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>
-                                            <TrendIcon sx={{ fontSize: 30, color: 'success.main' }} />
-                                        </Box>
-                                        <Typography variant="h4" fontWeight="bold">
-                                            {stats.averageBeersPerHour.toFixed(1)}
-                                        </Typography>
-                                    </Box>
-                                    <Typography variant="subtitle1" color="textSecondary" sx={{ mt: 'auto' }}>
-                                        {translations.stats.averagePerHour}
-                                    </Typography>
-                                </Box>
-                            </Card>
-                        </Grid>
-
-                        {/* Top Users Table */}
-                        <Grid item xs={12}>
-                            <Card 
-                                sx={{ 
-                                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        boxShadow: (theme) => theme.shadows[8],
-                                    },
-                                }}
-                            >
-                                <Box sx={{ p: 3 }}>
-                                    <Typography variant="h6" fontWeight="bold" gutterBottom>
-                                        {translations.overview.charts.topUsers.title}
-                                    </Typography>
-                                    <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>
-                                                    {translations.overview.charts.topUsers.columns.name}
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    {translations.overview.charts.topUsers.columns.beers}
-                                                </TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {dashboardStats.topUsers.map((user, index) => (
-                                                <TableRow 
-                                                    key={user.id}
-                                                    sx={{
-                                                        transition: 'background-color 0.2s ease-in-out',
-                                                        '&:hover': {
-                                                            bgcolor: 'action.hover',
-                                                        },
-                                                    }}
-                                                >
-                                                    <TableCell>
-                                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                            <Avatar 
-                                                                sx={{ 
-                                                                    mr: 2,
-                                                                    bgcolor: index === 0 ? 'warning.main' : 'primary.main',
-                                                                }}
-                                                            >
-                                                                {user.username ? user.username.charAt(0).toUpperCase() : '?'}
-                                                            </Avatar>
-                                                            <Box>
-                                                                <Typography fontWeight={index === 0 ? 'bold' : 'regular'}>
-                                                                    {user.username || translations.overview.charts.topUsers.unknownUser}
-                                                                </Typography>
-                                                                {index === 0 && (
-                                                                    <Typography variant="caption" color="warning.main" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                                        <TrophyIcon sx={{ fontSize: 16 }} />
-                                                                        {translations.stats.topDrinker}
-                                                                    </Typography>
-                                                                )}
-                                                            </Box>
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell align="right">
-                                                        <Box sx={{ 
-                                                            display: 'inline-flex', 
-                                                            alignItems: 'center',
-                                                            gap: 1,
-                                                            bgcolor: index === 0 ? 'warning.light' : 'primary.light',
-                                                            color: index === 0 ? 'warning.main' : 'primary.main',
-                                                            py: 0.5,
-                                                            px: 1.5,
-                                                            borderRadius: 1,
-                                                            fontWeight: 'bold'
-                                                        }}>
-                                                            <FaBeer />
-                                                            {user.beerCount}
-                                                        </Box>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </Box>
-                            </Card>
-                        </Grid>
-
-                        {/* Barrel Stats Table */}
-                        <Grid item xs={12}>
-                            <Card 
-                                sx={{ 
-                                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        boxShadow: (theme) => theme.shadows[8],
-                                    },
-                                }}
-                            >
-                                <Box sx={{ p: 3 }}>
-                                    <Typography variant="h6" fontWeight="bold" gutterBottom>
-                                        {translations.overview.charts.barrelStats.title}
-                                    </Typography>
-                                    <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>
-                                                    {translations.overview.charts.barrelStats.columns.size}
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    {translations.overview.charts.barrelStats.columns.count}
-                                                </TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {dashboardStats.barrelStats.map((stat, index) => (
-                                                <TableRow 
-                                                    key={index}
-                                                    sx={{
-                                                        transition: 'background-color 0.2s ease-in-out',
-                                                        '&:hover': {
-                                                            bgcolor: 'action.hover',
-                                                        },
-                                                    }}
-                                                >
-                                                    <TableCell>
-                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                            <Box sx={{ 
-                                                                width: 32, 
-                                                                height: 32, 
-                                                                borderRadius: 1,
-                                                                bgcolor: 'primary.light',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center',
-                                                                color: 'primary.main',
-                                                                fontWeight: 'bold'
-                                                            }}>
-                                                                {stat.size}
-                                                            </Box>
-                                                            <Typography>litrů</Typography>
-                                                        </Box>
-                                                    </TableCell>
-                                                    <TableCell align="right">
-                                                        <Box sx={{ 
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            gap: 1,
-                                                            bgcolor: 'primary.light',
-                                                            color: 'primary.main',
-                                                            py: 0.5,
-                                                            px: 1.5,
-                                                            borderRadius: 1,
-                                                            fontWeight: 'bold'
-                                                        }}>
-                                                            {stat.count} ks
-                                                        </Box>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </Box>
-                            </Card>
-                        </Grid>
+                            </Grid>
+                        ))}
                     </Grid>
-                </Grid>
-            </Grid>
-        </div>
+                </Box>
+            </Card>
+        </Box>
     );
 }; 
