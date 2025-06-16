@@ -18,6 +18,7 @@ import { EventBeer } from './events/entities/event-beer.entity';
 import { CreateEventBeersTable1749757491913 } from './migrations/1749757491913-CreateEventBeersTable';
 import { AddFirstLastNameToUser1749763388825 } from './migrations/1749763388825-AddFirstLastNameToUser';
 import { AddTotalBeersToBarrels1749975358935 } from './migrations/1749975358935-AddTotalBeersToBarrels';
+import { UpdateAuthEntities1750109708845 } from './migrations/1750109708845-UpdateAuthEntities';
 
 config();
 
@@ -44,6 +45,7 @@ export const AppDataSource = new DataSource({
     CreateEventBeersTable1749757491913,
     AddFirstLastNameToUser1749763388825,
     AddTotalBeersToBarrels1749975358935,
+    UpdateAuthEntities1750109708845,
   ],
   synchronize: false,
   logging: false,

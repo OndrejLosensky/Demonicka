@@ -15,7 +15,7 @@ export class RefreshToken {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: false })
+  @Column({ type: 'varchar', nullable: false })
   token: string;
 
   @Column({ name: 'user_id' })
@@ -25,7 +25,7 @@ export class RefreshToken {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ name: 'device_id', nullable: true })
+  @Column({ name: 'device_id', type: 'varchar', nullable: true })
   deviceId: string | null;
 
   @ManyToOne(() => DeviceToken, { onDelete: 'CASCADE', nullable: true })
@@ -35,10 +35,10 @@ export class RefreshToken {
   @Column({ type: 'datetime' })
   expiresAt: Date;
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   isRevoked: boolean;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   revokedReason: string | null;
 
   @CreateDateColumn()

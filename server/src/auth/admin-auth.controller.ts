@@ -47,12 +47,16 @@ export class AdminAuthController {
 
     // Check if user is an admin
     if (user.role !== UserRole.ADMIN) {
-      throw new UnauthorizedException('Only admin users can access this endpoint');
+      throw new UnauthorizedException(
+        'Only admin users can access this endpoint',
+      );
     }
 
     // Check if admin login is enabled for this user
     if (!user.isAdminLoginEnabled) {
-      throw new UnauthorizedException('Admin login is not enabled for this user');
+      throw new UnauthorizedException(
+        'Admin login is not enabled for this user',
+      );
     }
 
     // Validate 2FA if enabled
@@ -67,20 +71,28 @@ export class AdminAuthController {
     }
 
     // Generate tokens
-    const { access_token, refresh_token } = await this.authService.login(userWithoutPassword);
+    const { access_token, refresh_token } = await this.authService.login(
+      userWithoutPassword,
+    );
 
     // Register or update device token
-    await this.deviceTokenService.createOrUpdateToken(user, adminLoginDto.deviceToken, {
-      deviceType: adminLoginDto.deviceType,
-      deviceName: adminLoginDto.deviceName,
-      deviceModel: adminLoginDto.deviceModel,
-      osVersion: adminLoginDto.osVersion,
-      isAdminDevice: true,
-    });
+    await this.deviceTokenService.createOrUpdateToken(
+      user,
+      adminLoginDto.deviceToken,
+      {
+        deviceType: adminLoginDto.deviceType,
+        deviceName: adminLoginDto.deviceName,
+        deviceModel: adminLoginDto.deviceModel,
+        osVersion: adminLoginDto.osVersion,
+        isAdminDevice: true,
+      },
+    );
 
     // Update last admin login time
     user.lastAdminLogin = new Date();
-    await this.usersService.update(user.id, { lastAdminLogin: user.lastAdminLogin });
+    await this.usersService.update(user.id, {
+      lastAdminLogin: user.lastAdminLogin,
+    });
 
     return {
       access_token,
@@ -93,11 +105,10 @@ export class AdminAuthController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   async logout(@Req() req: Request) {
-    const user = req.user as { id: string };
     const deviceToken = req.headers['x-device-token'] as string;
 
     if (deviceToken) {
-      await this.deviceTokenService.deactivateToken(user.id, deviceToken);
+      await this.deviceTokenService.deactivateToken(deviceToken);
     }
 
     return { message: 'Logged out successfully' };
@@ -125,9 +136,8 @@ export class AdminAuthController {
   @Roles(UserRole.ADMIN)
   async updateBiometricStatus(
     @Req() req: Request,
-    @Body() body: { enabled: boolean },
+    @Body() body: { enabled: boolean; biometricType?: string },
   ) {
-    const user = req.user as { id: string };
     const deviceToken = req.headers['x-device-token'] as string;
 
     if (!deviceToken) {
@@ -135,9 +145,9 @@ export class AdminAuthController {
     }
 
     await this.deviceTokenService.updateBiometricStatus(
-      user.id,
       deviceToken,
       body.enabled,
+      body.biometricType,
     );
 
     return { message: 'Biometric status updated successfully' };

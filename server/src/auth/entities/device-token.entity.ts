@@ -30,28 +30,28 @@ export class DeviceToken {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   deviceType: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   deviceName: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   deviceModel: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   osVersion: string | null;
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   isAdminDevice: boolean;
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   isBiometricEnabled: boolean;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   biometricType: string | null;
 
-  @Column({ default: true })
+  @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
   @Column({ type: 'datetime', nullable: true })
