@@ -20,6 +20,7 @@ import { VersionGuard } from '../versioning/guards/version.guard';
 import { UsersService } from '../users/users.service';
 import { QueryFailedError } from 'typeorm';
 import { CompleteRegistrationDto } from '../users/dto/complete-registration.dto';
+import { RateLimit } from '../common/decorators/rate-limit.decorator';
 
 interface RequestWithUser extends Request {
   user: User;
@@ -50,6 +51,7 @@ export class AuthController {
    */
   @Public()
   @Post('register')
+  @RateLimit({ points: 5, duration: 60 }) // 5 registrations per minute
   async register(@Body() createUserDto: CreateUserDto): Promise<UserResponse> {
     try {
       return await this.usersService.create(createUserDto);
@@ -74,6 +76,7 @@ export class AuthController {
   @Public()
   @UseGuards(LocalAuthGuard)
   @Post('login')
+  @RateLimit({ points: 10, duration: 60 }) // 10 login attempts per minute
   async login(
     @Req() req: RequestWithUser,
     @Res({ passthrough: true }) response: Response,
@@ -114,6 +117,7 @@ export class AuthController {
    */
   @Public()
   @Post('refresh')
+  @RateLimit({ points: 30, duration: 60 }) // 30 refresh attempts per minute
   async refresh(@Req() req: RequestWithUser) {
     const refreshToken = req.cookies?.['refresh_token'];
     if (!refreshToken) {
