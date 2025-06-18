@@ -17,6 +17,7 @@ import { Barrel } from './entities/barrel.entity';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
+import { GetBarrelsDto } from './dto/get-barrels.dto';
 
 @Controller('barrels')
 @Versions('1')
@@ -40,8 +41,14 @@ export class BarrelsController {
   }
 
   @Get()
-  findAll(@Query() paginationDto: PaginationDto): Promise<PaginatedResponse<Barrel>> {
-    return this.barrelsService.findAll(false, paginationDto.take, paginationDto.skip);
+  findAll(
+    @Query() query: GetBarrelsDto,
+  ): Promise<PaginatedResponse<Barrel>> {
+    return this.barrelsService.findAll(
+      query.includeDeleted,
+      query.take,
+      query.skip,
+    );
   }
 
   @Post()

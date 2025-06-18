@@ -22,6 +22,7 @@ import { EventBeersService } from './services/event-beers.service';
 import { EventBeer } from './entities/event-beer.entity';
 import { User } from '../users/entities/user.entity';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
+import { GetEventUsersDto } from './dto/get-event-users.dto';
 
 @Controller('events')
 @Versions('1')
@@ -94,10 +95,14 @@ export class EventsController {
   @Get(':id/users')
   getEventUsers(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query() paginationDto: PaginationDto,
-    @Query('withDeleted') withDeleted?: boolean,
+    @Query() query: GetEventUsersDto,
   ): Promise<PaginatedResponse<User>> {
-    return this.eventsService.getEventUsers(id, withDeleted, paginationDto.take, paginationDto.skip);
+    return this.eventsService.getEventUsers(
+      id,
+      query.withDeleted,
+      query.take,
+      query.skip,
+    );
   }
 
   @Get(':id/barrels')

@@ -12,11 +12,13 @@ import {
     Chip, 
     IconButton,
     Paper,
+    CircularProgress,
+    Alert,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import type { Event } from '../types/event';
 import { eventService } from '../services/eventService';
-import { format } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
 import { EmptyEventState } from '../components/EmptyEventState';
 import { 
@@ -29,9 +31,15 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
+// Helper function to safely format dates
+const formatDate = (dateString: string | undefined | null): string => {
+    if (!dateString) return '-';
+    const date = parseISO(dateString);
+    return isValid(date) ? format(date, 'dd.MM.yyyy HH:mm') : '-';
+};
+
 export const Events: React.FC = () => {
     const [events, setEvents] = useState<Event[]>([]);
-    const [eventBeerCounts, setEventBeerCounts] = useState<Record<string, Record<string, number>>>({});
     const [open, setOpen] = useState(false);
     const [newEvent, setNewEvent] = useState({
         name: '',
@@ -41,46 +49,36 @@ export const Events: React.FC = () => {
     });
     const { loadActiveEvent } = useActiveEvent();
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         loadEvents();
     }, []);
 
-    useEffect(() => {
-        loadEventBeerCounts();
-    }, [events]);
-
     const loadEvents = async () => {
         try {
+            setIsLoading(true);
+            setError(null);
             const data = await eventService.getAllEvents();
-            setEvents(data);
+            if (Array.isArray(data)) {
+                setEvents(data);
+            } else {
+                console.error('Events data is not an array:', data);
+                setEvents([]);
+            }
         } catch (error) {
             console.error('Failed to load events:', error);
-        }
-    };
-
-    const loadEventBeerCounts = async () => {
-        try {
-            const counts: Record<string, Record<string, number>> = {};
-            await Promise.all(
-                events.map(async (event) => {
-                    counts[event.id] = {};
-                    await Promise.all(
-                        event.users.map(async (user) => {
-                            const count = await eventService.getUserEventBeerCount(event.id, user.id);
-                            counts[event.id][user.id] = count;
-                        })
-                    );
-                })
-            );
-            setEventBeerCounts(counts);
-        } catch (error) {
-            console.error('Failed to load event beer counts:', error);
+            setError('Nepodařilo se načíst události.');
+            setEvents([]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const handleCreateEvent = async () => {
         try {
+            setError(null);
             await eventService.createEvent({
                 name: newEvent.name,
                 description: newEvent.description,
@@ -92,8 +90,24 @@ export const Events: React.FC = () => {
             setNewEvent({ name: '', description: '', startDate: new Date(), endDate: null });
         } catch (error) {
             console.error('Failed to create event:', error);
+            setError('Nepodařilo se vytvořit událost.');
         }
     };
+
+    if (isLoading) {
+        return (
+            <Box sx={{ p: 4 }}>
+                <Box sx={{ 
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '60vh'
+                }}>
+                    <CircularProgress />
+                </Box>
+            </Box>
+        );
+    }
 
     return (
         <Box sx={{ p: 4 }}>
@@ -141,6 +155,12 @@ export const Events: React.FC = () => {
                 </Box>
             </Box>
 
+            {error && (
+                <Alert severity="error" sx={{ mb: 4 }}>
+                    {error}
+                </Alert>
+            )}
+
             {/* Info Alert */}
             <Paper
                 elevation={0}
@@ -164,11 +184,9 @@ export const Events: React.FC = () => {
             </Paper>
 
             {/* Events Grid or Empty State */}
-            {events.length > 0 ? (
+            {Array.isArray(events) && events.length > 0 ? (
                 <Grid container spacing={3}>
                     {events.map((event) => {
-                        const totalEventBeers = Object.values(eventBeerCounts[event.id] || {}).reduce((sum, count) => sum + count, 0);
-                        
                         return (
                             <Grid item xs={12} md={6} lg={4} key={event.id}>
                                 <Paper 
@@ -238,7 +256,7 @@ export const Events: React.FC = () => {
                                                     }} 
                                                 />
                                                 <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                                                    {format(new Date(event.startDate), 'dd.MM.yyyy HH:mm')}
+                                                    {formatDate(event.startDate)}
                                                 </Typography>
                                             </Box>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -252,7 +270,7 @@ export const Events: React.FC = () => {
                                                     }} 
                                                 />
                                                 <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                                                    {event.endDate ? format(new Date(event.endDate), 'dd.MM.yyyy HH:mm') : '-'}
+                                                    {formatDate(event.endDate)}
                                                 </Typography>
                                             </Box>
                                         </Box>
@@ -284,7 +302,7 @@ export const Events: React.FC = () => {
                                                 </Typography>
                                             </Box>
                                             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                                                {totalEventBeers}
+                                                {event.eventBeers?.length || 0}
                                             </Typography>
                                         </Box>
 

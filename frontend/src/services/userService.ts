@@ -1,12 +1,20 @@
 import { api } from './api';
 import type { User } from '../types/user';
 
+interface PaginatedResponse<T> {
+    data: T[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+}
+
 export const userService = {
   async getAllUsers(withDeleted?: boolean): Promise<User[]> {
-    const response = await api.get('/users', {
+    const response = await api.get<PaginatedResponse<User>>('/users', {
       params: { withDeleted }
     });
-    return response.data;
+    return response.data.data || [];
   },
 
   async getUser(id: string): Promise<User> {

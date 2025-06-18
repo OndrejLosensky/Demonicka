@@ -28,6 +28,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserStatsService } from './user-stats.service';
 import { RoleGuard } from '../auth/guards/role.guard';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
+import { GetUsersDto } from './dto/get-users.dto';
 
 /**
  * Users controller handling user profile management.
@@ -62,8 +63,14 @@ export class UsersController {
 
   @Get()
   @Roles(UserRole.ADMIN)
-  findAll(@Query() paginationDto: PaginationDto): Promise<PaginatedResponse<User>> {
-    return this.usersService.findAll(false, paginationDto.take, paginationDto.skip);
+  findAll(
+    @Query() query: GetUsersDto,
+  ): Promise<PaginatedResponse<User>> {
+    return this.usersService.findAll(
+      query.withDeleted,
+      query.take,
+      query.skip,
+    );
   }
 
   @Get('profile')

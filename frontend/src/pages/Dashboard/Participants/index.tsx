@@ -48,10 +48,15 @@ const ParticipantsPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const { maleParticipants, femaleParticipants } = useMemo(() => {
-    const activeParticipants = showDeleted ? [...participants, ...deletedParticipants] : participants;
+    const activeParticipants = participants || [];
+    const deletedParticipantsList = deletedParticipants || [];
+    const allParticipants = showDeleted 
+      ? [...activeParticipants, ...deletedParticipantsList]
+      : activeParticipants;
+
     return {
-      maleParticipants: activeParticipants.filter(p => p.gender === 'MALE'),
-      femaleParticipants: activeParticipants.filter(p => p.gender === 'FEMALE')
+      maleParticipants: allParticipants.filter(p => p.gender === 'MALE'),
+      femaleParticipants: allParticipants.filter(p => p.gender === 'FEMALE')
     };
   }, [participants, deletedParticipants, showDeleted]);
 

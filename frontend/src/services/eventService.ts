@@ -1,10 +1,20 @@
 import { api } from './api';
 import type { Event } from '../types/event';
+import type { User } from '../types/user';
+
+interface PaginatedResponse<T> {
+    data: T[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+}
 
 export const eventService = {
     async getAllEvents(): Promise<Event[]> {
-        const response = await api.get('/events');
-        return response.data;
+        const response = await api.get<PaginatedResponse<Event>>('/events');
+        // Return the data array from the paginated response
+        return response.data.data || [];
     },
 
     async getEvent(id: string): Promise<Event> {
@@ -72,14 +82,20 @@ export const eventService = {
         return response.data;
     },
 
-    async getEventUsers(id: string): Promise<Event> {
-        const response = await api.get(`/events/${id}/users`);
-        return response.data;
+    async getEventUsers(id: string): Promise<User[]> {
+        const response = await api.get<PaginatedResponse<User>>(`/events/${id}/users`);
+        return response.data.data || [];
     },
 
     async getUserEventBeerCount(eventId: string, userId: string): Promise<number> {
-        const response = await api.get(`/events/${eventId}/users/${userId}/beers/count`);
-        return response.data;
+        try {
+            const response = await api.get(`/events/${eventId}/users/${userId}/beers/count`);
+            const count = response.data;
+            return typeof count === 'number' ? count : 0;
+        } catch (error) {
+            console.error('Failed to get user event beer count:', error);
+            return 0;
+        }
     },
 
     async addBeerToUser(eventId: string, userId: string): Promise<void> {

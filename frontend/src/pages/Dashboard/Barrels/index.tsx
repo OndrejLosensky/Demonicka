@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -11,11 +11,13 @@ import {
   ToggleButtonGroup,
   Grid,
   Paper,
+  Alert,
 } from '@mui/material';
 import { 
   Add as AddIcon,
   ViewList as ViewListIcon,
   ViewModule as ViewModuleIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { BarrelsTable } from './BarrelsTable';
 import { ActiveBarrelGraph } from './ActiveBarrelGraph';
@@ -43,6 +45,7 @@ const BarrelsPage: React.FC = () => {
     barrels,
     deletedBarrels,
     isLoading,
+    error,
     handleDelete,
     handleToggleActive,
     fetchBarrels,
@@ -53,11 +56,6 @@ const BarrelsPage: React.FC = () => {
 
   // Get active barrel
   const activeBarrel = barrels.find(barrel => barrel.isActive);
-
-  // Force refresh when active event changes
-  useEffect(() => {
-    fetchBarrels();
-  }, [activeEvent?.id, activeEvent?.updatedAt, fetchBarrels]);
 
   const confirmCleanup = async () => {
     if (window.confirm(translations.dialogs.cleanupAll.message)) {
@@ -136,8 +134,16 @@ const BarrelsPage: React.FC = () => {
         </Box>
       </Box>
 
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
       {isLoading ? (
-        <CircularProgress />
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+          <CircularProgress />
+        </Box>
       ) : viewMode === 'list' ? (
         <BarrelsTable
           barrels={barrels}

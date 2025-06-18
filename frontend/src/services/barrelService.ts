@@ -2,12 +2,20 @@ import { api } from './api';
 import type { Barrel } from '../types/barrel';
 import type { CreateBarrelDto } from '../types/dto';
 
+interface PaginatedResponse<T> {
+    data: T[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+}
+
 class BarrelService {
   async getAll(includeDeleted = false): Promise<Barrel[]> {
-    const response = await api.get('/barrels', {
+    const response = await api.get<PaginatedResponse<Barrel>>('/barrels', {
       params: { includeDeleted },
     });
-    return response.data;
+    return response.data.data || [];
   }
 
   async getDeleted(): Promise<Barrel[]> {

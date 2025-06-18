@@ -81,20 +81,38 @@ export const EventDetail: React.FC = () => {
     const loadUsers = async () => {
         try {
             const data = await userService.getAllUsers();
-            setUsers(data);
+            // Handle paginated response
+            if (data && typeof data === 'object' && 'data' in data) {
+                setUsers(data.data);
+            } else if (Array.isArray(data)) {
+                setUsers(data);
+            } else {
+                console.error('Unexpected users data format:', data);
+                setUsers([]);
+            }
         } catch (error) {
             console.error('Failed to load users:', error);
             toast.error('Nepodařilo se načíst uživatele');
+            setUsers([]);
         }
     };
 
     const loadBarrels = async () => {
         try {
-            const barrels = await barrelService.getAll();
-            setBarrels(barrels);
+            const data = await barrelService.getAll();
+            // Handle paginated response
+            if (data && typeof data === 'object' && 'data' in data) {
+                setBarrels(data.data);
+            } else if (Array.isArray(data)) {
+                setBarrels(data);
+            } else {
+                console.error('Unexpected barrels data format:', data);
+                setBarrels([]);
+            }
         } catch (error) {
             console.error('Failed to load barrels:', error);
             toast.error('Nepodařilo se načíst sudy');
+            setBarrels([]);
         }
     };
 
@@ -605,7 +623,7 @@ export const EventDetail: React.FC = () => {
                                 label="Vyberte účastníka"
                             >
                                 {users
-                                    .filter(user => !event.users?.find(u => u.id === user.id))
+                                    ?.filter(user => !event?.users?.find(u => u.id === user.id))
                                     .map(user => (
                                         <MenuItem key={user.id} value={user.id}>
                                             {user.username}
