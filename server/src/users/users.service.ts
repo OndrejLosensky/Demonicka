@@ -25,13 +25,19 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserWithoutPassword> {
+    // Check if username is already taken
+    const existingUser = await this.findByUsername(createUserDto.username);
+    if (existingUser) {
+      throw new BadRequestException('Uživatelské jméno již existuje');
+    }
+
     const user = this.usersRepository.create({
       ...createUserDto,
       password: createUserDto.password
         ? await bcrypt.hash(createUserDto.password, 10)
         : null,
       isRegistrationComplete: true,
-      role: UserRole.ADMIN,
+      role: UserRole.USER, // Changed from ADMIN to USER
     });
     const savedUser = await this.usersRepository.save(user);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

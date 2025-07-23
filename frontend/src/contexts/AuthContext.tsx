@@ -19,7 +19,6 @@ interface AuthContextType {
 
 interface ApiErrorResponse {
   message: string;
-  statusCode: number;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,9 +52,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('access_token');
         setUser(null);
         // Only redirect to login if we're not already there and not on a public route
-        if (!location.pathname.startsWith('/login') && 
-            !location.pathname.startsWith('/register') && 
-            !location.pathname.startsWith('/complete-registration')) {
+        const currentPath = location?.pathname || '';
+        if (!currentPath.startsWith('/login') && 
+            !currentPath.startsWith('/register') && 
+            !currentPath.startsWith('/complete-registration')) {
           navigate('/login');
         }
       }
