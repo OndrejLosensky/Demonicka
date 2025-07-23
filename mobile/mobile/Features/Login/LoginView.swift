@@ -2,66 +2,49 @@ import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject private var viewModel: LoginViewModel
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var body: some View {
-        NavigationView {
-            GeometryReader { geometry in
-                ScrollView {
-                    VStack(spacing: 25) {
-                        // Logo and Title
-                        VStack(spacing: 15) {
-                            Image(systemName: "lock.shield")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 60, height: 60)
-                                .foregroundColor(.blue)
-                            
-                            Text("Admin Login")
-                                .font(.title)
-                                .fontWeight(.bold)
-                        }
-                        .padding(.top, 50)
-                        
-                        // Login Form
-                        VStack(spacing: 15) {
-                            CustomTextField("Username", text: $viewModel.username, icon: "person")
-                                .textContentType(.username)
-                                .autocapitalization(.none)
-                            
-                            CustomTextField("Password", text: $viewModel.password, isSecure: true, icon: "lock")
-                                .textContentType(.password)
-                            
-                            if let errorMessage = viewModel.errorMessage {
-                                Text(errorMessage)
-                                    .foregroundColor(.red)
-                                    .font(.caption)
-                                    .multilineTextAlignment(.center)
-                            }
-                            
-                            PrimaryButton(
-                                title: "Login",
-                                isLoading: viewModel.isLoading
-                            ) {
-                                Task {
-                                    await viewModel.login()
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                    .frame(minHeight: geometry.size.height)
-                    .frame(maxWidth: horizontalSizeClass == .regular ? 400 : nil)
+        VStack {
+            if viewModel.isLoading {
+                ProgressView("Logging in...")
+                    .progressViewStyle(CircularProgressViewStyle())
+            } else if let error = viewModel.errorMessage {
+                VStack {
+                    Image(systemName: "exclamationmark.triangle")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 60, height: 60)
+                        .foregroundColor(.red)
+                    
+                    Text(error)
+                        .foregroundColor(.red)
+                        .padding()
                 }
-                .frame(maxWidth: .infinity)
             }
-            .navigationBarHidden(true)
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
     }
 }
 
-#Preview {
-    LoginView()
-        .environmentObject(LoginViewModel())
+struct LoginView_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            // iPad Air 2 Landscape
+            LoginView()
+                .environmentObject(LoginViewModel())
+                .previewDevice(PreviewDevice(rawValue: "iPad Air 2"))
+                .previewDisplayName("iPad Air 2 Landscape")
+                .previewInterfaceOrientation(.landscapeRight)
+                .environment(\.horizontalSizeClass, .regular)
+            
+            // iPad Air 2 Portrait
+            LoginView()
+                .environmentObject(LoginViewModel())
+                .previewDevice(PreviewDevice(rawValue: "iPad Air 2"))
+                .previewDisplayName("iPad Air 2 Portrait")
+                .previewInterfaceOrientation(.portrait)
+                .environment(\.horizontalSizeClass, .regular)
+        }
+    }
 } 

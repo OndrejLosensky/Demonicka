@@ -38,7 +38,24 @@ struct MainTabView: View {
     }
 }
 
-#Preview {
-    MainTabView()
-        .environmentObject(LoginViewModel())
+struct MainTabView_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            // iPad Air 2 Landscape
+            MainTabView()
+                .environmentObject(LoginViewModel())
+                .previewDevice(PreviewDevice(rawValue: "iPad Air 2"))
+                .previewDisplayName("iPad Air 2 Landscape")
+                .previewInterfaceOrientation(.landscapeRight)
+                .environment(\.horizontalSizeClass, .regular)
+            
+            // iPad Air 2 Portrait
+            MainTabView()
+                .environmentObject(LoginViewModel())
+                .previewDevice(PreviewDevice(rawValue: "iPad Air 2"))
+                .previewDisplayName("iPad Air 2 Portrait")
+                .previewInterfaceOrientation(.portrait)
+                .environment(\.horizontalSizeClass, .regular)
+        }
+    }
 } 

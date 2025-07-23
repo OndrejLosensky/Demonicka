@@ -13,25 +13,39 @@ struct mobileApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(authViewModel)
+            if authViewModel.isAuthenticated {
+                MainTabView()
+                    .environmentObject(authViewModel)
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: authViewModel.isAuthenticated)
+            } else {
+                LoginView()
+                    .environmentObject(authViewModel)
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: authViewModel.isAuthenticated)
+            }
         }
     }
 }
 
-struct ContentView: View {
-    @EnvironmentObject var authViewModel: LoginViewModel
-    
-    var body: some View {
+#if DEBUG
+struct mobileApp_Previews: PreviewProvider {
+    static var previews: some View {
         Group {
-            if authViewModel.isAuthenticated {
-                MainTabView()
-            } else {
-                LoginView()
-            }
-        }
-        .onChange(of: authViewModel.isAuthenticated) { newValue in
-            print("Root view detected auth change: \(newValue)")
+            // Preview authenticated state
+            MainTabView()
+                .environmentObject({ () -> LoginViewModel in
+                    let viewModel = LoginViewModel()
+                    viewModel.isAuthenticated = true
+                    return viewModel
+                }())
+                .previewDisplayName("Authenticated")
+            
+            // Preview login state
+            LoginView()
+                .environmentObject(LoginViewModel())
+                .previewDisplayName("Login")
         }
     }
 }
+#endif

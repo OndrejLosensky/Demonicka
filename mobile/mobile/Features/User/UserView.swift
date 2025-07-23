@@ -25,7 +25,7 @@ struct UserView: View {
                     }
                 }
                 
-                Section("Settings") {
+                Section(header: Text("Settings")) {
                     NavigationLink {
                         Text("Account Settings")
                     } label: {
@@ -53,7 +53,24 @@ struct UserView: View {
     }
 }
 
-#Preview {
-    UserView()
-        .environmentObject(LoginViewModel())
+struct UserView_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            // iPad Air 2 Landscape
+            UserView()
+                .environmentObject(LoginViewModel())
+                .previewDevice(PreviewDevice(rawValue: "iPad Air 2"))
+                .previewDisplayName("iPad Air 2 Landscape")
+                .previewInterfaceOrientation(.landscapeRight)
+                .environment(\.horizontalSizeClass, .regular)
+            
+            // iPad Air 2 Portrait
+            UserView()
+                .environmentObject(LoginViewModel())
+                .previewDevice(PreviewDevice(rawValue: "iPad Air 2"))
+                .previewDisplayName("iPad Air 2 Portrait")
+                .previewInterfaceOrientation(.portrait)
+                .environment(\.horizontalSizeClass, .regular)
+        }
+    }
 } 

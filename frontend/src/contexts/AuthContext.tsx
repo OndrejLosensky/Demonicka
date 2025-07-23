@@ -80,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       localStorage.setItem('access_token', response.data.access_token);
       setUser(response.data.user);
+      setIsLoading(false); // Explicitly clear loading state after setting user
       navigate('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
@@ -89,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         toast.error('Přihlášení se nezdařilo');
       }
+      setIsLoading(false); // Also clear loading state on error
       throw error;
     }
   };
