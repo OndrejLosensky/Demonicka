@@ -17,7 +17,6 @@ import { participantsApi } from './api';
 import { eventService } from '../../../services/eventService';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
-import { AxiosError } from 'axios';
 import translations from '../../../locales/cs/dashboard.participants.json';
 
 interface AddParticipantDialogProps {

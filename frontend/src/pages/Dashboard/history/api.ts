@@ -10,10 +10,10 @@ interface GetLogsParams {
   eventType?: string;
 }
 
-interface CleanupOptions {
+export interface CleanupOptions {
   startDate?: Date;
   endDate?: Date;
-  level?: string;
+  levels?: string[];
   eventType?: string;
 }
 

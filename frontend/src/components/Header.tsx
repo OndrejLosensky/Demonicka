@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { useFeatureFlag } from '../hooks/useFeatureFlag';
-import { FeatureFlagKey } from '../types/featureFlags';
 import { USER_ROLE } from '../types/user';
 import {
   Avatar,

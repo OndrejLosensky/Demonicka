@@ -19,7 +19,35 @@ async function bootstrap() {
 
   // Enable CORS with credentials
   app.enableCors({
-    origin: configService.get('FRONTEND_URL') || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, etc.)
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      
+      const allowedOrigins = [
+        configService.get('FRONTEND_URL') || 'http://localhost:5173',
+        /^http:\/\/localhost:[0-9]+$/,
+        /^http:\/\/10\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$/,
+        /^http:\/\/100\.96\.[0-9]+\.[0-9]+:[0-9]+$/,
+        /^http:\/\/192\.168\.[0-9]+\.[0-9]+:[0-9]+$/,
+      ];
+
+      // Check if the origin matches any of the allowed patterns
+      const isAllowed = allowedOrigins.some(allowedOrigin => {
+        if (allowedOrigin instanceof RegExp) {
+          return allowedOrigin.test(origin);
+        }
+        return allowedOrigin === origin;
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],

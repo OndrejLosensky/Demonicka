@@ -14,7 +14,6 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
-  Chip,
   Avatar,
   Box,
 } from '@mui/material';
@@ -34,7 +33,6 @@ export const UsersTable: React.FC<UserTableProps> = ({
   onRemoveBeer,
   onDelete,
   showGender = true,
-  showDeletedStatus = false,
 }) => {
   const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; user: { id: string; name: string } }>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

@@ -17,6 +17,7 @@ import {
   ViewList as ViewListIcon,
   ViewModule as ViewModuleIcon,
 } from '@mui/icons-material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { BarrelsTable } from './BarrelsTable';
 import { ActiveBarrelGraph } from './ActiveBarrelGraph';
 import { useBarrels } from './useBarrels';

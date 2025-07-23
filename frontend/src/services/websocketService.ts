@@ -18,6 +18,7 @@ class WebSocketService {
     this.socket = io(config.wsUrl, {
       transports: ['websocket'],
       withCredentials: true,
+      autoConnect: true,
     });
 
     this.socket.on('connect', () => {
@@ -92,21 +93,5 @@ class WebSocketService {
 
 export const websocketService = new WebSocketService();
 
-// Create a socket instance
-export const socket = io(config.wsUrl, {
-  autoConnect: true,
-  withCredentials: true,
-});
-
-// Log socket connection events
-socket.on('connect', () => {
-  console.log('websocket connected');
-});
-
-socket.on('disconnect', () => {
-  console.log('websocket disconnected');
-});
-
-socket.on('error', (error: Error) => {
-  console.error('websocket error:', error);
-}); 
+// Initialize the connection
+websocketService.connect(); 

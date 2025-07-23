@@ -9,12 +9,12 @@ import {
   ListItemButton,
   ListItemText,
   Box,
-  CircularProgress,
+  // CircularProgress,
   Alert,
   Collapse
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { FaBook } from 'react-icons/fa';
+// import { FaBook } from 'react-icons/fa';
 import { SimpleMarkdownParser } from '../utils/markdownParser';
 import '../styles/markdown.css';
 import { withPageLoader } from '../components/hoc/withPageLoader';

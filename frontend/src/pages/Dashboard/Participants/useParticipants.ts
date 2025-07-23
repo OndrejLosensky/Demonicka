@@ -70,7 +70,6 @@ export const useParticipants = (includeDeleted = false) => {
       return;
     }
     
-    const participant = participantsRef.current.find(p => p.id === id);
     try {
       await eventService.removeUser(activeEvent.id, id);
       toast.success(toastTranslations.success.deleted.replace('{{item}}', 'Účastník'));

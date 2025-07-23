@@ -30,12 +30,12 @@ interface HistoryTableProps {
   page: number;
   rowsPerPage: number;
   level: LogLevel | '';
-  onPageChange: (event: unknown, newPage: number) => void;
+  onPageChange: (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => void;
   onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onLevelChange: (level: LogLevel | '') => void;
 }
 
-const getLevelColor = (level: string) => {
+const getLevelColor = (level: string): "error" | "warning" | "info" | "default" => {
   switch (level.toLowerCase()) {
     case 'error':
       return 'error';
@@ -50,24 +50,9 @@ const getLevelColor = (level: string) => {
   }
 };
 
-const formatLogEntry = (log: LogEntry) => {
-  const { timestamp, level, message, event, ...rest } = log;
-  const metadata: Record<string, unknown> = { ...rest };
-  delete metadata.service;
-
-  return {
-    timestamp: format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss'),
-    level,
-    message,
-    event,
-    metadata: Object.keys(metadata).length > 0 ? metadata : null,
-  };
-};
-
 export const HistoryTable: React.FC<HistoryTableProps> = ({
   logs,
   total,
-  isLoading,
   page,
   rowsPerPage,
   level,
@@ -106,15 +91,15 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Timestamp</TableCell>
-              <TableCell>Level</TableCell>
-              <TableCell>Message</TableCell>
+              <TableCell>{translations.table.columns.timestamp}</TableCell>
+              <TableCell>{translations.table.columns.level}</TableCell>
+              <TableCell>{translations.table.columns.message}</TableCell>
               <TableCell>Service</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {logs.map((log) => (
-              <TableRow key={log.id} hover>
+            {logs.map((log, index) => (
+              <TableRow key={`log-${index}-${log.timestamp}`} hover>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                   {format(new Date(log.timestamp), 'dd.MM.yyyy HH:mm:ss')}
                 </TableCell>
@@ -147,7 +132,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
               <TableRow>
                 <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
                   <Typography color="text.secondary">
-                    {translations.table.noData}
+                    No data available
                   </Typography>
                 </TableCell>
               </TableRow>

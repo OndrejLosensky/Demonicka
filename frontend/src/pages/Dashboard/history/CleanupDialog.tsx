@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { LOG_LEVELS } from './useHistory';
 import { toast } from 'react-hot-toast';
-import { historyApi } from './api';
+import { historyApi, type CleanupOptions } from './api';
 import translations from '../../../locales/cs/dashboard.history.json';
 
 interface CleanupDialogProps {
@@ -36,8 +36,8 @@ export const CleanupDialog: React.FC<CleanupDialogProps> = ({
   const handleCleanup = async () => {
     try {
       setIsLoading(true);
-      const options = {
-        ...(olderThan && { olderThan: new Date(olderThan) }),
+      const options: CleanupOptions = {
+        ...(olderThan && { endDate: new Date(olderThan) }),
         ...(selectedLevels.length > 0 && { levels: selectedLevels }),
       };
 

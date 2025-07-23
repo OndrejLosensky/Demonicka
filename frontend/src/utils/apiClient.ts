@@ -1,6 +1,7 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import { config } from '../config/index';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = `${config.apiUrl}${config.apiPrefix}`;
 
 export const apiClient = axios.create({
   baseURL: API_URL,
@@ -11,9 +12,9 @@ export const apiClient = axios.create({
 });
 
 let isRefreshing = false;
-let failedQueue: { resolve: (token: string) => void; reject: (error: any) => void }[] = [];
+let failedQueue: { resolve: (token: string) => void; reject: (error: AxiosError) => void }[] = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: AxiosError | null, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
@@ -80,7 +81,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem('access_token');
-        processQueue(refreshError, null);
+        processQueue(refreshError as AxiosError, null);
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

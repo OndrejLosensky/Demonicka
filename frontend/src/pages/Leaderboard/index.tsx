@@ -1,5 +1,4 @@
 import { Typography, Grid, Box, Container, Paper } from '@mui/material';
-import { motion } from 'framer-motion';
 import { FaBeer } from 'react-icons/fa';
 import { LeaderboardTable } from './LeaderboardTable';
 import { useLeaderboard } from './useLeaderboard';
@@ -10,7 +9,6 @@ import translations from '../../locales/cs/dashboard.leaderboard.json';
 import { EmptyEventState } from '../../components/EmptyEventState';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
-import type { UserLeaderboard } from './types';
 
 const LeaderboardComponent: React.FC = () => {
   const { stats, isLoading } = useLeaderboard();

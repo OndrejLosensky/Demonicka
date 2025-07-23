@@ -14,8 +14,8 @@ export default function Profile() {
               <dd className="mt-1 text-base text-gray-900 font-semibold">{user?.username}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Email</dt>
-              <dd className="mt-1 text-base text-gray-900 font-semibold">{user?.email}</dd>
+              <dt className="text-sm font-medium text-gray-500">Name</dt>
+              <dd className="mt-1 text-base text-gray-900 font-semibold">{user?.name}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">User ID</dt>

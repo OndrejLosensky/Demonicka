@@ -1,9 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { barrelService } from '../../../services/barrelService';
 import type { Barrel } from '../../../types/barrel';
-import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
 import { useToast } from '../../../hooks/useToast';
-import translations from '../../../locales/cs/dashboard.barrels.json';
 import toastTranslations from '../../../locales/cs/toasts.json';
 
 const LOW_BEER_THRESHOLD = 10;
@@ -13,7 +11,6 @@ export const useBarrels = (includeDeleted = false) => {
   const [barrels, setBarrels] = useState<Barrel[]>([]);
   const [deletedBarrels, setDeletedBarrels] = useState<Barrel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { selectedEvent } = useSelectedEvent();
   const toast = useToast();
   
   // Use refs to maintain stable references to mutable data

@@ -11,7 +11,6 @@ import {
   ListItemText,
   ListItemIcon,
   Chip,
-  CircularProgress,
   Tabs,
   Tab,
 } from '@mui/material';
@@ -30,7 +29,6 @@ import { cs } from 'date-fns/locale';
 import { UserStatsComponent } from '../../components/UserStats';
 import { PersonalInfoTab } from '../../components/auth/PersonalInfoTab';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
-import translations from '../../locales/cs/profile.json';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -87,7 +85,7 @@ const ProfilePageComponent: React.FC = () => {
     fetchProfile();
   }, []);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 

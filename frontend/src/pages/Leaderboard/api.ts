@@ -1,4 +1,4 @@
-import type { LeaderboardData, UserLeaderboard } from './types';
+import type { LeaderboardData } from './types';
 import { api } from '../../services/api';
 
 export const leaderboardApi = {

@@ -23,7 +23,6 @@ import { eventService } from '../../services/eventService';
 import { barrelService } from '../../services/barrelService';
 import { dashboardService } from '../../services/dashboardService';
 import type { Event } from '../../types/event';
-import type { Barrel } from '../../types/barrel';
 import type { DashboardStats } from '../../types/dashboard';
 import translations from '../../locales/cs/dashboard.json';
 import { useSelectedEvent } from '../../contexts/SelectedEventContext';
@@ -37,7 +36,6 @@ export const Dashboard: React.FC = () => {
     const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
     const [isLoading, setIsLoading] = useState(true);
     const [activeEvent, setActiveEvent] = useState<Event | null>(null);
-    const [barrels, setBarrels] = useState<Barrel[]>([]);
     const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
         totalBeers: 0,
         totalUsers: 0,
@@ -70,7 +68,6 @@ export const Dashboard: React.FC = () => {
             ]);
 
             setActiveEvent(eventData);
-            setBarrels(barrelsData);
             setDashboardStats(dashboardData);
 
             if (eventData) {
