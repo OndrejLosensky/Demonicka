@@ -8,26 +8,33 @@ import { Beer } from './beers/entities/beer.entity';
 import { Barrel } from './barrels/entities/barrel.entity';
 import { Event } from './events/entities/event.entity';
 import { DeviceToken } from './auth/entities/device-token.entity';
+import { EventBeer } from './events/entities/event-beer.entity';
 import { InitialSchema1711638000000 } from './migrations/1711638000000-InitialSchema';
 import { AddEventsTable1711638000001 } from './migrations/1711638000001-AddEventsTable';
 import { MakeNameNullable1748441344604 } from './migrations/1748441344604-MakeNameNullable';
 import { AddDeviceTokenTable1711638000002 } from './migrations/1711638000002-AddDeviceTokenTable';
 import { AddAdminFields1711638000003 } from './migrations/1711638000003-AddAdminFields';
 import { AddRoleColumn1748441344605 } from './migrations/1748441344605-AddRoleColumn';
-import { EventBeer } from './events/entities/event-beer.entity';
 import { CreateEventBeersTable1749757491913 } from './migrations/1749757491913-CreateEventBeersTable';
 import { AddFirstLastNameToUser1749763388825 } from './migrations/1749763388825-AddFirstLastNameToUser';
 import { AddTotalBeersToBarrels1749975358935 } from './migrations/1749975358935-AddTotalBeersToBarrels';
 
 config();
 
-// Store database in server/data directory
-const dbPath = path.join(process.cwd(), 'data', 'database.sqlite');
+// Get database path from environment or use default
+const dbPath =
+  process.env.DATABASE_URL ||
+  path.join(process.cwd(), 'data', 'database.sqlite');
 
 // Create the directory if it doesn't exist
 const dbDir = path.dirname(dbPath);
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
+try {
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
+} catch (error) {
+  console.warn('Could not create database directory:', error);
+  // Continue anyway as the directory might be created by Docker or the system
 }
 
 export const AppDataSource = new DataSource({
@@ -45,6 +52,7 @@ export const AppDataSource = new DataSource({
     AddFirstLastNameToUser1749763388825,
     AddTotalBeersToBarrels1749975358935,
   ],
-  synchronize: false,
-  logging: false,
+  synchronize: process.env.NODE_ENV === 'development',
+  logging: process.env.NODE_ENV === 'development',
+  migrationsRun: true,
 });

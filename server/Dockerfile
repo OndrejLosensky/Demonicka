@@ -26,8 +26,14 @@ COPY package*.json ./
 # Install production dependencies only
 RUN npm ci --only=production
 
+# Create data directory and set permissions
+RUN mkdir -p /app/data && chown -R node:node /app
+
 # Copy built files from build stage
 COPY --from=build /app/dist ./dist
+
+# Set user
+USER node
 
 # Expose port 3000
 EXPOSE 3000
