@@ -21,6 +21,7 @@ import { VersionGuard } from '../versioning/guards/version.guard';
 import { EventBeersService } from './services/event-beers.service';
 import { EventBeer } from './entities/event-beer.entity';
 import { User } from '../users/entities/user.entity';
+import { BypassAuth } from 'src/auth/decorators/bypass-auth.decorator';
 
 @Controller('events')
 @Versions('1')
@@ -37,6 +38,7 @@ export class EventsController {
   }
 
   @Get('active')
+  @BypassAuth()
   getActiveEvent(): Promise<Event | null> {
     return this.eventsService.getActiveEvent();
   }
@@ -65,6 +67,7 @@ export class EventsController {
   }
 
   @Put(':id/users/:userId')
+  @BypassAuth()
   addUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -73,6 +76,7 @@ export class EventsController {
   }
 
   @Put(':id/active')
+  @BypassAuth()
   setActive(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
     return this.eventsService.setActive(id);
   }
@@ -91,6 +95,7 @@ export class EventsController {
   }
 
   @Get(':id/users')
+  @BypassAuth()
   getEventUsers(
     @Param('id', ParseUUIDPipe) id: string,
     @Query('withDeleted') withDeleted?: boolean,
@@ -99,11 +104,13 @@ export class EventsController {
   }
 
   @Get(':id/barrels')
+  @BypassAuth()
   getEventBarrels(@Param('id', ParseUUIDPipe) id: string): Promise<Barrel[]> {
     return this.eventsService.getEventBarrels(id);
   }
 
   @Put(':id/barrels/:barrelId')
+  @BypassAuth()
   addBarrel(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('barrelId', ParseUUIDPipe) barrelId: string,
@@ -120,6 +127,7 @@ export class EventsController {
   }
 
   @Post(':id/users/:userId/beers')
+  @BypassAuth()
   addEventBeer(
     @Param('id', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -128,6 +136,7 @@ export class EventsController {
   }
 
   @Delete(':id/users/:userId/beers')
+  @BypassAuth()
   removeEventBeer(
     @Param('id', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -136,6 +145,7 @@ export class EventsController {
   }
 
   @Get(':id/users/:userId/beers')
+  @BypassAuth()
   getEventUserBeers(
     @Param('id', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -144,10 +154,11 @@ export class EventsController {
   }
 
   @Get(':id/users/:userId/beers/count')
+  @BypassAuth()
   getEventUserBeerCount(
     @Param('id', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
   ): Promise<number> {
     return this.eventBeersService.getEventBeerCount(eventId, userId);
   }
-} 
+}

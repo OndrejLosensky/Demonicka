@@ -1,13 +1,13 @@
-import {
-  Injectable,
-  ExecutionContext,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { BYPASS_AUTH_KEY } from '../decorators/bypass-auth.decorator';
+import { config } from '../../config';
+import { Request } from 'express';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { User } from '../../users/entities/user.entity';
+import { UserRole } from '../../users/enums/user-role.enum';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -16,13 +16,35 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   canActivate(context: ExecutionContext) {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const isPublic = this.reflector.getAllAndOverride<boolean>(
+      IS_PUBLIC_KEY,
+      [context.getHandler(), context.getClass()]
+    );
 
     if (isPublic) {
       return true;
+    }
+
+    const canBypass = this.reflector.getAllAndOverride<boolean>(
+      BYPASS_AUTH_KEY,
+      [context.getHandler(), context.getClass()]
+    );
+
+    if (canBypass && config?.bypassAuth?.enabled) {
+      const request = context.switchToHttp().getRequest<Request>();
+      const bypassToken = request.headers['x-bypass-token'];
+      
+      if (bypassToken === config.bypassAuth?.token) {
+        // Inject admin user for bypass auth
+        const adminUser = new User();
+        adminUser.id = '00000000-0000-0000-0000-000000000000';
+        adminUser.username = 'bypass.admin';
+        adminUser.role = UserRole.ADMIN;
+        adminUser.isRegistrationComplete = true;
+        adminUser.gender = 'MALE';
+        request.user = adminUser;
+        return true;
+      }
     }
 
     return super.canActivate(context);

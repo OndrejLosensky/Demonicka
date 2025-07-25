@@ -7,8 +7,8 @@ import {
   Param,
   Delete,
   UseGuards,
-  ForbiddenException,
-  Query,
+  // ForbiddenException,
+  // Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -24,9 +24,10 @@ import { User } from './entities/user.entity';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
+// import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserStatsService } from './user-stats.service';
 import { RoleGuard } from '../auth/guards/role.guard';
+import { BypassAuth } from '../auth/decorators/bypass-auth.decorator';
 
 /**
  * Users controller handling user profile management.
@@ -43,11 +44,13 @@ export class UsersController {
 
   @Post()
   @Roles(UserRole.ADMIN)
+  @BypassAuth()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
   @Post('participant')
+  @BypassAuth()
   @Public()
   createParticipant(@Body() createParticipantDto: CreateParticipantDto) {
     return this.usersService.createParticipant(createParticipantDto);
@@ -60,12 +63,13 @@ export class UsersController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN)
-  findAll() {
+  @BypassAuth()
+  async findAll() {
     return this.usersService.findAll();
   }
 
   @Get('profile')
+  @BypassAuth()
   @Roles(UserRole.ADMIN, UserRole.USER)
   getProfile(@GetUser() user: User) {
     return this.usersService.findOne(user.id);
