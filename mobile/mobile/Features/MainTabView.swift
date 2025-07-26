@@ -22,6 +22,11 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Events", systemImage: "calendar")
                 }
+            
+            SystemView()
+                .tabItem {
+                    Label("System", systemImage: "gear")
+                }
         }
     }
 }
