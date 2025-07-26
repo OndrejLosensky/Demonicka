@@ -72,7 +72,7 @@ const LoginComponent: React.FC = () => {
         </Button>
         <div className="text-center">
           <Link
-            to="/auth/register"
+            to="/register"
             className="text-primary hover:text-primary-600 text-sm font-medium"
           >
             {translations.login.noAccount}
@@ -81,11 +81,8 @@ const LoginComponent: React.FC = () => {
       </form>
 
       <div className="flex flex-col space-y-4 text-center mt-8">
-        <Link to="/register" className="text-sm text-indigo-600 hover:text-indigo-500">
-          Nemáte účet? Zaregistrujte se
-        </Link>
         <Link to="/enter-token" className="text-sm text-indigo-600 hover:text-indigo-500">
-          Máte registrační token? Dokončete registraci
+          {translations.login.completeRegistration}
         </Link>
       </div>
     </AuthLayout>

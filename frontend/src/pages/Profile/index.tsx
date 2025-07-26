@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -26,7 +25,6 @@ import {
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
-import { UserStatsComponent } from '../../components/UserStats';
 import { PersonalInfoTab } from '../../components/auth/PersonalInfoTab';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
 
@@ -65,7 +63,6 @@ function a11yProps(index: number) {
 
 const ProfilePageComponent: React.FC = () => {
   const { user } = useAuth();
-  const { id } = useParams();
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<User | null>(null);
   const [tabValue, setTabValue] = useState(0);
@@ -94,7 +91,6 @@ const ProfilePageComponent: React.FC = () => {
   }
 
   const displayData = profileData || user;
-  const userId = id || user.id;
 
   return (
     <motion.div
@@ -102,7 +98,7 @@ const ProfilePageComponent: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       className="p-6"
     >
-      <Box maxWidth="lg" mx="auto" className="space-y-6">
+      <Box maxWidth="lg" mx="auto">
         {/* Profile Information */}
         <Paper className="p-6 rounded-xl shadow-lg">
           <Box display="flex" alignItems="center" gap={4} mb={4}>
@@ -136,8 +132,7 @@ const ProfilePageComponent: React.FC = () => {
           <Divider className="my-4" />
 
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="profile tabs">
-            <Tab label="Basic Information" {...a11yProps(0)} />
-            <Tab label="Personal Information" {...a11yProps(1)} />
+            <Tab label="Základní informace" {...a11yProps(0)} />
           </Tabs>
 
           <TabPanel value={tabValue} index={0}>
@@ -212,9 +207,6 @@ const ProfilePageComponent: React.FC = () => {
             <PersonalInfoTab />
           </TabPanel>
         </Paper>
-
-        {/* Beer Statistics */}
-        <UserStatsComponent userId={userId} />
       </Box>
     </motion.div>
   );

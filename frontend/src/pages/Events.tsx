@@ -141,28 +141,6 @@ export const Events: React.FC = () => {
                 </Box>
             </Box>
 
-            {/* Info Alert */}
-            <Paper
-                elevation={0}
-                sx={{ 
-                    mb: 4,
-                    p: 3,
-                    backgroundColor: '#FEE2E2',
-                    borderRadius: 2,
-                    border: '1px solid #FCA5A5',
-                }}
-            >
-                <Box display="flex" alignItems="flex-start" gap={2}>
-                    <CircleIcon sx={{ color: '#DC2626', fontSize: 20, mt: 0.5 }} />
-                    <Typography sx={{ 
-                        color: '#991B1B', 
-                        lineHeight: 1.5,
-                    }}>
-                        V aplikaci může být vždy pouze jedna aktivní událost. Při vytvoření nové události se automaticky ukončí předchozí aktivní událost. Aktivní událost se zobrazuje v záhlaví a všichni nově přidaní účastníci a sudy jsou automaticky přiřazeni k této události.
-                    </Typography>
-                </Box>
-            </Paper>
-
             {/* Events Grid or Empty State */}
             {events.length > 0 ? (
                 <Grid container spacing={3}>
