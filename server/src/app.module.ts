@@ -11,6 +11,7 @@ import { LoggingModule } from './logging/logging.module';
 import { VersioningModule } from './versioning/versioning.module';
 import { DocsModule } from './docs/docs.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
+import { BackupModule } from './backup/backup.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
 import { AppDataSource } from './data-source';
@@ -32,6 +33,7 @@ import { AppDataSource } from './data-source';
     VersioningModule,
     DocsModule,
     LeaderboardModule,
+    BackupModule,
   ],
 })
 export class AppModule implements NestModule {
