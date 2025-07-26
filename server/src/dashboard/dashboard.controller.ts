@@ -8,6 +8,10 @@ import { Public } from '../auth/decorators/public.decorator';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { BypassAuth } from 'src/auth/decorators/bypass-auth.decorator';
+import { SystemStatsDto } from './dto/system-stats.dto';
+import { RoleGuard } from '../auth/guards/role.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../users/enums/user-role.enum';
 
 @Controller('dashboard')
 @BypassAuth()
@@ -41,5 +45,13 @@ export class DashboardController {
     @Query('eventId') eventId?: string,
   ): Promise<LeaderboardDto> {
     return this.dashboardService.getLeaderboard(eventId);
+  }
+
+  @Get('system')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(UserRole.ADMIN)
+  @Header('Cache-Control', 'no-store')
+  async getSystemStats(): Promise<SystemStatsDto> {
+    return this.dashboardService.getSystemStats();
   }
 }

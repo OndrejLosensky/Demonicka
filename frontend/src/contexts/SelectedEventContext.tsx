@@ -19,39 +19,67 @@ export const SelectedEventProvider: React.FC<SelectedEventProviderProps> = ({ ch
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { activeEvent } = useActiveEvent();
   const manualSelectionRef = useRef(false);
+  const updateCountRef = useRef(0);
+
+  // Debug logging for state changes
+  useEffect(() => {
+    console.log('[SelectedEventContext] State Update:', {
+      selectedEventId: selectedEvent?.id,
+      activeEventId: activeEvent?.id,
+      manualSelection: manualSelectionRef.current,
+      updateCount: updateCountRef.current
+    });
+  }, [selectedEvent, activeEvent]);
 
   // Custom setSelectedEvent that tracks manual selections
   const handleSetSelectedEvent = (event: Event | null) => {
+    console.log('[SelectedEventContext] Manual Selection:', {
+      newEventId: event?.id,
+      currentEventId: selectedEvent?.id
+    });
     manualSelectionRef.current = true;
     setSelectedEvent(event);
   };
 
-  // When active event changes, reset selected event to active event (but only if not manually selected)
+  // Combined effect to handle both active event changes and manual selections
   useEffect(() => {
+    updateCountRef.current += 1;
+    console.log('[SelectedEventContext] Effect Triggered:', {
+      updateCount: updateCountRef.current,
+      manualSelection: manualSelectionRef.current,
+      selectedEventId: selectedEvent?.id,
+      activeEventId: activeEvent?.id
+    });
+
+    // Skip if we have a manual selection and the IDs match
+    if (manualSelectionRef.current && selectedEvent?.id === activeEvent?.id) {
+      console.log('[SelectedEventContext] Skipping update - manual selection with matching IDs');
+      return;
+    }
+
+    // Handle active event changes
     if (activeEvent) {
-      // Only auto-update if:
-      // 1. There's no selected event yet, OR
-      // 2. The active event ID changed (new event created), OR
-      // 3. We're viewing the active event and it wasn't manually selected (to get updated data)
-      if (!selectedEvent || 
+      const shouldUpdate = !selectedEvent || 
           selectedEvent.id !== activeEvent.id || 
-          (selectedEvent.id === activeEvent.id && activeEvent.isActive)) {
-        manualSelectionRef.current = false; // Reset manual selection flag
+          (selectedEvent.id === activeEvent.id && activeEvent.isActive);
+
+      console.log('[SelectedEventContext] Update Check:', {
+        shouldUpdate,
+        reason: !selectedEvent ? 'no selected event' :
+               selectedEvent.id !== activeEvent.id ? 'different event ids' :
+               'active event update'
+      });
+
+      if (shouldUpdate) {
+        manualSelectionRef.current = false;
         setSelectedEvent(activeEvent);
       }
     } else if (!activeEvent && selectedEvent?.isActive) {
-      // If there's no active event but we're viewing an active event, clear it
+      console.log('[SelectedEventContext] Clearing selection - no active event');
       manualSelectionRef.current = false;
       setSelectedEvent(null);
     }
   }, [activeEvent, selectedEvent]);
-
-  // Reset manual selection flag when active event changes (new event created)
-  useEffect(() => {
-    if (activeEvent?.id !== selectedEvent?.id) {
-      manualSelectionRef.current = false;
-    }
-  }, [activeEvent?.id, selectedEvent?.id]);
 
   const isViewingHistory = selectedEvent ? !selectedEvent.isActive : false;
 

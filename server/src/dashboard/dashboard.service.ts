@@ -1,24 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { Beer } from '../beers/entities/beer.entity';
 import { Barrel } from '../barrels/entities/barrel.entity';
 import { Event } from '../events/entities/event.entity';
 import { EventBeer } from '../events/entities/event-beer.entity';
-import {
-  DashboardResponseDto,
-  UserStatsDto,
-  BarrelStatsDto,
-} from './dto/dashboard.dto';
-import {
-  LeaderboardDto,
-  UserLeaderboardDto,
-} from './dto/leaderboard.dto';
+import { DashboardResponseDto, UserStatsDto, BarrelStatsDto } from './dto/dashboard.dto';
+import { LeaderboardDto, UserLeaderboardDto } from './dto/leaderboard.dto';
 import { PublicStatsDto } from './dto/public-stats.dto';
+import { SystemStatsDto } from './dto/system-stats.dto';
+import { UserRole } from '../users/enums/user-role.enum';
 
 @Injectable()
 export class DashboardService {
+  private readonly logger = new Logger(DashboardService.name);
+  private lastFetch: number = 0;
+  private cachedStats: SystemStatsDto | null = null;
+  private readonly CACHE_TTL = 30000; // 30 seconds in milliseconds
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -353,6 +353,63 @@ export class DashboardService {
             beerCount: parseInt(u.beerCount as unknown as string),
           })),
       };
+    }
+  }
+
+  async getSystemStats(): Promise<SystemStatsDto> {
+    const now = Date.now();
+    
+    // Return cached data if it's still fresh
+    if (this.cachedStats && (now - this.lastFetch) < this.CACHE_TTL) {
+      this.logger.log('Returning cached system stats');
+      return this.cachedStats;
+    }
+
+    this.logger.log('Cache miss - fetching fresh system stats');
+    
+    try {
+      const users = await this.userRepository.find({
+        select: [
+          'id',
+          'username',
+          'role',
+          'isRegistrationComplete',
+          'isTwoFactorEnabled',
+          'isAdminLoginEnabled',
+          'lastAdminLogin'
+        ],
+        where: {
+          deletedAt: IsNull()
+        }
+      });
+
+      this.logger.log(`Found ${users.length} users`);
+
+      const stats = {
+        users: users.map(user => ({
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          isRegistrationComplete: user.isRegistrationComplete,
+          isTwoFactorEnabled: user.isTwoFactorEnabled,
+          isAdminLoginEnabled: user.isAdminLoginEnabled,
+          lastAdminLogin: user.lastAdminLogin
+        })),
+        totalUsers: users.length,
+        totalAdminUsers: users.filter(u => u.role === UserRole.ADMIN).length,
+        totalCompletedRegistrations: users.filter(u => u.isRegistrationComplete).length,
+        total2FAEnabled: users.filter(u => u.isTwoFactorEnabled).length
+      };
+
+      // Update cache
+      this.cachedStats = stats;
+      this.lastFetch = now;
+      this.logger.log('System stats cached successfully');
+
+      return stats;
+    } catch (error) {
+      this.logger.error('Failed to fetch system stats', error);
+      throw error;
     }
   }
 }

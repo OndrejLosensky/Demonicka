@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { userService } from '../../../services/userService';
 import type { User } from '../../../types/user';
 import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
@@ -12,37 +12,59 @@ export const useUsers = (includeDeleted = false) => {
   const [isLoading, setIsLoading] = useState(true);
   const { selectedEvent } = useSelectedEvent();
   const toast = useToast();
+  const fetchTimeoutRef = useRef<NodeJS.Timeout>();
+  const isMountedRef = useRef(true);
 
   const fetchUsers = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      
-      if (selectedEvent) {
-        // Get users for the selected event
-        const eventUsers = await userService.getByEvent(selectedEvent.id);
-        setUsers(eventUsers);
-        setDeletedUsers([]);
-      } else {
-        // Fallback to all users if no event is selected
-        if (includeDeleted) {
-          const data = await userService.getAllUsers(true);
-          const active = data.filter(u => !u.deletedAt);
-          const deleted = data.filter(u => u.deletedAt);
-          setUsers(active);
-          setDeletedUsers(deleted);
+    // Clear any pending fetch
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+
+    // Debounce the fetch operation
+    fetchTimeoutRef.current = setTimeout(async () => {
+      if (!isMountedRef.current) return;
+
+      try {
+        setIsLoading(true);
+        
+        if (selectedEvent) {
+          // Get users for the selected event
+          const eventUsers = await userService.getByEvent(selectedEvent.id);
+          if (isMountedRef.current) {
+            setUsers(eventUsers);
+            setDeletedUsers([]);
+          }
         } else {
-          const data = await userService.getAllUsers(false);
-          setUsers(data);
-          setDeletedUsers([]);
+          // Fallback to all users if no event is selected
+          if (includeDeleted) {
+            const data = await userService.getAllUsers(true);
+            if (isMountedRef.current) {
+              const active = data.filter(u => !u.deletedAt);
+              const deleted = data.filter(u => u.deletedAt);
+              setUsers(active);
+              setDeletedUsers(deleted);
+            }
+          } else {
+            const data = await userService.getAllUsers(false);
+            if (isMountedRef.current) {
+              setUsers(data);
+              setDeletedUsers([]);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+        if (isMountedRef.current) {
+          toast.error(toastTranslations.error.fetch.replace('{{item}}', 'uživatele'));
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoading(false);
         }
       }
-    } catch (error) {
-      console.error('Failed to fetch users:', error);
-      toast.error(toastTranslations.error.fetch.replace('{{item}}', 'uživatele'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [includeDeleted, selectedEvent?.id, selectedEvent?.updatedAt, toast]);
+    }, 300); // Debounce time of 300ms
+  }, [includeDeleted, selectedEvent?.id, toast]); // Removed selectedEvent?.updatedAt dependency
 
   const handleDelete = async (userId: string) => {
     try {
@@ -93,6 +115,16 @@ export const useUsers = (includeDeleted = false) => {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     users,
