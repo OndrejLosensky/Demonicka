@@ -34,7 +34,6 @@ export class User {
   password: string | null;
 
   @Column({ type: 'varchar', nullable: true })
-  @IsNotEmpty({ message: 'Jméno je povinné' })
   name: string | null;
 
   // Future columns (nullable for backward compatibility)

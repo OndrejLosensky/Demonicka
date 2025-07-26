@@ -14,7 +14,7 @@ interface JwtPayload {
 
 interface RequestWithCookies extends Request {
   cookies: {
-    refreshToken?: string;
+    refresh_token?: string;
   };
 }
 
@@ -31,7 +31,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: RequestWithCookies): string | null => {
-          return request?.cookies?.refreshToken || null;
+          return request?.cookies?.refresh_token || null;
         },
       ]),
       secretOrKey: secret,
@@ -43,7 +43,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     request: RequestWithCookies,
     payload: JwtPayload,
   ): Promise<{ id: string; email: string }> {
-    const refreshToken = request?.cookies?.refreshToken;
+    const refreshToken = request?.cookies?.refresh_token;
     if (!refreshToken) {
       throw new UnauthorizedException('Obnovovací token nebyl nalezen');
     }

@@ -5,6 +5,7 @@ enum APIError: Error, CustomStringConvertible {
     case invalidResponse
     case networkError(Error)
     case decodingError(Error)
+    case encodingError(Error)
     case serverError(Int, Data?)
     
     var description: String {
@@ -17,6 +18,8 @@ enum APIError: Error, CustomStringConvertible {
             return "Network error: \(error.localizedDescription)"
         case .decodingError(let error):
             return "Failed to decode response: \(error)"
+        case .encodingError(let error):
+            return "Failed to encode request: \(error)"
         case .serverError(let code, let data):
             if let data = data, let errorMessage = String(data: data, encoding: .utf8) {
                 return "Server error (\(code)): \(errorMessage)"
@@ -45,8 +48,8 @@ class APIClient {
         dateFormatter.locale = Locale(identifier: "en_US_POSIX")
     }
     
-    func fetch<T: Decodable>(_ endpoint: String, method: HTTPMethod = .get) async throws -> T {
-        let (data, response) = try await makeRequest(endpoint, method: method)
+    func fetch<T: Decodable>(_ endpoint: String, method: HTTPMethod = .get, body: Encodable? = nil) async throws -> T {
+        let (data, response) = try await makeRequest(endpoint, method: method, body: body)
         
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -72,11 +75,11 @@ class APIClient {
         }
     }
     
-    func requestWithoutResponse(_ endpoint: String, method: HTTPMethod) async throws {
-        _ = try await makeRequest(endpoint, method: method)
+    func requestWithoutResponse(_ endpoint: String, method: HTTPMethod, body: Encodable? = nil) async throws {
+        _ = try await makeRequest(endpoint, method: method, body: body)
     }
     
-    private func makeRequest(_ endpoint: String, method: HTTPMethod) async throws -> (Data, HTTPURLResponse) {
+    private func makeRequest(_ endpoint: String, method: HTTPMethod, body: Encodable? = nil) async throws -> (Data, HTTPURLResponse) {
         // Ensure endpoint doesn't start with a slash if it's provided
         let cleanEndpoint = endpoint.hasPrefix("/") ? String(endpoint.dropFirst()) : endpoint
         
@@ -92,6 +95,18 @@ class APIClient {
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         request.allHTTPHeaderFields = Config.API.headers
+        
+        if let body = body {
+            do {
+                let encoder = JSONEncoder()
+                encoder.keyEncodingStrategy = .convertToSnakeCase
+                request.httpBody = try encoder.encode(body)
+                print("📦 Request body: \(String(data: request.httpBody!, encoding: .utf8) ?? "")")
+            } catch {
+                print("❌ Encoding error: \(error)")
+                throw APIError.encodingError(error)
+            }
+        }
         
         do {
             let (data, response) = try await session.data(for: request)

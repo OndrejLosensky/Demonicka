@@ -6,6 +6,7 @@ import {
   UseGuards,
   ParseUUIDPipe,
   Body,
+  Delete,
 } from '@nestjs/common';
 import { EventBeersService } from '../services/event-beers.service';
 import { EventBeer } from '../entities/event-beer.entity';
@@ -31,6 +32,15 @@ export class EventBeersController {
     @Body('barrelId') barrelId?: string,
   ): Promise<EventBeer> {
     return this.eventBeersService.create(eventId, userId, barrelId);
+  }
+
+  @Delete('users/:userId')
+  @Roles(UserRole.ADMIN, UserRole.USER)
+  async removeEventBeer(
+    @Param('eventId', ParseUUIDPipe) eventId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.eventBeersService.remove(eventId, userId);
   }
 
   @Get()

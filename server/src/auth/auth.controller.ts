@@ -114,12 +114,20 @@ export class AuthController {
    */
   @Public()
   @Post('refresh')
-  async refresh(@Req() req: RequestWithUser) {
+  async refresh(
+    @Req() req: RequestWithUser,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const refreshToken = req.cookies?.['refresh_token'];
     if (!refreshToken) {
       throw new UnauthorizedException('Obnovovací token nebyl nalezen');
     }
-    return this.authService.refreshTokens(refreshToken);
+    const { accessToken, refreshToken: newRefreshToken } = await this.authService.refreshTokens(refreshToken);
+    
+    // Set new refresh token cookie
+    response.cookie('refresh_token', newRefreshToken, this.authService.getCookieOptions(true));
+
+    return { accessToken };
   }
 
   /**

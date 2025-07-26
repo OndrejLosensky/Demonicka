@@ -5,6 +5,7 @@ struct ParticipantsView: View {
     @State private var isLoading = false
     @State private var error: Error?
     @State private var showingError = false
+    @State private var showingAddDialog = false
     @State private var processingUserId: String?
     
     var body: some View {
@@ -37,10 +38,33 @@ struct ParticipantsView: View {
                 }
             }
             .navigationTitle("Participants")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showingAddDialog = true }) {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingAddDialog) {
+                AddParticipantDialog(isPresented: $showingAddDialog) { participant in
+                    Task {
+                        await handleAddParticipant(participant)
+                    }
+                }
+            }
             .alert("Error", isPresented: $showingError) {
                 Button("OK", role: .cancel) {}
+                Button("Retry") {
+                    Task {
+                        await loadParticipants()
+                    }
+                }
             } message: {
-                Text(error?.localizedDescription ?? "An unknown error occurred")
+                if let apiError = error as? APIError {
+                    Text(apiError.description)
+                } else {
+                    Text(error?.localizedDescription ?? "An unknown error occurred")
+                }
             }
         }
         .onAppear {
@@ -62,6 +86,16 @@ struct ParticipantsView: View {
         }
         
         isLoading = false
+    }
+    
+    private func handleAddParticipant(_ participant: CreateParticipant) async {
+        do {
+            try await ParticipantService.shared.createParticipant(participant)
+            await loadParticipants()
+        } catch {
+            self.error = error
+            showingError = true
+        }
     }
     
     private func handleAddBeer(for participant: Participant) async {
@@ -103,7 +137,6 @@ struct ParticipantRow: View {
     
     var body: some View {
         HStack {
-            // User info
             VStack(alignment: .leading, spacing: 4) {
                 Text(participant.username)
                     .font(.headline)
@@ -120,20 +153,31 @@ struct ParticipantRow: View {
             
             Spacer()
             
-            // Action buttons
             if isProcessing {
                 ProgressView()
                     .scaleEffect(0.8)
             } else {
-                HStack(spacing: 16) {
+                HStack(spacing: 12) {
                     // Remove beer button
-                    RemoveButton(
-                        isEnabled: participant.eventBeerCount > 0,
-                        action: onRemoveBeer
-                    )
+                    Button {
+                        onRemoveBeer()
+                    } label: {
+                        Image(systemName: "minus.circle.fill")
+                            .foregroundColor(.red)
+                            .font(.title2)
+                            .frame(width: 44, height: 44)
+                    }
+                    .disabled(participant.eventBeerCount == 0)
                     
                     // Add beer button
-                    AddButton(action: onAddBeer)
+                    Button {
+                        onAddBeer()
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.green)
+                            .font(.title2)
+                            .frame(width: 44, height: 44)
+                    }
                 }
             }
         }
