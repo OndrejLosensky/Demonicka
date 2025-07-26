@@ -1,131 +1,227 @@
 import SwiftUI
 
 struct DashboardView: View {
-    @EnvironmentObject private var authViewModel: LoginViewModel
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    
-    private let columns: [GridItem] = [
-        GridItem(.adaptive(minimum: 300, maximum: 400), spacing: 16)
-    ]
+    @State private var dashboardData: DashboardData?
+    @State private var isLoading = false
+    @State private var error: Error?
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Welcome Section
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Welcome to Dashboard")
-                            .font(horizontalSizeClass == .regular ? .largeTitle : .title)
-                            .fontWeight(.bold)
-                        
-                        if let user = authViewModel.currentUser {
-                            Text("Logged in as \(user.username)")
-                                .font(horizontalSizeClass == .regular ? .title3 : .subheadline)
-                                .foregroundColor(.gray)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    
-                    // Stats Overview
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        StatCard(title: "Active Barrels", value: "5", icon: "cylinder.fill")
-                        StatCard(title: "Total Users", value: "24", icon: "person.2.fill")
-                        StatCard(title: "Active Events", value: "2", icon: "calendar")
-                        StatCard(title: "Today's Beers", value: "42", icon: "mug.fill")
-                    }
-                    .padding(.horizontal)
-                    
-                    // Recent Activity
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Recent Activity")
-                            .font(horizontalSizeClass == .regular ? .title2 : .headline)
-                            .padding(.horizontal)
-                        
-                        ForEach(1...5, id: \.self) { _ in
-                            ActivityRow()
-                        }
-                    }
-                    .frame(maxWidth: horizontalSizeClass == .regular ? 800 : nil)
+            Group {
+                if isLoading {
+                    loadingView
+                } else if let error = error {
+                    errorView(error: error)
+                } else if let data = dashboardData {
+                    dashboardContent(data: data)
+                } else {
+                    Text("No data available")
                 }
-                .frame(maxWidth: .infinity)
             }
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Dashboard")
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+        .onAppear {
+            Task {
+                await loadDashboardData()
+            }
+        }
+    }
+    
+    // MARK: - Loading View
+    private var loadingView: some View {
+        VStack {
+            ProgressView()
+                .scaleEffect(1.5)
+            Text("Loading...")
+                .foregroundColor(.secondary)
+                .padding(.top)
+        }
+    }
+    
+    // MARK: - Error View
+    private func errorView(error: Error) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 50))
+                .foregroundColor(.red)
+            
+            Text("Error loading dashboard")
+                .font(.headline)
+            
+            Text(error.localizedDescription)
+                .font(.subheadline)
+                .foregroundColor(.red)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            if let apiError = error as? APIError {
+                Text(apiError.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+            
+            Button(action: {
+                Task {
+                    await loadDashboardData()
+                }
+            }) {
+                HStack {
+                    Image(systemName: "arrow.clockwise")
+                    Text("Retry")
+                }
+                .padding()
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+            }
+        }
+        .padding()
+    }
+    
+    // MARK: - Dashboard Content
+    private func dashboardContent(data: DashboardData) -> some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                overviewSection(data: data)
+                topUsersSection(users: data.topUsers)
+                barrelStatsSection(stats: data.barrelStats)
+            }
+            .padding(.vertical)
+        }
+    }
+    
+    // MARK: - Overview Section
+    private func overviewSection(data: DashboardData) -> some View {
+        VStack(spacing: 16) {
+            sectionHeader(title: "Overview", icon: "chart.bar.fill")
+            
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 16) {
+                StatCard(title: "Total Users", value: "\(data.totalUsers)", icon: "person.2.fill")
+                StatCard(title: "Total Beers", value: "\(data.totalBeers)", icon: "mug.fill")
+                StatCard(title: "Total Barrels", value: "\(data.totalBarrels)", icon: "cylinder.fill")
+                StatCard(title: "Avg. Beers/User", 
+                        value: String(format: "%.1f", data.averageBeersPerUser),
+                        icon: "chart.bar.fill")
+            }
+            .padding(.horizontal)
+        }
+    }
+    
+    // MARK: - Top Users Section
+    private func topUsersSection(users: [UserStats]) -> some View {
+        VStack(spacing: 12) {
+            sectionHeader(title: "Top Users", icon: "trophy.fill")
+            
+            ForEach(users, id: \.id) { user in
+                HStack {
+                    Image(systemName: "person.fill")
+                        .foregroundColor(.blue)
+                    Text(user.username)
+                    Spacer()
+                    Text("\(user.beerCount)")
+                        .fontWeight(.semibold)
+                    Text("beers")
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(10)
+                .padding(.horizontal)
+            }
+        }
+    }
+    
+    // MARK: - Barrel Stats Section
+    private func barrelStatsSection(stats: [BarrelStats]) -> some View {
+        VStack(spacing: 12) {
+            sectionHeader(title: "Barrel Statistics", icon: "cylinder.split.1x2.fill")
+            
+            ForEach(stats, id: \.size) { stat in
+                HStack {
+                    Image(systemName: "cylinder.fill")
+                        .foregroundColor(.blue)
+                    Text("\(stat.size)L")
+                        .fontWeight(.medium)
+                    Spacer()
+                    Text("\(stat.count)")
+                        .fontWeight(.semibold)
+                    Text("active")
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(10)
+                .padding(.horizontal)
+            }
+        }
+    }
+    
+    // MARK: - Helper Views
+    private func sectionHeader(title: String, icon: String) -> some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(.blue)
+            Text(title)
+                .font(.title2)
+                .fontWeight(.bold)
+            Spacer()
+        }
+        .padding(.horizontal)
+    }
+    
+    // MARK: - Data Loading
+    private func loadDashboardData() async {
+        isLoading = true
+        error = nil
+        
+        do {
+            print("🔄 Loading dashboard data...")
+            dashboardData = try await DashboardService.shared.fetchDashboardData()
+            print("✅ Dashboard data loaded successfully")
+        } catch {
+            print("❌ Error loading dashboard data: \(error)")
+            self.error = error
+        }
+        
+        isLoading = false
     }
 }
 
+// MARK: - Supporting Views
 struct StatCard: View {
     let title: String
     let value: String
     let icon: String
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: icon)
-                    .font(horizontalSizeClass == .regular ? .system(size: 30) : .title2)
                     .foregroundColor(.blue)
-                Spacer()
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
-            
             Text(value)
-                .font(horizontalSizeClass == .regular ? .system(size: 40, weight: .bold) : .title)
+                .font(.title2)
                 .fontWeight(.bold)
-            
-            Text(title)
-                .font(horizontalSizeClass == .regular ? .title3 : .subheadline)
-                .foregroundColor(.gray)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .background(Color(.systemBackground))
+        .cornerRadius(10)
+        .shadow(radius: 1)
     }
 }
 
-struct ActivityRow: View {
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    
-    var body: some View {
-        HStack {
-            Circle()
-                .fill(Color.blue)
-                .frame(width: horizontalSizeClass == .regular ? 12 : 8, height: horizontalSizeClass == .regular ? 12 : 8)
-            
-            Text("New barrel added")
-                .font(horizontalSizeClass == .regular ? .title3 : .subheadline)
-            
-            Spacer()
-            
-            Text("2m ago")
-                .font(horizontalSizeClass == .regular ? .subheadline : .caption)
-                .foregroundColor(.gray)
-        }
-        .padding(.horizontal)
-        .padding(.vertical, horizontalSizeClass == .regular ? 12 : 8)
-    }
-}
-
+// MARK: - Preview
 struct DashboardView_Previews: PreviewProvider {
     static var previews: some View {
-        Group {
-            // iPad Air 2 Landscape
-            DashboardView()
-                .environmentObject(LoginViewModel())
-                .previewDevice(PreviewDevice(rawValue: "iPad Air 2"))
-                .previewDisplayName("iPad Air 2 Landscape")
-                .previewInterfaceOrientation(.landscapeRight)
-                .environment(\.horizontalSizeClass, .regular)
-            
-            // iPad Air 2 Portrait
-            DashboardView()
-                .environmentObject(LoginViewModel())
-                .previewDevice(PreviewDevice(rawValue: "iPad Air 2"))
-                .previewDisplayName("iPad Air 2 Portrait")
-                .previewInterfaceOrientation(.portrait)
-                .environment(\.horizontalSizeClass, .regular)
-        }
+        DashboardView()
     }
 } 

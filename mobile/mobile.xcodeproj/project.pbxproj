@@ -6,63 +6,20 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXContainerItemProxy section */
-		F4C56AD52E3111FE00405EB2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F4C56ABF2E3111FB00405EB2 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = F4C56AC62E3111FB00405EB2;
-			remoteInfo = mobile;
-		};
-		F4C56ADF2E3111FE00405EB2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = F4C56ABF2E3111FB00405EB2 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = F4C56AC62E3111FB00405EB2;
-			remoteInfo = mobile;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
-		F4C56AC72E3111FB00405EB2 /* mobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		F4C56AD42E3111FE00405EB2 /* mobileTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mobileTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		F4C56ADE2E3111FE00405EB2 /* mobileUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mobileUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F4A602FE2E34C0EB00E83374 /* mobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		F4C56AC92E3111FB00405EB2 /* mobile */ = {
+		F4A603002E34C0EB00E83374 /* mobile */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = mobile;
-			sourceTree = "<group>";
-		};
-		F4C56AD72E3111FE00405EB2 /* mobileTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = mobileTests;
-			sourceTree = "<group>";
-		};
-		F4C56AE12E3111FE00405EB2 /* mobileUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = mobileUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		F4C56AC42E3111FB00405EB2 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F4C56AD12E3111FE00405EB2 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F4C56ADB2E3111FE00405EB2 /* Frameworks */ = {
+		F4A602FB2E34C0EB00E83374 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -72,22 +29,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		F4C56ABE2E3111FB00405EB2 = {
+		F4A602F52E34C0EB00E83374 = {
 			isa = PBXGroup;
 			children = (
-				F4C56AC92E3111FB00405EB2 /* mobile */,
-				F4C56AD72E3111FE00405EB2 /* mobileTests */,
-				F4C56AE12E3111FE00405EB2 /* mobileUITests */,
-				F4C56AC82E3111FB00405EB2 /* Products */,
+				F4A603002E34C0EB00E83374 /* mobile */,
+				F4A602FF2E34C0EB00E83374 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		F4C56AC82E3111FB00405EB2 /* Products */ = {
+		F4A602FF2E34C0EB00E83374 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F4C56AC72E3111FB00405EB2 /* mobile.app */,
-				F4C56AD42E3111FE00405EB2 /* mobileTests.xctest */,
-				F4C56ADE2E3111FE00405EB2 /* mobileUITests.xctest */,
+				F4A602FE2E34C0EB00E83374 /* mobile.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,134 +48,64 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		F4C56AC62E3111FB00405EB2 /* mobile */ = {
+		F4A602FD2E34C0EB00E83374 /* mobile */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F4C56AE82E3111FE00405EB2 /* Build configuration list for PBXNativeTarget "mobile" */;
+			buildConfigurationList = F4A603092E34C0ED00E83374 /* Build configuration list for PBXNativeTarget "mobile" */;
 			buildPhases = (
-				F4C56AC32E3111FB00405EB2 /* Sources */,
-				F4C56AC42E3111FB00405EB2 /* Frameworks */,
-				F4C56AC52E3111FB00405EB2 /* Resources */,
+				F4A602FA2E34C0EB00E83374 /* Sources */,
+				F4A602FB2E34C0EB00E83374 /* Frameworks */,
+				F4A602FC2E34C0EB00E83374 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				F4C56AC92E3111FB00405EB2 /* mobile */,
+				F4A603002E34C0EB00E83374 /* mobile */,
 			);
 			name = mobile;
 			packageProductDependencies = (
 			);
 			productName = mobile;
-			productReference = F4C56AC72E3111FB00405EB2 /* mobile.app */;
+			productReference = F4A602FE2E34C0EB00E83374 /* mobile.app */;
 			productType = "com.apple.product-type.application";
-		};
-		F4C56AD32E3111FE00405EB2 /* mobileTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = F4C56AEB2E3111FE00405EB2 /* Build configuration list for PBXNativeTarget "mobileTests" */;
-			buildPhases = (
-				F4C56AD02E3111FE00405EB2 /* Sources */,
-				F4C56AD12E3111FE00405EB2 /* Frameworks */,
-				F4C56AD22E3111FE00405EB2 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				F4C56AD62E3111FE00405EB2 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				F4C56AD72E3111FE00405EB2 /* mobileTests */,
-			);
-			name = mobileTests;
-			packageProductDependencies = (
-			);
-			productName = mobileTests;
-			productReference = F4C56AD42E3111FE00405EB2 /* mobileTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		F4C56ADD2E3111FE00405EB2 /* mobileUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = F4C56AEE2E3111FE00405EB2 /* Build configuration list for PBXNativeTarget "mobileUITests" */;
-			buildPhases = (
-				F4C56ADA2E3111FE00405EB2 /* Sources */,
-				F4C56ADB2E3111FE00405EB2 /* Frameworks */,
-				F4C56ADC2E3111FE00405EB2 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				F4C56AE02E3111FE00405EB2 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				F4C56AE12E3111FE00405EB2 /* mobileUITests */,
-			);
-			name = mobileUITests;
-			packageProductDependencies = (
-			);
-			productName = mobileUITests;
-			productReference = F4C56ADE2E3111FE00405EB2 /* mobileUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		F4C56ABF2E3111FB00405EB2 /* Project object */ = {
+		F4A602F62E34C0EB00E83374 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
-					F4C56AC62E3111FB00405EB2 = {
+					F4A602FD2E34C0EB00E83374 = {
 						CreatedOnToolsVersion = 16.4;
-					};
-					F4C56AD32E3111FE00405EB2 = {
-						CreatedOnToolsVersion = 16.4;
-						TestTargetID = F4C56AC62E3111FB00405EB2;
-					};
-					F4C56ADD2E3111FE00405EB2 = {
-						CreatedOnToolsVersion = 16.4;
-						TestTargetID = F4C56AC62E3111FB00405EB2;
 					};
 				};
 			};
-			buildConfigurationList = F4C56AC22E3111FB00405EB2 /* Build configuration list for PBXProject "mobile" */;
+			buildConfigurationList = F4A602F92E34C0EB00E83374 /* Build configuration list for PBXProject "mobile" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = F4C56ABE2E3111FB00405EB2;
+			mainGroup = F4A602F52E34C0EB00E83374;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = F4C56AC82E3111FB00405EB2 /* Products */;
+			productRefGroup = F4A602FF2E34C0EB00E83374 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				F4C56AC62E3111FB00405EB2 /* mobile */,
-				F4C56AD32E3111FE00405EB2 /* mobileTests */,
-				F4C56ADD2E3111FE00405EB2 /* mobileUITests */,
+				F4A602FD2E34C0EB00E83374 /* mobile */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		F4C56AC52E3111FB00405EB2 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F4C56AD22E3111FE00405EB2 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F4C56ADC2E3111FE00405EB2 /* Resources */ = {
+		F4A602FC2E34C0EB00E83374 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -232,21 +115,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		F4C56AC32E3111FB00405EB2 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F4C56AD02E3111FE00405EB2 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		F4C56ADA2E3111FE00405EB2 /* Sources */ = {
+		F4A602FA2E34C0EB00E83374 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -255,21 +124,8 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		F4C56AD62E3111FE00405EB2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = F4C56AC62E3111FB00405EB2 /* mobile */;
-			targetProxy = F4C56AD52E3111FE00405EB2 /* PBXContainerItemProxy */;
-		};
-		F4C56AE02E3111FE00405EB2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = F4C56AC62E3111FB00405EB2 /* mobile */;
-			targetProxy = F4C56ADF2E3111FE00405EB2 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin XCBuildConfiguration section */
-		F4C56AE62E3111FE00405EB2 /* Debug */ = {
+		F4A603072E34C0ED00E83374 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -332,7 +188,7 @@
 			};
 			name = Debug;
 		};
-		F4C56AE72E3111FE00405EB2 /* Release */ = {
+		F4A603082E34C0ED00E83374 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -388,7 +244,7 @@
 			};
 			name = Release;
 		};
-		F4C56AE92E3111FE00405EB2 /* Debug */ = {
+		F4A6030A2E34C0ED00E83374 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -402,7 +258,6 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -416,7 +271,7 @@
 			};
 			name = Debug;
 		};
-		F4C56AEA2E3111FE00405EB2 /* Release */ = {
+		F4A6030B2E34C0ED00E83374 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -430,7 +285,6 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -441,117 +295,31 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		F4C56AEC2E3111FE00405EB2 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "-001.mobileTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mobile.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/mobile";
-			};
-			name = Debug;
-		};
-		F4C56AED2E3111FE00405EB2 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "-001.mobileTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mobile.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/mobile";
-			};
-			name = Release;
-		};
-		F4C56AEF2E3111FE00405EB2 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "-001.mobileUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = mobile;
-			};
-			name = Debug;
-		};
-		F4C56AF02E3111FE00405EB2 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "-001.mobileUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = mobile;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F4C56AC22E3111FB00405EB2 /* Build configuration list for PBXProject "mobile" */ = {
+		F4A602F92E34C0EB00E83374 /* Build configuration list for PBXProject "mobile" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F4C56AE62E3111FE00405EB2 /* Debug */,
-				F4C56AE72E3111FE00405EB2 /* Release */,
+				F4A603072E34C0ED00E83374 /* Debug */,
+				F4A603082E34C0ED00E83374 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F4C56AE82E3111FE00405EB2 /* Build configuration list for PBXNativeTarget "mobile" */ = {
+		F4A603092E34C0ED00E83374 /* Build configuration list for PBXNativeTarget "mobile" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F4C56AE92E3111FE00405EB2 /* Debug */,
-				F4C56AEA2E3111FE00405EB2 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		F4C56AEB2E3111FE00405EB2 /* Build configuration list for PBXNativeTarget "mobileTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				F4C56AEC2E3111FE00405EB2 /* Debug */,
-				F4C56AED2E3111FE00405EB2 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		F4C56AEE2E3111FE00405EB2 /* Build configuration list for PBXNativeTarget "mobileUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				F4C56AEF2E3111FE00405EB2 /* Debug */,
-				F4C56AF02E3111FE00405EB2 /* Release */,
+				F4A6030A2E34C0ED00E83374 /* Debug */,
+				F4A6030B2E34C0ED00E83374 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = F4C56ABF2E3111FB00405EB2 /* Project object */;
+	rootObject = F4A602F62E34C0EB00E83374 /* Project object */;
 }

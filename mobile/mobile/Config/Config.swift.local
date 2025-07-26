@@ -1,0 +1,31 @@
+import Foundation
+
+enum Environment {
+    case development
+    case production
+    
+    var baseURL: String {
+        switch self {
+        case .development:
+            return "http://localhost:3000"
+        case .production:
+            return "http://localhost:3000"
+        }
+    }
+}
+
+struct Config {
+    static let environment: Environment = .development
+    static let baseURL = environment.baseURL
+    static let bypassToken = "9bafd5a1dd1587f7d72b22974fad53eb"
+    
+    struct API {
+        static let prefix = "/api"
+        static let version = "1"
+        static let headers: [String: String] = [
+            "Accept-Version": version,
+            "x-bypass-token": bypassToken,
+            "Content-Type": "application/json"
+        ]
+    }
+} 

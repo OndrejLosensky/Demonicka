@@ -3,8 +3,11 @@ import SwiftUI
 struct EventsView: View {
     var body: some View {
         NavigationView {
-            Text("Events")
-                .navigationTitle("Events")
+            VStack {
+                Text("Events View")
+                    .font(.title)
+            }
+            .navigationTitle("Events")
         }
     }
 }
