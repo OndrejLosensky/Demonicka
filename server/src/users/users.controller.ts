@@ -122,6 +122,7 @@ export class UsersController {
   }
 
   @Post(':id/register-token')
+  @BypassAuth()
   @Roles(UserRole.ADMIN)
   async generateRegisterToken(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.generateRegisterToken(id);
