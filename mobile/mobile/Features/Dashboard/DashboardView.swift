@@ -89,6 +89,8 @@ struct DashboardView: View {
                 barrelStatsSection(stats: data.barrelStats)
             }
             .padding(.vertical)
+            .frame(maxWidth: UIDevice.current.userInterfaceIdiom == .pad ? 800 : nil)
+            .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .pad ? 20 : 0)
         }
     }
     
@@ -99,8 +101,9 @@ struct DashboardView: View {
             
             LazyVGrid(columns: [
                 GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 16) {
+                GridItem(.flexible()),
+                UIDevice.current.userInterfaceIdiom == .pad ? GridItem(.flexible()) : nil
+            ].compactMap { $0 }, spacing: 16) {
                 StatCard(title: "Total Users", value: "\(data.totalUsers)", icon: "person.2.fill")
                 StatCard(title: "Total Beers", value: "\(data.totalBeers)", icon: "mug.fill")
                 StatCard(title: "Total Barrels", value: "\(data.totalBarrels)", icon: "cylinder.fill")
@@ -166,8 +169,9 @@ struct DashboardView: View {
         HStack {
             Image(systemName: icon)
                 .foregroundColor(.blue)
+                .imageScale(UIDevice.current.userInterfaceIdiom == .pad ? .large : .medium)
             Text(title)
-                .font(.title2)
+                .font(UIDevice.current.userInterfaceIdiom == .pad ? .title : .title2)
                 .fontWeight(.bold)
             Spacer()
         }
@@ -203,18 +207,19 @@ struct StatCard: View {
             HStack {
                 Image(systemName: icon)
                     .foregroundColor(.blue)
+                    .imageScale(UIDevice.current.userInterfaceIdiom == .pad ? .large : .medium)
                 Text(title)
-                    .font(.subheadline)
+                    .font(UIDevice.current.userInterfaceIdiom == .pad ? .title3 : .subheadline)
                     .foregroundColor(.secondary)
             }
             Text(value)
-                .font(.title2)
+                .font(UIDevice.current.userInterfaceIdiom == .pad ? .title : .title2)
                 .fontWeight(.bold)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
+        .padding(UIDevice.current.userInterfaceIdiom == .pad ? 20 : 16)
         .background(Color(.systemBackground))
-        .cornerRadius(10)
+        .cornerRadius(12)
         .shadow(radius: 1)
     }
 }

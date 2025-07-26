@@ -70,8 +70,7 @@ struct AddBarrelDialog: View {
         .padding(.top)
         .background(Color(UIColor.systemBackground))
         .cornerRadius(16)
-        .presentationDetents([.height(300)])
-        .presentationDragIndicator(.visible)
+        .frame(height: 300)
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) {}
         } message: {

@@ -86,8 +86,7 @@ struct AddParticipantDialog: View {
         .padding(.top)
         .background(Color(UIColor.systemBackground))
         .cornerRadius(16)
-        .presentationDetents([.height(400)])
-        .presentationDragIndicator(.visible)
+        .frame(height: 400)
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) {}
         } message: {

@@ -15,11 +15,22 @@ struct EventsView: View {
                 if isLoading && events.isEmpty {
                     ProgressView("Loading events...")
                 } else if events.isEmpty {
-                    ContentUnavailableView(
-                        "No Events Found",
-                        systemImage: "calendar.badge.exclamationmark",
-                        description: Text("There are no events available.")
-                    )
+                    VStack {
+                        Image(systemName: "calendar.badge.exclamationmark")
+                            .font(.system(size: 50))
+                            .foregroundColor(.gray)
+                            .padding()
+                        Text("No Events Found")
+                            .font(.title2)
+                            .foregroundColor(.primary)
+                        Text("There are no events available.")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(UIColor.systemBackground))
                 } else {
                     List {
                         ForEach(events) { event in
@@ -181,23 +192,19 @@ struct EventDetailView: View {
             }
             
             Section("Event Information") {
-                LabeledContent("Created", value: event.createdAt.formatted())
-                LabeledContent("Updated", value: event.updatedAt.formatted())
+                InfoRow(label: "Created", value: event.createdAt.formatted())
+                InfoRow(label: "Updated", value: event.updatedAt.formatted())
                 if let deletedAt = event.deletedAt {
-                    LabeledContent("Deleted", value: deletedAt.formatted())
+                    InfoRow(label: "Deleted", value: deletedAt.formatted())
                 }
             }
         }
         .navigationTitle(event.name)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Done") {
-                    print("👋 Dismissing event detail for: \(event.name)")
-                    isPresented = nil
-                }
-            }
-        }
+        .navigationBarItems(trailing: Button("Done") {
+            print("👋 Dismissing event detail for: \(event.name)")
+            isPresented = nil
+        })
         .onAppear {
             print("""
                   📅 Showing event detail:
@@ -207,6 +214,20 @@ struct EventDetailView: View {
                      End: \(event.endDate?.formatted() ?? "Ongoing")
                      Description: \(event.description ?? "No description")
                   """)
+        }
+    }
+}
+
+struct InfoRow: View {
+    let label: String
+    let value: String
+    
+    var body: some View {
+        HStack {
+            Text(label)
+                .foregroundColor(.secondary)
+            Spacer()
+            Text(value)
         }
     }
 }

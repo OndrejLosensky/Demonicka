@@ -13,11 +13,22 @@ struct BarrelsView: View {
                 if isLoading && barrels.isEmpty {
                     ProgressView("Loading barrels...")
                 } else if barrels.isEmpty {
-                    ContentUnavailableView(
-                        "No Active Barrels",
-                        systemImage: "mug.fill",
-                        description: Text("There are no barrels in the current event.")
-                    )
+                    VStack {
+                        Image(systemName: "mug.fill")
+                            .font(.system(size: 50))
+                            .foregroundColor(.gray)
+                            .padding()
+                        Text("No Active Barrels")
+                            .font(.title2)
+                            .foregroundColor(.primary)
+                        Text("There are no barrels in the current event.")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(UIColor.systemBackground))
                 } else {
                     ScrollView {
                         LazyVGrid(
