@@ -94,7 +94,10 @@ class APIClient {
         
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
+        
+        // Use Config.API.headers which already contains the bypass token
         request.allHTTPHeaderFields = Config.API.headers
+        print("🔑 Request headers: \(Config.API.headers)")
         
         if let body = body {
             do {
@@ -109,27 +112,37 @@ class APIClient {
         }
         
         do {
+            print("📤 Starting request to: \(urlString)")
             let (data, response) = try await session.data(for: request)
-            
-            print("📥 Received response: \(response)")
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 print("❌ Invalid response type")
                 throw APIError.invalidResponse
             }
             
-            print("📊 Status code: \(httpResponse.statusCode)")
+            print("""
+                  📥 Response received:
+                  - Status code: \(httpResponse.statusCode)
+                  - Headers: \(httpResponse.allHeaderFields)
+                  - Data: \(String(data: data, encoding: .utf8) ?? "Unable to decode response data")
+                  """)
             
             guard (200...299).contains(httpResponse.statusCode) else {
-                print("❌ Server error: \(httpResponse.statusCode)")
-                print("Error response: \(String(data: data, encoding: .utf8) ?? "No error message")")
+                print("""
+                      ❌ Server error:
+                      - Status code: \(httpResponse.statusCode)
+                      - Response: \(String(data: data, encoding: .utf8) ?? "No error message")
+                      """)
                 throw APIError.serverError(httpResponse.statusCode, data)
             }
             
-            print("📦 Response data: \(String(data: data, encoding: .utf8) ?? "Unable to read data")")
             return (data, httpResponse)
         } catch {
-            print("❌ Network error: \(error)")
+            print("""
+                  ❌ Network error:
+                  - Error: \(error)
+                  - Description: \(error.localizedDescription)
+                  """)
             throw APIError.networkError(error)
         }
     }

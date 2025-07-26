@@ -8,7 +8,7 @@ class ParticipantService {
     
     func fetchParticipants() async throws -> [Participant] {
         // First get the active event
-        let event: Event = try await apiClient.fetch("events/active")
+        let event: EventModel = try await apiClient.fetch("events/active")
         // Then get the users for that event
         return try await apiClient.fetch("events/\(event.id)/users")
     }
@@ -25,7 +25,7 @@ class ParticipantService {
             )
             
             // Then get the active event and add the participant to it
-            let event: Event = try await apiClient.fetch("events/active")
+            let event: EventModel = try await apiClient.fetch("events/active")
             try await apiClient.requestWithoutResponse(
                 "events/\(event.id)/users/\(newParticipant.id)",
                 method: .put
@@ -39,12 +39,12 @@ class ParticipantService {
     }
     
     func addBeer(userId: String) async throws {
-        let event: Event = try await apiClient.fetch("events/active")
+        let event: EventModel = try await apiClient.fetch("events/active")
         try await apiClient.requestWithoutResponse("events/\(event.id)/users/\(userId)/beers", method: .post)
     }
     
     func removeBeer(userId: String) async throws {
-        let event: Event = try await apiClient.fetch("events/active")
+        let event: EventModel = try await apiClient.fetch("events/active")
         try await apiClient.requestWithoutResponse("events/\(event.id)/users/\(userId)/beers", method: .delete)
     }
 }

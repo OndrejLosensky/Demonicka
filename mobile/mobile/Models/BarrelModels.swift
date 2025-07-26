@@ -1,19 +1,16 @@
 import Foundation
 
-struct ActiveBarrelStats: Codable {
-    let currentCount: Int
-    let totalCount: Int
+struct CreateBarrel: Codable {
     let size: Int
+    let totalBeers: Int
     let remainingBeers: Int
-    let orderNumber: Int?
 }
 
 struct Barrel: Codable, Identifiable {
     let id: String
     let size: Int
-    let orderNumber: Int
-    let remainingBeers: Int
     let totalBeers: Int
+    let remainingBeers: Int
     let isActive: Bool
     let createdAt: Date
     let updatedAt: Date

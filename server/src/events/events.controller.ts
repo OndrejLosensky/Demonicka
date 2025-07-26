@@ -24,6 +24,7 @@ import { User } from '../users/entities/user.entity';
 import { BypassAuth } from 'src/auth/decorators/bypass-auth.decorator';
 
 @Controller('events')
+@BypassAuth()
 @Versions('1')
 @UseGuards(JwtAuthGuard, VersionGuard)
 export class EventsController {

@@ -109,7 +109,12 @@ struct BarrelsView: View {
     
     private func handleAddBarrel(size: Int) async {
         do {
-            try await BarrelService.shared.addBarrel(size: size)
+            let barrel = CreateBarrel(
+                size: size,
+                totalBeers: size * 2, // 1L = 2 beers
+                remainingBeers: size * 2
+            )
+            try await BarrelService.shared.createBarrel(barrel)
             await loadBarrels()
         } catch {
             self.error = error

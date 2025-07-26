@@ -7,41 +7,38 @@ class BarrelService {
     private init() {}
     
     func fetchBarrels() async throws -> [Barrel] {
-        print("🔍 Fetching active event...")
-        let event: Event = try await apiClient.fetch("events/active")
-        print("📅 Got active event: \(event.id)")
-        
-        print("🛢️ Fetching barrels for event: \(event.id)")
-        let barrels = try await apiClient.fetch("events/\(event.id)/barrels") as [Barrel]
-        print("📊 Received \(barrels.count) barrels:")
-        barrels.forEach { barrel in
-            print("""
-                  🍺 Barrel:
-                     ID: \(barrel.id)
-                     Size: \(barrel.size)L
-                     Remaining Beers: \(barrel.remainingBeers)
-                     Total Beers: \(barrel.totalBeers)
-                     Active: \(barrel.isActive)
-                  """)
-        }
-        return barrels
+        // First get the active event
+        let event: EventModel = try await apiClient.fetch("events/active")
+        // Then get the barrels for that event
+        return try await apiClient.fetch("events/\(event.id)/barrels")
     }
     
-    func addBarrel(size: Int) async throws {
-        // First get the active event
-        let event: Event = try await apiClient.fetch("events/active")
+    func createBarrel(_ barrel: CreateBarrel) async throws {
+        print("🚀 Creating barrel: \(barrel)")
         
-        // Create the barrel
-        let barrel = try await apiClient.fetch(
-            "events/\(event.id)/barrels/\(size)",
-            method: .post
-        ) as Barrel
-        
-        print("✅ Added new barrel: Size \(barrel.size)L")
+        do {
+            // First create the barrel
+            let newBarrel: Barrel = try await apiClient.fetch(
+                "barrels",
+                method: .post,
+                body: barrel
+            )
+            
+            // Then get the active event and add the barrel to it
+            let event: EventModel = try await apiClient.fetch("events/active")
+            try await apiClient.requestWithoutResponse(
+                "events/\(event.id)/barrels/\(newBarrel.id)",
+                method: .put
+            )
+            
+            print("✅ Successfully created barrel")
+        } catch {
+            print("❌ Failed to create barrel: \(error)")
+            throw error
+        }
     }
-}
-
-// Helper model for active event
-private struct Event: Codable {
-    let id: String
+    
+    func activateBarrel(id: String) async throws {
+        try await apiClient.requestWithoutResponse("barrels/\(id)/activate", method: .put)
+    }
 } 
