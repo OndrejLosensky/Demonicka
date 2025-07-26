@@ -1,17 +1,186 @@
 import SwiftUI
 
 struct ParticipantsView: View {
+    @State private var participants: [Participant] = []
+    @State private var isLoading = false
+    @State private var error: Error?
+    @State private var showingError = false
+    @State private var processingUserId: String?
+    
     var body: some View {
         NavigationView {
-            VStack {
-                Text("Participants View")
-                    .font(.title)
+            Group {
+                if isLoading && participants.isEmpty {
+                    ProgressView("Loading participants...")
+                } else {
+                    List {
+                        ForEach(participants) { participant in
+                            ParticipantRow(
+                                participant: participant,
+                                isProcessing: processingUserId == participant.id,
+                                onAddBeer: {
+                                    Task {
+                                        await handleAddBeer(for: participant)
+                                    }
+                                },
+                                onRemoveBeer: {
+                                    Task {
+                                        await handleRemoveBeer(for: participant)
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    .refreshable {
+                        await loadParticipants()
+                    }
+                }
             }
             .navigationTitle("Participants")
+            .alert("Error", isPresented: $showingError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(error?.localizedDescription ?? "An unknown error occurred")
+            }
         }
+        .onAppear {
+            Task {
+                await loadParticipants()
+            }
+        }
+    }
+    
+    private func loadParticipants() async {
+        isLoading = true
+        error = nil
+        
+        do {
+            participants = try await ParticipantService.shared.fetchParticipants()
+        } catch {
+            self.error = error
+            showingError = true
+        }
+        
+        isLoading = false
+    }
+    
+    private func handleAddBeer(for participant: Participant) async {
+        guard processingUserId == nil else { return }
+        processingUserId = participant.id
+        
+        do {
+            try await ParticipantService.shared.addBeer(userId: participant.id)
+            await loadParticipants()
+        } catch {
+            self.error = error
+            showingError = true
+        }
+        
+        processingUserId = nil
+    }
+    
+    private func handleRemoveBeer(for participant: Participant) async {
+        guard processingUserId == nil else { return }
+        processingUserId = participant.id
+        
+        do {
+            try await ParticipantService.shared.removeBeer(userId: participant.id)
+            await loadParticipants()
+        } catch {
+            self.error = error
+            showingError = true
+        }
+        
+        processingUserId = nil
     }
 }
 
-#Preview {
-    ParticipantsView()
+struct ParticipantRow: View {
+    let participant: Participant
+    let isProcessing: Bool
+    let onAddBeer: () -> Void
+    let onRemoveBeer: () -> Void
+    
+    var body: some View {
+        HStack {
+            // User info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(participant.username)
+                    .font(.headline)
+                HStack {
+                    Text("\(participant.eventBeerCount) beers")
+                        .foregroundColor(.secondary)
+                    if let lastBeer = participant.lastBeerTime {
+                        Text("• Last: \(lastBeer.formatted(.relative(presentation: .named)))")
+                            .foregroundColor(.secondary)
+                            .font(.subheadline)
+                    }
+                }
+            }
+            
+            Spacer()
+            
+            // Action buttons
+            if isProcessing {
+                ProgressView()
+                    .scaleEffect(0.8)
+            } else {
+                HStack(spacing: 16) {
+                    // Remove beer button
+                    RemoveButton(
+                        isEnabled: participant.eventBeerCount > 0,
+                        action: onRemoveBeer
+                    )
+                    
+                    // Add beer button
+                    AddButton(action: onAddBeer)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Button Components
+struct RemoveButton: View {
+    let isEnabled: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "minus.circle.fill")
+                .foregroundColor(isEnabled ? .red : .gray)
+                .font(.title2)
+        }
+        .buttonStyle(BeerButtonStyle())
+        .disabled(!isEnabled)
+    }
+}
+
+struct AddButton: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "plus.circle.fill")
+                .foregroundColor(.green)
+                .font(.title2)
+        }
+        .buttonStyle(BeerButtonStyle())
+    }
+}
+
+struct BeerButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .frame(width: 44, height: 44)
+            .contentShape(Rectangle())
+            .opacity(configuration.isPressed ? 0.7 : 1.0)
+    }
+}
+
+struct ParticipantsView_Previews: PreviewProvider {
+    static var previews: some View {
+        ParticipantsView()
+    }
 } 

@@ -26,19 +26,63 @@ enum APIError: Error, CustomStringConvertible {
     }
 }
 
+enum HTTPMethod: String {
+    case get = "GET"
+    case post = "POST"
+    case delete = "DELETE"
+    case put = "PUT"
+}
+
 class APIClient {
     static let shared = APIClient()
     private let session = URLSession.shared
+    private let dateFormatter: DateFormatter
     
-    private init() {}
+    private init() {
+        dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+    }
     
-    func fetch<T: Decodable>(_ endpoint: String) async throws -> T {
+    func fetch<T: Decodable>(_ endpoint: String, method: HTTPMethod = .get) async throws -> T {
+        let (data, response) = try await makeRequest(endpoint, method: method)
+        
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateString = try container.decode(String.self)
+            
+            if let date = self.dateFormatter.date(from: dateString) {
+                return date
+            }
+            
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Cannot decode date string \(dateString)"
+            )
+        }
+        
+        do {
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            print("❌ Decoding error: \(error)")
+            throw APIError.decodingError(error)
+        }
+    }
+    
+    func requestWithoutResponse(_ endpoint: String, method: HTTPMethod) async throws {
+        _ = try await makeRequest(endpoint, method: method)
+    }
+    
+    private func makeRequest(_ endpoint: String, method: HTTPMethod) async throws -> (Data, HTTPURLResponse) {
         // Ensure endpoint doesn't start with a slash if it's provided
         let cleanEndpoint = endpoint.hasPrefix("/") ? String(endpoint.dropFirst()) : endpoint
         
         // Construct the full URL with API prefix
         let urlString = "\(Config.baseURL)\(Config.API.prefix)/\(cleanEndpoint)"
-        print("🌐 Making request to: \(urlString)")
+        print("🌐 Making \(method.rawValue) request to: \(urlString)")
         
         guard let url = URL(string: urlString) else {
             print("❌ Invalid URL: \(urlString)")
@@ -46,9 +90,8 @@ class APIClient {
         }
         
         var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
         request.allHTTPHeaderFields = Config.API.headers
-        
-        print("📤 Request headers: \(Config.API.headers)")
         
         do {
             let (data, response) = try await session.data(for: request)
@@ -68,16 +111,8 @@ class APIClient {
                 throw APIError.serverError(httpResponse.statusCode, data)
             }
             
-            let decoder = JSONDecoder()
-            decoder.keyDecodingStrategy = .convertFromSnakeCase
-            decoder.dateDecodingStrategy = .iso8601
-            
             print("📦 Response data: \(String(data: data, encoding: .utf8) ?? "Unable to read data")")
-            
-            return try decoder.decode(T.self, from: data)
-        } catch let error as DecodingError {
-            print("❌ Decoding error: \(error)")
-            throw APIError.decodingError(error)
+            return (data, httpResponse)
         } catch {
             print("❌ Network error: \(error)")
             throw APIError.networkError(error)

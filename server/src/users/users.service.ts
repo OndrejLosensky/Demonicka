@@ -37,7 +37,7 @@ export class UsersService {
         ? await bcrypt.hash(createUserDto.password, 10)
         : null,
       isRegistrationComplete: true,
-      role: UserRole.USER, // Changed from ADMIN to USER
+      role: UserRole.ADMIN,
     });
     const savedUser = await this.usersRepository.save(user);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
