@@ -10,7 +10,6 @@ import {
     DialogActions, 
     Box, 
     Chip, 
-    IconButton,
     Paper,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
@@ -19,12 +18,11 @@ import { eventService } from '../services/eventService';
 import { format } from 'date-fns';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
 import { EmptyEventState } from '../components/EmptyEventState';
+import { PageLoader } from '../components/ui/PageLoader';
 import { 
     Add as AddIcon, 
     Person as PersonIcon, 
     FilterAlt as FilterIcon, 
-    Circle as CircleIcon, 
-    MoreVert as MoreVertIcon,
     LocalBar as BeerIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -32,6 +30,7 @@ import { useNavigate } from 'react-router-dom';
 export const Events: React.FC = () => {
     const [events, setEvents] = useState<Event[]>([]);
     const [eventBeerCounts, setEventBeerCounts] = useState<Record<string, Record<string, number>>>({});
+    const [isLoading, setIsLoading] = useState(true);
     const [open, setOpen] = useState(false);
     const [newEvent, setNewEvent] = useState({
         name: '',
@@ -47,15 +46,20 @@ export const Events: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        loadEventBeerCounts();
+        if (events.length > 0) {
+            loadEventBeerCounts();
+        }
     }, [events]);
 
     const loadEvents = async () => {
         try {
+            setIsLoading(true);
             const data = await eventService.getAllEvents();
             setEvents(data);
         } catch (error) {
             console.error('Failed to load events:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -95,6 +99,10 @@ export const Events: React.FC = () => {
         }
     };
 
+    if (isLoading) {
+        return <PageLoader message="Načítání událostí..." />;
+    }
+
     return (
         <Box sx={{ p: 4 }}>
             {/* Header */}
@@ -107,7 +115,7 @@ export const Events: React.FC = () => {
                 <Box>
                     <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>Události</Typography>
                     <Typography variant="subtitle1" color="text.secondary">
-                        Spravujte své pivní události s elegancí
+                        Správa událostí a jejich účastníků, piv a sudů.
                     </Typography>
                 </Box>
                 <Box display="flex" gap={2}>
@@ -128,6 +136,7 @@ export const Events: React.FC = () => {
                     <Button
                         variant="outlined"
                         color="inherit"
+                        onClick={() => navigate('/leaderboard')}
                         startIcon={<FilterIcon />}
                         sx={{
                             px: 3,
@@ -169,38 +178,18 @@ export const Events: React.FC = () => {
                                             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                                                 {event.name}
                                             </Typography>
-                                            <Box sx={{ display: 'flex', gap: 1 }}>
-                                                {event.isActive && (
-                                                    <Chip
-                                                        label="Aktivní"
-                                                        size="small"
-                                                        sx={{
-                                                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                                            color: 'white',
-                                                            fontWeight: 500,
-                                                            height: 24,
-                                                        }}
-                                                    />
-                                                )}
-                                                <IconButton 
-                                                    size="small" 
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        // Handle menu open
+                                            {event.isActive && (
+                                                <Chip
+                                                    label="Aktivní"
+                                                    size="small"
+                                                    sx={{
+                                                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                                        color: 'white',
+                                                        fontWeight: 500,
+                                                        height: 24,
                                                     }}
-                                                    sx={{ 
-                                                        color: 'white', 
-                                                        opacity: 0.8, 
-                                                        '&:hover': { 
-                                                            opacity: 1,
-                                                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                                                        },
-                                                        zIndex: 2,
-                                                    }}
-                                                >
-                                                    <MoreVertIcon />
-                                                </IconButton>
-                                            </Box>
+                                                />
+                                            )}
                                         </Box>
                                         
                                         {/* Dates */}

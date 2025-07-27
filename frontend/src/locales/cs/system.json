@@ -1,0 +1,48 @@
+{
+  "title": "Systém",
+  "overview": "Přehled systému",
+  "refresh": "Obnovit",
+  "userStatistics": {
+    "title": "Statistiky uživatelů",
+    "totalUsers": "Celkem uživatelů",
+    "adminUsers": "Administrátoři",
+    "completedRegistrations": "Dokončené registrace",
+    "twoFactorEnabled": "2FA povoleno"
+  },
+  "userList": {
+    "title": "Seznam uživatelů",
+    "columns": {
+      "username": "Uživatelské jméno",
+      "role": "Role",
+      "twoFactorStatus": "2FA stav",
+      "registrationStatus": "Stav registrace",
+      "lastAdminLogin": "Poslední přihlášení",
+      "actions": "Akce"
+    },
+    "roles": {
+      "ADMIN": "Administrátor",
+      "USER": "Uživatel"
+    },
+    "twoFactorStatus": {
+      "enabled": "Povoleno",
+      "disabled": "Zakázáno"
+    },
+    "registrationStatus": {
+      "complete": "Dokončeno",
+      "incomplete": "Nedokončeno"
+    },
+    "actions": {
+      "generateToken": "Vygenerovat token",
+      "generating": "Generuji..."
+    }
+  },
+  "loading": "Načítání systémových statistik...",
+  "error": {
+    "loadFailed": "Nepodařilo se načíst systémové statistiky",
+    "retry": "Zkusit znovu"
+  },
+  "toasts": {
+    "tokenCopied": "Token zkopírován do schránky",
+    "tokenGenerationFailed": "Nepodařilo se vygenerovat registrační token"
+  }
+} 

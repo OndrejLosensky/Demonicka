@@ -55,10 +55,12 @@ const BarrelsPage: React.FC = () => {
   // Get active barrel
   const activeBarrel = barrels.find(barrel => barrel.isActive);
 
-  // Force refresh when active event changes
+  // Force refresh when active event changes - use a simpler approach
   useEffect(() => {
-    fetchBarrels();
-  }, [activeEvent?.id, activeEvent?.updatedAt, fetchBarrels]);
+    if (activeEvent?.id) {
+      fetchBarrels();
+    }
+  }, [activeEvent?.id]); // Remove fetchBarrels and activeEvent?.updatedAt to prevent infinite loop
 
   const confirmCleanup = async () => {
     if (window.confirm(translations.dialogs.cleanupAll.message)) {
@@ -153,7 +155,7 @@ const BarrelsPage: React.FC = () => {
             <Paper sx={{ p: 3, height: '100%', borderRadius: 2 }}>
               <Typography variant="h6" sx={{ mb: 2 }}>
                 {activeBarrel 
-                  ? `Aktivní sud: Sud ${activeBarrel.orderNumber}`
+                  ? `Aktivní sud: #${activeBarrel.orderNumber}`
                   : 'Žádný aktivní sud'}
               </Typography>
               <ActiveBarrelGraph barrel={activeBarrel} />

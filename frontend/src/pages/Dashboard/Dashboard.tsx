@@ -30,6 +30,7 @@ import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../types/featureFlags';
 import { EventSelector } from '../../components/EventSelector';
 import { EmptyEventState } from '../../components/EmptyEventState';
+import { PageLoader } from '../../components/ui/PageLoader';
 
 export const Dashboard: React.FC = () => {
     const { selectedEvent } = useSelectedEvent();
@@ -112,7 +113,7 @@ export const Dashboard: React.FC = () => {
     }
 
     if (isLoading) {
-        return null;
+        return <PageLoader message="Načítání dashboardu..." />;
     }
 
     return (

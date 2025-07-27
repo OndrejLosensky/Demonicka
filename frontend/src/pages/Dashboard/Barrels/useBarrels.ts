@@ -31,7 +31,7 @@ export const useBarrels = (includeDeleted = false) => {
           .replace('{{count}}', barrel.remainingBeers.toString())
       );
     }
-  }, []); // Remove toast from dependencies since it's stable
+  }, [toast]);
 
   const fetchBarrels = useCallback(async () => {
     try {
@@ -60,7 +60,7 @@ export const useBarrels = (includeDeleted = false) => {
     } finally {
       setIsLoading(false);
     }
-  }, [includeDeleted, checkBarrelWarnings]); // Remove toast from dependencies
+  }, [includeDeleted, checkBarrelWarnings, toast]);
 
   const handleDelete = useCallback(async (id: string) => {
     const barrel = barrelsRef.current.find(b => b.id === id);
@@ -72,7 +72,7 @@ export const useBarrels = (includeDeleted = false) => {
       console.error('Failed to delete barrel:', error);
       toast.error(toastTranslations.error.delete.replace('{{item}}', 'sud'));
     }
-  }, [fetchBarrels]); // Remove toast and barrels from dependencies
+  }, [fetchBarrels, toast]);
 
   const handleToggleActive = useCallback(async (id: string) => {
     const barrel = barrelsRef.current.find(b => b.id === id);
@@ -84,7 +84,7 @@ export const useBarrels = (includeDeleted = false) => {
       console.error('Failed to update barrel status:', error);
       toast.error(toastTranslations.error.update.replace('{{item}}', 'sud'));
     }
-  }, [fetchBarrels]); // Remove toast and barrels from dependencies
+  }, [fetchBarrels, toast]);
 
   const handleCleanup = useCallback(async () => {
     try {
@@ -95,11 +95,12 @@ export const useBarrels = (includeDeleted = false) => {
       console.error('Failed to cleanup barrels:', error);
       toast.error(toastTranslations.error.delete.replace('{{item}}', 'smazané sudy'));
     }
-  }, [fetchBarrels]); // Remove toast from dependencies
+  }, [fetchBarrels, toast]);
 
+  // Only fetch on mount and when includeDeleted changes
   useEffect(() => {
     fetchBarrels();
-  }, [fetchBarrels]);
+  }, [includeDeleted]); // Remove fetchBarrels from dependencies to prevent infinite loop
 
   return {
     barrels,
