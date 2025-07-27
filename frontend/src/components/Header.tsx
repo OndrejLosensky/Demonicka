@@ -85,7 +85,7 @@ export default function Header() {
           className={`fixed w-full z-50 transition-all duration-300 ${
             isScrolled || !isLandingPage
               ? 'bg-background-primary/95 backdrop-blur-sm shadow-sm'
-              : 'bg-background-secondary/80 backdrop-blur-sm'
+              : 'bg-white/90 backdrop-blur-md shadow-md border-b border-gray-100'
           }`}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

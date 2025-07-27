@@ -48,6 +48,30 @@ const heroTextVariants = {
   }
 };
 
+const heroImageVariants = {
+  hidden: { scale: 0.8, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      duration: 1,
+      ease: "easeOut"
+    }
+  }
+};
+
+const heroStatsVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut"
+    }
+  }
+};
+
 const glowAnimation = {
   initial: { opacity: 0.5, scale: 1 },
   animate: {
@@ -267,229 +291,679 @@ export default function Landing() {
       </div>
 
       {/* Content */}
-      <div className="relative pt-16"> {/* Added pt-16 to account for fixed header */}
+      <div className="relative">
         {/* Hero Section */}
-        <div className="pt-24 pb-32 sm:pt-32 sm:pb-40">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 1, type: "spring", bounce: 0.4 }}
-                className="relative inline-block"
-              >
-                {/* Decorative Elements */}
-                <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary-600/20 rounded-full blur-xl opacity-70" />
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary to-primary-600 rounded-full opacity-50 animate-pulse" />
-                
+        <div className="relative overflow-hidden min-h-screen bg-gray-50">
+          {/* Hero Background - Clean and Modern */}
+          <div className="absolute inset-0">
+            {/* Clean gradient background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100" />
+            
+            {/* Subtle animated accents */}
+            <motion.div
+              animate={{
+                opacity: [0.3, 0.5, 0.3],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute top-20 right-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl"
+            />
+            <motion.div
+              animate={{
+                opacity: [0.2, 0.4, 0.2],
+                scale: [1.2, 1, 1.2],
+              }}
+              transition={{
+                duration: 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute -bottom-32 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-3xl"
+            />
+          </div>
+
+          {/* Hero Content */}
+          <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="pt-32 pb-20 sm:pt-40 sm:pb-28">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                {/* Left Column - Text Content */}
                 <motion.div
-                  variants={floatingAnimation}
-                  initial="initial"
-                  animate="animate"
-                  className="relative"
+                  variants={heroTextVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="text-center lg:text-left"
                 >
-                  <img
-                    src="/logo.svg"
-                    alt="Démonická"
-                    className="mx-auto h-40 w-auto mb-8 drop-shadow-2xl relative z-10"
-                  />
-                  
-                  {/* Decorative Icons */}
+                  {/* Version Badge - Small Banner */}
                   <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="absolute -right-12 -top-12 text-primary/30"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary mb-6"
                   >
-                    <FaFire size={40} />
+                    <BsLightning className="w-3 h-3" />
+                    <span>Verze 2.0 je tady!</span>
                   </motion.div>
+
+                  {/* Main Title - Fixed and More Prominent */}
+                  <motion.h1
+                    className="text-6xl lg:text-7xl font-black tracking-tight text-gray-900 leading-tight"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                  >
+                    <span className="block bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-primary to-primary-600">
+                      {translations.hero.title}
+                    </span>
+                  </motion.h1>
+
+                  {/* Subtitle */}
+                  <motion.p
+                    className="mt-6 text-xl leading-relaxed text-gray-600 max-w-xl mx-auto lg:mx-0"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.8 }}
+                  >
+                    {translations.hero.subtitle}
+                  </motion.p>
+
+                  {/* Dynamic Stats - Improved Cards */}
                   <motion.div
-                    animate={{ rotate: -360 }}
-                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                    className="absolute -left-10 -bottom-10 text-primary/30"
+                    variants={heroStatsVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="mt-12 grid grid-cols-3 gap-4 max-w-lg"
                   >
-                    <BsLightning size={30} />
+                    <motion.div 
+                      className="flex flex-col items-center lg:items-start p-4 rounded-xl bg-gradient-to-br from-white to-gray-50 shadow-md border border-gray-200 hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+                      whileHover={{ y: -2 }}
+                    >
+                      <div className="text-3xl lg:text-4xl font-black text-primary">
+                        {loading ? "..." : stats?.totalBeers || 0}
+                      </div>
+                      <div className="mt-1 text-xs font-medium text-gray-500 text-center lg:text-left">
+                        {translations.stats.totalBeers}
+                      </div>
+                    </motion.div>
+                    <motion.div 
+                      className="flex flex-col items-center lg:items-start p-4 rounded-xl bg-gradient-to-br from-white to-gray-50 shadow-md border border-gray-200 hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+                      whileHover={{ y: -2 }}
+                    >
+                      <div className="text-3xl lg:text-4xl font-black text-primary">
+                        {loading ? "..." : stats?.totalUsers || 0}
+                      </div>
+                      <div className="mt-1 text-xs font-medium text-gray-500 text-center lg:text-left">
+                        {translations.stats.activeParticipants}
+                      </div>
+                    </motion.div>
+                    <motion.div 
+                      className="flex flex-col items-center lg:items-start p-4 rounded-xl bg-gradient-to-br from-white to-gray-50 shadow-md border border-gray-200 hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+                      whileHover={{ y: -2 }}
+                    >
+                      <div className="text-3xl lg:text-4xl font-black text-primary">
+                        {loading ? "..." : stats?.totalBarrels || 0}
+                      </div>
+                      <div className="mt-1 text-xs font-medium text-gray-500 text-center lg:text-left">
+                        {translations.stats.activeBarrels}
+                      </div>
+                    </motion.div>
+                  </motion.div>
+
+                  {/* CTA Buttons */}
+                  <motion.div
+                    className="mt-10 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6, duration: 0.8 }}
+                  >
+                    <Link
+                      to="/register"
+                      className="group relative inline-flex items-center"
+                    >
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-primary-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-300" />
+                      <button className="relative rounded-full bg-primary px-8 py-3 text-lg font-semibold text-white shadow-lg group-hover:bg-primary-600 transition-all duration-300 w-full sm:w-auto">
+                        <span className="flex items-center gap-2 justify-center">
+                          {translations.hero.getStarted}
+                          <BsArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                        </span>
+                      </button>
+                    </Link>
+                    <Link
+                      to="/leaderboard"
+                      className="group text-lg font-semibold text-gray-600 hover:text-primary transition-colors duration-300 flex items-center gap-2"
+                    >
+                      {translations.hero.learnMore}
+                      <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                    </Link>
                   </motion.div>
                 </motion.div>
 
+                {/* Right Column - Visual Content */}
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.5, duration: 0.5, type: "spring" }}
-                  className="absolute -right-4 -top-4 bg-primary text-white rounded-full px-4 py-2 text-sm font-semibold transform rotate-12 shadow-lg"
+                  variants={heroImageVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="relative flex justify-center items-center"
                 >
-                  v2.0
-                </motion.div>
-              </motion.div>
+                  {/* Subtle glow effect */}
+                  <div className="absolute inset-0">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.3, 0.5, 0.3],
+                      }}
+                      transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/10 rounded-full blur-2xl"
+                    />
+                  </div>
 
-              <motion.div
-                variants={heroTextVariants}
-                initial="hidden"
-                animate="visible"
-                className="relative"
-              >
-                <motion.h1
-                  className="text-6xl font-bold tracking-tight sm:text-8xl bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary-600 to-primary relative z-10"
-                  style={{ textShadow: '0 0 40px rgba(255,59,48,0.3)' }}
-                >
-                  {translations.hero.title}
-                </motion.h1>
-                
-                <motion.p
-                  className="mt-8 text-xl leading-8 text-text-secondary relative z-10"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.8 }}
-                >
-                  {translations.hero.subtitle}
-                </motion.p>
+                  {/* Main Logo with subtle animation */}
+                  <motion.div
+                    className="relative"
+                    animate={{
+                      y: [-15, 15, -15],
+                    }}
+                    transition={{
+                      duration: 6,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    <img
+                      src="/logo.svg"
+                      alt="Démonická"
+                      className="w-[500px] h-[500px] object-contain"
+                      style={{
+                        filter: 'drop-shadow(0 0 20px rgba(255,59,48,0.2))'
+                      }}
+                    />
 
-                {/* Enhanced CTA Buttons */}
-                <motion.div
-                  className="mt-10 flex items-center justify-center gap-x-6"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5, duration: 0.8 }}
-                >
-                  <Link
-                    to="/register"
-                    className="relative group"
-                  >
-                    <div className="absolute -inset-2 bg-gradient-to-r from-primary to-primary-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-300" />
-                    <button className="relative rounded-full bg-primary px-8 py-4 text-lg font-semibold text-white shadow-lg group-hover:bg-primary-600 transition-all duration-300">
-                      <span className="flex items-center gap-2">
-                        {translations.hero.getStarted}
-                        <BsArrowUpRight className="transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
-                      </span>
-                    </button>
-                  </Link>
-                  <Link
-                    to="/leaderboard"
-                    className="group text-lg font-semibold leading-6 text-text-primary hover:text-primary transition-colors duration-300 flex items-center gap-2"
-                  >
-                    {translations.hero.learnMore}
-                    <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
-                  </Link>
+                    {/* Floating Icons */}
+                    {[1, 2, 3, 5, 6].map((num, index) => (
+                      <motion.div
+                        key={num}
+                        className="absolute"
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.2 }}
+                        style={{
+                          top: `${15 + index * 18}%`,
+                          left: `${5 + index * 22}%`,
+                          zIndex: index,
+                        }}
+                      >
+                        <motion.div
+                          animate={{
+                            y: [-8, 8, -8],
+                            rotate: [-8, 8, -8],
+                          }}
+                          transition={{
+                            duration: 4 + index,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: index * 0.3,
+                          }}
+                        >
+                          <img
+                            src={`/icons/${num}.png`}
+                            alt={`Icon ${num}`}
+                            className="w-16 h-16 object-contain"
+                            style={{
+                              filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.1))'
+                            }}
+                          />
+                        </motion.div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
                 </motion.div>
-              </motion.div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Stats Section */}
-        <StatsSection />
-
-        {/* Features Section */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="mx-auto mt-40 max-w-7xl px-6 lg:px-8"
-        >
-          {/* Fun Icons Grid */}
-          <div className="grid grid-cols-3 md:grid-cols-5 gap-8 mb-20">
-            {[1, 2, 3, 5, 6, 7, 8, 9, 10].map((num) => (
-              <motion.div
-                key={num}
-                initial={{ scale: 0, rotate: -180 }}
-                whileInView={{ scale: 1, rotate: 0 }}
-                transition={{ 
-                  type: "spring",
-                  stiffness: 260,
-                  damping: 20,
-                  delay: num * 0.1 
-                }}
-                whileHover={{ 
-                  scale: 1.1,
-                  rotate: 10,
-                  transition: { duration: 0.2 }
-                }}
-                className="aspect-square flex items-center justify-center p-4"
-              >
-                <img
-                  src={`/icons/${num}.png`}
-                  alt={`Fun icon ${num}`}
-                  className="w-full h-full object-contain"
-                />
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="mx-auto max-w-2xl text-center">
-            <motion.h2
-              variants={fadeInUp}
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true }}
-              className="text-3xl font-bold tracking-tight sm:text-4xl bg-gradient-to-r from-primary via-primary-600 to-primary bg-clip-text text-transparent"
-            >
-              {translations.features.title}
-            </motion.h2>
-            <motion.p
-              variants={fadeInUp}
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true }}
-              className="mt-6 text-lg leading-8 text-gray-600"
-            >
-              {translations.features.description}
-            </motion.p>
-          </div>
-
-          <motion.div
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            className="mx-auto mt-16 max-w-5xl grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
-          >
-            {translations.features.list.items.map((feature, index) => (
-              <motion.div
-                key={index}
+        {/* Features Section - Enhanced with Screenshots */}
+        <section className="relative py-32 bg-gray-50">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            {/* Section Header */}
+            <div className="mx-auto max-w-3xl text-center mb-20">
+              <motion.h2
                 variants={fadeInUp}
-                whileHover={{ scale: 1.02 }}
-                className="relative group"
+                initial="initial"
+                whileInView="animate"
+                viewport={{ once: true }}
+                className="text-4xl lg:text-5xl font-black tracking-tight text-gray-900 mb-6"
               >
-                <div className="absolute -inset-px bg-gradient-to-r from-primary/20 via-primary-600/20 to-primary/20 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition duration-300" />
-                <div className="relative bg-white dark:bg-background-card rounded-2xl p-8 shadow-lg ring-1 ring-black/5 hover:ring-primary/20 transition-all duration-300">
-                  <div className="flex items-center gap-x-4">
-                    {/* Feature Icons */}
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-                      {index === 0 ? <FaChartLine className="h-6 w-6 text-primary" /> :
-                       index === 1 ? <FaTrophy className="h-6 w-6 text-primary" /> :
-                       index === 2 ? <FaUsers className="h-6 w-6 text-primary" /> :
-                       index === 3 ? <FaFire className="h-6 w-6 text-primary" /> :
-                       index === 4 ? <BsLightning className="h-6 w-6 text-primary" /> :
-                       <FaChartLine className="h-6 w-6 text-primary" />}
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors duration-300">
-                      {feature}
-                    </h3>
+                Poznávejte naši <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-600">platformu</span>
+              </motion.h2>
+              <motion.p
+                variants={fadeInUp}
+                initial="initial"
+                whileInView="animate"
+                viewport={{ once: true }}
+                className="text-xl text-gray-600 leading-relaxed"
+              >
+                Kompletní systém pro správu pivních událostí s intuitivním rozhraním a pokročilými funkcemi
+              </motion.p>
+            </div>
+
+            {/* Features Grid */}
+            <div className="space-y-32">
+              {/* Feature 1 - Dashboard */}
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center"
+              >
+                <div className="order-2 lg:order-1">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-medium text-sm mb-6">
+                    <FaChartLine className="w-4 h-4" />
+                    Dashboard & Analytics
                   </div>
-                  {/* Decorative line */}
-                  <div className="mt-4 h-0.5 w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                  <h3 className="text-3xl font-bold text-gray-900 mb-6">
+                    Komplexní přehled v reálném čase
+                  </h3>
+                  <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                    Sledujte všechny klíčové metriky na jednom místě. Interaktivní grafy, statistiky účastníků a přehled aktivity vám poskytnou kompletní obraz o vašich událostech.
+                  </p>
+                  <ul className="space-y-4">
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span className="text-gray-700">Interaktivní grafy a statistiky</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span className="text-gray-700">Real-time aktualizace dat</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span className="text-gray-700">Přehled aktivních sudů</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="order-1 lg:order-2">
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                    className="relative group"
+                  >
+                    <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary-600/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-300"></div>
+                    <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+                      {/* Placeholder for Dashboard Screenshot */}
+                      <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <div className="text-center">
+                          <FaChartLine className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-500 font-medium">Dashboard Screenshot</p>
+                          <p className="text-gray-400 text-sm">Zde bude screenshot dashboardu</p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
                 </div>
               </motion.div>
-            ))}
-          </motion.div>
 
-          {/* Call to Action */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="mt-20 text-center"
-          >
-            <Link
-              to="/register"
-              className="inline-flex items-center px-6 py-3 text-lg font-semibold text-white bg-primary rounded-xl hover:bg-primary-600 transition-colors duration-300 group"
+              {/* Feature 2 - User Management */}
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center"
+              >
+                <div>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                    className="relative group"
+                  >
+                    <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary-600/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-300"></div>
+                    <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+                      {/* Placeholder for User Management Screenshot */}
+                      <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <div className="text-center">
+                          <FaUsers className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-500 font-medium">User Management Screenshot</p>
+                          <p className="text-gray-400 text-sm">Zde bude screenshot správy uživatelů</p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+                <div>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-medium text-sm mb-6">
+                    <FaUsers className="w-4 h-4" />
+                    Správa uživatelů
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-6">
+                    Efektivní správa účastníků
+                  </h3>
+                  <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                    Spravujte uživatele a jejich oprávnění s lehkostí. Přidávejte nové účastníky, sledujte jejich aktivitu a spravujte role jednoduše a intuitivně.
+                  </p>
+                  <ul className="space-y-4">
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span className="text-gray-700">Správa rolí a oprávnění</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span className="text-gray-700">Rychlé přidávání účastníků</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span className="text-gray-700">Sledování aktivity uživatelů</span>
+                    </li>
+                  </ul>
+                </div>
+              </motion.div>
+
+              {/* Feature 3 - Barrel Management */}
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center"
+              >
+                <div className="order-2 lg:order-1">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-medium text-sm mb-6">
+                    <FaBeer className="w-4 h-4" />
+                    Správa sudů
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-6">
+                    Pokročilá správa pivních sudů
+                  </h3>
+                  <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                    Sledujte stav všech sudů, jejich obsah a spotřebu v reálném čase. Dostávejte upozornění na dokončené sudy a plánujte dopředu.
+                  </p>
+                  <ul className="space-y-4">
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span className="text-gray-700">Real-time monitoring sudů</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span className="text-gray-700">Automatické upozornění</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span className="text-gray-700">Historie spotřeby</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="order-1 lg:order-2">
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                    className="relative group"
+                  >
+                    <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary-600/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-300"></div>
+                    <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+                      {/* Placeholder for Barrel Management Screenshot */}
+                      <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <div className="text-center">
+                          <FaBeer className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-500 font-medium">Barrel Management Screenshot</p>
+                          <p className="text-gray-400 text-sm">Zde bude screenshot správy sudů</p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+              </motion.div>
+
+              {/* Feature 4 - Leaderboard */}
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center"
+              >
+                <div>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                    className="relative group"
+                  >
+                    <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary-600/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-300"></div>
+                    <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+                      {/* Placeholder for Leaderboard Screenshot */}
+                      <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <div className="text-center">
+                          <FaTrophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-500 font-medium">Leaderboard Screenshot</p>
+                          <p className="text-gray-400 text-sm">Zde bude screenshot žebříčku</p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+                <div>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-medium text-sm mb-6">
+                    <FaTrophy className="w-4 h-4" />
+                    Žebříček & Soutěže
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-6">
+                    Motivace prostřednictvím soutěžení
+                  </h3>
+                  <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                    Vytvářejte zdravou konkurenci mezi účastníky. Žebříčky, achievementy a statistiky motivují k aktivní účasti a vytváří skvělou atmosféru.
+                  </p>
+                  <ul className="space-y-4">
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span className="text-gray-700">Real-time žebříčky</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span className="text-gray-700">Systém achievementů</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span className="text-gray-700">Detailní statistiky</span>
+                    </li>
+                  </ul>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Call to Action */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="mt-32 text-center"
             >
-              {translations.cta.button}
-              <BsArrowUpRight className="ml-2 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
-            </Link>
-          </motion.div>
-        </motion.div>
+              <div className="bg-white rounded-3xl shadow-xl p-12 border border-gray-200">
+                <h3 className="text-3xl font-bold text-gray-900 mb-6">
+                  Připraveni vyzkoušet Démonickou?
+                </h3>
+                <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                  Začněte spravovat své pivní události profesionálně už dnes
+                </p>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center px-8 py-4 text-lg font-semibold text-white bg-primary rounded-xl hover:bg-primary-600 transition-colors duration-300 group shadow-lg"
+                >
+                  Začít zdarma
+                  <BsArrowUpRight className="ml-2 w-5 h-5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Swift Mobile App Section */}
+        <section className="relative py-32 bg-white">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              {/* Left Column - App Info */}
+              <motion.div
+                initial={{ opacity: 0, x: -40 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="order-2 lg:order-1"
+              >
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-medium text-sm mb-6">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                  </svg>
+                  iOS aplikace
+                </div>
+                
+                <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-gray-900 mb-6">
+                  Spravujte události <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-600">na cestách</span>
+                </h2>
+                
+                <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                  Nativní iOS aplikace postavená ve SwiftUI poskytuje stejné funkce jako webová verze, optimalizované pro mobilní zařízení.
+                </p>
+
+                <div className="space-y-6 mb-10">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center mt-1">
+                      <svg className="w-3 h-3 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">Nativní SwiftUI aplikace</h3>
+                      <p className="text-gray-600">Moderní iOS aplikace s plynulými animacemi a intuitivním ovládáním</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center mt-1">
+                      <svg className="w-3 h-3 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">Správa na cestách</h3>
+                      <p className="text-gray-600">Přidávejte piva, spravujte sudy a sledujte statistiky kdekoli</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center mt-1">
+                      <svg className="w-3 h-3 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">Real-time synchronizace</h3>
+                      <p className="text-gray-600">Okamžitá synchronizace s webovou aplikací a ostatními zařízeními</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-black text-white rounded-xl font-medium hover:bg-gray-800 transition-colors duration-300"
+                  >
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    </svg>
+                    Stáhnout z App Store
+                  </motion.button>
+                  
+                  <motion.a
+                    href="https://github.com/your-repo/mobile"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:border-gray-400 hover:bg-gray-50 transition-colors duration-300"
+                  >
+                    <FaGithub className="w-5 h-5" />
+                    Zobrazit zdrojový kód
+                  </motion.a>
+                </div>
+              </motion.div>
+
+              {/* Right Column - App Screenshots/Mockup */}
+              <motion.div
+                initial={{ opacity: 0, x: 40 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="order-1 lg:order-2 flex justify-center"
+              >
+                <div className="relative">
+                  {/* Phone Mockup */}
+                  <div className="relative mx-auto w-72 h-[600px] bg-black rounded-[3rem] p-2 shadow-2xl">
+                    <div className="w-full h-full bg-white rounded-[2.5rem] overflow-hidden relative">
+                      {/* Status Bar */}
+                      <div className="absolute top-0 left-0 right-0 h-12 bg-gray-100 flex items-center justify-center">
+                        <div className="w-32 h-6 bg-black rounded-full"></div>
+                      </div>
+                      
+                      {/* App Content Placeholder */}
+                      <div className="pt-12 h-full bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+                        <div className="text-center px-8">
+                          <div className="w-20 h-20 bg-primary/20 rounded-2xl mx-auto mb-6 flex items-center justify-center">
+                            <svg className="w-10 h-10 text-primary" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                            </svg>
+                          </div>
+                          <p className="text-gray-500 font-medium text-sm">iOS App Screenshot</p>
+                          <p className="text-gray-400 text-xs mt-1">Zde bude screenshot aplikace</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Floating Elements */}
+                  <motion.div
+                    animate={{
+                      y: [-10, 10, -10],
+                      rotate: [0, 5, 0],
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                    className="absolute -top-4 -right-4 w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center"
+                  >
+                    <FaBeer className="w-8 h-8 text-primary" />
+                  </motion.div>
+                  
+                  <motion.div
+                    animate={{
+                      y: [10, -10, 10],
+                      rotate: [0, -5, 0],
+                    }}
+                    transition={{
+                      duration: 5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 1,
+                    }}
+                    className="absolute -bottom-4 -left-4 w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center"
+                  >
+                    <FaTrophy className="w-6 h-6 text-primary" />
+                  </motion.div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
 
         {/* Latest Activity Section */}
         {stats?.latestActivity && stats.latestActivity.length > 0 && (
@@ -560,169 +1034,59 @@ export default function Landing() {
           </motion.div>
         )}
 
-        {/* Top Participants Section */}
-        {stats?.topUsers && stats.topUsers.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="mx-auto mt-20 max-w-2xl rounded-3xl bg-white dark:bg-background-card ring-1 ring-gray-200 dark:ring-gray-800 overflow-hidden shadow-xl"
-          >
-            <div className="p-8">
-              <ul role="list" className="space-y-8">
-                {stats.topUsers.map((participant, index) => (
-                  <motion.li
-                    key={participant.name}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    className="relative flex items-center gap-6"
-                  >
-                    {/* Rank Circle */}
-                    <div className={`
-                      flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold
-                      ${index === 0 ? 'bg-primary text-white' : 'bg-primary/10 text-primary'}
-                    `}>
-                      {index + 1}
-                    </div>
-
-                    {/* Participant Info */}
-                    <div className="flex-grow">
-                      <h3 className="text-xl font-semibold text-gray-900">
-                        {participant.name}
-                      </h3>
-                      <p className="mt-1 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <FaBeer className="text-primary" />
-                        {participant.beerCount} {translations.topParticipants.beers}
-                      </p>
-                    </div>
-
-                    {/* Leader Badge */}
-                    {index === 0 && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 260,
-                          damping: 20,
-                          delay: 0.5
-                        }}
-                        className="absolute -top-1 -right-1 flex items-center gap-1 bg-primary text-white text-sm px-3 py-1 rounded-full shadow-lg"
-                      >
-                        👑 Leader
-                      </motion.div>
-                    )}
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-          </motion.div>
-        )}
-
         {/* Footer */}
-        <footer className="mt-32 border-t border-primary/10 bg-background-secondary">
+        <footer className="mt-32 border-t border-gray-200 bg-gray-50">
           <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
+            <div className="text-center">
               {/* Logo and Description */}
-              <div className="lg:col-span-2">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="space-y-6"
-                >
-                  <Link to="/" className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold text-primary">Démonická</span>
-                    <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">v2.0</span>
-                  </Link>
-                  <p className="text-sm text-text-secondary max-w-md">
-                    Sledujte svou pivní cestu s přáteli a staňte se součástí naší rostoucí komunity pivních nadšenců.
-                  </p>
-                  {/* Newsletter Subscription */}
-                  <div className="max-w-sm space-y-4">
-                    <h3 className="text-sm font-semibold text-text-primary">
-                      {translations.footer.newsletter.title}
-                    </h3>
-                    <p className="text-sm text-text-secondary">
-                      {translations.footer.newsletter.description}
-                    </p>
-                    <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
-                      <input
-                        type="email"
-                        placeholder={translations.footer.newsletter.placeholder}
-                        className="flex-1 rounded-lg bg-white/5 px-3 py-2 text-sm text-text-primary ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-primary"
-                      />
-                      <button
-                        type="submit"
-                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                      >
-                        {translations.footer.newsletter.button}
-                        <FaArrowRight className="h-4 w-4" />
-                      </button>
-                    </form>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Footer Sections */}
-              <div className="grid grid-cols-2 gap-8 lg:col-span-3 lg:grid-cols-4">
-                {Object.entries(translations.footer.sections).map(([key, section], index) => (
-                  <motion.div
-                    key={`footer-section-${key}-${index}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <h3 className="text-sm font-semibold text-text-primary">
-                      {section.title}
-                    </h3>
-                    <ul role="list" className="mt-6 space-y-4">
-                      {Object.entries(section.items).map(([itemKey, itemText], itemIndex) => (
-                        <li key={`footer-item-${key}-${itemKey}-${itemIndex}`}>
-                          <Link
-                            to={`/${key}/${itemKey}`}
-                            className="text-sm text-text-secondary hover:text-primary transition-colors duration-200"
-                          >
-                            {itemText}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Bottom Bar */}
-            <div className="mt-12 border-t border-primary/10 pt-8">
-              <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-                <p className="text-sm text-text-secondary">
-                  &copy; {new Date().getFullYear()} Démonická. {translations.footer.allRightsReserved}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="space-y-6"
+              >
+                <Link to="/" className="inline-flex items-center space-x-2">
+                  <span className="text-2xl font-bold text-primary">Démonická</span>
+                  <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">v2.0</span>
+                </Link>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  Sledujte svou pivní cestu s přáteli a staňte se součástí naší rostoucí komunity pivních nadšenců.
                 </p>
-                <div className="flex space-x-6">
-                  {[
-                    { icon: FaGithub, href: "https://github.com/your-repo" },
-                    { icon: FaDiscord, href: "https://discord.gg/your-server" },
-                    { icon: FaTwitter, href: "https://twitter.com/your-handle" },
-                    { icon: FaFacebook, href: "https://facebook.com/your-page" }
-                  ].map((social, index) => (
-                    <motion.a
-                      key={index}
-                      whileHover={{ scale: 1.1 }}
-                      href={social.href}
-                      className="text-text-secondary hover:text-primary"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <span className="sr-only">{social.icon.name}</span>
-                      <social.icon className="h-6 w-6" />
-                    </motion.a>
-                  ))}
-                </div>
+              </motion.div>
+
+              {/* Simple Links */}
+              <div className="mt-8 flex flex-wrap justify-center gap-6">
+                <Link
+                  to="/dashboard"
+                  className="text-sm text-gray-600 hover:text-primary transition-colors duration-200"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to="/leaderboard"
+                  className="text-sm text-gray-600 hover:text-primary transition-colors duration-200"
+                >
+                  Žebříček
+                </Link>
+                <Link
+                  to="/login"
+                  className="text-sm text-gray-600 hover:text-primary transition-colors duration-200"
+                >
+                  Přihlášení
+                </Link>
+                <Link
+                  to="/register"
+                  className="text-sm text-gray-600 hover:text-primary transition-colors duration-200"
+                >
+                  Registrace
+                </Link>
+              </div>
+
+              {/* Copyright */}
+              <div className="mt-8 pt-8 border-t border-gray-200">
+                <p className="text-sm text-gray-500">
+                  &copy; {new Date().getFullYear()} Démonická. Všechna práva vyhrazena.
+                </p>
               </div>
             </div>
           </div>
