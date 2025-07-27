@@ -9,12 +9,11 @@ import {
   ListItemButton,
   ListItemText,
   Box,
-  // CircularProgress,
   Alert,
-  Collapse
+  Collapse,
+  CircularProgress,
 } from '@mui/material';
 import { motion } from 'framer-motion';
-// import { FaBook } from 'react-icons/fa';
 import { SimpleMarkdownParser } from '../utils/markdownParser';
 import '../styles/markdown.css';
 import { withPageLoader } from '../components/hoc/withPageLoader';
@@ -84,8 +83,8 @@ const documentationStructure: DocCategory[] = [
       },
       {
         name: 'barrels',
-        title: 'Žebříček',
-        description: 'Jak funguje bodování a žebříček',
+        title: 'Sudy',
+        description: 'Jak funguje správa sudů',
         path: 'user-guide/barrels.md'
       }
     ]
@@ -137,18 +136,22 @@ const DocsComponent: React.FC = () => {
     try {
       console.log('Loading doc path:', docFile.path);
       
-      const pathSegments = docFile.path.split('/');
-      const encodedSegments = pathSegments.map(segment => encodeURIComponent(segment.trim()));
-      const encodedPath = encodedSegments.join('%2F');
+      // Use the correct API endpoint
+      const response = await fetch(`/api/v1/docs/${docFile.path}`);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
       
-      console.log('Encoded path:', encodedPath);
-      
-      const response = await fetch(`/api/v1/docs/${encodedPath}`);
       if (!response.ok) {
-        throw new Error(`Failed to load ${docFile.title}`);
+        throw new Error(`HTTP ${response.status}: Failed to load ${docFile.title}`);
       }
       
       const content = await response.text();
+      console.log('Content received:', content.substring(0, 200) + '...');
+      
+      if (!content || content.trim() === '') {
+        throw new Error('Empty content received');
+      }
+      
       setMarkdownContent(content);
       setSelectedDoc(docFile);
     } catch (err) {
@@ -161,7 +164,34 @@ const DocsComponent: React.FC = () => {
   };
 
   const handleCategoryClick = (categoryName: string) => {
-    setExpandedCategory(expandedCategory === categoryName ? categoryName : categoryName);
+    setExpandedCategory(expandedCategory === categoryName ? '' : categoryName);
+  };
+
+  const renderMarkdownContent = () => {
+    if (!markdownContent) {
+      return (
+        <Typography variant="body1" color="text.secondary">
+          Vyberte dokumentaci z levého menu...
+        </Typography>
+      );
+    }
+
+    try {
+      const htmlContent = SimpleMarkdownParser.parse(markdownContent);
+      return (
+        <div 
+          className="markdown-content"
+          dangerouslySetInnerHTML={{ __html: htmlContent }} 
+        />
+      );
+    } catch (err) {
+      console.error('Error parsing markdown:', err);
+      return (
+        <Alert severity="error">
+          Chyba při zpracování obsahu dokumentace
+        </Alert>
+      );
+    }
   };
 
   return (
@@ -295,9 +325,18 @@ const DocsComponent: React.FC = () => {
             }}
           >
             {loading ? (
-              null // withPageLoader will handle loading state
+              <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                <CircularProgress />
+              </Box>
             ) : error ? (
-              <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+                <Box mt={2}>
+                  <Typography variant="body2">
+                    Zkuste obnovit stránku nebo kontaktujte správce systému.
+                  </Typography>
+                </Box>
+              </Alert>
             ) : selectedDoc ? (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -312,11 +351,15 @@ const DocsComponent: React.FC = () => {
                     {selectedDoc.description}
                   </Typography>
                 </Box>
-                <div className="markdown-content">
-                  <div dangerouslySetInnerHTML={{ __html: SimpleMarkdownParser.parse(markdownContent) }} />
-                </div>
+                {renderMarkdownContent()}
               </motion.div>
-            ) : null}
+            ) : (
+              <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                <Typography variant="h6" color="text.secondary">
+                  Vyberte dokumentaci z levého menu
+                </Typography>
+              </Box>
+            )}
           </Paper>
         </Grid>
       </Grid>

@@ -12,21 +12,30 @@ import {
   Chip,
   Tabs,
   Tab,
+  IconButton,
+  Tooltip,
+  Badge,
 } from '@mui/material';
-import { useAuth } from '../../contexts/AuthContext';
-import { profileApi } from './api';
-import type { User } from '../../types/user';
-import { 
+import {
   Person as PersonIcon,
   Badge as BadgeIcon,
   Fingerprint as FingerprintIcon,
   CalendarToday as CalendarIcon,
+  Refresh as RefreshIcon,
+  Wc as GenderIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  EmojiEvents as TrophyIcon,
 } from '@mui/icons-material';
+import { FaBeer } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
-import { PersonalInfoTab } from '../../components/auth/PersonalInfoTab';
+import { useAuth } from '../../contexts/AuthContext';
+import { profileApi } from './api';
+import type { User } from '../../types/user';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
+import translations from '../../locales/cs/profile.json';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -66,24 +75,38 @@ const ProfilePageComponent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<User | null>(null);
   const [tabValue, setTabValue] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
+        setIsLoading(true);
         const data = await profileApi.getProfile();
         setProfileData(data);
       } catch (error) {
-        console.error('Failed to fetch profile:', error);
+        console.error('Failed to fetch profile data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchProfile();
+    fetchData();
   }, []);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      const data = await profileApi.getProfile();
+      setProfileData(data);
+    } catch (error) {
+      console.error('Failed to refresh data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   if (!user || isLoading) {
@@ -92,6 +115,19 @@ const ProfilePageComponent: React.FC = () => {
 
   const displayData = profileData || user;
 
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'ADMIN': return 'error';
+      case 'USER': return 'primary';
+      case 'PARTICIPANT': return 'success';
+      default: return 'default';
+    }
+  };
+
+  const getGenderIcon = (gender: string) => {
+    return gender === 'MALE' ? '♂' : '♀';
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -99,50 +135,93 @@ const ProfilePageComponent: React.FC = () => {
       className="p-6"
     >
       <Box maxWidth="lg" mx="auto">
-        {/* Profile Information */}
-        <Paper className="p-6 rounded-xl shadow-lg">
-          <Box display="flex" alignItems="center" gap={4} mb={4}>
-            <Avatar
-              sx={{
-                width: 100,
-                height: 100,
-                bgcolor: 'primary.main',
-                fontSize: '2.5rem',
-              }}
-            >
-              {displayData.username[0].toUpperCase()}
-            </Avatar>
-            <Box>
-              <Typography variant="h4" className="font-bold text-text-primary">
-                {displayData.name}
-              </Typography>
-              <Typography variant="subtitle1" className="text-text-secondary">
-                Informace o účtu
-              </Typography>
-              <Chip 
-                label={`ID: ${displayData.id.split('-')[0]}...`} 
-                size="small" 
-                color="primary" 
-                variant="outlined"
-                className="mt-2"
-              />
+        {/* Profile Header */}
+        <Paper className="p-6 rounded-xl shadow-lg mb-6">
+          <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={4}>
+            <Box display="flex" alignItems="center" gap={4}>
+              <Badge
+                overlap="circular"
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                badgeContent={
+                  <Avatar sx={{ width: 24, height: 24, bgcolor: 'success.main' }}>
+                    <FaBeer style={{ fontSize: '0.8rem' }} />
+                  </Avatar>
+                }
+              >
+                <Avatar
+                  sx={{
+                    width: 100,
+                    height: 100,
+                    bgcolor: 'primary.main',
+                    fontSize: '2.5rem',
+                  }}
+                >
+                  {displayData.username[0].toUpperCase()}
+                </Avatar>
+              </Badge>
+              <Box>
+                <Typography variant="h4" className="font-bold text-text-primary">
+                  {displayData.name}
+                </Typography>
+                <Typography variant="subtitle1" className="text-text-secondary">
+                  {translations.accountInfo}
+                </Typography>
+                <Box display="flex" gap={1} mt={1}>
+                  <Chip 
+                    label={`ID: ${displayData.id.split('-')[0]}...`} 
+                    size="small" 
+                    color="primary" 
+                    variant="outlined"
+                  />
+                  <Chip
+                    label={translations.roles[displayData.role as keyof typeof translations.roles] || displayData.role}
+                    size="small"
+                    color={getRoleColor(displayData.role)}
+                  />
+                  {displayData.isRegistrationComplete ? (
+                    <Chip
+                      icon={<CheckCircleIcon />}
+                      label={translations.registrationStatus.complete}
+                      size="small"
+                      color="success"
+                    />
+                  ) : (
+                    <Chip
+                      icon={<CancelIcon />}
+                      label={translations.registrationStatus.incomplete}
+                      size="small"
+                      color="warning"
+                    />
+                  )}
+                </Box>
+              </Box>
             </Box>
+            <Tooltip title="Obnovit data">
+              <IconButton onClick={handleRefresh} disabled={isRefreshing}>
+                <RefreshIcon className={isRefreshing ? 'animate-spin' : ''} />
+              </IconButton>
+            </Tooltip>
           </Box>
 
           <Divider className="my-4" />
 
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="profile tabs">
-            <Tab label="Základní informace" {...a11yProps(0)} />
+            <Tab label={translations.tabs.basicInfo} {...a11yProps(0)} />
+            <Tab label={translations.tabs.activity} {...a11yProps(1)} />
+            <Tab label="Úspěchy" {...a11yProps(2)} />
           </Tabs>
+        </Paper>
 
-          <TabPanel value={tabValue} index={0}>
+        {/* Tab Content */}
+        <TabPanel value={tabValue} index={0}>
+          <Paper className="p-6 rounded-xl shadow-lg">
             <List className="space-y-2">
               <ListItem>
                 <ListItemIcon>
                   <PersonIcon color="primary" />
                 </ListItemIcon>
                 <ListItemText
-                  primary="Uživatelské jméno"
+                  primary={translations.basicInfo.username}
                   secondary={displayData.username}
                   primaryTypographyProps={{
                     className: "text-text-secondary font-medium"
@@ -158,7 +237,7 @@ const ProfilePageComponent: React.FC = () => {
                   <BadgeIcon color="primary" />
                 </ListItemIcon>
                 <ListItemText
-                  primary="Celé jméno"
+                  primary={translations.basicInfo.fullName}
                   secondary={displayData.name}
                   primaryTypographyProps={{
                     className: "text-text-secondary font-medium"
@@ -171,10 +250,31 @@ const ProfilePageComponent: React.FC = () => {
 
               <ListItem>
                 <ListItemIcon>
+                  <GenderIcon color="primary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary={translations.basicInfo.gender}
+                  secondary={
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <span>{getGenderIcon(displayData.gender)}</span>
+                      <span>{translations.gender[displayData.gender]}</span>
+                    </Box>
+                  }
+                  primaryTypographyProps={{
+                    className: "text-text-secondary font-medium"
+                  }}
+                  secondaryTypographyProps={{
+                    className: "text-text-primary"
+                  }}
+                />
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon>
                   <FingerprintIcon color="primary" />
                 </ListItemIcon>
                 <ListItemText
-                  primary="ID uživatele"
+                  primary={translations.basicInfo.userId}
                   secondary={displayData.id}
                   primaryTypographyProps={{
                     className: "text-text-secondary font-medium"
@@ -190,7 +290,7 @@ const ProfilePageComponent: React.FC = () => {
                   <CalendarIcon color="primary" />
                 </ListItemIcon>
                 <ListItemText
-                  primary="Účet vytvořen"
+                  primary={translations.basicInfo.accountCreated}
                   secondary={format(new Date(displayData.createdAt), 'PPpp', { locale: cs })}
                   primaryTypographyProps={{
                     className: "text-text-secondary font-medium"
@@ -201,12 +301,33 @@ const ProfilePageComponent: React.FC = () => {
                 />
               </ListItem>
             </List>
-          </TabPanel>
+          </Paper>
+        </TabPanel>
 
-          <TabPanel value={tabValue} index={1}>
-            <PersonalInfoTab />
-          </TabPanel>
-        </Paper>
+        <TabPanel value={tabValue} index={1}>
+          <Paper className="p-6 rounded-xl shadow-lg">
+            <Typography variant="h6" gutterBottom>
+              {translations.activity.title}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Historie aktivit bude brzy dostupná...
+            </Typography>
+          </Paper>
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={2}>
+          <Paper className="p-6 rounded-xl shadow-lg">
+            <Box display="flex" alignItems="center" gap={2} mb={3}>
+              <TrophyIcon color="primary" />
+              <Typography variant="h6">
+                Úspěchy
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              Systém úspěchů bude brzy dostupný...
+            </Typography>
+          </Paper>
+        </TabPanel>
       </Box>
     </motion.div>
   );

@@ -43,8 +43,8 @@ const LeaderboardComponent: React.FC = () => {
       <Paper 
         elevation={0}
         sx={{ 
-          p: 4, 
-          mb: 4, 
+          p: 2, 
+          mb: 3, 
           textAlign: 'center',
           background: 'transparent',
           border: '1px solid',
@@ -52,22 +52,13 @@ const LeaderboardComponent: React.FC = () => {
           borderRadius: 2
         }}
       >
-        <Box display="flex" alignItems="center" justifyContent="center" gap={2} mb={2}>
+        <Box display="flex" alignItems="center" justifyContent="center" gap={2}>
           <FaBeer style={{ fontSize: '2rem' }} />
           <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
             {translations.title}
           </Typography>
           <FaBeer style={{ fontSize: '2rem' }} />
         </Box>
-        
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-          {translations.subtitle}
-          {activeEvent && (
-            <Box component="span" display="block" color="error.main" fontWeight="bold" mt={1}>
-              {activeEvent.name}
-            </Box>
-          )}
-        </Typography>
         
         {showEventHistory && (
           <Box mt={2}>

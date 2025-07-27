@@ -1,42 +1,70 @@
 {
-  "title": "Osobní informace",
+  "title": "Profil",
   "accountInfo": "Informace o účtu",
-  "fields": {
+  "tabs": {
+    "basicInfo": "Základní informace",
+    "statistics": "Statistiky",
+    "activity": "Aktivita",
+    "settings": "Nastavení"
+  },
+  "basicInfo": {
     "username": "Uživatelské jméno",
-    "email": "Emailová adresa",
     "fullName": "Celé jméno",
     "userId": "ID uživatele",
     "accountCreated": "Účet vytvořen",
-    "lastUpdated": "Naposledy aktualizováno"
+    "role": "Role",
+    "gender": "Pohlaví",
+    "registrationStatus": "Stav registrace"
   },
-  "preferences": {
-    "title": "Předvolby",
-    "tabs": {
-      "appearance": "Vzhled",
-      "notifications": "Oznámení",
-      "language": "Jazyk a region"
-    },
-    "theme": {
-      "label": "Motiv",
-      "light": "Světlý",
-      "dark": "Tmavý",
-      "system": "Systémový"
-    },
-    "display": {
-      "compactMode": "Kompaktní režim",
-      "showAvatars": "Zobrazovat avatary",
-      "highContrast": "Vysoký kontrast"
-    },
-    "notifications": {
-      "email": "Emailová oznámení",
-      "push": "Push oznámení",
-      "updates": "Aktualizace produktu"
-    },
-    "language": {
-      "label": "Jazyk",
-      "cs": "Čeština",
-      "en": "English",
-      "sk": "Slovenčina"
-    }
+  "statistics": {
+    "title": "Statistiky piva",
+    "totalBeers": "Celkem piv",
+    "beersToday": "Dnes",
+    "beersThisWeek": "Tento týden",
+    "beersThisMonth": "Tento měsíc",
+    "averagePerDay": "Průměr za den",
+    "averagePerEvent": "Průměr za událost",
+    "globalRank": "Celkové pořadí",
+    "percentile": "Percentil",
+    "mostBeersInDay": "Nejvíce za den",
+    "longestBreak": "Nejdelší pauza",
+    "firstBeer": "První pivo",
+    "lastBeer": "Poslední pivo"
+  },
+  "activity": {
+    "title": "Historie aktivit",
+    "hourlyDistribution": "Rozložení po hodinách",
+    "dailyStats": "Denní statistiky",
+    "eventHistory": "Historie událostí",
+    "noActivity": "Zatím žádná aktivita"
+  },
+  "settings": {
+    "title": "Nastavení účtu",
+    "personalInfo": "Osobní informace",
+    "security": "Zabezpečení",
+    "notifications": "Oznámení"
+  },
+  "roles": {
+    "ADMIN": "Administrátor",
+    "USER": "Uživatel",
+    "PARTICIPANT": "Účastník"
+  },
+  "gender": {
+    "MALE": "Muž",
+    "FEMALE": "Žena"
+  },
+  "registrationStatus": {
+    "complete": "Dokončeno",
+    "incomplete": "Nedokončeno"
+  },
+  "timeUnits": {
+    "hours": "hodin",
+    "days": "dní",
+    "never": "Nikdy"
+  },
+  "rankings": {
+    "rank": "pořadí",
+    "of": "z",
+    "users": "uživatelů"
   }
 } 

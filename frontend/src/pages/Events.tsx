@@ -113,10 +113,7 @@ export const Events: React.FC = () => {
                 alignItems: 'flex-start'
             }}>
                 <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>Události</Typography>
-                    <Typography variant="subtitle1" color="text.secondary">
-                        Správa událostí a jejich účastníků, piv a sudů.
-                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>Události</Typography>                   
                 </Box>
                 <Box display="flex" gap={2}>
                     <Button 
