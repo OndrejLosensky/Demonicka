@@ -13,12 +13,18 @@ import {
   Tooltip,
   Box,
   Typography,
+  Chip,
+  Divider,
+  Badge,
 } from '@mui/material';
 import {
   Logout as LogoutIcon,
   Person as PersonIcon,
   Settings as SettingsIcon,
   History as HistoryIcon,
+  AccessTime as AccessTimeIcon,
+  Event as EventIcon,
+  Notifications as NotificationsIcon,
 } from '@mui/icons-material';
 import { FaBook } from 'react-icons/fa';
 import { format } from 'date-fns';
@@ -85,7 +91,7 @@ export default function Header() {
           animate={{ y: 0 }}
           className={`fixed w-full z-50 transition-all duration-300 ${
             isScrolled || !isLandingPage
-              ? 'bg-background-primary/95 backdrop-blur-sm shadow-sm'
+              ? 'bg-background-primary/95 backdrop-blur-sm shadow-lg border-b border-border-secondary/30'
               : 'bg-white/90 backdrop-blur-md shadow-md border-b border-gray-100'
           }`}
         >
@@ -121,10 +127,10 @@ export default function Header() {
                       <>
                         <Link
                           to="/dashboard"
-                          className={`px-3 py-2 rounded-md text-sm font-medium ${
+                          className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                             isActive('/dashboard')
-                              ? 'bg-primary text-white'
-                              : 'text-text-primary hover:text-text-secondary'
+                              ? 'bg-primary text-white shadow-md'
+                              : 'text-text-primary hover:text-text-secondary hover:bg-background-secondary/50'
                           }`}
                         >
                           {translations.navigation.dashboard}
@@ -133,10 +139,10 @@ export default function Header() {
                           <>
                             <Link
                               to="/dashboard/participants"
-                              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                              className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                                 isActive('/dashboard/participants')
-                                  ? 'bg-primary text-white'
-                                  : 'text-text-primary hover:text-text-secondary'
+                                  ? 'bg-primary text-white shadow-md'
+                                  : 'text-text-primary hover:text-text-secondary hover:bg-background-secondary/50'
                               }`}
                             >
                               {translations.navigation.participants}
@@ -144,10 +150,10 @@ export default function Header() {
                             {hasRole([USER_ROLE.ADMIN]) && (
                               <Link
                                 to="/dashboard/barrels"
-                                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                                className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                                   isActive('/dashboard/barrels')
-                                    ? 'bg-primary text-white'
-                                    : 'text-text-primary hover:text-text-secondary'
+                                    ? 'bg-primary text-white shadow-md'
+                                    : 'text-text-primary hover:text-text-secondary hover:bg-background-secondary/50'
                                 }`}
                               >
                                 {translations.navigation.barrels}
@@ -160,10 +166,10 @@ export default function Header() {
                     {activeEvent && hasRole([USER_ROLE.ADMIN]) && (
                       <Link
                         to="/leaderboard"
-                        className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                           isActive('/leaderboard')
-                            ? 'bg-primary text-white'
-                            : 'text-text-primary hover:text-text-secondary'
+                            ? 'bg-primary text-white shadow-md'
+                            : 'text-text-primary hover:text-text-secondary hover:bg-background-secondary/50'
                         }`}
                       >
                         {translations.navigation.leaderboard}
@@ -172,10 +178,10 @@ export default function Header() {
                     {hasRole([USER_ROLE.ADMIN]) && (
                       <Link
                         to="/events"
-                        className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                           isActive('/events')
-                            ? 'bg-primary text-white'
-                            : 'text-text-primary hover:text-text-secondary'
+                            ? 'bg-primary text-white shadow-md'
+                            : 'text-text-primary hover:text-text-secondary hover:bg-background-secondary/50'
                         }`}
                       >
                         {translations.navigation.events}
@@ -184,10 +190,10 @@ export default function Header() {
                     {hasRole([USER_ROLE.USER]) && (
                       <Link
                         to={`/${user?.id}/dashboard`}
-                        className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                           isActive(`/${user?.id}/dashboard`)
-                            ? 'bg-primary text-white'
-                            : 'text-text-primary hover:text-text-secondary'
+                            ? 'bg-primary text-white shadow-md'
+                            : 'text-text-primary hover:text-text-secondary hover:bg-background-secondary/50'
                         }`}
                       >
                         Moje statistiky
@@ -198,31 +204,115 @@ export default function Header() {
               </div>
               <div className="flex items-center">
                 {user ? (
-                  <div className="flex items-center">
+                  <div className="flex items-center space-x-3">
                     {activeEvent && (
-                      <div className="mr-4">
-                        <Typography variant="body2" className="text-text-secondary">
-                          {format(new Date(currentTime), 'HH:mm:ss')}
-                        </Typography>
-                        <Typography variant="caption" className="text-text-secondary">
-                          {activeEvent.name}
-                        </Typography>
-                      </div>
-                    )}
-                    <Tooltip title={translations.auth.profile}>
-                      <IconButton
-                        onClick={handleOpenMenu}
-                        size="small"
-                        sx={{ ml: 2 }}
-                        aria-controls={anchorEl ? 'account-menu' : undefined}
-                        aria-haspopup="true"
-                        aria-expanded={anchorEl ? 'true' : undefined}
+                      <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center bg-background-secondary/60 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-border-secondary/30"
                       >
-                        <Avatar sx={{ width: 32, height: 32 }}>
-                          {user.username.charAt(0).toUpperCase()}
-                        </Avatar>
-                      </IconButton>
-                    </Tooltip>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1.5">
+                            <AccessTimeIcon className="text-text-secondary" fontSize="small" />
+                            <Typography 
+                              variant="body2" 
+                              className="text-text-primary font-mono font-medium"
+                              sx={{ fontVariantNumeric: 'tabular-nums' }}
+                            >
+                              {format(new Date(currentTime), 'HH:mm:ss')}
+                            </Typography>
+                          </div>
+                          <div className="w-px h-4 bg-border-secondary/50" />
+                          <div className="flex items-center space-x-1.5">
+                            <EventIcon className="text-text-secondary" fontSize="small" />
+                            <Chip
+                              label={activeEvent.name}
+                              size="small"
+                              className="bg-primary/10 text-primary border-primary/20"
+                              sx={{
+                                '& .MuiChip-label': {
+                                  fontSize: '0.7rem',
+                                  fontWeight: 500,
+                                  px: 1,
+                                },
+                                height: 20,
+                                borderRadius: '10px',
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    {/* Notification Bell */}
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Tooltip title="Notifikace" arrow placement="bottom">
+                        <IconButton
+                          size="small"
+                          className="bg-background-secondary/50 hover:bg-background-secondary/70 border border-border-secondary/30"
+                          sx={{ 
+                            width: 36, 
+                            height: 36,
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              transform: 'translateY(-1px)',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                            }
+                          }}
+                        >
+                          <Badge badgeContent={0} color="primary" max={99}>
+                            <NotificationsIcon className="text-text-secondary" fontSize="small" />
+                          </Badge>
+                        </IconButton>
+                      </Tooltip>
+                    </motion.div>
+
+                    {/* User Profile */}
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Tooltip 
+                        title={`${translations.auth.profile} - ${user.username}`}
+                        arrow
+                        placement="bottom"
+                      >
+                        <IconButton
+                          onClick={handleOpenMenu}
+                          size="medium"
+                          className="bg-gradient-to-br from-primary/15 to-primary/5 hover:from-primary/25 hover:to-primary/10 border border-primary/30 shadow-sm"
+                          sx={{ 
+                            width: 40, 
+                            height: 40,
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              transform: 'translateY(-1px)',
+                              boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
+                            }
+                          }}
+                          aria-controls={anchorEl ? 'account-menu' : undefined}
+                          aria-haspopup="true"
+                          aria-expanded={anchorEl ? 'true' : undefined}
+                        >
+                          <Avatar 
+                            sx={{ 
+                              width: 28, 
+                              height: 28,
+                              bgcolor: 'primary.main',
+                              fontWeight: 700,
+                              fontSize: '0.875rem',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                            }}
+                          >
+                            {user.username.charAt(0).toUpperCase()}
+                          </Avatar>
+                        </IconButton>
+                      </Tooltip>
+                    </motion.div>
+                    
                     <Menu
                       anchorEl={anchorEl}
                       id="account-menu"
@@ -233,11 +323,13 @@ export default function Header() {
                       aria-haspopup="true"
                       aria-expanded={anchorEl ? 'true' : undefined}
                       PaperProps={{
-                        elevation: 0,
+                        elevation: 8,
                         sx: {
                           overflow: 'visible',
-                          filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                          filter: 'drop-shadow(0px 8px 24px rgba(0,0,0,0.12))',
                           mt: 1.5,
+                          minWidth: 180,
+                          borderRadius: 2,
                           '& .MuiAvatar-root': {
                             width: 32,
                             height: 32,
@@ -255,13 +347,23 @@ export default function Header() {
                             bgcolor: 'background.paper',
                             transform: 'translateY(-50%) rotate(45deg)',
                             zIndex: 0,
+                            boxShadow: '0px -2px 4px rgba(0,0,0,0.06)',
                           },
                         },
                       }}
                       transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                       anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                     >
-                      <MenuItem onClick={handleProfileClick} sx={{ py: 1.5 }}>
+                      <Box sx={{ px: 2, py: 1.5 }}>
+                        <Typography variant="subtitle2" className="text-text-primary font-semibold">
+                          {user.username}
+                        </Typography>
+                        <Typography variant="caption" className="text-text-secondary">
+                          {hasRole([USER_ROLE.ADMIN]) ? 'Administrátor' : 'Uživatel'}
+                        </Typography>
+                      </Box>
+                      <Divider sx={{ opacity: 0.6 }} />
+                      <MenuItem onClick={handleProfileClick} sx={{ py: 1, px: 2 }}>
                         <ListItemIcon>
                           <PersonIcon fontSize="small" />
                         </ListItemIcon>
@@ -274,7 +376,7 @@ export default function Header() {
                       </MenuItem>
                       {hasRole([USER_ROLE.ADMIN]) && (
                         <>
-                          <MenuItem onClick={() => navigate('/dashboard/system')} sx={{ py: 1.5 }}>
+                          <MenuItem onClick={() => navigate('/dashboard/system')} sx={{ py: 1, px: 2 }}>
                             <ListItemIcon>
                               <SettingsIcon fontSize="small" />
                             </ListItemIcon>
@@ -285,7 +387,7 @@ export default function Header() {
                               }}
                             />
                           </MenuItem>
-                          <MenuItem onClick={() => navigate('/docs')} sx={{ py: 1.5 }}>
+                          <MenuItem onClick={() => navigate('/docs')} sx={{ py: 1, px: 2 }}>
                             <ListItemIcon>
                               <FaBook className="text-lg" />
                             </ListItemIcon>
@@ -296,7 +398,7 @@ export default function Header() {
                               }}
                             />
                           </MenuItem>
-                          <MenuItem onClick={() => navigate('/activity')} sx={{ py: 1.5 }}>
+                          <MenuItem onClick={() => navigate('/activity')} sx={{ py: 1, px: 2 }}>
                             <ListItemIcon>
                               <HistoryIcon fontSize="small" />
                             </ListItemIcon>
@@ -309,10 +411,11 @@ export default function Header() {
                           </MenuItem>
                         </>
                       )}
+                      <Divider sx={{ opacity: 0.6 }} />
                       <MenuItem 
                         onClick={handleLogout} 
                         className="hover:bg-red-50 text-red-600"
-                        sx={{ py: 1.5 }}
+                        sx={{ py: 1, px: 2 }}
                       >
                         <ListItemIcon>
                           <LogoutIcon fontSize="small" className="text-red-600" />
@@ -330,7 +433,7 @@ export default function Header() {
                   <motion.div whileHover={{ scale: 1.05 }}>
                     <Link
                       to="/login"
-                      className="px-4 py-2 rounded-md text-sm font-medium bg-primary text-white hover:bg-primary-hover"
+                      className="px-4 py-2 rounded-md text-sm font-medium bg-primary text-white hover:bg-primary-hover shadow-md transition-all duration-200"
                     >
                       {translations.auth.login}
                     </Link>
