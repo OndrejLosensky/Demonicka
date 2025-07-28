@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { landingApi } from '../api/landing';
 import type { PublicStats, ActivityEvent } from '../types/public';
 import translations from '../locales/cs/landing.json';
-import { FaTrophy, FaUsers, FaChartLine, FaGithub, FaDiscord, FaFire, FaBeer, FaAward, FaUserPlus, FaTwitter, FaFacebook, FaArrowRight } from 'react-icons/fa';
+import { FaTrophy, FaUsers, FaChartLine, FaGithub, FaBeer, FaAward, FaUserPlus } from 'react-icons/fa';
 import { BsArrowUpRight, BsLightning } from 'react-icons/bs';
 import { formatDistanceToNow } from 'date-fns';
 import { cs } from 'date-fns/locale';
@@ -24,17 +24,7 @@ const staggerContainer = {
   }
 };
 
-const floatingAnimation = {
-  initial: { y: 0 },
-  animate: {
-    y: [-10, 0, -10],
-    transition: {
-      duration: 4,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }
-  }
-};
+
 
 const heroTextVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -85,14 +75,7 @@ const glowAnimation = {
   }
 };
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" }
-  }
-};
+
 
 const getEventIcon = (type: ActivityEvent['type']) => {
   switch (type) {
@@ -148,82 +131,7 @@ export default function Landing() {
     fetchStats();
   }, [activeEvent?.id]);
 
-  const StatsSection = () => (
-    <div className="relative z-10 -mt-20 px-4">
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={{
-          visible: {
-            transition: {
-              staggerChildren: 0.1
-            }
-          }
-        }}
-        className="mx-auto max-w-7xl grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-8"
-      >
-        <motion.div
-          variants={cardVariants}
-          className="transform hover:-translate-y-1 transition-all duration-300"
-        >
-          <div className="relative bg-white dark:bg-background-card rounded-[20px] shadow-lg overflow-hidden border border-gray-100 dark:border-gray-800">
-            <div className="px-6 py-8">
-              <div className="flex flex-col">
-                <h3 className="text-sm font-medium text-gray-500">
-                  {translations.stats.totalBeers}
-                </h3>
-                <div className="mt-2">
-                  <p className="text-4xl font-bold text-gray-900 ">
-                    {loading ? "..." : stats?.totalBeers || 0}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
 
-        <motion.div
-          variants={cardVariants}
-          className="transform hover:-translate-y-1 transition-all duration-300"
-        >
-          <div className="relative bg-white dark:bg-background-card rounded-[20px] shadow-lg overflow-hidden border border-gray-100 dark:border-gray-800">
-            <div className="px-6 py-8">
-              <div className="flex flex-col">
-                <h3 className="text-sm font-medium text-gray-500">
-                  {translations.stats.activeParticipants}
-                </h3>
-                <div className="mt-2">
-                  <p className="text-4xl font-bold text-gray-900">
-                    {loading ? "..." : stats?.totalUsers || 0}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          variants={cardVariants}
-          className="transform hover:-translate-y-1 transition-all duration-300"
-        >
-          <div className="relative bg-white dark:bg-background-card rounded-[20px] shadow-lg overflow-hidden border border-gray-100 dark:border-gray-800">
-            <div className="px-6 py-8">
-              <div className="flex flex-col">
-                <h3 className="text-sm font-medium text-gray-500">
-                  {translations.stats.activeBarrels}
-                </h3>
-                <div className="mt-2">
-                  <p className="text-4xl font-bold text-gray-900">
-                    {loading ? "..." : stats?.totalBarrels || 0}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
-    </div>
-  );
 
   return (
     <div className="relative min-h-screen bg-background-primary dark:bg-background-primary transition-colors duration-200">
