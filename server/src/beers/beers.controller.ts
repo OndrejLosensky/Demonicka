@@ -5,6 +5,7 @@ import {
   Param,
   UseGuards,
   ParseUUIDPipe,
+  Delete,
 } from '@nestjs/common';
 import { BeersService } from './beers.service';
 import { Beer } from './entities/beer.entity';
@@ -60,5 +61,16 @@ export class BeersController {
   @Get('count')
   getBeerCount(@Param('userId', ParseUUIDPipe) userId: string): Promise<number> {
     return this.beersService.getUserBeerCount(userId);
+  }
+
+  /**
+   * Remove a beer from a user.
+   * @route DELETE /users/:userId/beers
+   * @param userId - The ID of the user
+   */
+  @Public()
+  @Delete()
+  remove(@Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
+    return this.beersService.remove(userId);
   }
 }

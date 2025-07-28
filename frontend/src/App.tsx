@@ -24,6 +24,7 @@ import { CompleteRegistration } from './pages/CompleteRegistration';
 import { EnterToken } from './pages/Auth/EnterToken';
 import { USER_ROLE } from './types/user';
 import { SystemPage } from './pages/Dashboard/System';
+import { Activity } from './pages/Activity';
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,14 @@ function App() {
                         element={
                           <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <SystemPage />
+                          </RoleRoute>
+                        }
+                      />
+                      <Route
+                        path="activity"
+                        element={
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                            <Activity />
                           </RoleRoute>
                         }
                       />

@@ -13,6 +13,7 @@ import { Event } from '../entities/event.entity';
 import { Barrel } from '../../barrels/entities/barrel.entity';
 import { BeersService } from '../../beers/beers.service';
 import { LeaderboardGateway } from '../../leaderboard/leaderboard.gateway';
+import { LoggingService } from '../../logging/logging.service';
 
 @Injectable()
 export class EventBeersService {
@@ -30,6 +31,7 @@ export class EventBeersService {
     @Inject(forwardRef(() => BeersService))
     private readonly beersService: BeersService,
     private readonly leaderboardGateway: LeaderboardGateway,
+    private readonly loggingService: LoggingService,
   ) {}
 
   async create(
@@ -76,6 +78,9 @@ export class EventBeersService {
     // Also create a global beer record, with skipEventBeer=true to prevent infinite loop
     await this.beersService.create(userId, barrelId, true);
 
+    // Log beer addition
+    this.loggingService.logBeerAdded(userId, barrelId);
+
     // Emit leaderboard update
     await this.leaderboardGateway.emitLeaderboardUpdate(eventId);
 
@@ -93,6 +98,9 @@ export class EventBeersService {
     }
 
     await this.eventBeerRepository.remove(lastBeer);
+
+    // Log beer removal
+    this.loggingService.logBeerRemoved(userId, lastBeer.barrelId);
 
     // Emit leaderboard update
     await this.leaderboardGateway.emitLeaderboardUpdate(eventId);

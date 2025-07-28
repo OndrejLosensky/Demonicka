@@ -117,42 +117,58 @@ export class LoggingService {
     eventType?: string,
   ): Promise<{ logs: LogEntry[]; total: number }> {
     try {
-      const fileContent = await fs.readFile(this.combinedLogPath, 'utf-8');
-      let logs = fileContent
-        .split('\n')
-        .filter(Boolean)
-        .map((line) => JSON.parse(line) as LogEntry)
-        .sort(
-          (a, b) =>
-            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-        );
+      // Read all log files in the logs directory
+      const files = await fs.readdir(this.logDir);
+      const logFiles = files.filter(file => file.endsWith('-combined.log'));
+      
+      let allLogs: LogEntry[] = [];
+      
+      // Read each log file and combine the logs
+      for (const file of logFiles) {
+        try {
+          const filePath = path.join(this.logDir, file);
+          const fileContent = await fs.readFile(filePath, 'utf-8');
+          const fileLogs = fileContent
+            .split('\n')
+            .filter(Boolean)
+            .map((line) => JSON.parse(line) as LogEntry);
+          allLogs.push(...fileLogs);
+        } catch (fileError) {
+          console.error(`Error reading log file ${file}:`, fileError);
+          // Continue with other files
+        }
+      }
+      
+      // Sort all logs by timestamp (newest first)
+      allLogs.sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
 
+      // Apply filters
       if (level) {
-        logs = logs.filter((log) => log.level === level);
+        allLogs = allLogs.filter((log) => log.level === level);
       }
 
       if (startDate) {
-        logs = logs.filter((log) => new Date(log.timestamp) >= startDate);
+        allLogs = allLogs.filter((log) => new Date(log.timestamp) >= startDate);
       }
 
       if (endDate) {
-        logs = logs.filter((log) => new Date(log.timestamp) <= endDate);
+        allLogs = allLogs.filter((log) => new Date(log.timestamp) <= endDate);
       }
 
       if (eventType) {
-        logs = logs.filter((log) => log.event === eventType);
+        allLogs = allLogs.filter((log) => log.event === eventType);
       }
 
-      const total = logs.length;
-      logs = logs.slice(offset, offset + limit);
+      const total = allLogs.length;
+      const logs = allLogs.slice(offset, offset + limit);
 
       return { logs, total };
     } catch (err) {
       const error = err as Error;
-      if (error.message.includes('ENOENT')) {
-        return { logs: [], total: 0 };
-      }
-      throw new Error(`Failed to get logs: ${error.message}`);
+      console.error('Error in getLogs:', error);
+      return { logs: [], total: 0 };
     }
   }
 

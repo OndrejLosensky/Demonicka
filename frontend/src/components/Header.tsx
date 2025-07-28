@@ -18,6 +18,7 @@ import {
   Logout as LogoutIcon,
   Person as PersonIcon,
   Settings as SettingsIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { FaBook } from 'react-icons/fa';
 import { format } from 'date-fns';
@@ -278,6 +279,17 @@ export default function Header() {
                             </ListItemIcon>
                             <ListItemText 
                               primary="Dokumentace"
+                              primaryTypographyProps={{
+                                className: "font-medium"
+                              }}
+                            />
+                          </MenuItem>
+                          <MenuItem onClick={() => navigate('/activity')} sx={{ py: 1.5 }}>
+                            <ListItemIcon>
+                              <HistoryIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText 
+                              primary="Aktivita"
                               primaryTypographyProps={{
                                 className: "font-medium"
                               }}

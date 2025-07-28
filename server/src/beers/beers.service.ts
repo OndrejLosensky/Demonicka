@@ -6,6 +6,7 @@ import { User } from '../users/entities/user.entity';
 import { Barrel } from '../barrels/entities/barrel.entity';
 import { EventsService } from '../events/events.service';
 import { EventBeersService } from '../events/services/event-beers.service';
+import { LoggingService } from '../logging/logging.service';
 
 @Injectable()
 export class BeersService {
@@ -22,6 +23,7 @@ export class BeersService {
     private readonly eventsService: EventsService,
     @Inject(forwardRef(() => EventBeersService))
     private readonly eventBeersService: EventBeersService,
+    private readonly loggingService: LoggingService,
   ) {}
 
   async create(userId: string, barrelId?: string, skipEventBeer = false): Promise<Beer> {
@@ -79,6 +81,9 @@ export class BeersService {
       }
     }
 
+    // Log beer addition
+    this.loggingService.logBeerAdded(userId, barrelId);
+    
     return savedBeer;
   }
 
@@ -115,5 +120,35 @@ export class BeersService {
       order: { createdAt: 'DESC' },
     });
     return lastBeer?.createdAt || null;
+  }
+
+  async remove(userId: string): Promise<void> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Find the last beer for this user
+    const lastBeer = await this.beerRepository.findOne({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (!lastBeer) {
+      throw new Error('No beers found for this user');
+    }
+
+    // Remove the last beer
+    await this.beerRepository.remove(lastBeer);
+
+    // Update user's beer count
+    user.beerCount = Math.max(0, (user.beerCount || 0) - 1);
+    await this.userRepository.save(user);
+
+    // Log beer removal
+    this.loggingService.logBeerRemoved(userId, lastBeer.barrelId);
   }
 }

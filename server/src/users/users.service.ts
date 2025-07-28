@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CompleteRegistrationDto } from './dto/complete-registration.dto';
 import { UserRole } from './enums/user-role.enum';
 import { subDays } from 'date-fns';
+import { LoggingService } from '../logging/logging.service';
 
 type UserWithoutPassword = Omit<User, 'password'>;
 
@@ -22,6 +23,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private readonly loggingService: LoggingService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserWithoutPassword> {
@@ -40,6 +42,10 @@ export class UsersService {
       role: UserRole.ADMIN,
     });
     const savedUser = await this.usersRepository.save(user);
+    
+    // Log user creation
+    this.loggingService.logUserCreated(savedUser.id, savedUser.name || 'Unknown', savedUser.gender || 'Unknown');
+    
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;
     return result;
@@ -56,6 +62,14 @@ export class UsersService {
       role: UserRole.PARTICIPANT,
     });
     const savedUser = await this.usersRepository.save(user);
+    
+    // Log user creation
+    this.loggingService.logUserCreated(
+      savedUser.id,
+      savedUser.name || 'Unknown',
+      savedUser.gender || 'Unknown',
+    );
+    
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;
     return result;
