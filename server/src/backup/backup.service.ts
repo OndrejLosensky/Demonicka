@@ -20,15 +20,20 @@ export class BackupService {
   async handleBackup() {
     try {
       const activeEvent = await this.eventsService.getActiveEvent();
-      
+
       if (!activeEvent) {
         this.logger.debug('No active event found, skipping backup');
         return;
       }
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupPath = path.join(this.backupDir, `backup-${timestamp}.sqlite`);
-      const dbPath = process.env.DATABASE_URL || path.join(process.cwd(), 'data', 'database.sqlite');
+      const backupPath = path.join(
+        this.backupDir,
+        `backup-${timestamp}.sqlite`,
+      );
+      const dbPath =
+        process.env.DATABASE_URL ||
+        path.join(process.cwd(), 'data', 'database.sqlite');
 
       // Copy the database file
       fs.copyFileSync(dbPath, backupPath);
@@ -47,7 +52,7 @@ export class BackupService {
       const now = new Date().getTime();
       const sixHoursInMs = 6 * 60 * 60 * 1000;
 
-      files.forEach(file => {
+      files.forEach((file) => {
         const filePath = path.join(this.backupDir, file);
         const stats = fs.statSync(filePath);
         const age = now - stats.mtime.getTime();
