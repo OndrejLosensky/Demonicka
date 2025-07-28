@@ -67,6 +67,11 @@ export class EventsController {
     return this.eventsService.remove(id);
   }
 
+  @Post('cleanup')
+  cleanup(): Promise<void> {
+    return this.eventsService.cleanup();
+  }
+
   @Put(':id/users/:userId')
   @BypassAuth()
   addUser(
@@ -93,6 +98,16 @@ export class EventsController {
     @Param('userId', ParseUUIDPipe) userId: string,
   ): Promise<Event> {
     return this.eventsService.removeUser(id, userId);
+  }
+
+  @Delete(':id/beers')
+  removeAllEventBeers(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.eventBeersService.removeAllForEvent(id);
+  }
+
+  @Get(':id/beers')
+  getEventBeers(@Param('id', ParseUUIDPipe) id: string): Promise<EventBeer[]> {
+    return this.eventBeersService.findAllForEvent(id);
   }
 
   @Get(':id/users')

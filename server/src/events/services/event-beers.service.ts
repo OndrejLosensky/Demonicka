@@ -143,4 +143,22 @@ export class EventBeersService {
     });
     return lastBeer?.consumedAt || null;
   }
+
+  async findAllForEvent(eventId: string): Promise<EventBeer[]> {
+    return this.eventBeerRepository.find({
+      where: { eventId },
+      order: { consumedAt: 'DESC' },
+    });
+  }
+
+  async removeAllForEvent(eventId: string): Promise<void> {
+    const eventBeers = await this.eventBeerRepository.find({
+      where: { eventId },
+    });
+
+    if (eventBeers.length > 0) {
+      await this.eventBeerRepository.remove(eventBeers);
+      this.logger.log(`Removed ${eventBeers.length} event beers for event ${eventId}`);
+    }
+  }
 } 

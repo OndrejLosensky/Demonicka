@@ -226,4 +226,22 @@ export class EventsService {
             throw error;
         }
     }
+
+    async cleanup(): Promise<void> {
+        const events = await this.eventRepository.find();
+        
+        for (const event of events) {
+            try {
+                // Remove all event beers first
+                await this.eventBeersService.removeAllForEvent(event.id);
+                
+                // Remove the event
+                await this.eventRepository.remove(event);
+            } catch (error) {
+                console.error(`Failed to cleanup event ${event.id}:`, error);
+            }
+        }
+        
+        this.loggingService.logCleanup('ALL', { eventsDeleted: events.length });
+    }
 } 

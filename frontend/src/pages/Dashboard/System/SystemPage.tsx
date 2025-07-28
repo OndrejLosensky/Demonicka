@@ -25,6 +25,7 @@ import { systemService, type SystemStats } from '../../../services/systemService
 import { userService } from '../../../services/userService';
 import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/system.json';
+import { CleanupSection } from './components/CleanupSection';
 
 const SystemPage: React.FC = () => {
   const [stats, setStats] = useState<SystemStats | null>(null);
@@ -253,6 +254,11 @@ const SystemPage: React.FC = () => {
               </TableContainer>
             </CardContent>
           </Card>
+
+          {/* Cleanup Section */}
+          <Box mt={4}>
+            <CleanupSection onRefresh={loadStats} />
+          </Box>
         </Box>
       )}
     </Box>
