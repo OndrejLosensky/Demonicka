@@ -3,27 +3,25 @@ import {
     Container,
     Typography,
     Box,
-    Paper,
     Grid,
     Card,
     Avatar,
     Chip,
-    Divider,
+    Switch,
+    FormControlLabel,
 } from '@mui/material';
 import {
     LocalBar as BeerIcon,
     Group as GroupIcon,
-    Timer as TimeIcon,
-    TrendingUp as TrendIcon,
-    ShowChart as ChartIcon,
     Storage as BarrelIcon,
     Speed as SpeedIcon,
     EmojiEvents as TrophyIcon,
     TrendingDown as TrendingDownIcon,
     AccessTime as AccessTimeIcon,
 } from '@mui/icons-material';
-import { FaBeer, FaTrophy, FaFire, FaClock } from 'react-icons/fa';
-import { format, subHours, startOfDay, endOfDay, eachHourOfInterval } from 'date-fns';
+import { FaTrophy, FaFire, FaClock } from 'react-icons/fa';
+import { format } from 'date-fns';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { cs } from 'date-fns/locale';
 import { eventService } from '../../services/eventService';
 import { barrelService } from '../../services/barrelService';
@@ -65,19 +63,25 @@ export const Dashboard: React.FC = () => {
         participantsCount: 0,
         eventDuration: '',
     });
+    const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+    const [useCustomDate, setUseCustomDate] = useState(false);
 
     useEffect(() => {
         loadData();
-    }, [selectedEvent?.id]);
+    }, [selectedEvent?.id, selectedDate, useCustomDate]);
 
     const loadData = async () => {
         try {
             setIsLoading(true);
+            
+            // Prepare date parameter for hourly stats
+            const dateParam = useCustomDate && selectedDate ? selectedDate.toISOString().split('T')[0] : undefined;
+            
             const [eventData, barrelsData, dashboardData, hourlyData] = await Promise.all([
                 eventService.getActiveEvent(),
                 barrelService.getAll(),
                 dashboardService.getDashboardStats(selectedEvent?.id),
-                selectedEvent?.id ? dashboardService.getHourlyStats(selectedEvent.id) : Promise.resolve([]),
+                selectedEvent?.id ? dashboardService.getHourlyStats(selectedEvent.id, dateParam) : Promise.resolve([]),
             ]);
 
             setActiveEvent(eventData);
@@ -93,11 +97,6 @@ export const Dashboard: React.FC = () => {
                 }, 0);
 
                 const eventStart = new Date(eventData.startDate);
-                const now = new Date();
-                const hoursSinceStart = Math.max(1, (now.getTime() - eventStart.getTime()) / (1000 * 60 * 60));
-                
-                // Get peak hour's beer count (most beers consumed in a single hour)
-                const peakHourBeers = hourlyData.reduce((max, hour) => hour.count > max ? hour.count : max, 0);
                 
                 setStats({
                     totalBeers: dashboardData.totalBeers,
@@ -259,11 +258,39 @@ export const Dashboard: React.FC = () => {
                 <Grid item xs={12} lg={8}>
                     <Card sx={{ borderRadius: 2, height: 'fit-content' }}>
                         <Box p={3}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                                <AccessTimeIcon sx={{ color: 'primary.main' }} />
-                                <Typography variant="h6" fontWeight="bold">
-                                    Spotřeba piv během dne
-                                </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <AccessTimeIcon sx={{ color: 'primary.main' }} />
+                                    <Typography variant="h6" fontWeight="bold">
+                                        Spotřeba piv během dne
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={useCustomDate}
+                                                onChange={(e) => setUseCustomDate(e.target.checked)}
+                                                size="small"
+                                            />
+                                        }
+                                        label="Vlastní datum"
+                                        sx={{ fontSize: '0.875rem' }}
+                                    />
+                                    {useCustomDate && (
+                                        <DatePicker
+                                            value={selectedDate}
+                                            onChange={(newDate) => setSelectedDate(newDate)}
+                                            format="dd.MM.yyyy"
+                                            slotProps={{
+                                                textField: {
+                                                    size: 'small',
+                                                    sx: { width: 130 }
+                                                }
+                                            }}
+                                        />
+                                    )}
+                                </Box>
                             </Box>
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                 {hourlyStats.map((data, index) => (

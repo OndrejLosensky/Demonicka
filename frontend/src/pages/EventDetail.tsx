@@ -27,6 +27,8 @@ import {
     LocalBar as BeerIcon,
     Group as GroupIcon,
     Timer as TimeIcon,
+    Person as PersonIcon,
+    Storage as BarrelIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
@@ -498,8 +500,8 @@ export const EventDetail: React.FC = () => {
                                             gap: 2,
                                         }}
                                     >
-                                        <Avatar sx={{ bgcolor: '#F3F4F6' }}>
-                                            {user.username.charAt(0).toUpperCase()}
+                                        <Avatar sx={{ bgcolor: '#EEF2FF' }}>
+                                            <PersonIcon sx={{ color: '#6366F1' }} />
                                         </Avatar>
                                         <Box flex={1}>
                                             <Typography fontWeight="bold">
@@ -563,8 +565,8 @@ export const EventDetail: React.FC = () => {
                                             gap: 2,
                                         }}
                                     >
-                                        <Avatar sx={{ bgcolor: '#F3F4F6' }}>
-                                            <FilterIcon />
+                                        <Avatar sx={{ bgcolor: '#FEF3C7' }}>
+                                            <BarrelIcon sx={{ color: '#D97706' }} />
                                         </Avatar>
                                         <Box flex={1}>
                                             <Typography fontWeight="bold">
@@ -666,4 +668,4 @@ export const EventDetail: React.FC = () => {
             </Dialog>
         </Box>
     );
-}; 
+};

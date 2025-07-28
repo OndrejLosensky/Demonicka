@@ -497,21 +497,33 @@ export class DashboardService {
     }
   }
 
-  async getEventHourlyStats(eventId: string): Promise<HourlyStatsDto[]> {
+  async getEventHourlyStats(eventId: string, date?: string): Promise<HourlyStatsDto[]> {
     try {
-      this.logger.log(`Fetching hourly stats for event: ${eventId}`);
+      this.logger.log(`Fetching hourly stats for event: ${eventId}, date: ${date || 'current day'}`);
       
       // Get timezone offset from environment or default to UTC+2
       const timezoneOffset = process.env.TIMEZONE_OFFSET || '+2';
       
-      // Get hourly stats for this event - convert UTC to local time
-      const hourlyStats = await this.eventBeerRepository
+      // Build the query
+      const queryBuilder = this.eventBeerRepository
         .createQueryBuilder('event_beer')
         .select([
           `strftime("%H", datetime(event_beer.consumedAt, "${timezoneOffset} hours")) as hour`,
           'COUNT(*) as count'
         ])
-        .where('event_beer.eventId = :eventId', { eventId })
+        .where('event_beer.eventId = :eventId', { eventId });
+      
+      // Add date filter if provided
+      if (date) {
+        const targetDate = new Date(date);
+        const startOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+        const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+        
+        queryBuilder.andWhere('event_beer.consumedAt >= :startOfDay', { startOfDay })
+                  .andWhere('event_beer.consumedAt < :endOfDay', { endOfDay });
+      }
+      
+      const hourlyStats = await queryBuilder
         .groupBy(`strftime("%H", datetime(event_beer.consumedAt, "${timezoneOffset} hours"))`)
         .orderBy('hour', 'ASC')
         .getRawMany<{ hour: string; count: string }>();

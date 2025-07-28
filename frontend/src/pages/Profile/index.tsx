@@ -10,8 +10,6 @@ import {
   ListItemText,
   ListItemIcon,
   Chip,
-  Tabs,
-  Tab,
   IconButton,
   Tooltip,
   Badge,
@@ -25,7 +23,6 @@ import {
   Wc as GenderIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-  EmojiEvents as TrophyIcon,
 } from '@mui/icons-material';
 import { FaBeer } from 'react-icons/fa';
 import { motion } from 'framer-motion';
@@ -37,44 +34,10 @@ import type { User } from '../../types/user';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
 import translations from '../../locales/cs/profile.json';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`profile-tabpanel-${index}`}
-      aria-labelledby={`profile-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ py: 3 }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
-}
-
-function a11yProps(index: number) {
-  return {
-    id: `profile-tab-${index}`,
-    'aria-controls': `profile-tabpanel-${index}`,
-  };
-}
-
 const ProfilePageComponent: React.FC = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<User | null>(null);
-  const [tabValue, setTabValue] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
@@ -92,10 +55,6 @@ const ProfilePageComponent: React.FC = () => {
 
     fetchData();
   }, []);
-
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -164,7 +123,7 @@ const ProfilePageComponent: React.FC = () => {
                   {displayData.name}
                 </Typography>
                 <Typography variant="subtitle1" className="text-text-secondary">
-                  {translations.accountInfo}
+                  {translations.tabs.basicInfo}
                 </Typography>
                 <Box display="flex" gap={1} mt={1}>
                   <Chip 
@@ -205,129 +164,93 @@ const ProfilePageComponent: React.FC = () => {
 
           <Divider className="my-4" />
 
-          <Tabs value={tabValue} onChange={handleTabChange} aria-label="profile tabs">
-            <Tab label={translations.tabs.basicInfo} {...a11yProps(0)} />
-            <Tab label={translations.tabs.activity} {...a11yProps(1)} />
-            <Tab label="Úspěchy" {...a11yProps(2)} />
-          </Tabs>
+          <List className="space-y-2">
+            <ListItem>
+              <ListItemIcon>
+                <PersonIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText
+                primary={translations.basicInfo.username}
+                secondary={displayData.username}
+                primaryTypographyProps={{
+                  className: "text-text-secondary font-medium"
+                }}
+                secondaryTypographyProps={{
+                  className: "text-text-primary font-bold"
+                }}
+              />
+            </ListItem>
+
+            <ListItem>
+              <ListItemIcon>
+                <BadgeIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText
+                primary={translations.basicInfo.fullName}
+                secondary={displayData.name}
+                primaryTypographyProps={{
+                  className: "text-text-secondary font-medium"
+                }}
+                secondaryTypographyProps={{
+                  className: "text-text-primary font-bold"
+                }}
+              />
+            </ListItem>
+
+            <ListItem>
+              <ListItemIcon>
+                <GenderIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText
+                primary={translations.basicInfo.gender}
+                secondary={
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <span>{getGenderIcon(displayData.gender)}</span>
+                    <span>{translations.gender[displayData.gender]}</span>
+                  </Box>
+                }
+                primaryTypographyProps={{
+                  className: "text-text-secondary font-medium"
+                }}
+                secondaryTypographyProps={{
+                  className: "text-text-primary"
+                }}
+              />
+            </ListItem>
+
+            <ListItem>
+              <ListItemIcon>
+                <FingerprintIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText
+                primary={translations.basicInfo.userId}
+                secondary={displayData.id}
+                primaryTypographyProps={{
+                  className: "text-text-secondary font-medium"
+                }}
+                secondaryTypographyProps={{
+                  className: "text-text-primary font-mono"
+                }}
+              />
+            </ListItem>
+
+            <ListItem>
+              <ListItemIcon>
+                <CalendarIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText
+                primary={translations.basicInfo.accountCreated}
+                secondary={format(new Date(displayData.createdAt), 'PPpp', { locale: cs })}
+                primaryTypographyProps={{
+                  className: "text-text-secondary font-medium"
+                }}
+                secondaryTypographyProps={{
+                  className: "text-text-primary"
+                }}
+              />
+            </ListItem>
+          </List>
         </Paper>
-
-        {/* Tab Content */}
-        <TabPanel value={tabValue} index={0}>
-          <Paper className="p-6 rounded-xl shadow-lg">
-            <List className="space-y-2">
-              <ListItem>
-                <ListItemIcon>
-                  <PersonIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary={translations.basicInfo.username}
-                  secondary={displayData.username}
-                  primaryTypographyProps={{
-                    className: "text-text-secondary font-medium"
-                  }}
-                  secondaryTypographyProps={{
-                    className: "text-text-primary font-bold"
-                  }}
-                />
-              </ListItem>
-
-              <ListItem>
-                <ListItemIcon>
-                  <BadgeIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary={translations.basicInfo.fullName}
-                  secondary={displayData.name}
-                  primaryTypographyProps={{
-                    className: "text-text-secondary font-medium"
-                  }}
-                  secondaryTypographyProps={{
-                    className: "text-text-primary font-bold"
-                  }}
-                />
-              </ListItem>
-
-              <ListItem>
-                <ListItemIcon>
-                  <GenderIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary={translations.basicInfo.gender}
-                  secondary={
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <span>{getGenderIcon(displayData.gender)}</span>
-                      <span>{translations.gender[displayData.gender]}</span>
-                    </Box>
-                  }
-                  primaryTypographyProps={{
-                    className: "text-text-secondary font-medium"
-                  }}
-                  secondaryTypographyProps={{
-                    className: "text-text-primary"
-                  }}
-                />
-              </ListItem>
-
-              <ListItem>
-                <ListItemIcon>
-                  <FingerprintIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary={translations.basicInfo.userId}
-                  secondary={displayData.id}
-                  primaryTypographyProps={{
-                    className: "text-text-secondary font-medium"
-                  }}
-                  secondaryTypographyProps={{
-                    className: "text-text-primary font-mono"
-                  }}
-                />
-              </ListItem>
-
-              <ListItem>
-                <ListItemIcon>
-                  <CalendarIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary={translations.basicInfo.accountCreated}
-                  secondary={format(new Date(displayData.createdAt), 'PPpp', { locale: cs })}
-                  primaryTypographyProps={{
-                    className: "text-text-secondary font-medium"
-                  }}
-                  secondaryTypographyProps={{
-                    className: "text-text-primary"
-                  }}
-                />
-              </ListItem>
-            </List>
-          </Paper>
-        </TabPanel>
-
-        <TabPanel value={tabValue} index={1}>
-          <Paper className="p-6 rounded-xl shadow-lg">
-            <Typography variant="h6" gutterBottom>
-              {translations.activity.title}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Historie aktivit bude brzy dostupná...
-            </Typography>
-          </Paper>
-        </TabPanel>
-
-        <TabPanel value={tabValue} index={2}>
-          <Paper className="p-6 rounded-xl shadow-lg">
-            <Box display="flex" alignItems="center" gap={2} mb={3}>
-              <TrophyIcon color="primary" />
-              <Typography variant="h6">
-                Úspěchy
-              </Typography>
-            </Box>
-            <Typography variant="body2" color="text.secondary">
-              Systém úspěchů bude brzy dostupný...
-            </Typography>
-          </Paper>
-        </TabPanel>
       </Box>
     </motion.div>
   );

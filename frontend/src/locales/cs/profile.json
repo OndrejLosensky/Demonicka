@@ -4,7 +4,6 @@
   "tabs": {
     "basicInfo": "Základní informace",
     "statistics": "Statistiky",
-    "activity": "Aktivita",
     "settings": "Nastavení"
   },
   "basicInfo": {
@@ -30,13 +29,6 @@
     "longestBreak": "Nejdelší pauza",
     "firstBeer": "První pivo",
     "lastBeer": "Poslední pivo"
-  },
-  "activity": {
-    "title": "Historie aktivit",
-    "hourlyDistribution": "Rozložení po hodinách",
-    "dailyStats": "Denní statistiky",
-    "eventHistory": "Historie událostí",
-    "noActivity": "Zatím žádná aktivita"
   },
   "settings": {
     "title": "Nastavení účtu",

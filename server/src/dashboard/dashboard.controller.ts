@@ -75,7 +75,8 @@ export class DashboardController {
   @Header('Cache-Control', 'public, max-age=30')
   async getEventHourlyStats(
     @Query('eventId') eventId: string,
+    @Query('date') date?: string,
   ): Promise<HourlyStatsDto[]> {
-    return this.dashboardService.getEventHourlyStats(eventId);
+    return this.dashboardService.getEventHourlyStats(eventId, date);
   }
 }

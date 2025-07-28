@@ -43,12 +43,16 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
 
     try {
       setIsSubmitting(true);
-      // Get all barrels including deleted ones to get correct order number
-      const [activeBarrels, deletedBarrels] = await Promise.all([
-        barrelService.getAll(),
-        barrelService.getDeleted()
-      ]);
-      const orderNumber = activeBarrels.length + deletedBarrels.length + 1;
+      // Get all barrels to find the next available order number
+      const allBarrels = await barrelService.getAll(true); // include deleted
+      
+      // Find the next available order number by looking for gaps
+      let orderNumber = 1;
+      const usedNumbers = new Set(allBarrels.map(barrel => barrel.orderNumber));
+      
+      while (usedNumbers.has(orderNumber)) {
+        orderNumber++;
+      }
       const barrel = await barrelService.create({ size, orderNumber });
 
       // If there's an active event, automatically add the barrel to it

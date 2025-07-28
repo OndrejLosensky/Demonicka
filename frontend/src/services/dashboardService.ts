@@ -26,9 +26,13 @@ export const dashboardService = {
     return response.data;
   },
 
-  async getHourlyStats(eventId: string): Promise<HourlyStats[]> {
+  async getHourlyStats(eventId: string, date?: string): Promise<HourlyStats[]> {
+    const params: { eventId: string; date?: string } = { eventId };
+    if (date) {
+      params.date = date;
+    }
     const response = await api.get('/dashboard/hourly-stats', {
-      params: { eventId }
+      params
     });
     return response.data;
   },
