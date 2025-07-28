@@ -8,6 +8,7 @@ import {
     Card,
     Avatar,
     Chip,
+    Divider,
 } from '@mui/material';
 import {
     LocalBar as BeerIcon,
@@ -15,15 +16,23 @@ import {
     Timer as TimeIcon,
     TrendingUp as TrendIcon,
     ShowChart as ChartIcon,
+    Storage as BarrelIcon,
+    Speed as SpeedIcon,
+    EmojiEvents as TrophyIcon,
+    TrendingDown as TrendingDownIcon,
+    AccessTime as AccessTimeIcon,
 } from '@mui/icons-material';
-import { FaBeer } from 'react-icons/fa';
-import { format } from 'date-fns';
+import { FaBeer, FaTrophy, FaFire, FaClock } from 'react-icons/fa';
+import { format, subHours, startOfDay, endOfDay, eachHourOfInterval } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { eventService } from '../../services/eventService';
 import { barrelService } from '../../services/barrelService';
 import { dashboardService } from '../../services/dashboardService';
+import { ActiveBarrelGraph } from './Barrels/ActiveBarrelGraph';
 import type { Event } from '../../types/event';
 import type { DashboardStats } from '../../types/dashboard';
+import type { HourlyStats } from '../../types/hourlyStats';
+import type { Barrel } from '../../types/barrel';
 import translations from '../../locales/cs/dashboard.json';
 import { useSelectedEvent } from '../../contexts/SelectedEventContext';
 import { useFeatureFlag } from '../../hooks/useFeatureFlag';
@@ -45,6 +54,8 @@ export const Dashboard: React.FC = () => {
         topUsers: [],
         barrelStats: [],
     });
+    const [hourlyStats, setHourlyStats] = useState<HourlyStats[]>([]);
+    const [barrels, setBarrels] = useState<Barrel[]>([]);
     const [stats, setStats] = useState({
         totalBeers: 0,
         activeBarrels: 0,
@@ -62,14 +73,17 @@ export const Dashboard: React.FC = () => {
     const loadData = async () => {
         try {
             setIsLoading(true);
-            const [eventData, barrelsData, dashboardData] = await Promise.all([
+            const [eventData, barrelsData, dashboardData, hourlyData] = await Promise.all([
                 eventService.getActiveEvent(),
                 barrelService.getAll(),
                 dashboardService.getDashboardStats(selectedEvent?.id),
+                selectedEvent?.id ? dashboardService.getHourlyStats(selectedEvent.id) : Promise.resolve([]),
             ]);
 
             setActiveEvent(eventData);
             setDashboardStats(dashboardData);
+            setBarrels(barrelsData);
+            setHourlyStats(hourlyData);
 
             if (eventData) {
                 const activeBarrels = barrelsData.filter(b => b.isActive).length;
@@ -82,6 +96,9 @@ export const Dashboard: React.FC = () => {
                 const now = new Date();
                 const hoursSinceStart = Math.max(1, (now.getTime() - eventStart.getTime()) / (1000 * 60 * 60));
                 
+                // Get peak hour's beer count (most beers consumed in a single hour)
+                const peakHourBeers = hourlyData.reduce((max, hour) => hour.count > max ? hour.count : max, 0);
+                
                 setStats({
                     totalBeers: dashboardData.totalBeers,
                     activeBarrels,
@@ -89,7 +106,7 @@ export const Dashboard: React.FC = () => {
                     topDrinker: dashboardData.topUsers[0] ? 
                         { username: dashboardData.topUsers[0].username, count: dashboardData.topUsers[0].beerCount } : 
                         { username: null, count: 0 },
-                    averageBeersPerHour: dashboardData.totalBeers / hoursSinceStart,
+                    averageBeersPerHour: dashboardData.totalUsers > 0 ? (dashboardData.totalBeers / dashboardData.totalUsers) : 0,
                     participantsCount: dashboardData.totalUsers,
                     eventDuration: format(eventStart, 'PPp', { locale: cs }),
                 });
@@ -116,56 +133,36 @@ export const Dashboard: React.FC = () => {
         return <PageLoader message="Načítání dashboardu..." />;
     }
 
+    // Get active barrel
+    const activeBarrel = barrels.find(barrel => barrel.isActive);
+
+    // Process hourly data
+    const peakHour = hourlyStats.reduce((max, current) => 
+        current.count > max.count ? current : max, 
+        { hour: 0, count: 0 }
+    );
+
+    // Fun statistics
+    const funStats = {
+        fastestDrinker: dashboardStats.topUsers[0]?.username || 'Nikdo',
+        mostActiveHour: peakHour.count > 0 ? `${peakHour.hour.toString().padStart(2, '0')}:00` : 'Žádná data',
+        beersInPeakHour: peakHour.count,
+        averagePerPerson: stats.participantsCount > 0 ? (stats.totalBeers / stats.participantsCount).toFixed(1) : '0',
+        peakHourBeers: peakHour.count,
+        efficiency: stats.remainingBeers > 0 ? ((stats.totalBeers / (stats.totalBeers + stats.remainingBeers)) * 100).toFixed(1) : '0',
+    };
+
     return (
         <Box p={3}>
-            {/* Event Header Card */}
-            <Paper
-                elevation={0}
-                sx={{
-                    p: 4,
-                    mb: 4,
-                    background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
-                    color: 'white',
-                    borderRadius: 2,
-                    position: 'relative',
-                    overflow: 'hidden',
-                }}
-            >
-                <Box sx={{ position: 'relative', zIndex: 1 }}>
-                    <Box display="flex" alignItems="center" gap={2} mb={2}>
-                        {showEventHistory && <EventSelector />}
-                    </Box>
-                    <Typography variant="h4" fontWeight="bold" gutterBottom>
-                        {activeEvent.name}
-                    </Typography>
-                    <Typography variant="subtitle1" sx={{ opacity: 0.9, mb: 3 }}>
-                        {activeEvent.description}
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 3, color: 'rgba(255, 255, 255, 0.9)' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <TimeIcon />
-                            <Typography>{stats.eventDuration}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <GroupIcon />
-                            <Typography>{stats.participantsCount} {translations.stats.participants}</Typography>
-                        </Box>
-                    </Box>
+            {/* Header Section */}
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                <Box display="flex" alignItems="center" gap={2}>
+                    <Typography variant="h4">{translations.title}</Typography>
+                    {showEventHistory && <EventSelector />}
                 </Box>
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        right: -100,
-                        bottom: -100,
-                        width: 400,
-                        height: 400,
-                        borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)',
-                    }}
-                />
-            </Paper>
+            </Box>
 
-            {/* Statistics Cards */}
+            {/* Main Statistics Cards */}
             <Grid container spacing={3} mb={4}>
                 <Grid item xs={12} sm={6} md={3}>
                     <Card sx={{ p: 3, height: '100%', borderRadius: 2 }}>
@@ -174,12 +171,12 @@ export const Dashboard: React.FC = () => {
                                 width: 40, 
                                 height: 40, 
                                 borderRadius: '50%', 
-                                bgcolor: '#EEF2FF',
+                                bgcolor: 'primary.main',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center'
                             }}>
-                                <BeerIcon sx={{ color: '#6366F1' }} />
+                                <BeerIcon sx={{ color: 'white' }} />
                             </Box>
                             <Typography color="text.secondary">{translations.stats.totalBeers}</Typography>
                         </Box>
@@ -196,12 +193,12 @@ export const Dashboard: React.FC = () => {
                                 width: 40, 
                                 height: 40, 
                                 borderRadius: '50%', 
-                                bgcolor: '#FEF2F2',
+                                bgcolor: 'error.main',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center'
                             }}>
-                                <ChartIcon sx={{ color: '#DC2626' }} />
+                                <SpeedIcon sx={{ color: 'white' }} />
                             </Box>
                             <Typography color="text.secondary">{translations.stats.averagePerHour}</Typography>
                         </Box>
@@ -218,12 +215,12 @@ export const Dashboard: React.FC = () => {
                                 width: 40, 
                                 height: 40, 
                                 borderRadius: '50%', 
-                                bgcolor: '#F0FDF4',
+                                bgcolor: 'success.main',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center'
                             }}>
-                                <TrendIcon sx={{ color: '#16A34A' }} />
+                                <BarrelIcon sx={{ color: 'white' }} />
                             </Box>
                             <Typography color="text.secondary">{translations.barrelStatus.remainingBeers}</Typography>
                         </Box>
@@ -240,12 +237,12 @@ export const Dashboard: React.FC = () => {
                                 width: 40, 
                                 height: 40, 
                                 borderRadius: '50%', 
-                                bgcolor: '#FEF3C7',
+                                bgcolor: 'warning.main',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center'
                             }}>
-                                <GroupIcon sx={{ color: '#D97706' }} />
+                                <GroupIcon sx={{ color: 'white' }} />
                             </Box>
                             <Typography color="text.secondary">{translations.stats.totalParticipants}</Typography>
                         </Box>
@@ -256,60 +253,194 @@ export const Dashboard: React.FC = () => {
                 </Grid>
             </Grid>
 
-            {/* Top Users */}
-            <Card sx={{ borderRadius: 2 }}>
-                <Box p={3}>
-                    <Typography variant="h6" fontWeight="bold" mb={3}>
-                        {translations.overview.charts.topUsers.title}
-                    </Typography>
-                    <Grid container spacing={2}>
-                        {dashboardStats.topUsers.map((user, index) => (
-                            <Grid item xs={12} sm={6} md={4} key={user.id}>
-                                <Box
-                                    sx={{
-                                        p: 2,
-                                        border: '1px solid',
-                                        borderColor: 'divider',
-                                        borderRadius: 2,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 2,
-                                    }}
-                                >
-                                    <Avatar sx={{ bgcolor: index === 0 ? '#FEF3C7' : '#F3F4F6' }}>
-                                        {user.username.charAt(0).toUpperCase()}
-                                    </Avatar>
-                                    <Box flex={1}>
-                                        <Box display="flex" alignItems="center" gap={1}>
-                                            <Typography fontWeight="bold">
-                                                {user.username}
-                                            </Typography>
-                                            {index === 0 && (
-                                                <Chip
-                                                    label={translations.stats.topDrinker}
-                                                    size="small"
-                                                    sx={{
-                                                        bgcolor: 'warning.light',
-                                                        color: 'warning.dark',
-                                                        fontWeight: 'bold',
-                                                        fontSize: '0.75rem',
-                                                    }}
-                                                />
-                                            )}
-                                        </Box>
-                                        <Box display="flex" alignItems="center" gap={1}>
-                                            <FaBeer style={{ fontSize: '1rem', opacity: 0.5 }} />
-                                            <Typography variant="body2" color="text.secondary">
-                                                {user.beerCount} {translations.stats.beers}
+            {/* Charts and Analytics Section */}
+            <Grid container spacing={3} mb={4}>
+                {/* Hourly Beer Consumption Chart */}
+                <Grid item xs={12} lg={8}>
+                    <Card sx={{ borderRadius: 2, height: 'fit-content' }}>
+                        <Box p={3}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                                <AccessTimeIcon sx={{ color: 'primary.main' }} />
+                                <Typography variant="h6" fontWeight="bold">
+                                    Spotřeba piv během dne
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                {hourlyStats.map((data, index) => (
+                                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 0.5 }}>
+                                        <Typography variant="body2" sx={{ minWidth: 60, fontWeight: 'bold' }}>
+                                            {data.hour.toString().padStart(2, '0')}:00
+                                        </Typography>
+                                        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <Box
+                                                sx={{
+                                                    height: 16,
+                                                    width: `${hourlyStats.length > 0 && Math.max(...hourlyStats.map(d => d.count)) > 0 ? (data.count / Math.max(...hourlyStats.map(d => d.count))) * 100 : 0}%`,
+                                                    bgcolor: data.hour === peakHour.hour ? 'error.main' : 'primary.main',
+                                                    borderRadius: 1,
+                                                    transition: 'width 0.3s ease',
+                                                    minWidth: data.count > 0 ? 4 : 0,
+                                                }}
+                                            />
+                                            <Typography variant="body2" color="text.secondary" sx={{ minWidth: 50 }}>
+                                                {data.count} piv
                                             </Typography>
                                         </Box>
                                     </Box>
+                                ))}
+                            </Box>
+                        </Box>
+                    </Card>
+                </Grid>
+
+                {/* Right Sidebar - Active Barrel Chart and Fun Statistics */}
+                <Grid item xs={12} lg={4}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        {/* Active Barrel Chart */}
+                        <Card sx={{ borderRadius: 2 }}>
+                            <Box p={3}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                                    <BarrelIcon sx={{ color: 'primary.main' }} />
+                                    <Typography variant="h6" fontWeight="bold">
+                                        Aktivní sud
+                                    </Typography>
                                 </Box>
+                                <ActiveBarrelGraph barrel={activeBarrel} />
+                            </Box>
+                        </Card>
+
+                        {/* Fun Statistics */}
+                        <Card sx={{ borderRadius: 2 }}>
+                            <Box p={3}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                                    <FaFire style={{ color: '#ff6b35', fontSize: '1.5rem' }} />
+                                    <Typography variant="h6" fontWeight="bold">
+                                        Zajímavé statistiky
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, bgcolor: 'primary.50', borderRadius: 1 }}>
+                                        <FaTrophy style={{ color: '#ffd700' }} />
+                                        <Box>
+                                            <Typography variant="body2" color="text.secondary">Nejrychlejší pivař</Typography>
+                                            <Typography variant="body1" fontWeight="bold">{funStats.fastestDrinker}</Typography>
+                                        </Box>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, bgcolor: 'error.50', borderRadius: 1 }}>
+                                        <FaClock style={{ color: '#ff6b35' }} />
+                                        <Box>
+                                            <Typography variant="body2" color="text.secondary">Nejaktivnější hodina</Typography>
+                                            <Typography variant="body1" fontWeight="bold">{funStats.mostActiveHour} ({funStats.beersInPeakHour} piv)</Typography>
+                                        </Box>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, bgcolor: 'warning.50', borderRadius: 1 }}>
+                                        <TrendingDownIcon sx={{ color: 'warning.main' }} />
+                                        <Box>
+                                            <Typography variant="body2" color="text.secondary">Efektivita spotřeby</Typography>
+                                            <Typography variant="body1" fontWeight="bold">{funStats.efficiency}%</Typography>
+                                        </Box>
+                                    </Box>
+                                </Box>
+                            </Box>
+                        </Card>
+
+                        {/* Barrel Statistics */}
+                        <Card sx={{ borderRadius: 2 }}>
+                            <Box p={2}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                                    <BarrelIcon sx={{ color: 'primary.main', fontSize: '1.2rem' }} />
+                                    <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1rem' }}>
+                                        Statistiky sudů
+                                    </Typography>
+                                </Box>
+                                {dashboardStats.barrelStats.length > 0 ? (
+                                    <Grid container spacing={0.5}>
+                                        {dashboardStats.barrelStats.map((stat, index) => (
+                                            <Grid item xs={4} key={index}>
+                                                <Box sx={{ 
+                                                    p: 1, 
+                                                    textAlign: 'center', 
+                                                    border: 1, 
+                                                    borderColor: 'divider', 
+                                                    borderRadius: 1,
+                                                    bgcolor: 'background.paper'
+                                                }}>
+                                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                                                        {stat.size}L
+                                                    </Typography>
+                                                    <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1.1rem' }}>
+                                                        {stat.count}
+                                                    </Typography>
+                                                </Box>
+                                            </Grid>
+                                        ))}
+                                    </Grid>
+                                ) : (
+                                    <Box sx={{ p: 1.5, textAlign: 'center', border: '2px dashed', borderColor: 'divider', borderRadius: 1 }}>
+                                        <Typography variant="caption" color="text.secondary">Žádné sudy</Typography>
+                                    </Box>
+                                )}
+                            </Box>
+                        </Card>
+                    </Box>
+                </Grid>
+            </Grid>
+
+            {/* Top Users Section - Full Width */}
+            <Grid container spacing={3} mb={4}>
+                <Grid item xs={12}>
+                    <Card sx={{ borderRadius: 2 }}>
+                        <Box p={3}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                                <TrophyIcon sx={{ color: 'primary.main' }} />
+                                <Typography variant="h6" fontWeight="bold">
+                                    Nejlepší uživatelé
+                                </Typography>
+                            </Box>
+                            <Grid container spacing={2}>
+                                {dashboardStats.topUsers.map((user, index) => (
+                                    <Grid item xs={12} sm={6} md={3} key={user.id}>
+                                        <Box sx={{ 
+                                            p: 2, 
+                                            border: 1, 
+                                            borderColor: 'divider', 
+                                            borderRadius: 2, 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: 2,
+                                            background: index === 0 ? 'primary.50' : 'background.paper'
+                                        }}>
+                                            <Avatar 
+                                                sx={{ 
+                                                    width: 40, 
+                                                    height: 40, 
+                                                    bgcolor: index === 0 ? 'primary.main' : 'grey.500',
+                                                    fontSize: '0.9rem',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                {user.username.charAt(0).toUpperCase()}
+                                            </Avatar>
+                                            <Box sx={{ flex: 1 }}>
+                                                <Typography variant="body1" fontWeight="bold">{user.username}</Typography>
+                                                <Typography variant="body2" color="text.secondary">{user.beerCount} piv</Typography>
+                                            </Box>
+                                            {index === 0 && (
+                                                <Chip 
+                                                    label="Největší pivař" 
+                                                    size="small" 
+                                                    color="warning" 
+                                                    sx={{ fontSize: '0.7rem' }}
+                                                />
+                                            )}
+                                        </Box>
+                                    </Grid>
+                                ))}
                             </Grid>
-                        ))}
-                    </Grid>
-                </Box>
-            </Card>
+                        </Box>
+                    </Card>
+                </Grid>
+            </Grid>
         </Box>
     );
 }; 

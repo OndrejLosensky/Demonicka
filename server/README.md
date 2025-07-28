@@ -96,3 +96,18 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+# Server
+
+## Timezone Configuration
+
+The server uses UTC timestamps in the database but displays statistics in local time. To configure your local timezone:
+
+Set the `TIMEZONE_OFFSET` environment variable:
+- `TIMEZONE_OFFSET=+2` for UTC+2 (Central European Summer Time)
+- `TIMEZONE_OFFSET=-5` for UTC-5 (Eastern Standard Time)
+- `TIMEZONE_OFFSET=+0` for UTC
+
+Default is `+2` (Central European Summer Time).
+
+## Installation

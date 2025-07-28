@@ -1,18 +1,34 @@
 import { api } from './api';
 import type { DashboardStats } from '../types/dashboard';
 import type { PublicStats } from '../types/public';
+import type { LeaderboardData } from '../types/leaderboard';
+import type { HourlyStats } from '../types/hourlyStats';
 
 export const dashboardService = {
   async getDashboardStats(eventId?: string): Promise<DashboardStats> {
     const response = await api.get('/dashboard/overview', {
-      params: { eventId },
+      params: { eventId }
     });
     return response.data;
   },
 
   async getPublicStats(eventId?: string): Promise<PublicStats> {
     const response = await api.get('/dashboard/public', {
-      params: { eventId },
+      params: { eventId }
+    });
+    return response.data;
+  },
+
+  async getLeaderboard(eventId?: string): Promise<LeaderboardData> {
+    const response = await api.get('/dashboard/leaderboard', {
+      params: { eventId }
+    });
+    return response.data;
+  },
+
+  async getHourlyStats(eventId: string): Promise<HourlyStats[]> {
+    const response = await api.get('/dashboard/hourly-stats', {
+      params: { eventId }
     });
     return response.data;
   },

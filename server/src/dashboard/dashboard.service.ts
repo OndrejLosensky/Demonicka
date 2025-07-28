@@ -451,15 +451,18 @@ export class DashboardService {
         const contribution = totalEventBeers > 0 ? (userBeers / totalEventBeers) * 100 : 0;
 
         // Get hourly stats for this event
+        const timezoneOffset = process.env.TIMEZONE_OFFSET || '+2';
+        
+        // Get hourly stats for this event
         const hourlyStats = await this.eventBeerRepository
           .createQueryBuilder('event_beer')
           .select([
-            'strftime("%H", event_beer.consumedAt) as hour',
+            `strftime("%H", datetime(event_beer.consumedAt, "${timezoneOffset} hours")) as hour`,
             'COUNT(*) as count'
           ])
           .where('event_beer.eventId = :eventId', { eventId: event.id })
           .andWhere('event_beer.userId = :userId', { userId })
-          .groupBy('strftime("%H", event_beer.consumedAt)')
+          .groupBy(`strftime("%H", datetime(event_beer.consumedAt, "${timezoneOffset} hours"))`)
           .orderBy('hour', 'ASC')
           .getRawMany<{ hour: string; count: string }>();
 
@@ -490,6 +493,48 @@ export class DashboardService {
       };
     } catch (error) {
       this.logger.error('Failed to fetch personal stats', error);
+      throw error;
+    }
+  }
+
+  async getEventHourlyStats(eventId: string): Promise<HourlyStatsDto[]> {
+    try {
+      this.logger.log(`Fetching hourly stats for event: ${eventId}`);
+      
+      // Get timezone offset from environment or default to UTC+2
+      const timezoneOffset = process.env.TIMEZONE_OFFSET || '+2';
+      
+      // Get hourly stats for this event - convert UTC to local time
+      const hourlyStats = await this.eventBeerRepository
+        .createQueryBuilder('event_beer')
+        .select([
+          `strftime("%H", datetime(event_beer.consumedAt, "${timezoneOffset} hours")) as hour`,
+          'COUNT(*) as count'
+        ])
+        .where('event_beer.eventId = :eventId', { eventId })
+        .groupBy(`strftime("%H", datetime(event_beer.consumedAt, "${timezoneOffset} hours"))`)
+        .orderBy('hour', 'ASC')
+        .getRawMany<{ hour: string; count: string }>();
+
+      const formattedHourlyStats: HourlyStatsDto[] = hourlyStats.map(stat => ({
+        hour: parseInt(stat.hour),
+        count: parseInt(stat.count)
+      }));
+
+      // Fill in missing hours with 0 count
+      const allHours = Array.from({ length: 24 }, (_, i) => i);
+      const existingHours = formattedHourlyStats.map(h => h.hour);
+      
+      const missingHours = allHours.filter(hour => !existingHours.includes(hour));
+      const completeHourlyStats = [
+        ...formattedHourlyStats,
+        ...missingHours.map(hour => ({ hour, count: 0 }))
+      ].sort((a, b) => a.hour - b.hour);
+
+      this.logger.log(`Hourly stats fetched: ${completeHourlyStats.length} hours with timezone offset ${timezoneOffset}`);
+      return completeHourlyStats;
+    } catch (error) {
+      this.logger.error('Failed to fetch hourly stats', error);
       throw error;
     }
   }

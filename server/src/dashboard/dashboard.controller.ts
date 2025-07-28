@@ -15,6 +15,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/enums/user-role.enum';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
+import { HourlyStatsDto } from './dto/personal-stats.dto';
 
 @Controller('dashboard')
 @Versions('1')
@@ -66,5 +67,15 @@ export class DashboardController {
   @Header('Cache-Control', 'no-store')
   async getPersonalStats(@CurrentUser() user: User): Promise<PersonalStatsDto> {
     return this.dashboardService.getPersonalStats(user.id);
+  }
+
+  @Get('hourly-stats')
+  @Public()
+  @BypassAuth()
+  @Header('Cache-Control', 'public, max-age=30')
+  async getEventHourlyStats(
+    @Query('eventId') eventId: string,
+  ): Promise<HourlyStatsDto[]> {
+    return this.dashboardService.getEventHourlyStats(eventId);
   }
 }
