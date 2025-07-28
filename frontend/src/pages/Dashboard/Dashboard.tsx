@@ -74,8 +74,8 @@ export const Dashboard: React.FC = () => {
             if (eventData) {
                 const activeBarrels = barrelsData.filter(b => b.isActive).length;
                 const remainingBeers = barrelsData.reduce((sum, barrel) => {
-                    if (!barrel.isActive) return sum + barrel.remainingBeers;
-                    return sum + barrel.remainingBeers;
+                    if (barrel.isActive) return sum + barrel.remainingBeers;
+                    return sum;
                 }, 0);
 
                 const eventStart = new Date(eventData.startDate);

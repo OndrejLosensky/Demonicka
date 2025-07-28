@@ -26,6 +26,7 @@ import { userService } from '../../../services/userService';
 import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/system.json';
 import { CleanupSection } from './components/CleanupSection';
+import { SystemHealthDashboard } from './components/SystemHealthDashboard';
 
 const SystemPage: React.FC = () => {
   const [stats, setStats] = useState<SystemStats | null>(null);
@@ -254,6 +255,11 @@ const SystemPage: React.FC = () => {
               </TableContainer>
             </CardContent>
           </Card>
+
+          {/* System Health Dashboard */}
+          <Box mt={4}>
+            <SystemHealthDashboard onRefresh={loadStats} />
+          </Box>
 
           {/* Cleanup Section */}
           <Box mt={4}>
