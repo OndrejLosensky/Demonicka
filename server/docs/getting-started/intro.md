@@ -31,9 +31,16 @@ Hlavní rozhraní aplikace poskytuje:
 - Správu účastníků
 - Vizualizaci dat
 
-## Co dál?
+## Jak začít
 
 Pro začátek doporučujeme:
-1. Přečtěte si sekci [První kroky](first-steps.md)
-2. Seznamte se se [Správou uživatelů](user-management.md)
-3. Naučte se [vytvářet události](events.md)
+1. **Vytvořit událost** - Nastavte základní parametry vaší události
+2. **Přidat účastníky** - Zaregistrujte účastníky a aktivujte jejich účty
+3. **Spravovat sudy** - Přidejte sudy a sledujte jejich spotřebu
+
+## Co dál?
+
+Pro detailní návody pokračujte na:
+1. [Vytvoření události](create-event.md)
+2. [Přidání uživatelů](add-users.md)
+3. [Uživatelská příručka](../user-guide/dashboard.md)

@@ -1,93 +1,169 @@
-# Žebříček
+# Sudy
 
-Průvodce systémem žebříčku a bodování v aplikaci Démonická.
+Systém správy sudů je klíčovou funkcí aplikace Démonická. Tento návod vám ukáže, jak efektivně spravovat sudy a sledovat jejich spotřebu.
 
-## Přehled žebříčku
+## Co jsou sudy?
 
-### Základní informace
-- Aktuální pořadí účastníků
-- Bodový systém
-- Historie výsledků
-- Speciální ocenění
+Sudy představují jednotky piva, které jsou k dispozici pro konzumaci během události:
+- **Fyzické sudy** - Skutečné sudy s pivem
+- **Virtuální sudy** - Digitální reprezentace
+- **Různé velikosti** - Od malých po velké sudy
+- **Různé druhy piva** - Světlé, tmavé, speciální
 
-### Zobrazení žebříčku
-- Celkové pořadí
-- Filtrování podle období
-- Detailní statistiky
-- Exporty dat
+## Správa sudů
 
-## Bodový systém
+### Přidání sudu
+1. Přejděte do sekce **"Sudy"**
+2. Klikněte na **"Přidat sud"**
+3. Vyplňte údaje:
+   - **Název sudu** - Identifikace sudu
+   - **Velikost** - Objem v litrech
+   - **Typ piva** - Druh piva
+   - **Počáteční množství** - Kolik je k dispozici
+4. Uložte sud
 
-### Základní bodování
-- 1 pivo = 1 bod
-- Bonusové body za rychlost
-- Penalizace za pauzy
-- Speciální události
+### Úprava sudu
+- **Změna názvu** - Upravit identifikaci
+- **Aktualizace množství** - Změnit dostupné množství
+- **Změna typu** - Upravit druh piva
+- **Poznámky** - Přidat dodatečné informace
 
-### Bonusové body
-- Prvních 5 piv v řadě
-- Nejvyšší rychlost
-- Pravidelnost konzumace
-- Týmové bonusy
+### Odstranění sudu
+- **Deaktivace** - Dočasné odstranění
+- **Trvalé smazání** - Kompletní odstranění
+- **Archivace** - Uložení do historie
 
-## Statistiky a metriky
+## Sledování spotřeby
 
-### Osobní statistiky
-- Celkový počet bodů
-- Průměrné body za událost
-- Nejlepší výsledky
-- Získané odznaky
+### Reálný čas
+- **Aktuální stav** - Kolik zbývá
+- **Rychlost spotřeby** - Litry za hodinu
+- **Předpověď** - Kdy dojde
+- **Upozornění** - Varování před vyčerpáním
 
-### Týmové statistiky
-- Součet bodů týmu
-- Průměr na člena
-- Týmové rekordy
-- Porovnání týmů
+### Historie spotřeby
+- **Časové grafy** - Vývoj v čase
+- **Statistiky** - Průměrná spotřeba
+- **Vrcholy** - Nejvyšší spotřeba
+- **Trendy** - Dlouhodobé změny
 
-## Odznaky a úspěchy
+## Stav sudů
 
-### Typy odznaků
-- **Bronzový** - Základní úroveň
-- **Stříbrný** - Pokročilá úroveň
-- **Zlatý** - Expertní úroveň
-- **Platinový** - Legendární úroveň
+### Aktivní sudy
+- **Dostupné** - K dispozici pro konzumaci
+- **Částečně vyčerpané** - Zbývá méně než 50%
+- **Téměř prázdné** - Zbývá méně než 10%
+- **Prázdné** - Úplně vyčerpané
 
-### Získávání odznaků
-- Dosažení bodových milníků
-- Splnění speciálních úkolů
-- Týmové úspěchy
-- Sezónní výzvy
+### Neaktivní sudy
+- **Připravené** - Připravené k aktivaci
+- **Vyčerpané** - Prázdné sudy
+- **Archivované** - Uložené v historii
+- **Deaktivované** - Dočasně nedostupné
 
-## Historie a archiv
+## Operace se sudy
 
-### Historické záznamy
-- Historie všech událostí
-- Vývoj výkonnosti
-- Dlouhodobé statistiky
-- Rekordy a milníky
+### Aktivace sudu
+1. Vyberte sud ze seznamu
+2. Klikněte na **"Aktivovat"**
+3. Potvrďte aktivaci
+4. Sud je nyní dostupný
 
-### Sezónní žebříčky
-- Měsíční žebříčky
-- Čtvrtletní hodnocení
-- Roční statistiky
-- Porovnání sezón
+### Deaktivace sudu
+1. Vyberte aktivní sud
+2. Klikněte na **"Deaktivovat"**
+3. Potvrďte deaktivaci
+4. Sud není dostupný
 
-## Tipy pro účastníky
+### Výměna sudu
+1. Deaktivujte prázdný sud
+2. Přidejte nový sud
+3. Aktivujte nový sud
+4. Archivujte starý sud
 
-### Strategie bodování
-- Optimální tempo konzumace
-- Využití bonusů
-- Týmová spolupráce
-- Dlouhodobá konzistence
+## Statistiky sudů
 
-### Sledování výkonu
-- Pravidelná kontrola statistik
-- Analýza trendů
-- Porovnání s ostatními
-- Plánování strategie
+### Individuální statistiky
+- **Celková spotřeba** - Kolik bylo vypito
+- **Průměrná spotřeba** - Průměr za hodinu
+- **Nejvyšší spotřeba** - Vrchol konzumace
+- **Doba trvání** - Jak dlouho vydržel
 
-### Zlepšování pozice
-- Účast na více událostech
-- Využití bonusových akcí
-- Týmová spolupráce
-- Pravidelný trénink 
+### Porovnání sudů
+- **Efektivita** - Který sud se spotřebuje nejrychleji
+- **Popularita** - Který typ piva je nejoblíbenější
+- **Náklady** - Analýza nákladů na sud
+- **Ziskovost** - Ziskovost jednotlivých sudů
+
+## Automatizace
+
+### Upozornění
+- **Nízká hladina** - Varování před vyčerpáním
+- **Prázdný sud** - Oznámení o vyčerpání
+- **Pomalá spotřeba** - Upozornění na pomalou konzumaci
+- **Vysoká spotřeba** - Varování před rychlou spotřebou
+
+### Automatické akce
+- **Deaktivace** - Automatické deaktivování prázdných sudů
+- **Notifikace** - Automatické oznámení změn
+- **Reporting** - Automatické generování reportů
+- **Zálohování** - Automatické zálohování dat
+
+## Integrace s ostatními funkcemi
+
+### Účastníci
+- **Individuální spotřeba** - Kolik každý účastník vypil
+- **Preference** - Které pivo preferuje
+- **Statistiky** - Statistiky konzumace
+
+### Žebříček
+- **Bodování** - Body za konzumaci z různých sudů
+- **Bonusy** - Bonusové body za různé druhy piva
+- **Úspěchy** - Úspěchy za konzumaci
+
+### Dashboard
+- **Přehled** - Celkový stav všech sudů
+- **Grafy** - Vizualizace spotřeby
+- **Upozornění** - Důležitá oznámení
+
+## Export a reporting
+
+### Export dat
+- **Excel soubor** - Detailní data o sudech
+- **PDF report** - Přehledová zpráva
+- **Grafy** - Vizualizace spotřeby
+- **Statistiky** - Souhrnné údaje
+
+### Reporting
+- **Denní reporty** - Denní přehled spotřeby
+- **Týdenní analýzy** - Týdenní statistiky
+- **Měsíční přehledy** - Měsíční souhrny
+- **Roční statistiky** - Roční analýzy
+
+## Tipy pro správu
+
+### Plánování
+- **Odhad spotřeby** - Plánujte podle předchozích událostí
+- **Rezervy** - Mějte vždy nějaké rezervy
+- **Různorodost** - Nabízejte různé druhy piva
+- **Kvalita** - Zaměřte se na kvalitu, ne jen množství
+
+### Monitoring
+- **Pravidelná kontrola** - Kontrolujte stav pravidelně
+- **Rychlá reakce** - Reagujte na změny rychle
+- **Komunikace** - Informujte o změnách
+- **Dokumentace** - Zaznamenejte důležité informace
+
+### Optimalizace
+- **Analýza dat** - Analyzujte spotřebu
+- **Optimalizace** - Optimalizujte podle dat
+- **Experimentování** - Zkoušejte nové přístupy
+- **Zpětná vazba** - Získejte zpětnou vazbu
+
+## Co dál?
+
+Pro více informací o souvisejících funkcích:
+1. [Dashboard](dashboard.md) - Přehled stavu sudů
+2. [Účastníci](participants.md) - Individuální spotřeba
+3. [Žebříček](leaderboard.md) - Bodování za konzumaci
+4. [Události](events.md) - Správa sudů pro události 

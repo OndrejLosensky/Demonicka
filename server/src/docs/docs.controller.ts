@@ -21,29 +21,29 @@ export class DocsController {
   }
 
   @Public()
-  @Get('*filePath')
-  getDoc(@Param('filePath') filePath: string, @Res() res: Response) {
+  @Get('*path')
+  getDoc(@Param('path') filePath: string, @Res() res: Response) {
     try {
-      console.log('Received file path:', filePath);
-      
       if (!filePath) {
         throw new NotFoundException('No documentation file specified');
       }
 
       // First decode the entire path to handle encoded slashes
       filePath = decodeURIComponent(filePath);
-      console.log('Decoded file path:', filePath);
+
+      // Handle URL encoding issues - replace comma with slash if it looks like a path
+      if (filePath.includes(',') && filePath.includes('.md')) {
+        filePath = filePath.replace(',', '/');
+      }
 
       // Remove leading slash if present
       filePath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
       
-      // Sanitize filename to prevent directory traversal
+      // Simple sanitization - only allow alphanumeric, dots, hyphens, underscores, and forward slashes
       const sanitizedPath = filePath
-        .split('/')
-        .map((part) => part.replace(/[^a-zA-Z0-9-_.]/g, ''))
-        .join('/');
-      
-      console.log('Sanitized path:', sanitizedPath);
+        .replace(/[^a-zA-Z0-9-_.\/]/g, '') // Allow forward slashes
+        .replace(/\/+/g, '/') // Normalize multiple slashes to single slash
+        .replace(/^\/+|\/+$/g, ''); // Remove leading/trailing slashes
       
       const fullPath = path.join(this.docsPath, sanitizedPath);
       console.log('Full file path:', fullPath);

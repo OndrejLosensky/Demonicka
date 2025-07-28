@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { SimpleMarkdownParser } from '../utils/markdownParser';
+import { apiClient } from '../utils/apiClient';
 import '../styles/markdown.css';
 import { withPageLoader } from '../components/hoc/withPageLoader';
 
@@ -45,22 +46,16 @@ const documentationStructure: DocCategory[] = [
         path: 'getting-started/intro.md'
       },
       {
-        name: 'first-steps',
-        title: 'První kroky',
-        description: 'Jak začít používat aplikaci',
-        path: 'getting-started/first-steps.md'
+        name: 'create-event',
+        title: 'Vytvoření události',
+        description: 'Jak vytvořit novou událost',
+        path: 'getting-started/create-event.md'
       },
       {
-        name: 'user-management',
-        title: 'Správa uživatelů',
-        description: 'Jak vytvářet a spravovat uživatele',
-        path: 'getting-started/user-management.md'
-      },
-      {
-        name: 'events',
-        title: 'Události',
-        description: 'Vytváření a správa událostí',
-        path: 'getting-started/events.md'
+        name: 'add-users',
+        title: 'Přidání uživatelů',
+        description: 'Jak přidat účastníky a aktivovat je',
+        path: 'getting-started/add-users.md'
       }
     ]
   },
@@ -86,31 +81,37 @@ const documentationStructure: DocCategory[] = [
         title: 'Sudy',
         description: 'Jak funguje správa sudů',
         path: 'user-guide/barrels.md'
+      },
+      {
+        name: 'achievements',
+        title: 'Úspěchy',
+        description: 'Systém úspěchů a odměn',
+        path: 'user-guide/achievements.md'
+      },
+      {
+        name: 'events',
+        title: 'Události',
+        description: 'Správa a konfigurace událostí',
+        path: 'user-guide/events.md'
+      },
+      {
+        name: 'leaderboard',
+        title: 'Žebříček',
+        description: 'Žebříček a statistiky',
+        path: 'user-guide/leaderboard.md'
       }
     ]
   },
   {
-    name: 'implementation',
-    title: 'Implementace',
-    description: 'Plány implementace a vývoje nových funkcí',
+    name: 'api',
+    title: 'API Dokumentace',
+    description: 'Kompletní dokumentace API endpointů',
     files: [
       {
-        name: 'ui-update',
-        title: 'Aktualizace UI',
-        description: 'Plán implementace nového uživatelského rozhraní',
-        path: 'implementation/ui-update.md'
-      },
-      {
-        name: 'backend-update',
-        title: 'Backend logika',
-        description: 'Plán implementace nové backend logiky',
-        path: 'implementation/backend-update.md'
-      },
-      {
-        name: 'swift-admin',
-        title: 'Swift Admin App',
-        description: 'Plán implementace iOS aplikace pro správu',
-        path: 'implementation/swift-admin.md'
+        name: 'overview',
+        title: 'Přehled API',
+        description: 'Základní informace o API',
+        path: 'api/API.md'
       }
     ]
   }
@@ -136,16 +137,15 @@ const DocsComponent: React.FC = () => {
     try {
       console.log('Loading doc path:', docFile.path);
       
-      // Use the correct API endpoint
-      const response = await fetch(`/api/v1/docs/${docFile.path}`);
+      // Use the API client with proper configuration
+      const response = await apiClient.get(`/v1/docs/${docFile.path}`, {
+        responseType: 'text'
+      });
+      
       console.log('Response status:', response.status);
       console.log('Response headers:', response.headers);
       
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: Failed to load ${docFile.title}`);
-      }
-      
-      const content = await response.text();
+      const content = response.data;
       console.log('Content received:', content.substring(0, 200) + '...');
       
       if (!content || content.trim() === '') {
