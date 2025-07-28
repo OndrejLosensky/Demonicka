@@ -81,7 +81,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('access_token', response.data.access_token);
       setUser(response.data.user);
       setIsLoading(false); // Explicitly clear loading state after setting user
-      navigate('/dashboard');
+      
+      // Redirect based on user role
+      if (response.data.user.role === 'USER') {
+        navigate(`/${response.data.user.id}/dashboard`);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error('Login failed:', error);
       const axiosError = error as AxiosError<ApiErrorResponse>;
@@ -125,7 +131,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       localStorage.setItem('access_token', response.data.access_token);
       setUser(response.data.user);
-      navigate('/dashboard');
+      
+      // Redirect based on user role
+      if (response.data.user.role === 'USER') {
+        navigate(`/${response.data.user.id}/dashboard`);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error('Registration completion failed:', error);
       const axiosError = error as AxiosError<ApiErrorResponse>;

@@ -25,13 +25,20 @@ import { EnterToken } from './pages/Auth/EnterToken';
 import { USER_ROLE } from './types/user';
 import { SystemPage } from './pages/Dashboard/System';
 import { Activity } from './pages/Activity';
+import { PersonalStatsView } from './pages/PersonalStats/PersonalStatsView';
 
 const queryClient = new QueryClient();
 
 function GuestRoute({ children }: { children: React.ReactElement }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, hasRole } = useAuth();
   if (isLoading) return null;
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) {
+    if (hasRole([USER_ROLE.USER])) {
+      return <Navigate to={`/${user.id}/dashboard`} replace />;
+    } else {
+      return <Navigate to="/dashboard" replace />;
+    }
+  }
   return children;
 }
 
@@ -52,7 +59,7 @@ function App() {
                       <Route
                         path="dashboard"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <Dashboard />
                           </RoleRoute>
                         }
@@ -60,7 +67,7 @@ function App() {
                       <Route
                         path="dashboard/participants"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <Participants />
                           </RoleRoute>
                         }
@@ -92,7 +99,7 @@ function App() {
                       <Route
                         path="events"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <Events />
                           </RoleRoute>
                         }
@@ -100,7 +107,7 @@ function App() {
                       <Route
                         path="events/:id"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <EventDetail />
                           </RoleRoute>
                         }
@@ -124,8 +131,16 @@ function App() {
                       <Route
                         path="leaderboard"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <Leaderboard />
+                          </RoleRoute>
+                        }
+                      />
+                      <Route
+                        path=":userId/dashboard"
+                        element={
+                          <RoleRoute allowedRoles={[USER_ROLE.USER]}>
+                            <PersonalStatsView />
                           </RoleRoute>
                         }
                       />

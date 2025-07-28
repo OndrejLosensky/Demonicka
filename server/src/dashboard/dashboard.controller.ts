@@ -9,12 +9,14 @@ import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { BypassAuth } from 'src/auth/decorators/bypass-auth.decorator';
 import { SystemStatsDto } from './dto/system-stats.dto';
+import { PersonalStatsDto } from './dto/personal-stats.dto';
 import { RoleGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/enums/user-role.enum';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { User } from '../users/entities/user.entity';
 
 @Controller('dashboard')
-@BypassAuth()
 @Versions('1')
 @UseGuards(VersionGuard)
 export class DashboardController {
@@ -22,6 +24,7 @@ export class DashboardController {
 
   @Public()
   @Get('public')
+  @BypassAuth()
   @Header('Cache-Control', 'public, max-age=30')
   async getPublicStats(
     @Query('eventId') eventId?: string,
@@ -40,6 +43,7 @@ export class DashboardController {
 
   @Get('leaderboard')
   @Public()
+  @BypassAuth()
   @Header('Cache-Control', 'public, max-age=30')
   async getLeaderboard(
     @Query('eventId') eventId?: string,
@@ -54,5 +58,13 @@ export class DashboardController {
   @Header('Cache-Control', 'no-store')
   async getSystemStats(): Promise<SystemStatsDto> {
     return this.dashboardService.getSystemStats();
+  }
+
+  @Get('personal')
+  @UseGuards(JwtAuthGuard)
+  @BypassAuth()
+  @Header('Cache-Control', 'no-store')
+  async getPersonalStats(@CurrentUser() user: User): Promise<PersonalStatsDto> {
+    return this.dashboardService.getPersonalStats(user.id);
   }
 }

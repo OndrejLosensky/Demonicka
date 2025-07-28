@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthLayout } from '../../components/auth/AuthLayout';
 import { Input } from '../../components/ui/Input';
@@ -7,7 +7,6 @@ import { Button } from '../../components/ui/Button';
 import translations from '../../locales/cs/auth.json';
 
 export default function Register() {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -40,7 +39,6 @@ export default function Register() {
     try {
       const { username, password, gender } = formData;
       await register(username, password, null, gender);
-      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Něco se pokazilo');
     } finally {

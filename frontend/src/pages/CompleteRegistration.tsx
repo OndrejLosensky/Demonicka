@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 
 export function CompleteRegistration() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
-  const navigate = useNavigate();
   const { completeRegistration } = useAuth();
 
   const [username, setUsername] = useState('');
@@ -35,7 +34,6 @@ export function CompleteRegistration() {
     try {
       await completeRegistration(token, username, password);
       toast.success('Registrace byla úspěšně dokončena!');
-      navigate('/dashboard');
     } catch (error) {
       console.error('Error completing registration:', error);
       toast.error('Nepodařilo se dokončit registraci. Zkuste to prosím znovu.');

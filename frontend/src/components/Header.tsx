@@ -157,7 +157,7 @@ export default function Header() {
                         )}
                       </>
                     )}
-                    {activeEvent && (
+                    {activeEvent && hasRole([USER_ROLE.ADMIN]) && (
                       <Link
                         to="/leaderboard"
                         className={`px-3 py-2 rounded-md text-sm font-medium ${
@@ -169,7 +169,7 @@ export default function Header() {
                         {translations.navigation.leaderboard}
                       </Link>
                     )}
-                    {hasRole([USER_ROLE.ADMIN, USER_ROLE.USER]) && (
+                    {hasRole([USER_ROLE.ADMIN]) && (
                       <Link
                         to="/events"
                         className={`px-3 py-2 rounded-md text-sm font-medium ${
@@ -179,6 +179,18 @@ export default function Header() {
                         }`}
                       >
                         {translations.navigation.events}
+                      </Link>
+                    )}
+                    {hasRole([USER_ROLE.USER]) && (
+                      <Link
+                        to={`/${user?.id}/dashboard`}
+                        className={`px-3 py-2 rounded-md text-sm font-medium ${
+                          isActive(`/${user?.id}/dashboard`)
+                            ? 'bg-primary text-white'
+                            : 'text-text-primary hover:text-text-secondary'
+                        }`}
+                      >
+                        Moje statistiky
                       </Link>
                     )}
                   </div>

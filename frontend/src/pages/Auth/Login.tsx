@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthLayout } from '../../components/auth/AuthLayout';
 import { Input } from '../../components/ui/Input';
@@ -8,7 +8,6 @@ import translations from '../../locales/cs/auth.json';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
 
 const LoginComponent: React.FC = () => {
-  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,7 +21,6 @@ const LoginComponent: React.FC = () => {
 
     try {
       await login(username, password);
-      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Něco se pokazilo');
     } finally {

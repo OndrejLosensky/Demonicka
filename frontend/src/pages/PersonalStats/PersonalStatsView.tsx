@@ -1,57 +1,37 @@
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
 import { useToast } from '../../hooks/useToast';
 import { personalStatsService } from '../../services/personalStatsService';
-import { useActiveEvent } from '../../contexts/ActiveEventContext';
 
 interface PersonalStats {
-  userId: string;
-  username: string;
-  name: string;
-  role: string;
-  createdAt: string;
   totalBeers: number;
-  averageBeersPerDay: number;
-  averageBeersPerEvent: number;
-  beersLastHour: number;
-  beersToday: number;
-  beersThisWeek: number;
-  beersThisMonth: number;
-  firstBeerDate: string | null;
-  lastBeerDate: string | null;
-  longestBreak: number;
-  mostBeersInDay: number;
-  hourlyDistribution: {
-    hour: number;
-    count: number;
-  }[];
-  dailyStats: {
-    date: string;
-    count: number;
-  }[];
   eventStats: {
     eventId: string;
     eventName: string;
-    beersCount: number;
-    rank: number;
-    totalParticipants: number;
+    userBeers: number;
+    totalEventBeers: number;
+    contribution: number;
+    hourlyStats: {
+      hour: number;
+      count: number;
+    }[];
+    averagePerHour: number;
   }[];
-  globalRank: number;
-  totalUsers: number;
-  percentile: number;
 }
 
 export const PersonalStatsView: React.FC = () => {
+  const { userId } = useParams<{ userId: string }>();
   const [stats, setStats] = useState<PersonalStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAllStats, setShowAllStats] = useState(false);
   const toast = useToast();
-  const { activeEvent } = useActiveEvent();
 
   useEffect(() => {
-    loadStats();
-  }, []);
+    if (userId) {
+      loadStats();
+    }
+  }, [userId]);
 
   const loadStats = async () => {
     try {
@@ -66,27 +46,6 @@ export const PersonalStatsView: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getFilteredStats = () => {
-    if (!stats || !activeEvent) return stats;
-
-    if (!showAllStats) {
-      // Filter stats for active event
-      const activeEventStats = stats.eventStats.find(e => e.eventId === activeEvent.id);
-      if (!activeEventStats) return stats;
-
-      return {
-        ...stats,
-        totalBeers: activeEventStats.beersCount,
-        globalRank: activeEventStats.rank,
-        totalUsers: activeEventStats.totalParticipants,
-        percentile: activeEventStats.rank / activeEventStats.totalParticipants,
-        eventStats: [activeEventStats]
-      };
-    }
-
-    return stats;
   };
 
   if (isLoading) {
@@ -119,137 +78,101 @@ export const PersonalStatsView: React.FC = () => {
     );
   }
 
-  const filteredStats = getFilteredStats();
-  if (!filteredStats) return null;
-
   return (
     <div className="space-y-6 p-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Můj přehled</h1>
-        {activeEvent && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">
-              {showAllStats ? 'Všechny události' : activeEvent.name}
-            </span>
-            <button
-              onClick={() => setShowAllStats(!showAllStats)}
-              className={`px-4 py-2 rounded-full transition-colors ${
-                showAllStats 
-                  ? 'bg-primary text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              {showAllStats ? 'Zobrazit aktivní' : 'Zobrazit vše'}
-            </button>
-          </div>
-        )}
+        <h1 className="text-2xl font-bold">Moje statistiky</h1>
       </div>
       
       {/* Overall Stats */}
       <Card>
         <h2 className="text-xl font-semibold mb-4">Celkové statistiky</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 bg-gray-50 rounded">
             <p className="text-sm text-gray-600">Celkem piv</p>
-            <p className="text-2xl font-bold">{filteredStats.totalBeers}</p>
+            <p className="text-2xl font-bold">{stats.totalBeers}</p>
           </div>
-          {showAllStats && (
-            <>
-              <div className="p-4 bg-gray-50 rounded">
-                <p className="text-sm text-gray-600">Dnes</p>
-                <p className="text-2xl font-bold">{filteredStats.beersToday}</p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded">
-                <p className="text-sm text-gray-600">Tento týden</p>
-                <p className="text-2xl font-bold">{filteredStats.beersThisWeek}</p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded">
-                <p className="text-sm text-gray-600">Tento měsíc</p>
-                <p className="text-2xl font-bold">{filteredStats.beersThisMonth}</p>
-              </div>
-            </>
-          )}
+          <div className="p-4 bg-gray-50 rounded">
+            <p className="text-sm text-gray-600">Počet událostí</p>
+            <p className="text-2xl font-bold">{stats.eventStats.length}</p>
+          </div>
         </div>
       </Card>
 
-      {/* Rankings */}
-      <Card>
-        <h2 className="text-xl font-semibold mb-4">Žebříček</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-gray-50 rounded">
-            <p className="text-sm text-gray-600">
-              {showAllStats ? 'Globální pozice' : 'Pozice v události'}
-            </p>
-            <p className="text-2xl font-bold">{filteredStats.globalRank}. / {filteredStats.totalUsers}</p>
-          </div>
-          <div className="p-4 bg-gray-50 rounded">
-            <p className="text-sm text-gray-600">Percentil</p>
-            <p className="text-2xl font-bold">{(filteredStats.percentile * 100).toFixed(1)}%</p>
-          </div>
-          {showAllStats && (
-            <div className="p-4 bg-gray-50 rounded">
-              <p className="text-sm text-gray-600">Průměr na den</p>
-              <p className="text-2xl font-bold">{filteredStats.averageBeersPerDay.toFixed(1)}</p>
-            </div>
-          )}
-        </div>
-      </Card>
-
-      {/* Hourly Distribution */}
-      <Card>
-        <h2 className="text-xl font-semibold mb-4">Hodinový přehled</h2>
-        <div className="h-64">
-          <div className="relative h-48">
-            {filteredStats.hourlyDistribution.map((stat) => {
-              const maxCount = Math.max(...filteredStats.hourlyDistribution.map(s => s.count));
-              const height = maxCount > 0 ? `${(stat.count / maxCount) * 100}%` : '0%';
-              return (
-                <div
-                  key={stat.hour}
-                  className="absolute bottom-0 bg-blue-500 rounded-t"
-                  style={{
-                    left: `${(stat.hour / 24) * 100}%`,
-                    width: '4%',
-                    height: height,
-                  }}
-                >
-                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs">
-                    {stat.count}
+      {/* Event Stats */}
+      {stats.eventStats.length > 0 && (
+        <Card>
+          <h2 className="text-xl font-semibold mb-4">Statistiky událostí</h2>
+          <div className="space-y-4">
+            {stats.eventStats.map((event) => (
+              <div key={event.eventId} className="border rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-2">{event.eventName}</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Moje piva</p>
+                    <p className="text-xl font-bold">{event.userBeers}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Celkem v události</p>
+                    <p className="text-xl font-bold">{event.totalEventBeers}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Příspěvek</p>
+                    <p className="text-xl font-bold">{event.contribution.toFixed(1)}%</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Průměr/hodinu</p>
+                    <p className="text-xl font-bold">{event.averagePerHour.toFixed(1)}</p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-          <div className="flex justify-between mt-2 text-sm text-gray-500">
-            <span>00:00</span>
-            <span>12:00</span>
-            <span>23:59</span>
-          </div>
-        </div>
-      </Card>
-
-      {/* Event Stats - Only show in all stats view */}
-      {showAllStats && filteredStats.eventStats.map((eventStat) => (
-        <Card key={eventStat.eventId}>
-          <h2 className="text-xl font-semibold mb-4">{eventStat.eventName}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-gray-50 rounded">
-              <p className="text-sm text-gray-600">Počet piv</p>
-              <p className="text-2xl font-bold">{eventStat.beersCount}</p>
-            </div>
-            <div className="p-4 bg-gray-50 rounded">
-              <p className="text-sm text-gray-600">Pozice</p>
-              <p className="text-2xl font-bold">{eventStat.rank}. / {eventStat.totalParticipants}</p>
-            </div>
-            <div className="p-4 bg-gray-50 rounded">
-              <p className="text-sm text-gray-600">Percentil</p>
-              <p className="text-2xl font-bold">
-                {((eventStat.rank / eventStat.totalParticipants) * 100).toFixed(1)}%
-              </p>
-            </div>
+                
+                {/* Hourly Stats */}
+                {event.hourlyStats.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-md font-semibold mb-2">Hodinový přehled</h4>
+                    <div className="h-32 relative">
+                      {event.hourlyStats.map((stat) => {
+                        const maxCount = Math.max(...event.hourlyStats.map(s => s.count));
+                        const height = maxCount > 0 ? `${(stat.count / maxCount) * 100}%` : '0%';
+                        return (
+                          <div
+                            key={stat.hour}
+                            className="absolute bottom-0 bg-blue-500 rounded-t"
+                            style={{
+                              left: `${(stat.hour / 24) * 100}%`,
+                              width: '4%',
+                              height: height,
+                            }}
+                          >
+                            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs">
+                              {stat.count}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500 mt-2">
+                      <span>0h</span>
+                      <span>6h</span>
+                      <span>12h</span>
+                      <span>18h</span>
+                      <span>24h</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </Card>
-      ))}
+      )}
+
+      {stats.eventStats.length === 0 && (
+        <Card>
+          <div className="text-center py-8">
+            <p className="text-gray-600">Zatím nemáte žádné statistiky z událostí.</p>
+          </div>
+        </Card>
+      )}
     </div>
   );
 };

@@ -10,6 +10,7 @@ import { DashboardResponseDto, UserStatsDto, BarrelStatsDto } from './dto/dashbo
 import { LeaderboardDto, UserLeaderboardDto } from './dto/leaderboard.dto';
 import { PublicStatsDto } from './dto/public-stats.dto';
 import { SystemStatsDto } from './dto/system-stats.dto';
+import { PersonalStatsDto, EventStatsDto, HourlyStatsDto } from './dto/personal-stats.dto';
 import { UserRole } from '../users/enums/user-role.enum';
 
 @Injectable()
@@ -409,6 +410,86 @@ export class DashboardService {
       return stats;
     } catch (error) {
       this.logger.error('Failed to fetch system stats', error);
+      throw error;
+    }
+  }
+
+  async getPersonalStats(userId: string): Promise<PersonalStatsDto> {
+    try {
+      this.logger.log(`Fetching personal stats for user: ${userId}`);
+      
+      // Get total beers for the user
+      const totalBeers = await this.beerRepository.count({
+        where: { userId }
+      });
+      
+      this.logger.log(`Total beers for user: ${totalBeers}`);
+
+      // Get all events the user participated in
+      const userEvents = await this.eventRepository
+        .createQueryBuilder('event')
+        .innerJoin('event.users', 'user', 'user.id = :userId', { userId })
+        .select(['event.id', 'event.name'])
+        .getMany();
+        
+      this.logger.log(`User events count: ${userEvents.length}`);
+
+      const eventStats: EventStatsDto[] = [];
+
+      for (const event of userEvents) {
+        // Get user's beers for this event
+        const userBeers = await this.eventBeerRepository.count({
+          where: { eventId: event.id, userId }
+        });
+
+        // Get total beers for this event
+        const totalEventBeers = await this.eventBeerRepository.count({
+          where: { eventId: event.id }
+        });
+
+        // Calculate contribution percentage
+        const contribution = totalEventBeers > 0 ? (userBeers / totalEventBeers) * 100 : 0;
+
+        // Get hourly stats for this event
+        const hourlyStats = await this.eventBeerRepository
+          .createQueryBuilder('event_beer')
+          .select([
+            'strftime("%H", event_beer.consumedAt) as hour',
+            'COUNT(*) as count'
+          ])
+          .where('event_beer.eventId = :eventId', { eventId: event.id })
+          .andWhere('event_beer.userId = :userId', { userId })
+          .groupBy('strftime("%H", event_beer.consumedAt)')
+          .orderBy('hour', 'ASC')
+          .getRawMany<{ hour: string; count: string }>();
+
+        const formattedHourlyStats: HourlyStatsDto[] = hourlyStats.map(stat => ({
+          hour: parseInt(stat.hour),
+          count: parseInt(stat.count)
+        }));
+
+        // Calculate average per hour
+        const totalHours = formattedHourlyStats.length > 0 ? 
+          Math.max(...formattedHourlyStats.map(h => h.hour)) - Math.min(...formattedHourlyStats.map(h => h.hour)) + 1 : 1;
+        const averagePerHour = totalHours > 0 ? userBeers / totalHours : 0;
+
+        eventStats.push({
+          eventId: event.id,
+          eventName: event.name,
+          userBeers,
+          totalEventBeers,
+          contribution,
+          hourlyStats: formattedHourlyStats,
+          averagePerHour
+        });
+      }
+
+      return {
+        totalBeers,
+        eventStats
+      };
+    } catch (error) {
+      this.logger.error('Failed to fetch personal stats', error);
       throw error;
     }
   }
