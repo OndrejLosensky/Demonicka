@@ -187,7 +187,7 @@ export default function Header() {
                         {translations.navigation.events}
                       </Link>
                     )}
-                    {hasRole([USER_ROLE.USER]) && (
+                    {user?.role === USER_ROLE.USER && (
                       <Link
                         to={`/${user?.id}/dashboard`}
                         className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
@@ -197,6 +197,18 @@ export default function Header() {
                         }`}
                       >
                         Moje statistiky
+                      </Link>
+                    )}
+                    {user?.role === USER_ROLE.USER && (
+                      <Link
+                        to="/achievements"
+                        className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                          isActive('/achievements')
+                            ? 'bg-primary text-white shadow-md'
+                            : 'text-text-primary hover:text-text-secondary hover:bg-background-secondary/50'
+                        }`}
+                      >
+                        Úspěchy
                       </Link>
                     )}
                   </div>
@@ -374,6 +386,7 @@ export default function Header() {
                           }}
                         />
                       </MenuItem>
+
                       {hasRole([USER_ROLE.ADMIN]) && (
                         <>
                           <MenuItem onClick={() => navigate('/dashboard/system')} sx={{ py: 1, px: 2 }}>

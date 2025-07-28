@@ -26,6 +26,7 @@ import { USER_ROLE } from './types/user';
 import { SystemPage } from './pages/Dashboard/System';
 import { Activity } from './pages/Activity';
 import { PersonalStatsView } from './pages/PersonalStats/PersonalStatsView';
+import { AchievementsPage } from './pages/Achievements';
 
 const queryClient = new QueryClient();
 
@@ -141,6 +142,14 @@ function App() {
                         element={
                           <RoleRoute allowedRoles={[USER_ROLE.USER]}>
                             <PersonalStatsView />
+                          </RoleRoute>
+                        }
+                      />
+                      <Route
+                        path="achievements"
+                        element={
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
+                            <AchievementsPage />
                           </RoleRoute>
                         }
                       />

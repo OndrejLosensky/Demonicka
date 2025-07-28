@@ -15,6 +15,7 @@ import { Beer } from '../../beers/entities/beer.entity';
 import { UserRole } from '../enums/user-role.enum';
 import { Event } from '../../events/entities/event.entity';
 import { EventBeer } from '../../events/entities/event-beer.entity';
+import { UserAchievement } from '../../achievements/entities/user-achievement.entity';
 
 @Entity('users')
 export class User {
@@ -101,6 +102,9 @@ export class User {
 
   @OneToMany(() => EventBeer, (eventBeer) => eventBeer.user)
   eventBeers: EventBeer[];
+
+  @OneToMany(() => UserAchievement, (userAchievement) => userAchievement.user)
+  userAchievements: UserAchievement[];
 
   @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;

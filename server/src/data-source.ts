@@ -9,6 +9,8 @@ import { Barrel } from './barrels/entities/barrel.entity';
 import { Event } from './events/entities/event.entity';
 import { DeviceToken } from './auth/entities/device-token.entity';
 import { EventBeer } from './events/entities/event-beer.entity';
+import { Achievement } from './achievements/entities/achievement.entity';
+import { UserAchievement } from './achievements/entities/user-achievement.entity';
 import { InitialSchema1711638000000 } from './migrations/1711638000000-InitialSchema';
 import { AddEventsTable1711638000001 } from './migrations/1711638000001-AddEventsTable';
 import { MakeNameNullable1748441344604 } from './migrations/1748441344604-MakeNameNullable';
@@ -18,6 +20,7 @@ import { AddRoleColumn1748441344605 } from './migrations/1748441344605-AddRoleCo
 import { CreateEventBeersTable1749757491913 } from './migrations/1749757491913-CreateEventBeersTable';
 import { AddFirstLastNameToUser1749763388825 } from './migrations/1749763388825-AddFirstLastNameToUser';
 import { AddTotalBeersToBarrels1749975358935 } from './migrations/1749975358935-AddTotalBeersToBarrels';
+import { CreateAchievementsTables1750000000000 } from './migrations/1750000000000-CreateAchievementsTables';
 
 config();
 
@@ -40,7 +43,7 @@ try {
 export const AppDataSource = new DataSource({
   type: 'sqlite',
   database: dbPath,
-  entities: [User, RefreshToken, Beer, Barrel, Event, DeviceToken, EventBeer],
+  entities: [User, RefreshToken, Beer, Barrel, Event, DeviceToken, EventBeer, Achievement, UserAchievement],
   migrations: [
     InitialSchema1711638000000,
     AddEventsTable1711638000001,
@@ -51,6 +54,7 @@ export const AppDataSource = new DataSource({
     CreateEventBeersTable1749757491913,
     AddFirstLastNameToUser1749763388825,
     AddTotalBeersToBarrels1749975358935,
+    CreateAchievementsTables1750000000000,
   ],
   synchronize: process.env.NODE_ENV === 'development',
   logging: process.env.NODE_ENV === 'development',

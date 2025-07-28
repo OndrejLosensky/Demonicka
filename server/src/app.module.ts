@@ -13,6 +13,7 @@ import { DocsModule } from './docs/docs.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { BackupModule } from './backup/backup.module';
 import { SystemModule } from './system/system.module';
+import { AchievementsModule } from './achievements/achievements.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
 import { AppDataSource } from './data-source';
@@ -36,6 +37,7 @@ import { AppDataSource } from './data-source';
     LeaderboardModule,
     BackupModule,
     SystemModule,
+    AchievementsModule,
   ],
 })
 export class AppModule implements NestModule {

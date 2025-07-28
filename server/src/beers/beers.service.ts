@@ -7,6 +7,7 @@ import { Barrel } from '../barrels/entities/barrel.entity';
 import { EventsService } from '../events/events.service';
 import { EventBeersService } from '../events/services/event-beers.service';
 import { LoggingService } from '../logging/logging.service';
+import { AchievementsService } from '../achievements/achievements.service';
 
 @Injectable()
 export class BeersService {
@@ -24,6 +25,7 @@ export class BeersService {
     @Inject(forwardRef(() => EventBeersService))
     private readonly eventBeersService: EventBeersService,
     private readonly loggingService: LoggingService,
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   async create(userId: string, barrelId?: string, skipEventBeer = false): Promise<Beer> {
@@ -83,6 +85,14 @@ export class BeersService {
 
     // Log beer addition
     this.loggingService.logBeerAdded(userId, barrelId);
+
+    // Check achievements
+    try {
+      await this.achievementsService.checkAndUpdateAchievements(userId);
+    } catch (error) {
+      this.logger.error('Failed to check achievements:', error);
+      // Don't throw the error as the beer was already created successfully
+    }
     
     return savedBeer;
   }
