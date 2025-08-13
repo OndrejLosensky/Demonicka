@@ -7,7 +7,7 @@ import type { HourlyStats } from '../types/hourlyStats';
 export const dashboardService = {
   async getDashboardStats(eventId?: string): Promise<DashboardStats> {
     const response = await api.get('/dashboard/overview', {
-      params: { eventId }
+      params: { eventId, cb: Date.now() }
     });
     return response.data;
   },
@@ -21,16 +21,17 @@ export const dashboardService = {
 
   async getLeaderboard(eventId?: string): Promise<LeaderboardData> {
     const response = await api.get('/dashboard/leaderboard', {
-      params: { eventId }
+      params: { eventId, cb: Date.now() }
     });
     return response.data;
   },
 
   async getHourlyStats(eventId: string, date?: string): Promise<HourlyStats[]> {
-    const params: { eventId: string; date?: string } = { eventId };
+    const params: { eventId: string; date?: string; cb?: number } = { eventId };
     if (date) {
       params.date = date;
     }
+    params.cb = Date.now();
     const response = await api.get('/dashboard/hourly-stats', {
       params
     });

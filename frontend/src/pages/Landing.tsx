@@ -137,6 +137,12 @@ export default function Landing() {
     fetchStats();
   }, [activeEvent?.id, isActiveEventLoading]);
 
+  // Compute corrected total beers from current event participants (excludes removed users)
+  const correctedTotalBeers = (leaderboard?.males || leaderboard?.females)
+    ? ((leaderboard?.males ?? []).reduce((s, u) => s + (u.beerCount || 0), 0) +
+       (leaderboard?.females ?? []).reduce((s, u) => s + (u.beerCount || 0), 0))
+    : undefined;
+
   // Load public leaderboard preview (global or for active event if available)
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -312,7 +318,7 @@ export default function Landing() {
                       whileHover={{ y: -2 }}
                     >
                       <div className="text-3xl lg:text-4xl font-black text-primary">
-                        {loading ? "..." : stats?.totalBeers || 0}
+                        {loading ? "..." : (correctedTotalBeers ?? stats?.totalBeers ?? 0)}
                       </div>
                       <div className="mt-1 text-xs font-medium text-gray-500 text-center lg:text-left">
                         {translations.stats.totalBeers}

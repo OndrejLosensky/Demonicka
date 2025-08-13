@@ -74,20 +74,29 @@ export const Dashboard: React.FC = () => {
         try {
             setIsLoading(true);
             
-            // Prepare date parameter for hourly stats
-            const dateParam = useCustomDate && selectedDate ? selectedDate.toISOString().split('T')[0] : undefined;
+            // Prepare date parameter for hourly stats (always a specific day)
+            const effectiveDate = useCustomDate && selectedDate ? selectedDate : new Date();
+            const dateParam = effectiveDate.toISOString().split('T')[0];
             
-            const [eventData, barrelsData, dashboardData, hourlyData] = await Promise.all([
+            const [eventData, barrelsData, dashboardData, hourlyData, leaderboard] = await Promise.all([
                 eventService.getActiveEvent(),
                 barrelService.getAll(),
                 dashboardService.getDashboardStats(selectedEvent?.id),
                 selectedEvent?.id ? dashboardService.getHourlyStats(selectedEvent.id, dateParam) : Promise.resolve([]),
+                selectedEvent?.id ? dashboardService.getLeaderboard(selectedEvent.id) : Promise.resolve({ males: [], females: [] } as unknown as import('../../types/leaderboard').LeaderboardData),
             ]);
 
             setActiveEvent(eventData);
             setDashboardStats(dashboardData);
             setBarrels(barrelsData);
-            setHourlyStats(hourlyData);
+            // Normalize to 24 hours for the selected day
+            const hours = Array.from({ length: 24 }, (_, h) => ({ hour: h, count: 0 }));
+            for (const item of hourlyData) {
+                if (item.hour >= 0 && item.hour < 24) {
+                    hours[item.hour].count = item.count;
+                }
+            }
+            setHourlyStats(hours);
 
             if (eventData) {
                 const activeBarrels = barrelsData.filter(b => b.isActive).length;
@@ -98,8 +107,14 @@ export const Dashboard: React.FC = () => {
 
                 const eventStart = new Date(eventData.startDate);
                 
+                // Corrected total from current participants only
+                const correctedTotal = (leaderboard.males || leaderboard.females)
+                  ? leaderboard.males.reduce((s: number, u: { beerCount: number }) => s + (u.beerCount || 0), 0) +
+                    leaderboard.females.reduce((s: number, u: { beerCount: number }) => s + (u.beerCount || 0), 0)
+                  : dashboardData.totalBeers;
+
                 setStats({
-                    totalBeers: dashboardData.totalBeers,
+                    totalBeers: correctedTotal,
                     activeBarrels,
                     remainingBeers,
                     topDrinker: dashboardData.topUsers[0] ? 
