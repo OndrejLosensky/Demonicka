@@ -32,6 +32,9 @@ export class AchievementsService {
   ) {}
 
   async getUserAchievements(userId: string): Promise<UserAchievementsResponseDto> {
+    // Ensure user achievements are initialized and up-to-date on first load
+    await this.checkAndUpdateAchievements(userId);
+
     const userAchievements = await this.userAchievementRepository.find({
       where: { userId },
       relations: ['achievement'],

@@ -39,13 +39,17 @@ export class UsersService {
         ? await bcrypt.hash(createUserDto.password, 10)
         : null,
       isRegistrationComplete: true,
-      role: UserRole.ADMIN,
+      role: UserRole.USER,
     });
     const savedUser = await this.usersRepository.save(user);
-    
+
     // Log user creation
-    this.loggingService.logUserCreated(savedUser.id, savedUser.name || 'Unknown', savedUser.gender || 'Unknown');
-    
+    this.loggingService.logUserCreated(
+      savedUser.id,
+      savedUser.name || 'Unknown',
+      savedUser.gender || 'Unknown',
+    );
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;
     return result;
@@ -62,14 +66,14 @@ export class UsersService {
       role: UserRole.PARTICIPANT,
     });
     const savedUser = await this.usersRepository.save(user);
-    
+
     // Log user creation
     this.loggingService.logUserCreated(
       savedUser.id,
       savedUser.name || 'Unknown',
       savedUser.gender || 'Unknown',
     );
-    
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;
     return result;
@@ -120,7 +124,7 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<void> {
-    const user = await this.findOne(id);
+    await this.findOne(id);
     await this.usersRepository.softDelete(id);
   }
 
@@ -141,7 +145,7 @@ export class UsersService {
     const user = await this.findByRegistrationToken(
       completeRegistrationDto.registrationToken,
     );
-    
+
     if (!user) {
       throw new NotFoundException('Neplatný registrační token');
     }
@@ -166,7 +170,7 @@ export class UsersService {
     user.role = UserRole.USER; // Update role to USER
 
     const savedUser = await this.usersRepository.save(user);
-    
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;
     return result;
@@ -174,7 +178,7 @@ export class UsersService {
 
   async promoteToAdmin(username: string): Promise<UserWithoutPassword> {
     const user = await this.findByUsername(username);
-    
+
     if (!user) {
       throw new NotFoundException(`Uživatel ${username} nebyl nalezen`);
     }
@@ -185,7 +189,7 @@ export class UsersService {
 
     user.role = UserRole.ADMIN;
     const savedUser = await this.usersRepository.save(user);
-    
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;
     return result;
@@ -193,13 +197,15 @@ export class UsersService {
 
   async generateRegisterToken(userId: string): Promise<{ token: string }> {
     const user = await this.findOne(userId);
-    
+
     if (!user) {
       throw new NotFoundException('Uživatel nebyl nalezen');
     }
 
     if (user.role !== UserRole.PARTICIPANT) {
-      throw new BadRequestException('Registrační token lze vygenerovat pouze pro účastníky');
+      throw new BadRequestException(
+        'Registrační token lze vygenerovat pouze pro účastníky',
+      );
     }
 
     if (user.isRegistrationComplete) {
