@@ -119,6 +119,12 @@ export const Dashboard: React.FC = () => {
         }
     };
 
+    // Show loader first to avoid flashing the empty-state while data is loading
+    if (isLoading) {
+        return <PageLoader message="Načítání přehledu..." />;
+    }
+
+    // After loading completes, if there is still no active event, show the empty state
     if (!activeEvent) {
         return (
             <Container>
@@ -128,10 +134,6 @@ export const Dashboard: React.FC = () => {
                 />
             </Container>
         );
-    }
-
-    if (isLoading) {
-        return <PageLoader message="Načítání dashboardu..." />;
     }
 
     // Get active barrel

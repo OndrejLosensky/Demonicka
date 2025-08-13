@@ -7,7 +7,7 @@ import { useActiveEvent } from '../../contexts/ActiveEventContext';
 export const useLeaderboard = () => {
   const [stats, setStats] = useState<LeaderboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { activeEvent } = useActiveEvent();
+  const { activeEvent, isActiveEventLoading } = useActiveEvent();
 
   useEffect(() => {
     const loadLeaderboard = async () => {
@@ -33,7 +33,7 @@ export const useLeaderboard = () => {
         setStats(data);
       });
     };
-  }, [activeEvent?.id]);
+  }, [activeEvent?.id, isActiveEventLoading]);
 
   return { stats, isLoading };
 }; 

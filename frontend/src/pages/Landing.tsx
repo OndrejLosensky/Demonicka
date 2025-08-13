@@ -116,7 +116,7 @@ export default function Landing() {
   usePageTitle();
   const [stats, setStats] = useState<PublicStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const { activeEvent } = useActiveEvent();
+  const { activeEvent, isActiveEventLoading } = useActiveEvent();
   const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
   const [leaderboardLoading, setLeaderboardLoading] = useState<boolean>(false);
 
@@ -135,7 +135,7 @@ export default function Landing() {
     };
 
     fetchStats();
-  }, [activeEvent?.id]);
+  }, [activeEvent?.id, isActiveEventLoading]);
 
   // Load public leaderboard preview (global or for active event if available)
   useEffect(() => {
@@ -152,7 +152,7 @@ export default function Landing() {
     };
 
     fetchLeaderboard();
-  }, [activeEvent?.id]);
+  }, [activeEvent?.id, isActiveEventLoading]);
 
 
   return (

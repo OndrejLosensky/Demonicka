@@ -22,6 +22,7 @@ import { EventBeersService } from './services/event-beers.service';
 import { EventBeer } from './entities/event-beer.entity';
 import { User } from '../users/entities/user.entity';
 import { BypassAuth } from 'src/auth/decorators/bypass-auth.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('events')
 @BypassAuth()
@@ -39,7 +40,7 @@ export class EventsController {
   }
 
   @Get('active')
-  @BypassAuth()
+  @Public()
   getActiveEvent(): Promise<Event | null> {
     return this.eventsService.getActiveEvent();
   }

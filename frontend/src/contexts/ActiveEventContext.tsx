@@ -8,12 +8,14 @@ interface ActiveEventContextType {
   activeEvent: Event | null;
   setActiveEvent: (event: Event | null) => void;
   loadActiveEvent: () => Promise<void>;
+  isActiveEventLoading: boolean;
 }
 
 const ActiveEventContext = createContext<ActiveEventContextType | undefined>(undefined);
 
 export const ActiveEventProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
+  const [isActiveEventLoading, setIsActiveEventLoading] = useState<boolean>(true);
   const { user, isLoading } = useAuth();
   const loadCountRef = useRef(0);
 
@@ -37,6 +39,7 @@ export const ActiveEventProvider: React.FC<{ children: React.ReactNode }> = ({ c
     });
 
     try {
+      setIsActiveEventLoading(true);
       const active = await eventService.getActiveEvent();
       console.log('[ActiveEventContext] Loaded Active Event:', {
         loadCount: currentLoadCount,
@@ -62,6 +65,10 @@ export const ActiveEventProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (user) {
         toast.error('Failed to load active event');
       }
+    } finally {
+      if (currentLoadCount === loadCountRef.current) {
+        setIsActiveEventLoading(false);
+      }
     }
   };
 
@@ -72,18 +79,14 @@ export const ActiveEventProvider: React.FC<{ children: React.ReactNode }> = ({ c
       activeEventId: activeEvent?.id
     });
 
-    // Only load active event if we have an authenticated user and auth check is complete
-    if (user && !isLoading) {
-      loadActiveEvent();
-    } else {
-      // Clear active event when user is not authenticated
-      console.log('[ActiveEventContext] Clearing active event - no authenticated user');
-      setActiveEvent(null);
+    // Always load the active event once auth check completes (even for guests)
+    if (!isLoading) {
+      void loadActiveEvent();
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, activeEvent?.id]);
 
   return (
-    <ActiveEventContext.Provider value={{ activeEvent, setActiveEvent, loadActiveEvent }}>
+    <ActiveEventContext.Provider value={{ activeEvent, setActiveEvent, loadActiveEvent, isActiveEventLoading }}>
       {children}
     </ActiveEventContext.Provider>
   );
