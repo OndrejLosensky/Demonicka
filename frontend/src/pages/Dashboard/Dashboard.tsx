@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Container,
     Typography,
@@ -37,6 +37,8 @@ import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../types/featureFlags';
 import { EventSelector } from '../../components/EventSelector';
 import { EmptyEventState } from '../../components/EmptyEventState';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { MetricCard } from '../../components/ui/MetricCard';
 import { PageLoader } from '../../components/ui/PageLoader';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -68,11 +70,7 @@ export const Dashboard: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [useCustomDate, setUseCustomDate] = useState(false);
 
-    useEffect(() => {
-        loadData();
-    }, [selectedEvent?.id, selectedDate, useCustomDate]);
-
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         try {
             setIsLoading(true);
             
@@ -117,7 +115,11 @@ export const Dashboard: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [selectedEvent?.id, selectedDate, useCustomDate]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
 
     // Show loader first to avoid flashing the empty-state while data is loading
     if (isLoading) {
@@ -158,101 +160,21 @@ export const Dashboard: React.FC = () => {
     return (
         <Box p={3}>
             {/* Header Section */}
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Box display="flex" alignItems="center" gap={2}>
-                    <Typography variant="h4">{translations.title}</Typography>
-                    {showEventHistory && <EventSelector />}
-                </Box>
-            </Box>
+            <PageHeader title={translations.title} left={showEventHistory ? <EventSelector /> : null} />
 
             {/* Main Statistics Cards */}
             <Grid container spacing={3} mb={4}>
                 <Grid item xs={12} sm={6} md={3}>
-                    <Card sx={{ p: 3, height: '100%', borderRadius: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                            <Box sx={{ 
-                                width: 40, 
-                                height: 40, 
-                                borderRadius: '50%', 
-                                bgcolor: 'primary.main',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}>
-                                <BeerIcon sx={{ color: 'white' }} />
-                            </Box>
-                            <Typography color="text.secondary">{translations.stats.totalBeers}</Typography>
-                        </Box>
-                        <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                            {stats.totalBeers}
-                        </Typography>
-                    </Card>
+                    <MetricCard title={translations.stats.totalBeers} value={stats.totalBeers} icon={<BeerIcon />} color="primary" />
                 </Grid>
-
                 <Grid item xs={12} sm={6} md={3}>
-                    <Card sx={{ p: 3, height: '100%', borderRadius: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                            <Box sx={{ 
-                                width: 40, 
-                                height: 40, 
-                                borderRadius: '50%', 
-                                bgcolor: 'error.main',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}>
-                                <SpeedIcon sx={{ color: 'white' }} />
-                            </Box>
-                            <Typography color="text.secondary">{translations.stats.averagePerHour}</Typography>
-                        </Box>
-                        <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                            {stats.averageBeersPerHour.toFixed(1)}
-                        </Typography>
-                    </Card>
+                    <MetricCard title={translations.stats.averagePerHour} value={stats.averageBeersPerHour.toFixed(1)} icon={<SpeedIcon />} color="error" />
                 </Grid>
-
                 <Grid item xs={12} sm={6} md={3}>
-                    <Card sx={{ p: 3, height: '100%', borderRadius: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                            <Box sx={{ 
-                                width: 40, 
-                                height: 40, 
-                                borderRadius: '50%', 
-                                bgcolor: 'success.main',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}>
-                                <BarrelIcon sx={{ color: 'white' }} />
-                            </Box>
-                            <Typography color="text.secondary">{translations.barrelStatus.remainingBeers}</Typography>
-                        </Box>
-                        <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                            {stats.remainingBeers}
-                        </Typography>
-                    </Card>
+                    <MetricCard title={translations.barrelStatus.remainingBeers} value={stats.remainingBeers} icon={<BarrelIcon />} color="success" />
                 </Grid>
-
                 <Grid item xs={12} sm={6} md={3}>
-                    <Card sx={{ p: 3, height: '100%', borderRadius: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                            <Box sx={{ 
-                                width: 40, 
-                                height: 40, 
-                                borderRadius: '50%', 
-                                bgcolor: 'warning.main',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}>
-                                <GroupIcon sx={{ color: 'white' }} />
-                            </Box>
-                            <Typography color="text.secondary">{translations.stats.totalParticipants}</Typography>
-                        </Box>
-                        <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                            {stats.participantsCount}
-                        </Typography>
-                    </Card>
+                    <MetricCard title={translations.stats.totalParticipants} value={stats.participantsCount} icon={<GroupIcon />} color="warning" />
                 </Grid>
             </Grid>
 

@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Card } from '../../components/ui/Card';
 import { useToast } from '../../hooks/useToast';
 import { achievementsService } from '../../services/achievementsService';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import type { UserAchievementsResponse, UserAchievement } from '../../types/achievements';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { MetricCard } from '../../components/ui/MetricCard';
+import { Button, Grid } from '@mui/material';
 
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -38,11 +41,7 @@ export const AchievementsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
 
-  useEffect(() => {
-    loadAchievements();
-  }, []);
-
-  const loadAchievements = async () => {
+  const loadAchievements = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -55,7 +54,11 @@ export const AchievementsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadAchievements();
+  }, [loadAchievements]);
 
   const checkAchievements = async () => {
     try {
@@ -109,41 +112,34 @@ export const AchievementsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 p-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Moje úspěchy</h1>
-        <button
-          onClick={checkAchievements}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Zkontrolovat úspěchy
-        </button>
-      </div>
+      <PageHeader
+        title="Moje úspěchy"
+        action={
+          <Button variant="contained" color="primary" onClick={checkAchievements}>
+            Zkontrolovat úspěchy
+          </Button>
+        }
+      />
 
       {/* Summary Stats */}
-      <Card>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-gray-50 rounded">
-            <p className="text-sm text-gray-600">Celkem bodů</p>
-            <p className="text-2xl font-bold text-blue-600">{achievements.totalPoints}</p>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded">
-            <p className="text-sm text-gray-600">Dokončené</p>
-            <p className="text-2xl font-bold text-green-600">{achievements.completedCount}</p>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded">
-            <p className="text-sm text-gray-600">Celkem úspěchů</p>
-            <p className="text-2xl font-bold text-purple-600">{achievements.totalCount}</p>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded">
-            <p className="text-sm text-gray-600">Procento dokončení</p>
-            <p className="text-2xl font-bold text-orange-600">
-              {achievements.totalCount > 0 
-                ? Math.round((achievements.completedCount / achievements.totalCount) * 100)
-                : 0}%
-            </p>
-          </div>
-        </div>
-      </Card>
+      <Grid container spacing={3}>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard title="Celkem bodů" value={achievements.totalPoints} />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard title="Dokončené" value={achievements.completedCount} color="success" />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard title="Celkem úspěchů" value={achievements.totalCount} color="info" />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <MetricCard
+            title="Procento dokončení"
+            value={`${achievements.totalCount > 0 ? Math.round((achievements.completedCount / achievements.totalCount) * 100) : 0}%`}
+            color="warning"
+          />
+        </Grid>
+      </Grid>
 
       {/* Achievements by Category */}
       {Object.entries(groupedAchievements).map(([category, categoryAchievements]) => (
@@ -158,7 +154,7 @@ export const AchievementsPage: React.FC = () => {
                 className={`p-4 rounded-lg border ${
                   userAchievement.isCompleted
                     ? 'bg-green-50 border-green-200'
-                    : 'bg-white border-gray-200'
+                    : 'bg-white dark:bg-background-paper border-gray-200 dark:border-gray-700'
                 }`}
               >
                 <div className="flex items-start justify-between mb-2">

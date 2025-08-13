@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { User } from '../types/user';
 import {
     Container,
@@ -16,6 +16,7 @@ import {
     TableRow,
     IconButton,
     Chip,
+    Grid,
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -28,6 +29,8 @@ import { useActiveEvent } from '../contexts/ActiveEventContext';
 import { userService } from '../services/userService';
 import { eventService } from '../services/eventService';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { PageHeader } from '../components/ui/PageHeader';
+import { MetricCard } from '../components/ui/MetricCard';
 
 export const Users: React.FC = () => {
     usePageTitle('Účastníci');
@@ -36,28 +39,20 @@ export const Users: React.FC = () => {
     const [eventBeerCounts, setEventBeerCounts] = useState<Record<string, number>>({});
     const { activeEvent } = useActiveEvent();
 
-    useEffect(() => {
-        loadUsers();
-    }, [showDeleted]);
-
-    useEffect(() => {
-        if (activeEvent) {
-            loadEventBeerCounts();
-        } else {
-            setEventBeerCounts({});
-        }
-    }, [activeEvent]);
-
-    const loadUsers = async () => {
+    const loadUsers = useCallback(async () => {
         try {
             const data = await userService.getAllUsers(showDeleted);
             setUsers(data);
         } catch (error) {
             console.error('Failed to load users:', error);
         }
-    };
+    }, [showDeleted]);
 
-    const loadEventBeerCounts = async () => {
+    useEffect(() => {
+        loadUsers();
+    }, [loadUsers]);
+
+    const loadEventBeerCounts = useCallback(async () => {
         if (!activeEvent) return;
         
         try {
@@ -72,7 +67,17 @@ export const Users: React.FC = () => {
         } catch (error) {
             console.error('Failed to load event beer counts:', error);
         }
-    };
+    }, [activeEvent, users]);
+
+    useEffect(() => {
+        if (activeEvent) {
+            loadEventBeerCounts();
+        } else {
+            setEventBeerCounts({});
+        }
+    }, [activeEvent, loadEventBeerCounts]);
+
+    // duplicate functions removed after useCallback conversion
 
     const handleAddBeer = async (userId: string) => {
         try {
@@ -107,55 +112,47 @@ export const Users: React.FC = () => {
 
     return (
         <Container maxWidth="xl">
-            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h4" component="h1">Účastníci</Typography>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={showDeleted}
-                                onChange={(e) => setShowDeleted(e.target.checked)}
-                            />
-                        }
-                        label="Zobrazit smazané"
-                    />
-                    <Button
-                        variant="contained"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                    >
-                        Vyčistit vše
-                    </Button>
-                    <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                    >
-                        Přidat účastníka
-                    </Button>
-                </Box>
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 4, mb: 4 }}>
-                <Card sx={{ p: 3, flex: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <Typography variant="h6">Muži</Typography>
+            <PageHeader
+                title="Účastníci"
+                action={
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={showDeleted}
+                                    onChange={(e) => setShowDeleted(e.target.checked)}
+                                />
+                            }
+                            label="Zobrazit smazané"
+                        />
+                        <Button
+                            variant="contained"
+                            color="error"
+                            startIcon={<DeleteIcon />}
+                        >
+                            Vyčistit vše
+                        </Button>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                        >
+                            Přidat účastníka
+                        </Button>
                     </Box>
-                    <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                        {users.filter(user => user.gender === 'MALE').length}
-                    </Typography>
-                </Card>
-                <Card sx={{ p: 3, flex: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <Typography variant="h6">Ženy</Typography>
-                    </Box>
-                    <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                        {users.filter(user => user.gender === 'FEMALE').length}
-                    </Typography>
-                </Card>
-            </Box>
+                }
+            />
 
-            <TableContainer component={Card}>
-                <Table>
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+                <Grid item xs={12} sm={6}>
+                    <MetricCard title="Muži" value={users.filter(user => user.gender === 'MALE').length} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                    <MetricCard title="Ženy" value={users.filter(user => user.gender === 'FEMALE').length} color="info" />
+                </Grid>
+            </Grid>
+
+            <TableContainer component={Card} sx={{ overflowX: 'auto' }}>
+                <Table stickyHeader size="small">
                     <TableHead>
                         <TableRow>
                             <TableCell>Uživatelské jméno</TableCell>

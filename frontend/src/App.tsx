@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider, createTheme } from '@mui/material';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import RoleRoute from './components/RoleRoute';
 import Login from './pages/Auth/Login';
@@ -19,6 +18,7 @@ import { Docs } from './pages/Docs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ActiveEventProvider } from './contexts/ActiveEventContext';
+import { AppThemeProvider } from './contexts/ThemeContext';
 import { SelectedEventProvider } from './contexts/SelectedEventContext';
 import { CompleteRegistration } from './pages/CompleteRegistration';
 import { EnterToken } from './pages/Auth/EnterToken';
@@ -44,12 +44,10 @@ function GuestRoute({ children }: { children: React.ReactElement }) {
 }
 
 function App() {
-  const theme = createTheme();
-
   return (
     <Router>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
+        <AppThemeProvider>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <AuthProvider>
               <ActiveEventProvider>
@@ -190,7 +188,7 @@ function App() {
               </ActiveEventProvider>
             </AuthProvider>
           </LocalizationProvider>
-        </ThemeProvider>
+        </AppThemeProvider>
       </QueryClientProvider>
     </Router>
   );

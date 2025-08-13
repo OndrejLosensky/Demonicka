@@ -1,32 +1,41 @@
+import React from 'react';
+import { Box, Paper, Typography, List, ListItem, ListItemText, ListItemIcon, Chip, Avatar } from '@mui/material';
 import { useAuth } from '../../../contexts/AuthContext';
+import { PageHeader } from '../../../components/ui/PageHeader';
+import { Person as PersonIcon, Fingerprint as FingerprintIcon, Badge as BadgeIcon } from '@mui/icons-material';
 
 export default function Profile() {
   const { user } = useAuth();
+  if (!user) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-      <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-6 text-center">Your Profile</h1>
-        <div className="bg-gray-50 rounded-lg p-6 mb-6">
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Username</dt>
-              <dd className="mt-1 text-base text-gray-900 font-semibold">{user?.username}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Name</dt>
-              <dd className="mt-1 text-base text-gray-900 font-semibold">{user?.name}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">User ID</dt>
-              <dd className="mt-1 text-base text-gray-900 font-semibold">{user?.id}</dd>
-            </div>
-          </dl>
-        </div>
-        <div className="text-center text-gray-600">
-          This is your profile page where you can view and manage your account details.
-        </div>
-      </div>
-    </div>
+    <Box p={3} maxWidth="lg" mx="auto">
+      <PageHeader title="Profil" />
+      <Paper sx={{ p: 3, borderRadius: 2 }}>
+        <Box display="flex" alignItems="center" gap={2} mb={3}>
+          <Avatar sx={{ bgcolor: 'primary.main' }}>
+            {user.username[0]?.toUpperCase()}
+          </Avatar>
+          <Box>
+            <Typography variant="h5" fontWeight={700}>{user.name}</Typography>
+            <Chip label={user.username} size="small" sx={{ mt: 0.5 }} />
+          </Box>
+        </Box>
+        <List>
+          <ListItem>
+            <ListItemIcon><PersonIcon color="primary" /></ListItemIcon>
+            <ListItemText primary="Username" secondary={user.username} />
+          </ListItem>
+          <ListItem>
+            <ListItemIcon><BadgeIcon color="primary" /></ListItemIcon>
+            <ListItemText primary="Jméno" secondary={user.name} />
+          </ListItem>
+          <ListItem>
+            <ListItemIcon><FingerprintIcon color="primary" /></ListItemIcon>
+            <ListItemText primary="User ID" secondary={user.id} />
+          </ListItem>
+        </List>
+      </Paper>
+    </Box>
   );
-} 
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Container,
@@ -41,6 +41,7 @@ import type { Barrel } from '../types/barrel';
 import { toast } from 'react-hot-toast';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { MetricCard } from '../components/ui/MetricCard';
 
 export const EventDetail: React.FC = () => {
     usePageTitle('Detail události');
@@ -56,33 +57,18 @@ export const EventDetail: React.FC = () => {
     const [selectedBarrel, setSelectedBarrel] = useState('');
     const { loadActiveEvent } = useActiveEvent();
 
-    useEffect(() => {
-        if (id) {
-            loadEventData();
-            loadUsers();
-            loadBarrels();
-        }
-    }, [id]);
-
-    useEffect(() => {
-        if (id && event?.users) {
-            loadEventBeerCounts();
-        }
-    }, [id, event?.users]);
-
-    const loadEventData = async () => {
+    const loadEventData = useCallback(async () => {
         if (!id) return;
         try {
             const data = await eventService.getEvent(id);
             setEvent(data);
-            await loadEventBeerCounts();
         } catch (error) {
             console.error('Failed to load event:', error);
             toast.error('Nepodařilo se načíst událost');
         }
-    };
+    }, [id]);
 
-    const loadUsers = async () => {
+    const loadUsers = useCallback(async () => {
         try {
             const data = await userService.getAllUsers();
             setUsers(data);
@@ -90,9 +76,9 @@ export const EventDetail: React.FC = () => {
             console.error('Failed to load users:', error);
             toast.error('Nepodařilo se načíst uživatele');
         }
-    };
+    }, []);
 
-    const loadBarrels = async () => {
+    const loadBarrels = useCallback(async () => {
         try {
             const barrels = await barrelService.getAll();
             setBarrels(barrels);
@@ -100,11 +86,18 @@ export const EventDetail: React.FC = () => {
             console.error('Failed to load barrels:', error);
             toast.error('Nepodařilo se načíst sudy');
         }
-    };
+    }, []);
 
-    const loadEventBeerCounts = async () => {
+    useEffect(() => {
+        if (id) {
+            loadEventData();
+            loadUsers();
+            loadBarrels();
+        }
+    }, [id, loadEventData, loadUsers, loadBarrels]);
+
+    const loadEventBeerCounts = useCallback(async () => {
         if (!id || !event?.users) return;
-        
         const counts: Record<string, number> = {};
         await Promise.all(
             event.users.map(async (user) => {
@@ -117,7 +110,15 @@ export const EventDetail: React.FC = () => {
             })
         );
         setEventBeerCounts(counts);
-    };
+    }, [id, event?.users]);
+
+    useEffect(() => {
+        if (id && event?.users) {
+            loadEventBeerCounts();
+        }
+    }, [id, event?.users, loadEventBeerCounts]);
+
+    // removed duplicate function definitions after converting to useCallback
 
     const handleAddUser = async () => {
         try {
@@ -274,7 +275,7 @@ export const EventDetail: React.FC = () => {
                             startIcon={event.isActive ? undefined : <AddIcon />}
                             onClick={event.isActive ? handleDeactivate : handleSetActive}
                             sx={{
-                                bgcolor: 'white',
+                                bgcolor: 'background.paper',
                                 color: 'error.main',
                                 '&:hover': {
                                     bgcolor: 'rgba(255, 255, 255, 0.9)',
@@ -335,123 +336,16 @@ export const EventDetail: React.FC = () => {
                 {/* Stats Cards */}
                 <Grid container spacing={3} mb={4}>
                     <Grid item xs={12} sm={6} md={3}>
-                        <Paper 
-                            elevation={2}
-                            sx={{ 
-                                p: 3, 
-                                height: '100%', 
-                                borderRadius: 2,
-                                bgcolor: 'white',
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                <Box sx={{ 
-                                    width: 40, 
-                                    height: 40, 
-                                    borderRadius: '50%', 
-                                    bgcolor: '#EEF2FF',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}>
-                                    <BeerIcon sx={{ color: '#6366F1' }} />
-                                </Box>
-                                <Typography color="text.secondary">Celkem piv</Typography>
-                            </Box>
-                            <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                                {totalBeers}
-                            </Typography>
-                        </Paper>
+                        <MetricCard title="Celkem piv" value={totalBeers} icon={<BeerIcon />} color="primary" />
                     </Grid>
-
                     <Grid item xs={12} sm={6} md={3}>
-                        <Paper 
-                            elevation={2}
-                            sx={{ 
-                                p: 3, 
-                                height: '100%', 
-                                borderRadius: 2,
-                                bgcolor: 'white',
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                <Box sx={{ 
-                                    width: 40, 
-                                    height: 40, 
-                                    borderRadius: '50%', 
-                                    bgcolor: '#FEF2F2',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}>
-                                    <GroupIcon sx={{ color: '#DC2626' }} />
-                                </Box>
-                                <Typography color="text.secondary">Účastníci</Typography>
-                            </Box>
-                            <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                                {event.users?.length || 0}
-                            </Typography>
-                        </Paper>
+                        <MetricCard title="Účastníci" value={event.users?.length || 0} icon={<GroupIcon />} color="error" />
                     </Grid>
-
                     <Grid item xs={12} sm={6} md={3}>
-                        <Paper 
-                            elevation={2}
-                            sx={{ 
-                                p: 3, 
-                                height: '100%', 
-                                borderRadius: 2,
-                                bgcolor: 'white',
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                <Box sx={{ 
-                                    width: 40, 
-                                    height: 40, 
-                                    borderRadius: '50%', 
-                                    bgcolor: '#F0FDF4',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}>
-                                    <TrendingUpIcon sx={{ color: '#16A34A' }} />
-                                </Box>
-                                <Typography color="text.secondary">Průměr na osobu</Typography>
-                            </Box>
-                            <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                                {averageBeersPerUser}
-                            </Typography>
-                        </Paper>
+                        <MetricCard title="Průměr na osobu" value={averageBeersPerUser} icon={<TrendingUpIcon />} color="success" />
                     </Grid>
-
                     <Grid item xs={12} sm={6} md={3}>
-                        <Paper 
-                            elevation={2}
-                            sx={{ 
-                                p: 3, 
-                                height: '100%', 
-                                borderRadius: 2,
-                                bgcolor: 'white',
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                <Box sx={{ 
-                                    width: 40, 
-                                    height: 40, 
-                                    borderRadius: '50%', 
-                                    bgcolor: '#FEF3C7',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}>
-                                    <FilterIcon sx={{ color: '#D97706' }} />
-                                </Box>
-                                <Typography color="text.secondary">Sudy</Typography>
-                            </Box>
-                            <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                                {event.barrels?.length || 0}
-                            </Typography>
-                        </Paper>
+                        <MetricCard title="Sudy" value={event.barrels?.length || 0} icon={<FilterIcon />} color="warning" />
                     </Grid>
                 </Grid>
 
@@ -463,7 +357,7 @@ export const EventDetail: React.FC = () => {
                             elevation={2}
                             sx={{ 
                                 borderRadius: 2,
-                                bgcolor: 'white',
+                                bgcolor: 'background.paper',
                             }}
                         >
                             <Box sx={{ p: 3 }}>
@@ -528,7 +422,7 @@ export const EventDetail: React.FC = () => {
                             elevation={2}
                             sx={{ 
                                 borderRadius: 2,
-                                bgcolor: 'white',
+                                bgcolor: 'background.paper',
                             }}
                         >
                             <Box sx={{ p: 3 }}>

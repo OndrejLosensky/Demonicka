@@ -28,6 +28,8 @@ import translations from '../../../locales/cs/system.json';
 import { CleanupSection } from './components/CleanupSection';
 import { SystemHealthDashboard } from './components/SystemHealthDashboard';
 import { usePageTitle } from '../../../hooks/usePageTitle';
+import { PageHeader } from '../../../components/ui/PageHeader';
+import { MetricCard } from '../../../components/ui/MetricCard';
 
 const SystemPage: React.FC = () => {
   usePageTitle('Systém');
@@ -60,7 +62,7 @@ const SystemPage: React.FC = () => {
         setIsRefreshing(false);
       }
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     loadStats(true);
@@ -72,7 +74,7 @@ const SystemPage: React.FC = () => {
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [loadStats]);
 
   const handleGenerateToken = async (userId: string) => {
     try {
@@ -116,71 +118,34 @@ const SystemPage: React.FC = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">{translations.title}</Typography>
-        <Button 
-          variant="outlined"
-          startIcon={<RefreshIcon />}
-          onClick={() => loadStats(false)}
-          disabled={isRefreshing}
-        >
-          {translations.refresh}
-        </Button>
-      </Box>
+      <PageHeader
+        title={translations.title}
+        action={
+          <Button 
+            variant="outlined" 
+            startIcon={<RefreshIcon />}
+            onClick={() => loadStats(false)}
+            disabled={isRefreshing}
+          >
+            {translations.refresh}
+          </Button>
+        }
+      />
       
       {stats && (
         <Box>
           <Grid container spacing={3} mb={3}>
-            <Grid item xs={12}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    {translations.userStatistics.title}
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6} sm={3}>
-                      <Box textAlign="center" p={2} bgcolor="grey.50" borderRadius={1}>
-                        <Typography variant="h4" color="primary" fontWeight="bold">
-                          {stats.totalUsers}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {translations.userStatistics.totalUsers}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <Box textAlign="center" p={2} bgcolor="grey.50" borderRadius={1}>
-                        <Typography variant="h4" color="error" fontWeight="bold">
-                          {stats.totalAdminUsers}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {translations.userStatistics.adminUsers}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <Box textAlign="center" p={2} bgcolor="grey.50" borderRadius={1}>
-                        <Typography variant="h4" color="success.main" fontWeight="bold">
-                          {stats.totalCompletedRegistrations}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {translations.userStatistics.completedRegistrations}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <Box textAlign="center" p={2} bgcolor="grey.50" borderRadius={1}>
-                        <Typography variant="h4" color="warning.main" fontWeight="bold">
-                          {stats.total2FAEnabled}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {translations.userStatistics.twoFactorEnabled}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
+            <Grid item xs={12} sm={6} md={3}>
+              <MetricCard title={translations.userStatistics.totalUsers} value={stats.totalUsers} />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <MetricCard title={translations.userStatistics.adminUsers} value={stats.totalAdminUsers} color="error" />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <MetricCard title={translations.userStatistics.completedRegistrations} value={stats.totalCompletedRegistrations} color="success" />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <MetricCard title={translations.userStatistics.twoFactorEnabled} value={stats.total2FAEnabled} color="warning" />
             </Grid>
           </Grid>
 
@@ -189,8 +154,8 @@ const SystemPage: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 {translations.userList.title}
               </Typography>
-              <TableContainer>
-                <Table>
+              <TableContainer sx={{ overflowX: 'auto' }}>
+                <Table stickyHeader size="small">
                   <TableHead>
                     <TableRow>
                       <TableCell>{translations.userList.columns.username}</TableCell>

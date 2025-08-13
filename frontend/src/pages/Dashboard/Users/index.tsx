@@ -14,6 +14,7 @@ import { AddUserDialog } from './AddUserDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.users.json';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
@@ -61,11 +62,7 @@ const UsersPage: React.FC = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box display="flex" alignItems="center" gap={2}>
-          <Typography variant="h4">{translations.title}</Typography>
-          {showEventHistory && <EventSelector />}
-        </Box>
+      <PageHeader title={translations.title} left={showEventHistory ? <EventSelector /> : null} action={
         <Box>
           {showDeletedFeature && (
             <FormControlLabel
@@ -96,7 +93,7 @@ const UsersPage: React.FC = () => {
             {translations.actions.cleanupAll}
           </Button>
         </Box>
-      </Box>
+      } />
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
@@ -137,4 +134,5 @@ const UsersPage: React.FC = () => {
   );
 };
 
-export default withPageLoader(UsersPage); 
+const UsersPageWithLoader = withPageLoader(UsersPage);
+export default UsersPageWithLoader;

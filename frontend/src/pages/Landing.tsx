@@ -528,7 +528,7 @@ export default function Landing() {
                     className="relative group"
                   >
                     <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary-600/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-300"></div>
-                    <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+                    <div className="relative bg-white dark:bg-background-paper rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
                       {/* Placeholder for Dashboard Screenshot */}
                       <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                         <div className="text-center">
@@ -557,7 +557,7 @@ export default function Landing() {
                     className="relative group"
                   >
                     <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary-600/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-300"></div>
-                    <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+                    <div className="relative bg-white dark:bg-background-paper rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
                       {/* Placeholder for User Management Screenshot */}
                       <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                         <div className="text-center">
@@ -638,7 +638,7 @@ export default function Landing() {
                     className="relative group"
                   >
                     <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary-600/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-300"></div>
-                    <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+                    <div className="relative bg-white dark:bg-background-paper rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
                       {/* Placeholder for Barrel Management Screenshot */}
                       <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                         <div className="text-center">
@@ -667,7 +667,7 @@ export default function Landing() {
                     className="relative group"
                   >
                     <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-primary-600/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-300"></div>
-                    <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+                    <div className="relative bg-white dark:bg-background-paper rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
                       {/* Placeholder for Leaderboard Screenshot */}
                       <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                         <div className="text-center">
@@ -716,7 +716,7 @@ export default function Landing() {
               viewport={{ once: true }}
               className="mt-32 text-center"
             >
-              <div className="bg-white rounded-3xl shadow-xl p-12 border border-gray-200">
+              <div className="bg-white dark:bg-background-paper rounded-3xl shadow-xl p-12 border border-gray-200 dark:border-gray-800">
                 <h3 className="text-3xl font-bold text-gray-900 mb-6">
                   Připraveni vyzkoušet Démonickou?
                 </h3>
@@ -761,7 +761,7 @@ export default function Landing() {
                 </Link>
               </div>
               <div className="lg:col-span-2">
-                <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xl">
+                <div className="bg-white dark:bg-background-paper rounded-2xl border border-gray-200/80 dark:border-gray-800 p-6 shadow-xl">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Men */}
                     <div>
@@ -772,7 +772,7 @@ export default function Landing() {
                       <div className="space-y-2">
                         {leaderboardLoading ? (
                           Array.from({ length: 5 }).map((_, idx) => (
-                            <div key={idx} className="flex items-center justify-between bg-white rounded-xl border border-gray-200/80 px-4 py-2.5 shadow-sm">
+                            <div key={idx} className="flex items-center justify-between bg-white dark:bg-background-paper rounded-xl border border-gray-200/80 dark:border-gray-800 px-4 py-2.5 shadow-sm">
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full bg-gray-100 ring-1 ring-gray-200/60 flex items-center justify-center text-xs font-bold text-gray-500">{idx + 1}</div>
                                 <div className="h-4 w-32 bg-gray-100 rounded" />
@@ -791,7 +791,7 @@ export default function Landing() {
                               ? 'bg-gradient-to-br from-amber-200 to-amber-400 text-amber-900 ring-amber-300/60'
                               : 'bg-gray-100 text-gray-600 ring-gray-200/60';
                             return (
-                              <div key={item.id} className="flex items-center justify-between bg-white rounded-xl border border-gray-200/80 px-4 py-2.5 shadow-sm hover:shadow-md transition-shadow">
+                              <div key={item.id} className="flex items-center justify-between bg-white dark:bg-background-paper rounded-xl border border-gray-200/80 dark:border-gray-800 px-4 py-2.5 shadow-sm hover:shadow-md transition-shadow">
                                 <div className="flex items-center gap-3">
                                   <div className={`w-8 h-8 rounded-full ring-1 flex items-center justify-center text-xs font-bold ${rankBg}`}>{position}</div>
                                   <div className="text-gray-800 font-medium">{item.username}</div>
@@ -816,7 +816,7 @@ export default function Landing() {
                       <div className="space-y-2">
                         {leaderboardLoading ? (
                           Array.from({ length: 5 }).map((_, idx) => (
-                            <div key={idx} className="flex items-center justify-between bg-white rounded-xl border border-gray-200/80 px-4 py-2.5 shadow-sm">
+                            <div key={idx} className="flex items-center justify-between bg-white dark:bg-background-paper rounded-xl border border-gray-200/80 dark:border-gray-800 px-4 py-2.5 shadow-sm">
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full bg-gray-100 ring-1 ring-gray-200/60 flex items-center justify-center text-xs font-bold text-gray-500">{idx + 1}</div>
                                 <div className="h-4 w-32 bg-gray-100 rounded" />
@@ -835,7 +835,7 @@ export default function Landing() {
                               ? 'bg-gradient-to-br from-rose-200 to-rose-400 text-rose-900 ring-rose-300/60'
                               : 'bg-gray-100 text-gray-600 ring-gray-200/60';
                             return (
-                              <div key={item.id} className="flex items-center justify-between bg-white rounded-xl border border-gray-200/80 px-4 py-2.5 shadow-sm hover:shadow-md transition-shadow">
+                              <div key={item.id} className="flex items-center justify-between bg-white dark:bg-background-paper rounded-xl border border-gray-200/80 dark:border-gray-800 px-4 py-2.5 shadow-sm hover:shadow-md transition-shadow">
                                 <div className="flex items-center gap-3">
                                   <div className={`w-8 h-8 rounded-full ring-1 flex items-center justify-center text-xs font-bold ${rankBg}`}>{position}</div>
                                   <div className="text-gray-800 font-medium">{item.username}</div>
@@ -940,7 +940,7 @@ export default function Landing() {
                     rel="noopener noreferrer"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:border-gray-400 hover:bg-gray-50 transition-colors duration-300"
+                      className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:border-gray-400 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors duration-300"
                   >
                     <FaGithub className="w-5 h-5" />
                     Zobrazit zdrojový kód
@@ -959,7 +959,7 @@ export default function Landing() {
                 <div className="relative">
                   {/* Phone Mockup */}
                   <div className="relative mx-auto w-72 h-[600px] bg-black rounded-[3rem] p-2 shadow-2xl">
-                    <div className="w-full h-full bg-white rounded-[2.5rem] overflow-hidden relative">
+                    <div className="w-full h-full bg-white dark:bg-background-paper rounded-[2.5rem] overflow-hidden relative">
                       {/* Status Bar */}
                       <div className="absolute top-0 left-0 right-0 h-12 bg-gray-100 flex items-center justify-center">
                         <div className="w-32 h-6 bg-black rounded-full"></div>

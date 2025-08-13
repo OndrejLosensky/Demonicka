@@ -58,7 +58,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
       </div>
 
       {/* Right side - Features */}
-      <div className="hidden lg:block lg:w-2/5 relative p-4">
+       <div className="hidden lg:block lg:w-2/5 relative p-4">
         <div 
           className="absolute inset-0 bg-cover bg-center rounded-xl m-4"
           style={{ backgroundImage: 'url(/images/bg.PNG)' }}
@@ -82,7 +82,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
                     left: 0,
                   }}
                 >
-                  <div className="bg-white/10 backdrop-blur-lg rounded-lg p-8 text-white">
+                  <div className="backdrop-blur-lg rounded-lg p-8 text-white" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
                     <h3 className="text-2xl font-bold mb-6">{translations.common.features.title}</h3>
                     <div className="flex items-start space-x-4">
                       <div>

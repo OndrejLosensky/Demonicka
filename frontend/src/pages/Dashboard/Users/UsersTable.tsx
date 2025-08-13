@@ -56,8 +56,8 @@ export const UsersTable: React.FC<UserTableProps> = ({
 
   return (
     <>
-      <TableContainer component={Paper} className="shadow-lg rounded-xl overflow-hidden">
-        <Table>
+      <TableContainer component={Paper} className="shadow-lg rounded-xl" sx={{ overflowX: 'auto' }}>
+        <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
               <TableCell className="font-bold">{translations.table.columns.name}</TableCell>

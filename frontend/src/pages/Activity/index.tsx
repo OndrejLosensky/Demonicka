@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -20,6 +20,7 @@ import type { SelectChangeEvent } from '@mui/material';
 import { format } from 'date-fns';
 import { api } from '../../services/api';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { PageHeader } from '../../components/ui/PageHeader';
 
 interface ActivityLogEntry {
   timestamp: string;
@@ -95,7 +96,7 @@ export const Activity: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [selectedEvent, setSelectedEvent] = useState<ActivityEventType | ''>('');
 
-  const fetchActivityLogs = async () => {
+  const fetchActivityLogs = useCallback(async () => {
     try {
       setIsLoading(true);
       const params = new URLSearchParams({
@@ -122,11 +123,11 @@ export const Activity: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, rowsPerPage, selectedEvent]);
 
   useEffect(() => {
     fetchActivityLogs();
-  }, [page, rowsPerPage, selectedEvent]);
+  }, [fetchActivityLogs]);
 
   const handlePageChange = (_: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
     setPage(newPage);
@@ -144,9 +145,7 @@ export const Activity: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
-        Aktivita
-      </Typography>
+      <PageHeader title="Aktivita" />
 
       <Paper sx={{ mb: 3, borderRadius: 2, p: 3 }}>
         <Box sx={{ mb: 3 }}>
@@ -170,8 +169,8 @@ export const Activity: React.FC = () => {
           </FormControl>
         </Box>
 
-        <TableContainer component={Paper} sx={{ borderRadius: 2, mb: 2 }}>
-          <Table>
+      <TableContainer component={Paper} sx={{ borderRadius: 2, mb: 2, overflowX: 'auto' }}>
+        <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
                 <TableCell>Čas</TableCell>

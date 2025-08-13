@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
     Button, 
     Grid, 
@@ -27,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { PageHeader } from '../components/ui/PageHeader';
 
 export const Events: React.FC = () => {
     usePageTitle('Události');
@@ -43,17 +44,7 @@ export const Events: React.FC = () => {
     const { loadActiveEvent } = useActiveEvent();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        loadEvents();
-    }, []);
-
-    useEffect(() => {
-        if (events.length > 0) {
-            loadEventBeerCounts();
-        }
-    }, [events]);
-
-    const loadEvents = async () => {
+    const loadEvents = useCallback(async () => {
         try {
             setIsLoading(true);
             const data = await eventService.getAllEvents();
@@ -63,9 +54,13 @@ export const Events: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
-    const loadEventBeerCounts = async () => {
+    useEffect(() => {
+        loadEvents();
+    }, [loadEvents]);
+
+    const loadEventBeerCounts = useCallback(async () => {
         try {
             const counts: Record<string, Record<string, number>> = {};
             await Promise.all(
@@ -83,7 +78,15 @@ export const Events: React.FC = () => {
         } catch (error) {
             console.error('Failed to load event beer counts:', error);
         }
-    };
+    }, [events]);
+
+    useEffect(() => {
+        if (events.length > 0) {
+            loadEventBeerCounts();
+        }
+    }, [events, loadEventBeerCounts]);
+
+    // Definitions moved above to useCallback
 
     const handleCreateEvent = async () => {
         try {
@@ -107,47 +110,31 @@ export const Events: React.FC = () => {
 
     return (
         <Box sx={{ p: 4 }}>
-            {/* Header */}
-            <Box sx={{ 
-                mb: 4,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start'
-            }}>
-                <Box>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>Události</Typography>                   
-                </Box>
+            <PageHeader
+              title="Události"
+              action={
                 <Box display="flex" gap={2}>
-                    <Button 
-                        variant="contained" 
-                        color="error"
-                        onClick={() => setOpen(true)}
-                        startIcon={<AddIcon />}
-                        sx={{
-                            px: 3,
-                            py: 1,
-                            borderRadius: 2,
-                            boxShadow: 1,
-                        }}
-                    >
-                        Vytvořit událost
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        color="inherit"
-                        onClick={() => navigate('/leaderboard')}
-                        startIcon={<FilterIcon />}
-                        sx={{
-                            px: 3,
-                            py: 1,
-                            borderRadius: 2,
-                            borderColor: 'divider',
-                        }}
-                    >
-                        Žebříček
-                    </Button>
+                  <Button 
+                    variant="contained" 
+                    color="error"
+                    onClick={() => setOpen(true)}
+                    startIcon={<AddIcon />}
+                    sx={{ px: 3, py: 1, borderRadius: 2, boxShadow: 1 }}
+                  >
+                    Vytvořit událost
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="inherit"
+                    onClick={() => navigate('/leaderboard')}
+                    startIcon={<FilterIcon />}
+                    sx={{ px: 3, py: 1, borderRadius: 2, borderColor: 'divider' }}
+                  >
+                    Žebříček
+                  </Button>
                 </Box>
-            </Box>
+              }
+            />
 
             {/* Events Grid or Empty State */}
             {events.length > 0 ? (
@@ -168,7 +155,7 @@ export const Events: React.FC = () => {
                                         '&:hover': {
                                             transform: 'translateY(-4px)',
                                         },
-                                        bgcolor: 'white',
+                                        bgcolor: 'background.paper',
                                     }}
                                 >
                                     {/* Card Header */}

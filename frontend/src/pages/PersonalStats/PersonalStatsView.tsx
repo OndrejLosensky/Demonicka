@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
+import { PageHeader } from '../../components/ui/PageHeader';
+import { MetricCard } from '../../components/ui/MetricCard';
 import { useToast } from '../../hooks/useToast';
 import { personalStatsService } from '../../services/personalStatsService';
 import { usePageTitle } from '../../hooks/usePageTitle';
@@ -29,13 +31,7 @@ export const PersonalStatsView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
 
-  useEffect(() => {
-    if (userId) {
-      loadStats();
-    }
-  }, [userId]);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -48,7 +44,13 @@ export const PersonalStatsView: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    if (userId) {
+      loadStats();
+    }
+  }, [userId, loadStats]);
 
   if (isLoading) {
     return (
@@ -82,24 +84,13 @@ export const PersonalStatsView: React.FC = () => {
 
   return (
     <div className="space-y-6 p-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Moje statistiky</h1>
-      </div>
-      
+      <PageHeader title="Moje statistiky" />
+
       {/* Overall Stats */}
-      <Card>
-        <h2 className="text-xl font-semibold mb-4">Celkové statistiky</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-50 rounded">
-            <p className="text-sm text-gray-600">Celkem piv</p>
-            <p className="text-2xl font-bold">{stats.totalBeers}</p>
-          </div>
-          <div className="p-4 bg-gray-50 rounded">
-            <p className="text-sm text-gray-600">Počet událostí</p>
-            <p className="text-2xl font-bold">{stats.eventStats.length}</p>
-          </div>
-        </div>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <MetricCard title="Celkem piv" value={stats.totalBeers} />
+        <MetricCard title="Počet událostí" value={stats.eventStats.length} color="success" />
+      </div>
 
       {/* Event Stats */}
       {stats.eventStats.length > 0 && (

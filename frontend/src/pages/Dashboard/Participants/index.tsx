@@ -24,6 +24,7 @@ import { AddParticipantDialog } from './AddParticipantDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
+import { PageHeader } from '../../../components/ui/PageHeader';
 import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.participants.json';
@@ -75,11 +76,7 @@ const ParticipantsPage: React.FC = () => {
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box display="flex" alignItems="center" gap={2}>
-          <Typography variant="h4">{translations.title}</Typography>
-          {showEventHistory && <EventSelector />}
-        </Box>
+      <PageHeader title={translations.title} left={showEventHistory ? <EventSelector /> : null} action={
         <Box display="flex" alignItems="center" gap={2}>
           <ToggleButtonGroup
             value={viewMode}
@@ -114,7 +111,7 @@ const ParticipantsPage: React.FC = () => {
             {translations.actions.addParticipant}
           </Button>
         </Box>
-      </Box>
+      } />
 
       {isLoading ? (
         <CircularProgress />

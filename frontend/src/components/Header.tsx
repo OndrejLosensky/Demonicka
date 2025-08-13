@@ -30,6 +30,9 @@ import { FaBook } from 'react-icons/fa';
 import { format } from 'date-fns';
 import translations from '../locales/cs/common.header.json';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
+import { useAppTheme } from '../contexts/ThemeContext';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
 
 export default function Header() {
   const { user, logout, hasRole } = useAuth();
@@ -39,6 +42,7 @@ export default function Header() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const { activeEvent } = useActiveEvent();
+  const { mode, toggleMode } = useAppTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -92,7 +96,7 @@ export default function Header() {
           className={`fixed w-full z-50 transition-all duration-300 ${
             isScrolled || !isLandingPage
               ? 'bg-background-primary/95 backdrop-blur-sm shadow-lg border-b border-border-secondary/30'
-              : 'bg-white/90 backdrop-blur-md shadow-md border-b border-gray-100'
+              : 'bg-background-primary/80 backdrop-blur-md shadow-md border-b border-border-secondary/20'
           }`}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -217,6 +221,23 @@ export default function Header() {
               <div className="flex items-center">
                 {user ? (
                   <div className="flex items-center space-x-3">
+                    <IconButton
+                      size="small"
+                      onClick={toggleMode}
+                      aria-label="Toggle theme"
+                      sx={{
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        bgcolor: 'background.paper',
+                        '&:hover': { bgcolor: 'action.hover' },
+                      }}
+                    >
+                      {mode === 'light' ? (
+                        <DarkModeIcon fontSize="small" />
+                      ) : (
+                        <LightModeIcon fontSize="small" />
+                      )}
+                    </IconButton>
                     {activeEvent && (
                       <motion.div 
                         initial={{ opacity: 0, x: 20 }}

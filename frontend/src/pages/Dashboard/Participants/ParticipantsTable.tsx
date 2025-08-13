@@ -70,8 +70,8 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
 
   return (
     <>
-      <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-        <Table>
+      <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
+        <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
               <TableCell>{translations.table.columns.name}</TableCell>
