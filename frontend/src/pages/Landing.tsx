@@ -9,6 +9,8 @@ import { BsArrowUpRight, BsLightning } from 'react-icons/bs';
 import { formatDistanceToNow } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
+import type { LeaderboardData } from '../types/leaderboard';
+import { dashboardService } from '../services/dashboardService';
 
 const fadeInUp = {
   initial: { y: 20, opacity: 0 },
@@ -113,6 +115,8 @@ export default function Landing() {
   const [stats, setStats] = useState<PublicStats | null>(null);
   const [loading, setLoading] = useState(true);
   const { activeEvent } = useActiveEvent();
+  const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
+  const [leaderboardLoading, setLeaderboardLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -131,6 +135,22 @@ export default function Landing() {
     fetchStats();
   }, [activeEvent?.id]);
 
+  // Load public leaderboard preview (global or for active event if available)
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        setLeaderboardLoading(true);
+        const data = await dashboardService.getLeaderboard(activeEvent?.id);
+        setLeaderboard(data);
+      } catch (error) {
+        console.error('Error fetching leaderboard preview:', error);
+      } finally {
+        setLeaderboardLoading(false);
+      }
+    };
+
+    fetchLeaderboard();
+  }, [activeEvent?.id]);
 
 
   return (
@@ -450,7 +470,7 @@ export default function Landing() {
                 viewport={{ once: true }}
                 className="text-4xl lg:text-5xl font-black tracking-tight text-gray-900 mb-6"
               >
-                Poznávejte naši <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-600">platformu</span>
+                Poznávejte naši platformu
               </motion.h2>
               <motion.p
                 variants={fadeInUp}
@@ -713,6 +733,128 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* Public Leaderboard Preview */}
+        <section className="relative py-24 bg-white">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
+              <div className="lg:col-span-1">
+                <motion.h2
+                  variants={fadeInUp}
+                  initial="initial"
+                  whileInView="animate"
+                  viewport={{ once: true }}
+                  className="text-4xl font-black tracking-tight text-gray-900 mb-4"
+                >
+                  Žebříček
+                </motion.h2>
+                <p className="text-lg text-gray-600 mb-6">
+                  Podívejte se na aktuální pořadí. Žebříček je veřejně dostupný – můžete se kdykoli podívat, jak si vedou účastníci.
+                </p>
+                <Link
+                  to="/leaderboard"
+                  className="inline-flex items-center px-6 py-3 text-sm font-semibold text-white bg-primary rounded-xl hover:bg-primary-600 transition-colors duration-300 group shadow-md"
+                >
+                  Otevřít žebříček
+                  <BsArrowUpRight className="ml-2 w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                </Link>
+              </div>
+              <div className="lg:col-span-2">
+                <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xl">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Men */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <FaBeer className="text-primary" />
+                        <h3 className="text-lg font-semibold text-gray-900">Muži</h3>
+                      </div>
+                      <div className="space-y-2">
+                        {leaderboardLoading ? (
+                          Array.from({ length: 5 }).map((_, idx) => (
+                            <div key={idx} className="flex items-center justify-between bg-white rounded-xl border border-gray-200/80 px-4 py-2.5 shadow-sm">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gray-100 ring-1 ring-gray-200/60 flex items-center justify-center text-xs font-bold text-gray-500">{idx + 1}</div>
+                                <div className="h-4 w-32 bg-gray-100 rounded" />
+                              </div>
+                              <div className="h-4 w-12 bg-gray-100 rounded" />
+                            </div>
+                          ))
+                        ) : (
+                          (leaderboard?.males ?? []).slice(0, 5).map((item, idx) => {
+                            const position = idx + 1;
+                            const rankBg = position === 1
+                              ? 'bg-gradient-to-br from-yellow-300 to-yellow-500 text-yellow-900 ring-yellow-400/50'
+                              : position === 2
+                              ? 'bg-gradient-to-br from-gray-200 to-gray-400 text-gray-800 ring-gray-300/60'
+                              : position === 3
+                              ? 'bg-gradient-to-br from-amber-200 to-amber-400 text-amber-900 ring-amber-300/60'
+                              : 'bg-gray-100 text-gray-600 ring-gray-200/60';
+                            return (
+                              <div key={item.id} className="flex items-center justify-between bg-white rounded-xl border border-gray-200/80 px-4 py-2.5 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-8 h-8 rounded-full ring-1 flex items-center justify-center text-xs font-bold ${rankBg}`}>{position}</div>
+                                  <div className="text-gray-800 font-medium">{item.username}</div>
+                                </div>
+                                <div className="inline-flex items-center gap-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1">
+                                  <FaBeer className="text-primary/80" />
+                                  <span className="font-semibold">{item.beerCount}</span>
+                                  <span className="text-gray-500">piv</span>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                    {/* Women */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <FaTrophy className="text-primary" />
+                        <h3 className="text-lg font-semibold text-gray-900">Ženy</h3>
+                      </div>
+                      <div className="space-y-2">
+                        {leaderboardLoading ? (
+                          Array.from({ length: 5 }).map((_, idx) => (
+                            <div key={idx} className="flex items-center justify-between bg-white rounded-xl border border-gray-200/80 px-4 py-2.5 shadow-sm">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gray-100 ring-1 ring-gray-200/60 flex items-center justify-center text-xs font-bold text-gray-500">{idx + 1}</div>
+                                <div className="h-4 w-32 bg-gray-100 rounded" />
+                              </div>
+                              <div className="h-4 w-12 bg-gray-100 rounded" />
+                            </div>
+                          ))
+                        ) : (
+                          (leaderboard?.females ?? []).slice(0, 5).map((item, idx) => {
+                            const position = idx + 1;
+                            const rankBg = position === 1
+                              ? 'bg-gradient-to-br from-pink-200 to-pink-400 text-pink-900 ring-pink-300/60'
+                              : position === 2
+                              ? 'bg-gradient-to-br from-gray-200 to-gray-400 text-gray-800 ring-gray-300/60'
+                              : position === 3
+                              ? 'bg-gradient-to-br from-rose-200 to-rose-400 text-rose-900 ring-rose-300/60'
+                              : 'bg-gray-100 text-gray-600 ring-gray-200/60';
+                            return (
+                              <div key={item.id} className="flex items-center justify-between bg-white rounded-xl border border-gray-200/80 px-4 py-2.5 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-8 h-8 rounded-full ring-1 flex items-center justify-center text-xs font-bold ${rankBg}`}>{position}</div>
+                                  <div className="text-gray-800 font-medium">{item.username}</div>
+                                </div>
+                                <div className="inline-flex items-center gap-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1">
+                                  <FaBeer className="text-primary/80" />
+                                  <span className="font-semibold">{item.beerCount}</span>
+                                  <span className="text-gray-500">piv</span>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
         {/* Swift Mobile App Section */}
         <section className="relative py-32 bg-white">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">

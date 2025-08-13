@@ -132,9 +132,7 @@ function App() {
                       <Route
                         path="leaderboard"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
-                            <Leaderboard />
-                          </RoleRoute>
+                          <Leaderboard />
                         }
                       />
                       <Route

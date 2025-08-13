@@ -1,30 +1,12 @@
-import { Typography, Grid, Box, Container, Paper } from '@mui/material';
+import { Typography, Grid, Box, Paper } from '@mui/material';
 import { FaBeer } from 'react-icons/fa';
 import { LeaderboardTable } from './LeaderboardTable';
 import { useLeaderboard } from './useLeaderboard';
-import { EventSelector } from '../../components/EventSelector';
-import { useFeatureFlag } from '../../hooks/useFeatureFlag';
-import { FeatureFlagKey } from '../../types/featureFlags';
 import translations from '../../locales/cs/dashboard.leaderboard.json';
-import { EmptyEventState } from '../../components/EmptyEventState';
-import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
 
 const LeaderboardComponent: React.FC = () => {
   const { stats, isLoading } = useLeaderboard();
-  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
-  const { activeEvent } = useActiveEvent();
-
-  if (!activeEvent) {
-    return (
-      <Container>
-        <EmptyEventState
-          title={translations.emptyState.title}
-          subtitle={translations.emptyState.subtitle}
-        />
-      </Container>
-    );
-  }
 
   if (isLoading) {
     return null; // withPageLoader will handle loading state
@@ -59,12 +41,6 @@ const LeaderboardComponent: React.FC = () => {
           </Typography>
           <FaBeer style={{ fontSize: '2rem' }} />
         </Box>
-        
-        {showEventHistory && (
-          <Box mt={2}>
-            <EventSelector />
-          </Box>
-        )}
       </Paper>
 
       <Grid container spacing={3}>
