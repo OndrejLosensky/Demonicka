@@ -186,7 +186,12 @@ export const Dashboard: React.FC = () => {
                     <MetricCard title={translations.stats.averagePerHour} value={stats.averageBeersPerHour.toFixed(1)} icon={<SpeedIcon />} color="error" />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                    <MetricCard title={translations.barrelStatus.remainingBeers} value={stats.remainingBeers} icon={<BarrelIcon />} color="success" />
+                    <MetricCard
+                        title="Průměr na osobu"
+                        value={stats.participantsCount > 0 ? (stats.totalBeers / stats.participantsCount).toFixed(1) : '0'}
+                        icon={<GroupIcon />}
+                        color="success"
+                    />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                     <MetricCard title={translations.stats.totalParticipants} value={stats.participantsCount} icon={<GroupIcon />} color="warning" />

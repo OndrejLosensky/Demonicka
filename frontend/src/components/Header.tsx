@@ -227,6 +227,7 @@ export default function Header() {
                       aria-label="Toggle theme"
                       sx={{
                         border: '1px solid',
+                        marginRight: 1,
                         borderColor: 'divider',
                         bgcolor: 'background.paper',
                         '&:hover': { bgcolor: 'action.hover' },
@@ -244,8 +245,8 @@ export default function Header() {
                         animate={{ opacity: 1, x: 0 }}
                         className="flex items-center bg-background-secondary/60 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-border-secondary/30"
                       >
-                        <div className="flex items-center space-x-2">
-                          <div className="flex items-center space-x-1.5">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-2">
                             <AccessTimeIcon className="text-text-secondary" fontSize="small" />
                             <Typography 
                               variant="body2" 
@@ -256,7 +257,7 @@ export default function Header() {
                             </Typography>
                           </div>
                           <div className="w-px h-4 bg-border-secondary/50" />
-                          <div className="flex items-center space-x-1.5">
+                          <div className="flex items-center space-x-2">
                             <EventIcon className="text-text-secondary" fontSize="small" />
                             <Chip
                               label={activeEvent.name}
