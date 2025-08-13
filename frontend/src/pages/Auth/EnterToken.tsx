@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { toast } from 'react-hot-toast';
 
 export function EnterToken() {
+  usePageTitle('Registrační token');
   const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();

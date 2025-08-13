@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthLayout } from '../../components/auth/AuthLayout';
@@ -7,6 +8,7 @@ import { Button } from '../../components/ui/Button';
 import translations from '../../locales/cs/auth.json';
 
 export default function Register() {
+  usePageTitle('Registrace');
   const [formData, setFormData] = useState({
     username: '',
     password: '',

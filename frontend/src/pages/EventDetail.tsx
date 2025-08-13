@@ -40,8 +40,10 @@ import type { User } from '../types/user';
 import type { Barrel } from '../types/barrel';
 import { toast } from 'react-hot-toast';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export const EventDetail: React.FC = () => {
+    usePageTitle('Detail události');
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const [event, setEvent] = useState<Event | null>(null);

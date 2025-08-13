@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card } from '../../components/ui/Card';
 import { useToast } from '../../hooks/useToast';
 import { achievementsService } from '../../services/achievementsService';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import type { UserAchievementsResponse, UserAchievement } from '../../types/achievements';
 
 const getCategoryColor = (category: string) => {
@@ -31,6 +32,7 @@ const getProgressColor = (progress: number, target: number) => {
 };
 
 export const AchievementsPage: React.FC = () => {
+  usePageTitle('Úspěchy');
   const [achievements, setAchievements] = useState<UserAchievementsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

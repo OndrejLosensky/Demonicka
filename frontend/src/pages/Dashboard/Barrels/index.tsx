@@ -32,8 +32,10 @@ import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/dashboard.barrels.json';
 import toastTranslations from '../../../locales/cs/toasts.json';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
+import { usePageTitle } from '../../../hooks/usePageTitle';
 
 const BarrelsPage: React.FC = () => {
+  usePageTitle('Sudy');
   const [showDeleted, setShowDeleted] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'split'>('split');
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_BARRELS);

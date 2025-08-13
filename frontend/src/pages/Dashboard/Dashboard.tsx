@@ -38,8 +38,10 @@ import { FeatureFlagKey } from '../../types/featureFlags';
 import { EventSelector } from '../../components/EventSelector';
 import { EmptyEventState } from '../../components/EmptyEventState';
 import { PageLoader } from '../../components/ui/PageLoader';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 export const Dashboard: React.FC = () => {
+    usePageTitle('Dashboard');
     const { selectedEvent } = useSelectedEvent();
     const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
     const [isLoading, setIsLoading] = useState(true);

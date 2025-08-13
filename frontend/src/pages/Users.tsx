@@ -27,8 +27,10 @@ import { format } from 'date-fns';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
 import { userService } from '../services/userService';
 import { eventService } from '../services/eventService';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export const Users: React.FC = () => {
+    usePageTitle('Účastníci');
     const [users, setUsers] = useState<User[]>([]);
     const [showDeleted, setShowDeleted] = useState(false);
     const [eventBeerCounts, setEventBeerCounts] = useState<Record<string, number>>({});

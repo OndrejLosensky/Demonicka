@@ -11,6 +11,7 @@ import { cs } from 'date-fns/locale';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
 import type { LeaderboardData } from '../types/leaderboard';
 import { dashboardService } from '../services/dashboardService';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const fadeInUp = {
   initial: { y: 20, opacity: 0 },
@@ -112,6 +113,7 @@ const formatTimeAgo = (timestamp: string) => {
 };
 
 export default function Landing() {
+  usePageTitle();
   const [stats, setStats] = useState<PublicStats | null>(null);
   const [loading, setLoading] = useState(true);
   const { activeEvent } = useActiveEvent();

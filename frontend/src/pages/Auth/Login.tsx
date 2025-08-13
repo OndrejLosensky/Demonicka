@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthLayout } from '../../components/auth/AuthLayout';
@@ -13,6 +14,7 @@ const LoginComponent: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  usePageTitle('Přihlášení');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

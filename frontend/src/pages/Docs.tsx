@@ -18,6 +18,7 @@ import { SimpleMarkdownParser } from '../utils/markdownParser';
 import { apiClient } from '../utils/apiClient';
 import '../styles/markdown.css';
 import { withPageLoader } from '../components/hoc/withPageLoader';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 interface DocFile {
   name: string;
@@ -118,6 +119,7 @@ const documentationStructure: DocCategory[] = [
 ];
 
 const DocsComponent: React.FC = () => {
+  usePageTitle('Dokumentace');
   const [selectedDoc, setSelectedDoc] = useState<DocFile | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string>('getting-started');
   const [markdownContent, setMarkdownContent] = useState<string>('');

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 import { toast } from 'react-hot-toast';
 
 export function CompleteRegistration() {
+  usePageTitle('Dokončení registrace');
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const { completeRegistration } = useAuth();

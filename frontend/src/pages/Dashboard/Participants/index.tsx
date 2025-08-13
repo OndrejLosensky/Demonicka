@@ -28,8 +28,10 @@ import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.participants.json';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
+import { usePageTitle } from '../../../hooks/usePageTitle';
 
 const ParticipantsPage: React.FC = () => {
+  usePageTitle('Účastníci');
   const [showDeleted, setShowDeleted] = useState(false);
   const [viewMode, setViewMode] = useState<'combined' | 'split'>('combined');
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_PARTICIPANTS);

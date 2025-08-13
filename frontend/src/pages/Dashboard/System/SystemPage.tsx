@@ -27,8 +27,10 @@ import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/system.json';
 import { CleanupSection } from './components/CleanupSection';
 import { SystemHealthDashboard } from './components/SystemHealthDashboard';
+import { usePageTitle } from '../../../hooks/usePageTitle';
 
 const SystemPage: React.FC = () => {
+  usePageTitle('Systém');
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);

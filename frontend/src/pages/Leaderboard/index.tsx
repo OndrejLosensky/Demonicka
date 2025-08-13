@@ -4,8 +4,10 @@ import { LeaderboardTable } from './LeaderboardTable';
 import { useLeaderboard } from './useLeaderboard';
 import translations from '../../locales/cs/dashboard.leaderboard.json';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 const LeaderboardComponent: React.FC = () => {
+  usePageTitle('Žebříček');
   const { stats, isLoading } = useLeaderboard();
 
   if (isLoading) {

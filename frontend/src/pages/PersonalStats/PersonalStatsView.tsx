@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
 import { useToast } from '../../hooks/useToast';
 import { personalStatsService } from '../../services/personalStatsService';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 interface PersonalStats {
   totalBeers: number;
@@ -21,6 +22,7 @@ interface PersonalStats {
 }
 
 export const PersonalStatsView: React.FC = () => {
+  usePageTitle('Moje statistiky');
   const { userId } = useParams<{ userId: string }>();
   const [stats, setStats] = useState<PersonalStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);

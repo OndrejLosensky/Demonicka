@@ -19,6 +19,7 @@ import {
 import type { SelectChangeEvent } from '@mui/material';
 import { format } from 'date-fns';
 import { api } from '../../services/api';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 interface ActivityLogEntry {
   timestamp: string;
@@ -86,6 +87,7 @@ const getEventMessage = (log: ActivityLogEntry) => {
 };
 
 export const Activity: React.FC = () => {
+  usePageTitle('Aktivita');
   const [logs, setLogs] = useState<ActivityLogEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);

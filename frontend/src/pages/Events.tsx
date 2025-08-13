@@ -26,8 +26,10 @@ import {
     LocalBar as BeerIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export const Events: React.FC = () => {
+    usePageTitle('Události');
     const [events, setEvents] = useState<Event[]>([]);
     const [eventBeerCounts, setEventBeerCounts] = useState<Record<string, Record<string, number>>>({});
     const [isLoading, setIsLoading] = useState(true);
