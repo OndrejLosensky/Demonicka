@@ -41,6 +41,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { MetricCard } from '../../components/ui/MetricCard';
 import { PageLoader } from '../../components/ui/PageLoader';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { websocketService } from '../../services/websocketService';
 
 export const Dashboard: React.FC = () => {
     usePageTitle('Dashboard');
@@ -66,6 +67,7 @@ export const Dashboard: React.FC = () => {
         averageBeersPerHour: 0,
         participantsCount: 0,
         eventDuration: '',
+        consumptionEfficiency: 0,
     });
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [useCustomDate, setUseCustomDate] = useState(false);
@@ -105,6 +107,16 @@ export const Dashboard: React.FC = () => {
                     return sum;
                 }, 0);
 
+                // Daily average per hour from selected day (active hours only)
+                const dailyTotalBeers = hours.reduce((sum, h) => sum + h.count, 0);
+                const activeHours = hours.filter(h => h.count > 0).length || 1;
+                const averagePerHour = dailyTotalBeers / activeHours;
+
+                // Consumption efficiency across ALL barrels (consumed / capacity)
+                const totalCapacity = barrelsData.reduce((sum, b) => sum + (b.totalBeers || 0), 0);
+                const totalRemaining = barrelsData.reduce((sum, b) => sum + (b.remainingBeers || 0), 0);
+                const consumptionEfficiency = totalCapacity > 0 ? ((totalCapacity - totalRemaining) / totalCapacity) * 100 : 0;
+
                 const eventStart = new Date(eventData.startDate);
                 
                 // Corrected total from current participants only
@@ -120,9 +132,10 @@ export const Dashboard: React.FC = () => {
                     topDrinker: dashboardData.topUsers[0] ? 
                         { username: dashboardData.topUsers[0].username, count: dashboardData.topUsers[0].beerCount } : 
                         { username: null, count: 0 },
-                    averageBeersPerHour: dashboardData.totalUsers > 0 ? (dashboardData.totalBeers / dashboardData.totalUsers) : 0,
+                    averageBeersPerHour: averagePerHour,
                     participantsCount: dashboardData.totalUsers,
                     eventDuration: format(eventStart, 'PPp', { locale: cs }),
+                    consumptionEfficiency,
                 });
             }
         } catch (error) {
@@ -134,6 +147,14 @@ export const Dashboard: React.FC = () => {
 
     useEffect(() => {
         loadData();
+        // subscribe to realtime dashboard updates
+        const handler = () => {
+            loadData();
+        };
+        websocketService.subscribe('dashboard:update', handler);
+        return () => {
+            websocketService.unsubscribe('dashboard:update', handler);
+        };
     }, [loadData]);
 
     // Show loader first to avoid flashing the empty-state while data is loading
@@ -183,7 +204,7 @@ export const Dashboard: React.FC = () => {
                     <MetricCard title={translations.stats.totalBeers} value={stats.totalBeers} icon={<BeerIcon />} color="primary" />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                    <MetricCard title={translations.stats.averagePerHour} value={stats.averageBeersPerHour.toFixed(1)} icon={<SpeedIcon />} color="error" />
+                    <MetricCard title={translations.stats.averagePerHour} value={stats.averageBeersPerHour.toFixed(1)} subtitle="Průměr za vybraný den (jen aktivní hodiny)" icon={<SpeedIcon />} color="error" />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                     <MetricCard
@@ -310,7 +331,7 @@ export const Dashboard: React.FC = () => {
                                         <TrendingDownIcon sx={{ color: 'warning.main' }} />
                                         <Box>
                                             <Typography variant="body2" color="text.secondary">Efektivita spotřeby</Typography>
-                                            <Typography variant="body1" fontWeight="bold">{funStats.efficiency}%</Typography>
+                                            <Typography variant="body1" fontWeight="bold">{stats.consumptionEfficiency.toFixed(1)}%</Typography>
                                         </Box>
                                     </Box>
                                 </Box>

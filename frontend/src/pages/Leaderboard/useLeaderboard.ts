@@ -24,14 +24,11 @@ export const useLeaderboard = () => {
     loadLeaderboard();
 
     // Subscribe to real-time updates
-    websocketService.subscribe('leaderboard:update', (data) => {
-      setStats(data);
-    });
+    const onLeaderboard = (data: LeaderboardData) => setStats(data);
+    websocketService.subscribe('leaderboard:update', onLeaderboard);
 
     return () => {
-      websocketService.unsubscribe('leaderboard:update', (data) => {
-        setStats(data);
-      });
+      websocketService.unsubscribe('leaderboard:update', onLeaderboard);
     };
   }, [activeEvent?.id, isActiveEventLoading]);
 

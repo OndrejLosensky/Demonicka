@@ -81,8 +81,9 @@ export class EventBeersService {
     // Log beer addition
     this.loggingService.logBeerAdded(userId, barrelId);
 
-    // Emit leaderboard update
+    // Emit live updates for leaderboard and dashboard
     await this.leaderboardGateway.emitLeaderboardUpdate(eventId);
+    await this.leaderboardGateway.emitDashboardUpdate(eventId);
 
     return savedEventBeer;
   }
@@ -102,8 +103,9 @@ export class EventBeersService {
     // Log beer removal
     this.loggingService.logBeerRemoved(userId, lastBeer.barrelId);
 
-    // Emit leaderboard update
+    // Emit live updates for leaderboard and dashboard
     await this.leaderboardGateway.emitLeaderboardUpdate(eventId);
+    await this.leaderboardGateway.emitDashboardUpdate(eventId);
   }
 
   async findByEventId(eventId: string): Promise<EventBeer[]> {
@@ -123,10 +125,7 @@ export class EventBeersService {
     });
   }
 
-  async getEventBeerCount(
-    eventId: string,
-    userId: string,
-  ): Promise<number> {
+  async getEventBeerCount(eventId: string, userId: string): Promise<number> {
     const beers = await this.eventBeerRepository.find({
       where: { eventId, userId },
     });
@@ -158,7 +157,9 @@ export class EventBeersService {
 
     if (eventBeers.length > 0) {
       await this.eventBeerRepository.remove(eventBeers);
-      this.logger.log(`Removed ${eventBeers.length} event beers for event ${eventId}`);
+      this.logger.log(
+        `Removed ${eventBeers.length} event beers for event ${eventId}`,
+      );
     }
   }
-} 
+}

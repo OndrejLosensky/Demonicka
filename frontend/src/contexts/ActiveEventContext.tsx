@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { eventService } from '../services/eventService';
 import type { Event } from '../types/event';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
+import { websocketService } from '../services/websocketService';
 
 interface ActiveEventContextType {
   activeEvent: Event | null;
@@ -29,7 +30,7 @@ export const ActiveEventProvider: React.FC<{ children: React.ReactNode }> = ({ c
     });
   }, [activeEvent, user, isLoading]);
 
-  const loadActiveEvent = async () => {
+  const loadActiveEvent = useCallback(async () => {
     loadCountRef.current += 1;
     const currentLoadCount = loadCountRef.current;
     
@@ -70,7 +71,7 @@ export const ActiveEventProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setIsActiveEventLoading(false);
       }
     }
-  };
+  }, [activeEvent?.id, user]);
 
   useEffect(() => {
     console.log('[ActiveEventContext] Auth State Change:', {
@@ -83,7 +84,27 @@ export const ActiveEventProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (!isLoading) {
       void loadActiveEvent();
     }
-  }, [user, isLoading, activeEvent?.id]);
+  }, [user, isLoading, activeEvent?.id, loadActiveEvent]);
+
+  // Join/leave websocket event room when active event changes
+  const joinedEventIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const newId = activeEvent?.id || null;
+    const prevId = joinedEventIdRef.current;
+    if (newId && newId !== prevId) {
+      if (prevId) {
+        websocketService.leaveEvent(prevId);
+      }
+      websocketService.joinEvent(newId);
+      joinedEventIdRef.current = newId;
+    }
+    return () => {
+      if (joinedEventIdRef.current) {
+        websocketService.leaveEvent(joinedEventIdRef.current);
+        joinedEventIdRef.current = null;
+      }
+    };
+  }, [activeEvent?.id]);
 
   return (
     <ActiveEventContext.Provider value={{ activeEvent, setActiveEvent, loadActiveEvent, isActiveEventLoading }}>

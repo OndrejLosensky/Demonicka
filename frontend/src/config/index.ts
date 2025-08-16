@@ -8,7 +8,8 @@ console.log('Environment Variables:', {
 
 export const config = {
   apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000',
-  wsUrl: import.meta.env.VITE_WS_URL || 'ws://localhost:3000',
+  // Use http(s) for Socket.IO client URL
+  wsUrl: import.meta.env.VITE_WS_URL || 'http://localhost:3000',
   apiPrefix: import.meta.env.VITE_API_PREFIX || '/api',
   analytics: {
     enabled: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',

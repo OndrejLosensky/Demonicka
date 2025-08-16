@@ -4,6 +4,7 @@ import type { LeaderboardData } from '../pages/Leaderboard/types';
 
 type WebSocketEvents = {
   'leaderboard:update': LeaderboardData;
+  'dashboard:update': void;
   'event:join': { eventId: string };
   'event:leave': { eventId: string };
 };
@@ -36,6 +37,11 @@ class WebSocketService {
     // Listen for leaderboard updates
     this.socket.on('leaderboard:update', (data: WebSocketEvents['leaderboard:update']) => {
       this.notifyEventListeners('leaderboard:update', data);
+    });
+
+    // Listen for dashboard refresh triggers
+    this.socket.on('dashboard:update', () => {
+      this.notifyEventListeners('dashboard:update', undefined as unknown as void);
     });
   }
 
