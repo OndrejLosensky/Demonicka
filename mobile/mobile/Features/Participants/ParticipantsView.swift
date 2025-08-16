@@ -12,7 +12,7 @@ struct ParticipantsView: View {
         NavigationView {
             Group {
                 if isLoading && participants.isEmpty {
-                    ProgressView("Loading participants...")
+                    ProgressView("Načítám účastníky...")
                 } else {
                     List {
                         ForEach(participants) { participant in
@@ -37,7 +37,7 @@ struct ParticipantsView: View {
                     }
                 }
             }
-            .navigationTitle("Participants")
+            .navigationTitle("Účastníci")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddDialog = true }) {
@@ -54,7 +54,7 @@ struct ParticipantsView: View {
             }
             .alert("Error", isPresented: $showingError) {
                 Button("OK", role: .cancel) {}
-                Button("Retry") {
+                Button("Opakovat") {
                     Task {
                         await loadParticipants()
                     }
@@ -141,10 +141,10 @@ struct ParticipantRow: View {
                 Text(participant.username)
                     .font(.headline)
                 HStack {
-                    Text("\(participant.eventBeerCount) beers")
+                    Text("\(participant.eventBeerCount) piv")
                         .foregroundColor(.secondary)
                     if let lastBeer = participant.lastBeerTime {
-                        Text("• Last: \(lastBeer.formatted(.relative(presentation: .named)))")
+                        Text("• \(lastBeer.formatted(.relative(presentation: .named)))")
                             .foregroundColor(.secondary)
                             .font(.subheadline)
                     }

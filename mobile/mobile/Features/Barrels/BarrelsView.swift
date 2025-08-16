@@ -11,17 +11,17 @@ struct BarrelsView: View {
         NavigationView {
             Group {
                 if isLoading && barrels.isEmpty {
-                    ProgressView("Loading barrels...")
+                    ProgressView("Načítám sudy...")
                 } else if barrels.isEmpty {
                     VStack {
                         Image(systemName: "mug.fill")
                             .font(.system(size: 50))
                             .foregroundColor(.gray)
                             .padding()
-                        Text("No Active Barrels")
+                        Text("Žádný aktivní sud")
                             .font(.title2)
                             .foregroundColor(.primary)
-                        Text("There are no barrels in the current event.")
+                        Text("Nejsou žádné sudy")
                             .font(.body)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -55,7 +55,7 @@ struct BarrelsView: View {
                     }
                 }
             }
-            .navigationTitle("Barrels")
+            .navigationTitle("Sudy")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddDialog = true }) {
@@ -72,7 +72,7 @@ struct BarrelsView: View {
             }
             .alert("Error", isPresented: $showingError) {
                 Button("OK", role: .cancel) {}
-                Button("Retry") {
+                Button("Opakovat") {
                     Task {
                         await loadBarrels()
                     }

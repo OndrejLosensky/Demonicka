@@ -12,7 +12,7 @@ struct MainTabView: View {
             }
             .navigationViewStyle(.stack)
             .tabItem {
-                Label("Dashboard", systemImage: "chart.bar")
+                Label("Přehled", systemImage: "chart.bar")
             }
             .tag(0)
             
@@ -22,7 +22,7 @@ struct MainTabView: View {
             }
             .navigationViewStyle(.stack)
             .tabItem {
-                Label("Participants", systemImage: "person.2")
+                Label("Účastníci", systemImage: "person.2")
             }
             .tag(1)
             
@@ -32,7 +32,7 @@ struct MainTabView: View {
             }
             .navigationViewStyle(.stack)
             .tabItem {
-                Label("Barrels", systemImage: "cylinder")
+                Label("Sudy", systemImage: "cylinder")
             }
             .tag(2)
             
@@ -42,7 +42,7 @@ struct MainTabView: View {
             }
             .navigationViewStyle(.stack)
             .tabItem {
-                Label("Events", systemImage: "calendar")
+                Label("Události", systemImage: "calendar")
             }
             .tag(3)
             
@@ -52,7 +52,7 @@ struct MainTabView: View {
             }
             .navigationViewStyle(.stack)
             .tabItem {
-                Label("System", systemImage: "gear")
+                Label("Systém", systemImage: "gear")
             }
             .tag(4)
         }

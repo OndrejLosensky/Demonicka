@@ -19,12 +19,12 @@ struct AddBarrelDialog: View {
                 .frame(width: 36, height: 5)
                 .padding(.top, 8)
             
-            Text("Add New Barrel")
+            Text("Přidat další sud")
                 .font(.title2.bold())
             
             // Size Picker
             VStack(alignment: .leading, spacing: 12) {
-                Text("Select Size")
+                Text("Velkost")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 
@@ -50,7 +50,7 @@ struct AddBarrelDialog: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
                 } else {
-                    Text("Add Barrel")
+                    Text("Přidat")
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
                         .background(Color.blue)
@@ -62,7 +62,7 @@ struct AddBarrelDialog: View {
             .padding(.horizontal)
             
             // Cancel button
-            Button("Cancel", role: .cancel) {
+            Button("Zrušit", role: .cancel) {
                 isPresented = false
             }
             .padding(.bottom)

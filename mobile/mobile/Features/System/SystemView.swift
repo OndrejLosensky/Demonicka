@@ -13,7 +13,7 @@ struct SystemView: View {
     var body: some View {
         NavigationView {
             List {
-                Section(header: Text("System")) {
+                Section(header: Text("Systém")) {
                     Button(action: {
                         Task {
                             await handleLoadSystemStats()
@@ -22,7 +22,7 @@ struct SystemView: View {
                         HStack {
                             Image(systemName: "person.2")
                                 .foregroundColor(.blue)
-                            Text("View System Stats")
+                            Text("Zobrazit uživatele")
                             Spacer()
                             if isLoading {
                                 ProgressView()
@@ -33,7 +33,7 @@ struct SystemView: View {
                     .disabled(isLoading)
                 }
                 
-                Section(header: Text("Database")) {
+                Section(header: Text("Databáze")) {
                     Button(action: {
                         Task {
                             await handleCleanup()
@@ -42,7 +42,7 @@ struct SystemView: View {
                         HStack {
                             Image(systemName: "trash")
                                 .foregroundColor(.red)
-                            Text("Cleanup Database")
+                            Text("Vyčistit databázi (KRITICKÉ)")
                             Spacer()
                             if isLoading {
                                 ProgressView()
@@ -53,7 +53,7 @@ struct SystemView: View {
                     .disabled(isLoading)
                 }
             }
-            .navigationTitle("System")
+            .navigationTitle("Systém")
             .alert("Error", isPresented: $showingError) {
                 Button("OK", role: .cancel) {}
             } message: {
@@ -63,7 +63,7 @@ struct SystemView: View {
                     Text(error?.localizedDescription ?? "An unknown error occurred")
                 }
             }
-            .alert("Registration Token", isPresented: $showingToken) {
+            .alert("Registrační token", isPresented: $showingToken) {
                 Button("Copy", action: {
                     if let token = currentToken {
                         UIPasteboard.general.string = token
@@ -79,14 +79,14 @@ struct SystemView: View {
                 NavigationView {
                     if let stats = systemStats {
                         List {
-                            Section(header: Text("Overview")) {
-                                StatRow(title: "Total Users", value: "\(stats.totalUsers)")
-                                StatRow(title: "Admin Users", value: "\(stats.totalAdminUsers)")
-                                StatRow(title: "Completed Registrations", value: "\(stats.totalCompletedRegistrations)")
-                                StatRow(title: "2FA Enabled", value: "\(stats.total2FAEnabled)")
+                            Section(header: Text("Přehled")) {
+                                StatRow(title: "Celkem uživatelů", value: "\(stats.totalUsers)")
+                                StatRow(title: "Admin uživatelé", value: "\(stats.totalAdminUsers)")
+                                StatRow(title: "Kompletní registrace", value: "\(stats.totalCompletedRegistrations)")
+                                StatRow(title: "2FA Oveření", value: "\(stats.total2FAEnabled)")
                             }
                             
-                            Section(header: Text("Users")) {
+                            Section(header: Text("Uživatelé")) {
                                 ForEach(stats.users) { user in
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(user.username)
@@ -99,7 +99,7 @@ struct SystemView: View {
                                                 .cornerRadius(4)
                                             
                                             if !user.isRegistrationComplete {
-                                                Text("Incomplete")
+                                                Text("Nekompletní")
                                                     .font(.caption)
                                                     .padding(4)
                                                     .background(Color.yellow.opacity(0.2))
@@ -145,13 +145,13 @@ struct SystemView: View {
                                 }
                             }
                         }
-                        .navigationTitle("System Stats")
+                        .navigationTitle("Systémové statistiky")
                         .navigationBarItems(trailing: Button("Done") {
                             showingSystemStats = false
                         })
                     } else {
                         ProgressView()
-                            .navigationTitle("System Stats")
+                            .navigationTitle("Systémové statistiky")
                     }
                 }
             }

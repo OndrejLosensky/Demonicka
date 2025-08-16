@@ -35,6 +35,7 @@ export class DashboardController {
 
   @Get('overview')
   @UseGuards(JwtAuthGuard)
+  @BypassAuth()
   @Header('Cache-Control', 'public, max-age=30')
   async getDashboardStats(
     @Query('eventId') eventId?: string,

@@ -18,18 +18,18 @@ struct AddParticipantDialog: View {
                 .frame(width: 36, height: 5)
                 .padding(.top, 8)
             
-            Text("Add New Participant")
+            Text("Přidat nového účastníka")
                 .font(.title2.bold())
             
             // Form Fields
             VStack(alignment: .leading, spacing: 16) {
                 // Username field
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Username")
+                    Text("Uživatelské jméno")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
-                    TextField("Enter username", text: $username)
+                    TextField("Zadej uživatelské jméno", text: $username)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .autocapitalization(.none)
                         .autocorrectionDisabled()
@@ -37,11 +37,11 @@ struct AddParticipantDialog: View {
                 
                 // Gender picker
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Gender")
+                    Text("Pohlaví")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
-                    Picker("Gender", selection: $selectedGender) {
+                    Picker("Pohlaví", selection: $selectedGender) {
                         ForEach(Gender.allCases, id: \.self) { gender in
                             Text(gender.displayName)
                                 .tag(gender)
@@ -66,7 +66,7 @@ struct AddParticipantDialog: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
                 } else {
-                    Text("Add Participant")
+                    Text("Přidat účastníka")
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
                         .background(username.isEmpty ? Color.blue.opacity(0.5) : Color.blue)
@@ -78,7 +78,7 @@ struct AddParticipantDialog: View {
             .padding(.horizontal)
             
             // Cancel button
-            Button("Cancel", role: .cancel) {
+            Button("Zrušit", role: .cancel) {
                 isPresented = false
             }
             .padding(.bottom)
@@ -119,6 +119,6 @@ struct AddParticipantDialog: View {
 
 #Preview {
     AddParticipantDialog(isPresented: .constant(true)) { participant in
-        print("Adding participant: \(participant.username), Gender: \(participant.gender)")
+        print("Přidávám účastníka: \(participant.username), Pohlaví: \(participant.gender)")
     }
 } 

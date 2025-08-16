@@ -18,4 +18,19 @@ struct DashboardData: Codable {
     let averageBeersPerUser: Double
     let topUsers: [UserStats]
     let barrelStats: [BarrelStats]
+}
+
+// Model for the public dashboard endpoint
+struct PublicDashboardData: Codable {
+    let totalBeers: Int
+    let totalUsers: Int
+    let totalBarrels: Int
+    let topUsers: [PublicUserStats]
+    let barrelStats: [BarrelStats]
+}
+
+// Public user stats without id field
+struct PublicUserStats: Codable {
+    let username: String
+    let beerCount: Int
 } 

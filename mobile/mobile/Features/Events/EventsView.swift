@@ -13,14 +13,14 @@ struct EventsView: View {
         return NavigationView {
             Group {
                 if isLoading && events.isEmpty {
-                    ProgressView("Loading events...")
+                    ProgressView("Načítám události...")
                 } else if events.isEmpty {
                     VStack {
                         Image(systemName: "calendar.badge.exclamationmark")
                             .font(.system(size: 50))
                             .foregroundColor(.gray)
                             .padding()
-                        Text("No Events Found")
+                        Text("Nenašel jsem žádné události")
                             .font(.title2)
                             .foregroundColor(.primary)
                         Text("There are no events available.")
@@ -48,10 +48,10 @@ struct EventsView: View {
                     }
                 }
             }
-            .navigationTitle("Events")
+            .navigationTitle("Události")
             .alert("Error", isPresented: $showingError) {
                 Button("OK", role: .cancel) {}
-                Button("Retry") {
+                Button("Opkaovat") {
                     Task {
                         await loadEvents()
                     }

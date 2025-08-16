@@ -18,7 +18,7 @@ struct DashboardView: View {
                     Text("No data available")
                 }
             }
-            .navigationTitle("Dashboard")
+            .navigationTitle("Přehled")
         }
         .onAppear {
             Task {
@@ -32,7 +32,7 @@ struct DashboardView: View {
         VStack {
             ProgressView()
                 .scaleEffect(1.5)
-            Text("Loading...")
+            Text("Načítání...")
                 .foregroundColor(.secondary)
                 .padding(.top)
         }
@@ -45,7 +45,7 @@ struct DashboardView: View {
                 .font(.system(size: 50))
                 .foregroundColor(.red)
             
-            Text("Error loading dashboard")
+            Text("Problém s načítáním dat na přehled")
                 .font(.headline)
             
             Text(error.localizedDescription)
@@ -69,7 +69,7 @@ struct DashboardView: View {
             }) {
                 HStack {
                     Image(systemName: "arrow.clockwise")
-                    Text("Retry")
+                    Text("Zkusit znovu")
                 }
                 .padding()
                 .background(Color.blue)
@@ -97,17 +97,15 @@ struct DashboardView: View {
     // MARK: - Overview Section
     private func overviewSection(data: DashboardData) -> some View {
         VStack(spacing: 16) {
-            sectionHeader(title: "Overview", icon: "chart.bar.fill")
-            
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible()),
                 UIDevice.current.userInterfaceIdiom == .pad ? GridItem(.flexible()) : nil
             ].compactMap { $0 }, spacing: 16) {
-                StatCard(title: "Total Users", value: "\(data.totalUsers)", icon: "person.2.fill")
-                StatCard(title: "Total Beers", value: "\(data.totalBeers)", icon: "mug.fill")
-                StatCard(title: "Total Barrels", value: "\(data.totalBarrels)", icon: "cylinder.fill")
-                StatCard(title: "Avg. Beers/User", 
+                StatCard(title: "Účastníci", value: "\(data.totalUsers)", icon: "person.2.fill")
+                StatCard(title: "Celkem piv", value: "\(data.totalBeers)", icon: "mug.fill")
+                StatCard(title: "Celkem sudů", value: "\(data.totalBarrels)", icon: "cylinder.fill")
+                StatCard(title: "Průměr piv/os",
                         value: String(format: "%.1f", data.averageBeersPerUser),
                         icon: "chart.bar.fill")
             }
@@ -118,7 +116,7 @@ struct DashboardView: View {
     // MARK: - Top Users Section
     private func topUsersSection(users: [UserStats]) -> some View {
         VStack(spacing: 12) {
-            sectionHeader(title: "Top Users", icon: "trophy.fill")
+            sectionHeader(title: "Největší pivopíči", icon: "trophy.fill")
             
             ForEach(users, id: \.id) { user in
                 HStack {
@@ -128,7 +126,7 @@ struct DashboardView: View {
                     Spacer()
                     Text("\(user.beerCount)")
                         .fontWeight(.semibold)
-                    Text("beers")
+                    Text("piv")
                         .foregroundColor(.secondary)
                 }
                 .padding()
@@ -142,7 +140,7 @@ struct DashboardView: View {
     // MARK: - Barrel Stats Section
     private func barrelStatsSection(stats: [BarrelStats]) -> some View {
         VStack(spacing: 12) {
-            sectionHeader(title: "Barrel Statistics", icon: "cylinder.split.1x2.fill")
+            sectionHeader(title: "Sudy", icon: "cylinder.split.1x2.fill")
             
             ForEach(stats, id: \.size) { stat in
                 HStack {
@@ -153,7 +151,7 @@ struct DashboardView: View {
                     Spacer()
                     Text("\(stat.count)")
                         .fontWeight(.semibold)
-                    Text("active")
+                    Text("aktivní")
                         .foregroundColor(.secondary)
                 }
                 .padding()
