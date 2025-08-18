@@ -5,6 +5,7 @@ struct MainTabView: View {
     @State private var selectedTab = 0
     
     var body: some View {
+        // Use TabView for both iPhone and iPad, but with iPad-optimized styling
         TabView(selection: $selectedTab) {
             DashboardView()
                 .tabItem {
@@ -30,13 +31,24 @@ struct MainTabView: View {
                 }
                 .tag(3)
         }
-        // Force iPhone-style tab bar appearance
+        .navigationViewStyle(StackNavigationViewStyle()) // Force stack navigation style
         .onAppear {
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                UITabBar.appearance().backgroundColor = .systemBackground
-            }
             // Set tab bar tint color to app primary
             UITabBar.appearance().tintColor = UIColor(AppColors.primary)
+            
+            // Force mobile layout on iPad - prevent sidebar behavior
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                UITabBar.appearance().backgroundColor = .systemBackground
+                UITabBar.appearance().barTintColor = .systemBackground
+                
+                // Force compact navigation style to prevent sidebars
+                UINavigationBar.appearance().prefersLargeTitles = false
+                UINavigationBar.appearance().compactAppearance = UINavigationBarAppearance()
+                
+                // Force compact navigation bar style
+                UINavigationBar.appearance().barStyle = .default
+                UINavigationBar.appearance().isTranslucent = false
+            }
         }
         .onChange(of: selectedTab) { newValue in
             print("📱 Tab changed to \(newValue)")

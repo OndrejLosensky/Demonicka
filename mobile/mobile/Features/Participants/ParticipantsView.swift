@@ -14,6 +14,7 @@ struct ParticipantsView: View {
                 if isLoading && participants.isEmpty {
                     ProgressView("Načítám účastníky...")
                 } else {
+                    // Both iPhone and iPad use the same mobile-friendly layout
                     ScrollView {
                         LazyVStack(spacing: 0) {
                             ForEach(participants) { participant in
@@ -77,6 +78,7 @@ struct ParticipantsView: View {
                 }
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle()) // Force stack navigation style
         .onAppear {
             Task {
                 await loadParticipants()

@@ -20,6 +20,7 @@ struct DashboardView: View {
             }
             .navigationTitle("Přehled")
         }
+        .navigationViewStyle(StackNavigationViewStyle()) // Force stack navigation style
         .onAppear {
             Task {
                 await loadDashboardData()
@@ -85,23 +86,23 @@ struct DashboardView: View {
         ScrollView {
             VStack(spacing: 24) {
                 overviewSection(data: data)
+                
+                // Both iPhone and iPad use stacked layout for mobile feel
                 topUsersSection(users: data.topUsers)
                 barrelStatsSection(stats: data.barrelStats)
             }
             .padding(.vertical)
-            .frame(maxWidth: UIDevice.current.userInterfaceIdiom == .pad ? 800 : nil)
-            .padding(.horizontal, UIDevice.current.userInterfaceIdiom == .pad ? 20 : 0)
+            .padding(.horizontal)
         }
     }
     
     // MARK: - Overview Section
     private func overviewSection(data: DashboardData) -> some View {
         VStack(spacing: 16) {
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible()),
-                UIDevice.current.userInterfaceIdiom == .pad ? GridItem(.flexible()) : nil
-            ].compactMap { $0 }, spacing: 16) {
+                    LazyVGrid(columns: [
+            GridItem(.flexible()),
+            GridItem(.flexible())
+        ], spacing: 16) {
                 StatCard(title: "Účastníci", value: "\(data.totalUsers)", icon: "person.2.fill")
                 StatCard(title: "Celkem piv", value: "\(data.totalBeers)", icon: "mug.fill")
                 StatCard(title: "Celkem sudů", value: "\(data.totalBarrels)", icon: "cylinder.fill")
@@ -191,9 +192,9 @@ struct DashboardView: View {
         HStack {
             Image(systemName: icon)
                 .foregroundColor(AppColors.primary)
-                .imageScale(UIDevice.current.userInterfaceIdiom == .pad ? .large : .medium)
+                .imageScale(.medium)
             Text(title)
-                .font(UIDevice.current.userInterfaceIdiom == .pad ? .title : .title2)
+                .font(.title2)
                 .fontWeight(.bold)
             Spacer()
         }
@@ -229,17 +230,17 @@ struct StatCard: View {
             HStack {
                 Image(systemName: icon)
                     .foregroundColor(AppColors.primary)
-                    .imageScale(UIDevice.current.userInterfaceIdiom == .pad ? .large : .medium)
+                    .imageScale(.medium)
                 Text(title)
-                    .font(UIDevice.current.userInterfaceIdiom == .pad ? .title3 : .subheadline)
+                    .font(.subheadline)
                     .foregroundColor(.secondary)
             }
             Text(value)
-                .font(UIDevice.current.userInterfaceIdiom == .pad ? .title : .title2)
+                .font(.title2)
                 .fontWeight(.bold)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(UIDevice.current.userInterfaceIdiom == .pad ? 20 : 16)
+        .padding(16)
         .background(Color(.secondarySystemBackground))
         .overlay(
             RoundedRectangle(cornerRadius: 12)

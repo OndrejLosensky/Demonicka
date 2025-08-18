@@ -67,6 +67,7 @@ struct EventsView: View {
                 NavigationView {
                     EventDetailView(event: event, isPresented: $selectedEvent)
                 }
+                .navigationViewStyle(StackNavigationViewStyle()) // Force stack navigation style
             }
             .task {
                 print("🚀 EventsView task started")
@@ -80,6 +81,7 @@ struct EventsView: View {
                 }
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle()) // Force stack navigation style
     }
     
     private func loadEvents() async {

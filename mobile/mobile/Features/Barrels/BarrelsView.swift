@@ -31,51 +31,51 @@ struct BarrelsView: View {
                     .background(Color(UIColor.systemBackground))
                 } else {
                     ScrollView {
-                        VStack(spacing: 20) {
-                                                    // Active barrels chart view
-                        VStack(spacing: 20) {
-                            HStack {
-                                Image(systemName: "chart.pie.fill")
-                                    .foregroundColor(AppColors.primary)
-                                    .font(.title2)
-                                Text("Aktivní sudy")
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                Spacer()
-                            }
-                            .padding(.horizontal)
-                            
-                            LazyVGrid(
-                                columns: [
-                                    GridItem(.flexible()),
-                                    GridItem(.flexible())
-                                ],
-                                spacing: 24
-                            ) {
-                                ForEach(barrels.filter { $0.isActive }) { barrel in
-                                    VStack {
-                                        CircularProgressView(
-                                            progress: barrel.remainingPercentage / 100.0,
-                                            total: barrel.totalBeers,
-                                            current: barrel.remainingBeers,
-                                            size: barrel.size
-                                        )
-                                        
-                                        // Barrel status indicator
-                                        HStack {
-                                            Circle()
-                                                .fill(AppColors.success)
-                                                .frame(width: 8, height: 8)
-                                            Text("Aktivní")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
+                        VStack(spacing: UIDevice.current.userInterfaceIdiom == .pad ? 32 : 20) {
+                            // Active barrels chart view
+                            VStack(spacing: UIDevice.current.userInterfaceIdiom == .pad ? 24 : 20) {
+                                HStack {
+                                    Image(systemName: "chart.pie.fill")
+                                        .foregroundColor(AppColors.primary)
+                                        .font(UIDevice.current.userInterfaceIdiom == .pad ? .title : .title2)
+                                    Text("Aktivní sudy")
+                                        .font(UIDevice.current.userInterfaceIdiom == .pad ? .title : .headline)
+                                        .fontWeight(.bold)
+                                    Spacer()
+                                }
+                                .padding(.horizontal)
+                                
+                                LazyVGrid(
+                                    columns: [
+                                        GridItem(.flexible()),
+                                        GridItem(.flexible())
+                                    ],
+                                    spacing: 24
+                                ) {
+                                    ForEach(barrels.filter { $0.isActive }) { barrel in
+                                        VStack {
+                                            CircularProgressView(
+                                                progress: barrel.remainingPercentage / 100.0,
+                                                total: barrel.totalBeers,
+                                                current: barrel.remainingBeers,
+                                                size: barrel.size
+                                            )
+                                            
+                                            // Barrel status indicator
+                                            HStack {
+                                                Circle()
+                                                    .fill(AppColors.success)
+                                                    .frame(width: 8, height: 8)
+                                                Text("Aktivní")
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                            .padding(.top, 8)
                                         }
-                                        .padding(.top, 8)
                                     }
                                 }
+                                .padding(.horizontal)
                             }
-                            .padding(.horizontal)
-                        }
                             
                             // All barrels table view
                             VStack(alignment: .leading, spacing: 16) {
@@ -182,6 +182,7 @@ struct BarrelsView: View {
                 }
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle()) // Force stack navigation style
         .onAppear {
             Task {
                 await loadBarrels()
