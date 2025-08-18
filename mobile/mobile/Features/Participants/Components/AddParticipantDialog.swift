@@ -69,7 +69,7 @@ struct AddParticipantDialog: View {
                     Text("Přidat účastníka")
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(username.isEmpty ? Color.blue.opacity(0.5) : Color.blue)
+                        .background(username.isEmpty ? AppColors.primary.opacity(0.5) : AppColors.primary)
                         .foregroundColor(.white)
                         .cornerRadius(12)
                 }

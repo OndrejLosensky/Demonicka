@@ -21,7 +21,7 @@ struct SystemView: View {
                     }) {
                         HStack {
                             Image(systemName: "person.2")
-                                .foregroundColor(.blue)
+                                .foregroundColor(AppColors.primary)
                             Text("Zobrazit uživatele")
                             Spacer()
                             if isLoading {
@@ -33,25 +33,7 @@ struct SystemView: View {
                     .disabled(isLoading)
                 }
                 
-                Section(header: Text("Databáze")) {
-                    Button(action: {
-                        Task {
-                            await handleCleanup()
-                        }
-                    }) {
-                        HStack {
-                            Image(systemName: "trash")
-                                .foregroundColor(.red)
-                            Text("Vyčistit databázi (KRITICKÉ)")
-                            Spacer()
-                            if isLoading {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                            }
-                        }
-                    }
-                    .disabled(isLoading)
-                }
+
             }
             .navigationTitle("Systém")
             .alert("Error", isPresented: $showingError) {
@@ -95,14 +77,14 @@ struct SystemView: View {
                                             Text(user.role)
                                                 .font(.caption)
                                                 .padding(4)
-                                                .background(user.role == "ADMIN" ? Color.red.opacity(0.2) : Color.green.opacity(0.2))
+                                                .background(user.role == "ADMIN" ? AppColors.error.opacity(0.2) : AppColors.success.opacity(0.2))
                                                 .cornerRadius(4)
                                             
                                             if !user.isRegistrationComplete {
                                                 Text("Nekompletní")
                                                     .font(.caption)
                                                     .padding(4)
-                                                    .background(Color.yellow.opacity(0.2))
+                                                    .background(AppColors.warning.opacity(0.2))
                                                     .cornerRadius(4)
                                             }
                                             
@@ -110,7 +92,7 @@ struct SystemView: View {
                                                 Text("2FA")
                                                     .font(.caption)
                                                     .padding(4)
-                                                    .background(Color.blue.opacity(0.2))
+                                                    .background(AppColors.primary.opacity(0.2))
                                                     .cornerRadius(4)
                                             }
                                             
@@ -134,7 +116,7 @@ struct SystemView: View {
                                                     .font(.caption)
                                                     .padding(.horizontal, 8)
                                                     .padding(.vertical, 4)
-                                                    .background(Color.blue.opacity(0.2))
+                                                    .background(AppColors.primary.opacity(0.2))
                                                     .cornerRadius(4)
                                                 }
                                                 .disabled(generatingTokenForUserId != nil)
@@ -158,19 +140,7 @@ struct SystemView: View {
         }
     }
     
-    private func handleCleanup() async {
-        isLoading = true
-        error = nil
-        
-        do {
-            try await SystemService.shared.cleanup()
-        } catch {
-            self.error = error
-            showingError = true
-        }
-        
-        isLoading = false
-    }
+
     
     private func handleLoadSystemStats() async {
         isLoading = true

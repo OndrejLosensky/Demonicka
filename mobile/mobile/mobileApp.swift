@@ -12,6 +12,7 @@ struct mobileApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .accentColor(AppColors.primary)
         }
     }
 }

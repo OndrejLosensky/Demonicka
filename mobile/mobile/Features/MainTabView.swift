@@ -6,67 +6,40 @@ struct MainTabView: View {
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            NavigationView {
-                DashboardView()
-                    .navigationBarTitleDisplayMode(.large)
-            }
-            .navigationViewStyle(.stack)
-            .tabItem {
-                Label("Přehled", systemImage: "chart.bar")
-            }
-            .tag(0)
+            DashboardView()
+                .tabItem {
+                    Label("Přehled", systemImage: "chart.bar")
+                }
+                .tag(0)
             
-            NavigationView {
-                ParticipantsView()
-                    .navigationBarTitleDisplayMode(.large)
-            }
-            .navigationViewStyle(.stack)
-            .tabItem {
-                Label("Účastníci", systemImage: "person.2")
-            }
-            .tag(1)
+            ParticipantsView()
+                .tabItem {
+                    Label("Účastníci", systemImage: "person.2")
+                }
+                .tag(1)
             
-            NavigationView {
-                BarrelsView()
-                    .navigationBarTitleDisplayMode(.large)
-            }
-            .navigationViewStyle(.stack)
-            .tabItem {
-                Label("Sudy", systemImage: "cylinder")
-            }
-            .tag(2)
+            BarrelsView()
+                .tabItem {
+                    Label("Sudy", systemImage: "cylinder")
+                }
+                .tag(2)
             
-            NavigationView {
-                EventsView()
-                    .navigationBarTitleDisplayMode(.large)
-            }
-            .navigationViewStyle(.stack)
-            .tabItem {
-                Label("Události", systemImage: "calendar")
-            }
-            .tag(3)
-            
-            NavigationView {
-                SystemView()
-                    .navigationBarTitleDisplayMode(.large)
-            }
-            .navigationViewStyle(.stack)
-            .tabItem {
-                Label("Systém", systemImage: "gear")
-            }
-            .tag(4)
+            SystemView()
+                .tabItem {
+                    Label("Systém", systemImage: "gear")
+                }
+                .tag(3)
         }
         // Force iPhone-style tab bar appearance
         .onAppear {
             if UIDevice.current.userInterfaceIdiom == .pad {
                 UITabBar.appearance().backgroundColor = .systemBackground
             }
+            // Set tab bar tint color to app primary
+            UITabBar.appearance().tintColor = UIColor(AppColors.primary)
         }
         .onChange(of: selectedTab) { newValue in
             print("📱 Tab changed to \(newValue)")
-            if newValue == 3 {
-                print("🎯 Events tab selected")
-            }
         }
     }
 }

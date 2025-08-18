@@ -43,14 +43,14 @@ struct DashboardView: View {
         VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 50))
-                .foregroundColor(.red)
+                .foregroundColor(AppColors.error)
             
             Text("Problém s načítáním dat na přehled")
                 .font(.headline)
             
             Text(error.localizedDescription)
                 .font(.subheadline)
-                .foregroundColor(.red)
+                .foregroundColor(AppColors.error)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             
@@ -72,7 +72,7 @@ struct DashboardView: View {
                     Text("Zkusit znovu")
                 }
                 .padding()
-                .background(Color.blue)
+                .background(AppColors.primary)
                 .foregroundColor(.white)
                 .cornerRadius(10)
             }
@@ -118,10 +118,24 @@ struct DashboardView: View {
         VStack(spacing: 12) {
             sectionHeader(title: "Největší pivopíči", icon: "trophy.fill")
             
-            ForEach(users, id: \.id) { user in
+            ForEach(Array(users.prefix(5).enumerated()), id: \.element.id) { index, user in
                 HStack {
-                    Image(systemName: "person.fill")
-                        .foregroundColor(.blue)
+                    // Trophy icon with ranking
+                    ZStack {
+                        Image(systemName: "trophy.fill")
+                            .foregroundColor(getTrophyColor(for: index))
+                            .font(.title2)
+                        
+                        // Show rank number for top 3
+                        if index < 3 {
+                            Text("\(index + 1)")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .frame(width: 30)
+                    
                     Text(user.username)
                     Spacer()
                     Text("\(user.beerCount)")
@@ -137,21 +151,31 @@ struct DashboardView: View {
         }
     }
     
+    // Helper function to get trophy colors
+    private func getTrophyColor(for rank: Int) -> Color {
+        switch rank {
+        case 0: return AppColors.warning // Gold
+        case 1: return AppColors.secondary // Silver
+        case 2: return Color(red: 0.8, green: 0.5, blue: 0.2) // Bronze
+        default: return AppColors.primary // Red for others
+        }
+    }
+    
     // MARK: - Barrel Stats Section
     private func barrelStatsSection(stats: [BarrelStats]) -> some View {
         VStack(spacing: 12) {
-            sectionHeader(title: "Sudy", icon: "cylinder.split.1x2.fill")
+            sectionHeader(title: "Sudy - Celkem", icon: "cylinder.split.1x2.fill")
             
             ForEach(stats, id: \.size) { stat in
                 HStack {
                     Image(systemName: "cylinder.fill")
-                        .foregroundColor(.blue)
+                        .foregroundColor(AppColors.primary)
                     Text("\(stat.size)L")
                         .fontWeight(.medium)
                     Spacer()
                     Text("\(stat.count)")
                         .fontWeight(.semibold)
-                    Text("aktivní")
+                    Text("celkem")
                         .foregroundColor(.secondary)
                 }
                 .padding()
@@ -166,7 +190,7 @@ struct DashboardView: View {
     private func sectionHeader(title: String, icon: String) -> some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(.blue)
+                .foregroundColor(AppColors.primary)
                 .imageScale(UIDevice.current.userInterfaceIdiom == .pad ? .large : .medium)
             Text(title)
                 .font(UIDevice.current.userInterfaceIdiom == .pad ? .title : .title2)
@@ -204,7 +228,7 @@ struct StatCard: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(.blue)
+                    .foregroundColor(AppColors.primary)
                     .imageScale(UIDevice.current.userInterfaceIdiom == .pad ? .large : .medium)
                 Text(title)
                     .font(UIDevice.current.userInterfaceIdiom == .pad ? .title3 : .subheadline)

@@ -53,7 +53,7 @@ struct AddBarrelDialog: View {
                     Text("Přidat")
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(Color.blue)
+                        .background(AppColors.primary)
                         .foregroundColor(.white)
                         .cornerRadius(12)
                 }

@@ -163,7 +163,7 @@ struct ParticipantRow: View {
                         onRemoveBeer()
                     } label: {
                         Image(systemName: "minus.circle.fill")
-                            .foregroundColor(.red)
+                            .foregroundColor(AppColors.error)
                             .font(.title2)
                             .frame(width: 44, height: 44)
                     }
@@ -174,7 +174,7 @@ struct ParticipantRow: View {
                         onAddBeer()
                     } label: {
                         Image(systemName: "plus.circle.fill")
-                            .foregroundColor(.green)
+                            .foregroundColor(AppColors.success)
                             .font(.title2)
                             .frame(width: 44, height: 44)
                     }
@@ -193,7 +193,7 @@ struct RemoveButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: "minus.circle.fill")
-                .foregroundColor(isEnabled ? .red : .gray)
+                .foregroundColor(isEnabled ? AppColors.error : .gray)
                 .font(.title2)
         }
         .buttonStyle(BeerButtonStyle())
@@ -207,7 +207,7 @@ struct AddButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: "plus.circle.fill")
-                .foregroundColor(.green)
+                .foregroundColor(AppColors.success)
                 .font(.title2)
         }
         .buttonStyle(BeerButtonStyle())

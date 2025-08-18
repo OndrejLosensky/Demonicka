@@ -31,24 +31,121 @@ struct BarrelsView: View {
                     .background(Color(UIColor.systemBackground))
                 } else {
                     ScrollView {
-                        LazyVGrid(
-                            columns: [
-                                GridItem(.flexible()),
-                                GridItem(.flexible())
-                            ],
-                            spacing: 20
-                        ) {
-                            ForEach(barrels.filter { $0.isActive }) { barrel in
-                                CircularProgressView(
-                                    progress: barrel.remainingPercentage / 100.0,
-                                    total: barrel.totalBeers,
-                                    current: barrel.remainingBeers,
-                                    size: barrel.size
-                                )
-                                .frame(height: 180)
+                        VStack(spacing: 20) {
+                                                    // Active barrels chart view
+                        VStack(spacing: 20) {
+                            HStack {
+                                Image(systemName: "chart.pie.fill")
+                                    .foregroundColor(AppColors.primary)
+                                    .font(.title2)
+                                Text("Aktivní sudy")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                Spacer()
+                            }
+                            .padding(.horizontal)
+                            
+                            LazyVGrid(
+                                columns: [
+                                    GridItem(.flexible()),
+                                    GridItem(.flexible())
+                                ],
+                                spacing: 24
+                            ) {
+                                ForEach(barrels.filter { $0.isActive }) { barrel in
+                                    VStack {
+                                        CircularProgressView(
+                                            progress: barrel.remainingPercentage / 100.0,
+                                            total: barrel.totalBeers,
+                                            current: barrel.remainingBeers,
+                                            size: barrel.size
+                                        )
+                                        
+                                        // Barrel status indicator
+                                        HStack {
+                                            Circle()
+                                                .fill(AppColors.success)
+                                                .frame(width: 8, height: 8)
+                                            Text("Aktivní")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        .padding(.top, 8)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                            
+                            // All barrels table view
+                            VStack(alignment: .leading, spacing: 16) {
+                                HStack {
+                                    Image(systemName: "list.bullet")
+                                        .foregroundColor(AppColors.primary)
+                                        .font(.title2)
+                                    Text("Všechny sudy")
+                                        .font(.headline)
+                                        .fontWeight(.bold)
+                                    Spacer()
+                                }
+                                .padding(.horizontal)
+                                
+                                LazyVStack(spacing: 12) {
+                                    ForEach(barrels) { barrel in
+                                        HStack(spacing: 16) {
+                                            // Barrel icon with status
+                                            ZStack {
+                                                Image(systemName: "cylinder.fill")
+                                                    .font(.title2)
+                                                    .foregroundColor(barrel.isActive ? AppColors.success : .gray)
+                                                
+                                                if barrel.isActive {
+                                                    Circle()
+                                                        .fill(AppColors.success)
+                                                        .frame(width: 6, height: 6)
+                                                        .offset(x: 8, y: -8)
+                                                }
+                                            }
+                                            
+                                            // Barrel info
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text("\(barrel.size)L")
+                                                    .font(.headline)
+                                                    .fontWeight(.semibold)
+                                                Text(barrel.isActive ? "Aktivní" : "Neaktivní")
+                                                    .font(.caption)
+                                                    .foregroundColor(barrel.isActive ? AppColors.success : .secondary)
+                                                    .padding(.horizontal, 8)
+                                                    .padding(.vertical, 2)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 6)
+                                                            .fill(barrel.isActive ? AppColors.success.opacity(0.1) : Color.gray.opacity(0.1))
+                                                    )
+                                            }
+                                            
+                                            Spacer()
+                                            
+                                            // Beer count
+                                            VStack(alignment: .trailing, spacing: 4) {
+                                                Text("\(barrel.remainingBeers)/\(barrel.totalBeers)")
+                                                    .font(.title3)
+                                                    .fontWeight(.bold)
+                                                Text("piv")
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                        }
+                                        .padding(16)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color(.secondarySystemBackground))
+                                                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                                        )
+                                        .padding(.horizontal)
+                                    }
+                                }
                             }
                         }
-                        .padding()
                     }
                     .refreshable {
                         await loadBarrels()
@@ -120,10 +217,12 @@ struct BarrelsView: View {
     
     private func handleAddBarrel(size: Int) async {
         do {
+            // Generate a simple order number (could be improved to get the next available number)
+            let nextOrderNumber = barrels.isEmpty ? 1 : (barrels.map { $0.orderNumber }.max() ?? 0) + 1
+            
             let barrel = CreateBarrel(
                 size: size,
-                totalBeers: size * 2, // 1L = 2 beers
-                remainingBeers: size * 2
+                orderNumber: nextOrderNumber
             )
             try await BarrelService.shared.createBarrel(barrel)
             await loadBarrels()

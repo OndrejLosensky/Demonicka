@@ -99,17 +99,17 @@ class APIClient {
         request.allHTTPHeaderFields = Config.API.headers
         print("🔑 Request headers: \(Config.API.headers)")
         
-        if let body = body {
-            do {
-                let encoder = JSONEncoder()
-                encoder.keyEncodingStrategy = .convertToSnakeCase
-                request.httpBody = try encoder.encode(body)
-                print("📦 Request body: \(String(data: request.httpBody!, encoding: .utf8) ?? "")")
-            } catch {
-                print("❌ Encoding error: \(error)")
-                throw APIError.encodingError(error)
+                    if let body = body {
+                do {
+                    let encoder = JSONEncoder()
+                    // Don't convert to snake_case - send as camelCase to match server expectations
+                    request.httpBody = try encoder.encode(body)
+                    print("📦 Request body: \(String(data: request.httpBody!, encoding: .utf8) ?? "")")
+                } catch {
+                    print("❌ Encoding error: \(error)")
+                    throw APIError.encodingError(error)
+                }
             }
-        }
         
         do {
             print("📤 Starting request to: \(urlString)")

@@ -10,36 +10,57 @@ struct CircularProgressView: View {
         ZStack {
             // Background circle
             Circle()
-                .stroke(lineWidth: 20)
-                .opacity(0.1)
-                .foregroundColor(.green)
+                .stroke(lineWidth: 16)
+                .opacity(0.15)
+                .foregroundColor(AppColors.success)
             
             // Progress circle
             Circle()
                 .trim(from: 0.0, to: min(CGFloat(progress), 1.0))
                 .stroke(style: StrokeStyle(
-                    lineWidth: 20,
+                    lineWidth: 16,
                     lineCap: .round
                 ))
-                .foregroundColor(.green)
+                .foregroundColor(AppColors.success)
                 .rotationEffect(Angle(degrees: -90))
             
-            // Central text
-            VStack(spacing: 4) {
+            // Central content
+            VStack(spacing: 6) {
+                // Beer icon at the top
                 Image(systemName: "mug.fill")
-                    .font(.title)
+                    .font(.system(size: 20))
+                    .foregroundColor(AppColors.success)
+                    .padding(.bottom, 2)
+                
+                // Current beer count (large and prominent)
                 Text("\(current)")
-                    .font(.title)
-                    .bold()
-                Text("z celkových \(total) piv")
-                    .font(.caption)
+                    .font(.system(size: 32, weight: .heavy, design: .rounded))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                
+                // Progress text
+                Text("z \(total) piv")
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.9)
+                
+                // Barrel size
                 Text("\(size)L")
-                    .font(.subheadline)
-                    .bold()
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundColor(AppColors.success)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(AppColors.success.opacity(0.15))
+                    )
             }
+            .frame(maxWidth: 120)
         }
-        .padding(20)
+        .frame(width: 140, height: 140)
+        .padding(12)
     }
 }
 

@@ -31,7 +31,10 @@ class BarrelService {
                 method: .put
             )
             
-            print("✅ Successfully created barrel")
+            // Automatically activate the new barrel (like frontend does)
+            try await activateBarrel(id: newBarrel.id)
+            
+            print("✅ Successfully created and activated barrel")
         } catch {
             print("❌ Failed to create barrel: \(error)")
             throw error

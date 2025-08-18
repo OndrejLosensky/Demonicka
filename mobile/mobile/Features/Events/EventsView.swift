@@ -128,7 +128,7 @@ struct EventRow: View {
                     .font(.headline)
                 if event.isActive {
                     Image(systemName: "star.fill")
-                        .foregroundColor(.yellow)
+                        .foregroundColor(AppColors.warning)
                         .font(.caption)
                 }
             }
@@ -159,7 +159,7 @@ struct EventDetailView: View {
                     if event.isActive {
                         HStack {
                             Image(systemName: "star.fill")
-                                .foregroundColor(.yellow)
+                                .foregroundColor(AppColors.warning)
                             Text("Active Event")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
@@ -174,14 +174,14 @@ struct EventDetailView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Image(systemName: "calendar")
-                                .foregroundColor(.blue)
+                                .foregroundColor(AppColors.primary)
                             Text("Start: \(event.startDate.formatted())")
                         }
                         
                         if let endDate = event.endDate {
                             HStack {
                                 Image(systemName: "calendar")
-                                    .foregroundColor(.red)
+                                    .foregroundColor(AppColors.error)
                                 Text("End: \(endDate.formatted())")
                             }
                         }

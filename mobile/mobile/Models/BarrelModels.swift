@@ -2,13 +2,13 @@ import Foundation
 
 struct CreateBarrel: Codable {
     let size: Int
-    let totalBeers: Int
-    let remainingBeers: Int
+    let orderNumber: Int
 }
 
 struct Barrel: Codable, Identifiable {
     let id: String
     let size: Int
+    let orderNumber: Int
     let totalBeers: Int
     let remainingBeers: Int
     let isActive: Bool
