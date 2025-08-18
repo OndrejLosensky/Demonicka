@@ -8,39 +8,63 @@ struct ParticipantsView: View {
     @State private var showingAddDialog = false
     @State private var processingUserId: String?
     
+    // MARK: - Computed Properties
+    
+    private var maleParticipants: [Participant] {
+        participants.filter { $0.gender == .MALE }
+    }
+    
+    private var femaleParticipants: [Participant] {
+        participants.filter { $0.gender == .FEMALE }
+    }
+    
     var body: some View {
         NavigationView {
             Group {
                 if isLoading && participants.isEmpty {
                     ProgressView("Načítám účastníky...")
                 } else {
-                    // Both iPhone and iPad use the same mobile-friendly layout
+                    // Split participants by gender into separate sections
                     ScrollView {
-                        LazyVStack(spacing: 0) {
-                            ForEach(participants) { participant in
-                                ParticipantRow(
-                                    participant: participant,
-                                    isProcessing: processingUserId == participant.id,
-                                    onAddBeer: {
-                                        Task {
-                                            await handleAddBeer(for: participant)
-                                        }
-                                    },
-                                    onRemoveBeer: {
-                                        Task {
-                                            await handleRemoveBeer(for: participant)
-                                        }
-                                    }
-                                )
-                                .padding(.horizontal)
-                                .padding(.vertical, 4)
-                                
-                                if participant.id != participants.last?.id {
-                                    Divider()
-                                        .padding(.horizontal)
+                        LazyVStack(spacing: 24) {
+                                        // Men Section
+            if !maleParticipants.isEmpty {
+                participantsSection(
+                    title: "Muži",
+                    icon: "person.2.fill",
+                    participants: maleParticipants,
+                    color: AppColors.primary
+                )
+            }
+            
+            // Women Section
+            if !femaleParticipants.isEmpty {
+                participantsSection(
+                    title: "Ženy",
+                    icon: "person.2.fill",
+                    participants: femaleParticipants,
+                    color: AppColors.primary.opacity(0.8)
+                )
+            }
+                            
+                            // Empty state if no participants
+                            if participants.isEmpty {
+                                VStack(spacing: 16) {
+                                    Image(systemName: "person.2")
+                                        .font(.system(size: 48))
+                                        .foregroundColor(.secondary)
+                                    Text("Žádní účastníci")
+                                        .font(.title2)
+                                        .foregroundColor(.secondary)
+                                    Text("Přidejte prvního účastníka pomocí tlačítka +")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
                                 }
+                                .padding(.top, 60)
                             }
                         }
+                        .padding(.vertical, 16)
                     }
                     .refreshable {
                         await loadParticipants()
@@ -83,6 +107,62 @@ struct ParticipantsView: View {
             Task {
                 await loadParticipants()
             }
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func participantsSection(
+        title: String,
+        icon: String,
+        participants: [Participant],
+        color: Color
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Section Header
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(color)
+                    .imageScale(.medium)
+                Text(title)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                Text("(\(participants.count))")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            // Participants List
+            VStack(spacing: 0) {
+                ForEach(participants) { participant in
+                    ParticipantRow(
+                        participant: participant,
+                        isProcessing: processingUserId == participant.id,
+                        onAddBeer: {
+                            Task {
+                                await handleAddBeer(for: participant)
+                            }
+                        },
+                        onRemoveBeer: {
+                            Task {
+                                await handleRemoveBeer(for: participant)
+                            }
+                        }
+                    )
+                    .padding(.horizontal)
+                    .padding(.vertical, 4)
+                    
+                    if participant.id != participants.last?.id {
+                        Divider()
+                            .padding(.horizontal)
+                    }
+                }
+            }
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(12)
+            .padding(.horizontal)
         }
     }
     
