@@ -91,18 +91,17 @@ struct DashboardView: View {
                 topUsersSection(users: data.topUsers)
                 barrelStatsSection(stats: data.barrelStats)
             }
-            .padding(.vertical)
-            .padding(.horizontal)
+            .padding(.vertical, 24)
         }
     }
     
     // MARK: - Overview Section
     private func overviewSection(data: DashboardData) -> some View {
         VStack(spacing: 16) {
-                    LazyVGrid(columns: [
-            GridItem(.flexible()),
-            GridItem(.flexible())
-        ], spacing: 16) {
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 16) {
                 StatCard(title: "Účastníci", value: "\(data.totalUsers)", icon: "person.2.fill")
                 StatCard(title: "Celkem piv", value: "\(data.totalBeers)", icon: "mug.fill")
                 StatCard(title: "Celkem sudů", value: "\(data.totalBarrels)", icon: "cylinder.fill")

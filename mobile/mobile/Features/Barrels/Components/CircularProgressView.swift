@@ -25,42 +25,28 @@ struct CircularProgressView: View {
                 .rotationEffect(Angle(degrees: -90))
             
             // Central content
-            VStack(spacing: 6) {
-                // Beer icon at the top
-                Image(systemName: "mug.fill")
-                    .font(.system(size: 20))
-                    .foregroundColor(AppColors.success)
-                    .padding(.bottom, 2)
-                
+            VStack(spacing: UIDevice.current.userInterfaceIdiom == .pad ? 8 : 6) {
+               
                 // Current beer count (large and prominent)
                 Text("\(current)")
-                    .font(.system(size: 32, weight: .heavy, design: .rounded))
+                    .font(.system(size: UIDevice.current.userInterfaceIdiom == .pad ? 36 : 32, weight: .heavy, design: .rounded))
                     .foregroundColor(.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                 
                 // Progress text
                 Text("z \(total) piv")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: UIDevice.current.userInterfaceIdiom == .pad ? 15 : 13, weight: .medium))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.9)
                 
-                // Barrel size
-                Text("\(size)L")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundColor(AppColors.success)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(AppColors.success.opacity(0.15))
-                    )
+               
             }
-            .frame(maxWidth: 120)
+            .frame(maxWidth: UIDevice.current.userInterfaceIdiom == .pad ? 130 : 120)
         }
-        .frame(width: 140, height: 140)
-        .padding(12)
+        .frame(width: UIDevice.current.userInterfaceIdiom == .pad ? 160 : 140, height: UIDevice.current.userInterfaceIdiom == .pad ? 160 : 140)
+        .padding(UIDevice.current.userInterfaceIdiom == .pad ? 16 : 12)
     }
 }
 
