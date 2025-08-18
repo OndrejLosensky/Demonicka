@@ -9,6 +9,7 @@ struct SystemView: View {
     @State private var generatingTokenForUserId: String? = nil
     @State private var showingToken = false
     @State private var currentToken: String? = nil
+    @State private var showingCopyFeedback = false
     
     var body: some View {
         NavigationView {
@@ -45,16 +46,174 @@ struct SystemView: View {
                     Text(error?.localizedDescription ?? "An unknown error occurred")
                 }
             }
-            .alert("Registrační token", isPresented: $showingToken) {
-                Button("Copy", action: {
-                    if let token = currentToken {
-                        UIPasteboard.general.string = token
-                    }
-                })
-                Button("OK", role: .cancel) {}
-            } message: {
+            .sheet(isPresented: $showingToken) {
                 if let token = currentToken {
-                    Text(token)
+                    NavigationView {
+                        VStack(spacing: 24) {
+                            // Header
+                            VStack(spacing: 8) {
+                                Image(systemName: "key.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(AppColors.primary)
+                                
+                                Text("Registrační token")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                
+                                Text("Token pro dokončení registrace")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                            }
+                            
+                            // Token display
+                            VStack(spacing: 12) {
+                                Text("Token")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                ZStack {
+                                    VStack(spacing: 4) {
+                                        if token.contains("#") {
+                                            let parts = token.split(separator: "#")
+                                            if parts.count == 2 {
+                                                Text(String(parts[0]))
+                                                    .font(.title2)
+                                                    .fontWeight(.bold)
+                                                    .foregroundColor(AppColors.primary)
+                                                Text("#\(parts[1])")
+                                                    .font(.title3)
+                                                    .fontWeight(.semibold)
+                                                    .foregroundColor(.secondary)
+                                            } else {
+                                                Text(token)
+                                                    .font(.title3)
+                                                    .fontWeight(.bold)
+                                            }
+                                        } else {
+                                            Text(token)
+                                                .font(.title3)
+                                                .fontWeight(.bold)
+                                        }
+                                    }
+                                    .padding()
+                                    .background(AppColors.primary.opacity(0.1))
+                                    .cornerRadius(12)
+                                    .textSelection(.enabled)
+                                    
+                                    // Copy feedback overlay
+                                    if showingCopyFeedback {
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(AppColors.success.opacity(0.9))
+                                            .overlay(
+                                                HStack(spacing: 8) {
+                                                    Image(systemName: "checkmark.circle.fill")
+                                                        .foregroundColor(.white)
+                                                    Text("Zkopírováno!")
+                                                        .font(.caption)
+                                                        .fontWeight(.semibold)
+                                                        .foregroundColor(.white)
+                                                }
+                                            )
+                                            .transition(.opacity)
+                                            .animation(.easeInOut(duration: 0.2), value: showingCopyFeedback)
+                                    }
+                                }
+                            }
+                            
+                            // QR Code
+                            VStack(spacing: 12) {
+                                Text("QR Kód pro registraci")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                
+                                Text("Naskenujte pro přechod na web")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                QRCodeView(token: token, size: 180)
+                            }
+                            
+                            // Instructions
+                            VStack(spacing: 8) {
+                                Text("Jak použít:")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                
+                                VStack(alignment: .leading, spacing: 6) {
+                                    HStack(alignment: .top, spacing: 8) {
+                                        Text("1.")
+                                            .font(.caption)
+                                            .foregroundColor(AppColors.primary)
+                                            .fontWeight(.bold)
+                                        Text("Naskenujte QR kód pro přechod na web")
+                                            .font(.caption)
+                                    }
+                                    
+                                    HStack(alignment: .top, spacing: 8) {
+                                        Text("2.")
+                                            .font(.caption)
+                                            .foregroundColor(AppColors.primary)
+                                            .fontWeight(.bold)
+                                        Text("Nebo zkopírujte token a vložte na web")
+                                            .font(.caption)
+                                    }
+                                    
+                                    HStack(alignment: .top, spacing: 8) {
+                                        Text("3.")
+                                            .font(.caption)
+                                            .foregroundColor(AppColors.primary)
+                                            .fontWeight(.bold)
+                                        Text("Dokončete registraci s uživatelským jménem a heslem")
+                                            .font(.caption)
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding()
+                        .navigationTitle("Token")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .navigationBarItems(
+                            leading: Button("Zavřít") {
+                                showingToken = false
+                            },
+                            trailing: HStack(spacing: 12) {
+                                Button(action: {
+                                    let registrationURL = QRCodeGenerator.generateRegistrationURL(from: token)
+                                    let activityVC = UIActivityViewController(
+                                        activityItems: [registrationURL],
+                                        applicationActivities: nil
+                                    )
+                                    
+                                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                       let window = windowScene.windows.first {
+                                        window.rootViewController?.present(activityVC, animated: true)
+                                    }
+                                }) {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .foregroundColor(AppColors.primary)
+                                }
+                                
+                                Button("Kopírovat") {
+                                    UIPasteboard.general.string = token
+                                    
+                                    // Haptic feedback
+                                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                    impactFeedback.impactOccurred()
+                                    
+                                    showingCopyFeedback = true
+                                    
+                                    // Hide feedback after 2 seconds
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                        showingCopyFeedback = false
+                                    }
+                                }
+                            }
+                        )
+                    }
                 }
             }
             .sheet(isPresented: $showingSystemStats) {

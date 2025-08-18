@@ -10,11 +10,19 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
+
 import { CompleteRegistrationDto } from './dto/complete-registration.dto';
 import { UserRole } from './enums/user-role.enum';
 import { subDays } from 'date-fns';
 import { LoggingService } from '../logging/logging.service';
+
+/**
+ * Users Service
+ *
+ * Registration tokens are now generated in the format: username#randomNumber
+ * Example: "Ondrej#2345" where the number is between 1000-9999
+ * This makes tokens more user-friendly and memorable while maintaining uniqueness.
+ */
 
 type UserWithoutPassword = Omit<User, 'password'>;
 
@@ -58,7 +66,10 @@ export class UsersService {
   async createParticipant(
     createParticipantDto: CreateParticipantDto,
   ): Promise<UserWithoutPassword> {
-    const registrationToken = uuidv4();
+    // Generate username-based token with random number
+    const randomNumber = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+    const registrationToken = `${createParticipantDto.username}#${randomNumber}`;
+
     const user = this.usersRepository.create({
       ...createParticipantDto,
       registrationToken,
@@ -212,7 +223,10 @@ export class UsersService {
       throw new BadRequestException('Uživatel již dokončil registraci');
     }
 
-    const registrationToken = uuidv4();
+    // Generate username-based token with random number
+    const randomNumber = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+    const registrationToken = `${user.username}#${randomNumber}`;
+
     user.registrationToken = registrationToken;
     await this.usersRepository.save(user);
 
