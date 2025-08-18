@@ -87,7 +87,7 @@ const LeaderboardComponent: React.FC = () => {
       </Box>
 
       {/* Metric Cards */}
-      <Grid container spacing={isHeaderVisible ? 2 : 1} mb={isHeaderVisible ? 3 : 1.5}>
+      <Grid container spacing={isHeaderVisible ? 3 : 2} mb={isHeaderVisible ? 4 : 3}>
         <Grid item xs={6} sm={3}>
           <MetricCard 
             title="Celkem piv" 
@@ -122,7 +122,7 @@ const LeaderboardComponent: React.FC = () => {
         </Grid>
       </Grid>
 
-      <Grid container spacing={isHeaderVisible ? 3 : 1.5}>
+      <Grid container spacing={isHeaderVisible ? 4 : 3}>
         <Grid item xs={12} md={6}>
           <LeaderboardTable 
             participants={stats.males} 

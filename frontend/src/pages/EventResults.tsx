@@ -111,7 +111,7 @@ export const EventResults: React.FC = () => {
 
     const renderLeaderboardSection = (users: UserLeaderboardData[], title: string, bgColor: string) => {
         return (
-            <Paper elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+            <Paper elevation={2} sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                 <Box sx={{ p: 3, bgcolor: bgColor, color: 'white' }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
                         <PersonIcon /> {title}
@@ -123,41 +123,88 @@ export const EventResults: React.FC = () => {
                             <Box
                                 key={user.id}
                                 sx={{
-                                    p: 2,
+                                    p: 2.5,
                                     border: '1px solid',
                                     borderColor: 'divider',
-                                    borderRadius: 2,
+                                    borderRadius: 2.5,
                                     mb: 2,
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 2,
-                                    bgcolor: index < 3 ? 'rgba(255, 215, 0, 0.1)' : 'transparent',
+                                    gap: 2.5,
+                                    bgcolor: index < 3 ? 'rgba(255, 215, 0, 0.08)' : 'transparent',
+                                    transition: 'all 0.2s ease-in-out',
+                                    '&:hover': {
+                                        bgcolor: index < 3 ? 'rgba(255, 215, 0, 0.12)' : 'rgba(0,0,0,0.02)',
+                                        transform: 'translateX(4px)',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                    },
+                                    '&:last-child': {
+                                        mb: 0,
+                                    }
                                 }}
                             >
                                 <Box sx={{ 
-                                    width: 40, 
-                                    height: 40, 
+                                    width: 44, 
+                                    height: 44, 
                                     borderRadius: '50%', 
                                     display: 'flex', 
                                     alignItems: 'center', 
                                     justifyContent: 'center',
                                     bgcolor: index < 3 ? 'warning.main' : 'grey.300',
                                     color: 'white',
-                                    fontWeight: 'bold'
+                                    fontWeight: 'bold',
+                                    fontSize: index < 3 ? '1.2rem' : '1rem',
+                                    flexShrink: 0,
+                                    boxShadow: index < 3 ? '0 2px 8px rgba(255, 193, 7, 0.3)' : '0 1px 4px rgba(0,0,0,0.1)',
                                 }}>
                                     {getMedalIcon(index + 1)}
                                 </Box>
-                                <Box flex={1}>
-                                    <Typography fontWeight="bold">
+                                <Box flex={1} sx={{ minWidth: 0 }}>
+                                    <Typography 
+                                        fontWeight="bold" 
+                                        sx={{ 
+                                            fontSize: '1.1rem',
+                                            mb: 0.5,
+                                            color: index < 3 ? 'text.primary' : 'text.primary',
+                                        }}
+                                    >
                                         {user.username}
                                     </Typography>
-                                    <Box display="flex" alignItems="center" gap={1}>
-                                        <BeerIcon sx={{ fontSize: '1rem', opacity: 0.5 }} />
-                                        <Typography variant="body2" color="text.secondary">
+                                    <Box display="flex" alignItems="center" gap={1.5}>
+                                        <BeerIcon sx={{ 
+                                            fontSize: '1.1rem', 
+                                            opacity: 0.7,
+                                            color: index < 3 ? 'warning.main' : 'text.secondary',
+                                        }} />
+                                        <Typography 
+                                            variant="body2" 
+                                            color="text.secondary"
+                                            sx={{ 
+                                                fontSize: '0.9rem',
+                                                fontWeight: 500,
+                                            }}
+                                        >
                                             {user.beerCount} piv
                                         </Typography>
                                     </Box>
                                 </Box>
+                                {index < 3 && (
+                                    <Box sx={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center',
+                                        width: 32,
+                                        height: 32,
+                                        borderRadius: '50%',
+                                        bgcolor: 'warning.light',
+                                        color: 'warning.contrastText',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 'bold',
+                                        flexShrink: 0,
+                                    }}>
+                                        #{index + 1}
+                                    </Box>
+                                )}
                             </Box>
                         ))
                     ) : (
@@ -264,7 +311,7 @@ export const EventResults: React.FC = () => {
                 </Grid>
 
                 {/* Fun Statistics */}
-                <Paper elevation={2} sx={{ borderRadius: 2, mb: 4, overflow: 'hidden' }}>
+                <Paper elevation={2} sx={{ borderRadius: 3, mb: 4, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                     <Box sx={{ p: 3, bgcolor: 'success.light', color: 'white' }}>
                         <Typography variant="h5" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
                             <StarIcon /> Zajímavé statistiky
@@ -273,40 +320,76 @@ export const EventResults: React.FC = () => {
                     <Box sx={{ p: 3 }}>
                         <Grid container spacing={3}>
                             <Grid item xs={12} md={4}>
-                                <Box sx={{ textAlign: 'center', p: 2 }}>
-                                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                                <Box sx={{ 
+                                    textAlign: 'center', 
+                                    p: 3,
+                                    borderRadius: 2,
+                                    bgcolor: 'rgba(76, 175, 80, 0.05)',
+                                    border: '1px solid',
+                                    borderColor: 'success.light',
+                                    transition: 'all 0.2s ease-in-out',
+                                    '&:hover': {
+                                        bgcolor: 'rgba(76, 175, 80, 0.08)',
+                                        transform: 'translateY(-2px)',
+                                    }
+                                }}>
+                                    <Typography variant="h6" color="text.secondary" gutterBottom sx={{ mb: 2, fontWeight: 600 }}>
                                         🏆 Největší pijan
                                     </Typography>
-                                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'success.main' }}>
+                                    <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'success.main', mb: 1 }}>
                                         {topDrinker?.username || 'N/A'}
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary">
+                                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
                                         {topDrinker?.beerCount || 0} piv
                                     </Typography>
                                 </Box>
                             </Grid>
                             <Grid item xs={12} md={4}>
-                                <Box sx={{ textAlign: 'center', p: 2 }}>
-                                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                                <Box sx={{ 
+                                    textAlign: 'center', 
+                                    p: 3,
+                                    borderRadius: 2,
+                                    bgcolor: 'rgba(255, 152, 0, 0.05)',
+                                    border: '1px solid',
+                                    borderColor: 'warning.light',
+                                    transition: 'all 0.2s ease-in-out',
+                                    '&:hover': {
+                                        bgcolor: 'rgba(255, 152, 0, 0.08)',
+                                        transform: 'translateY(-2px)',
+                                    }
+                                }}>
+                                    <Typography variant="h6" color="text.secondary" gutterBottom sx={{ mb: 2, fontWeight: 600 }}>
                                         ⚡ Nejpilnější hodina
                                     </Typography>
-                                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
+                                    <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'warning.main', mb: 1 }}>
                                         {mostActiveHour}
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary">
+                                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
                                         Nejvíce piv za hodinu
                                     </Typography>
                                 </Box>
                             </Grid>
                             <Grid item xs={12} md={4}>
-                                <Box sx={{ textAlign: 'center', p: 2 }}>
-                                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                                <Box sx={{ 
+                                    textAlign: 'center', 
+                                    p: 3,
+                                    borderRadius: 2,
+                                    bgcolor: 'rgba(244, 67, 54, 0.05)',
+                                    border: '1px solid',
+                                    borderColor: 'error.light',
+                                    transition: 'all 0.2s ease-in-out',
+                                    '&:hover': {
+                                        bgcolor: 'rgba(244, 67, 54, 0.08)',
+                                        transform: 'translateY(-2px)',
+                                    }
+                                }}>
+                                    <Typography variant="h6" color="text.secondary" gutterBottom sx={{ mb: 2, fontWeight: 600 }}>
                                         <SpeedIcon /> Rychlost pití
                                     </Typography>
-                                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'error.main' }}>
+                                    <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'error.main', mb: 1 }}>
                                         {fastestDrinker?.username || 'N/A'}
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary">
+                                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
                                         Nejrychlejší start
                                     </Typography>
                                 </Box>
@@ -329,46 +412,54 @@ export const EventResults: React.FC = () => {
                 </Grid>
 
                 {/* Event Summary */}
-                <Paper elevation={2} sx={{ borderRadius: 2, mt: 4, overflow: 'hidden' }}>
+                <Paper elevation={2} sx={{ borderRadius: 3, mt: 4, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                     <Box sx={{ p: 3, bgcolor: 'grey.100' }}>
                         <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                             Shrnutí události
                         </Typography>
                     </Box>
                     <Box sx={{ p: 3 }}>
-                        <Grid container spacing={3}>
+                        <Grid container spacing={4}>
                             <Grid item xs={12} md={6}>
-                                <Typography variant="body1" paragraph>
-                                    <strong>Název:</strong> {event.name}
-                                </Typography>
-                                {event.description && (
-                                    <Typography variant="body1" paragraph>
-                                        <strong>Popis:</strong> {event.description}
-                                    </Typography>
-                                )}
-                                <Typography variant="body1" paragraph>
-                                    <strong>Začátek:</strong> {format(new Date(event.startDate), 'PPp', { locale: cs })}
-                                </Typography>
-                                {event.endDate && (
-                                    <Typography variant="body1" paragraph>
-                                        <strong>Konec:</strong> {format(new Date(event.endDate), 'PPp', { locale: cs })}
-                                    </Typography>
-                                )}
+                                <Box sx={{ space: 2 }}>
+                                    <Box sx={{ mb: 3, p: 2.5, borderRadius: 2, bgcolor: 'rgba(25, 118, 210, 0.05)', border: '1px solid', borderColor: 'primary.light' }}>
+                                        <Typography variant="body1" paragraph sx={{ mb: 1.5, fontWeight: 600, color: 'primary.main' }}>
+                                            <strong>Název:</strong> {event.name}
+                                        </Typography>
+                                        {event.description && (
+                                            <Typography variant="body1" paragraph sx={{ mb: 1.5, color: 'text.secondary' }}>
+                                                <strong>Popis:</strong> {event.description}
+                                            </Typography>
+                                        )}
+                                        <Typography variant="body1" paragraph sx={{ mb: 1.5, color: 'text.secondary' }}>
+                                            <strong>Začátek:</strong> {format(new Date(event.startDate), 'PPp', { locale: cs })}
+                                        </Typography>
+                                        {event.endDate && (
+                                            <Typography variant="body1" paragraph sx={{ mb: 0, color: 'text.secondary' }}>
+                                                <strong>Konec:</strong> {format(new Date(event.endDate), 'PPp', { locale: cs })}
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                </Box>
                             </Grid>
                             <Grid item xs={12} md={6}>
-                                <Typography variant="body1" paragraph>
-                                    <strong>Celkem piv:</strong> {totalBeers}
-                                </Typography>
-                                <Typography variant="body1" paragraph>
-                                    <strong>Účastníci:</strong> {totalParticipants}
-                                </Typography>
-                                <Typography variant="body1" paragraph>
-                                    <strong>Průměr na osobu:</strong> {averageBeersPerUser} piv
-                                </Typography>
-                                <Typography variant="body1" paragraph>
-                                    <strong>Doba trvání:</strong> {event.endDate && event.startDate ? 
-                                        Math.round((new Date(event.endDate).getTime() - new Date(event.startDate).getTime()) / (1000 * 60 * 60)) : 0} hodin
-                                </Typography>
+                                <Box sx={{ space: 2 }}>
+                                    <Box sx={{ mb: 3, p: 2.5, borderRadius: 2, bgcolor: 'rgba(76, 175, 80, 0.05)', border: '1px solid', borderColor: 'success.light' }}>
+                                        <Typography variant="body1" paragraph sx={{ mb: 1.5, fontWeight: 600, color: 'success.main' }}>
+                                            <strong>Celkem piv:</strong> {totalBeers}
+                                        </Typography>
+                                        <Typography variant="body1" paragraph sx={{ mb: 1.5, color: 'text.secondary' }}>
+                                            <strong>Účastníci:</strong> {totalParticipants}
+                                        </Typography>
+                                        <Typography variant="body1" paragraph sx={{ mb: 1.5, color: 'text.secondary' }}>
+                                            <strong>Průměr na osobu:</strong> {averageBeersPerUser} piv
+                                        </Typography>
+                                        <Typography variant="body1" paragraph sx={{ mb: 0, color: 'text.secondary' }}>
+                                            <strong>Doba trvání:</strong> {event.endDate && event.startDate ? 
+                                                Math.round((new Date(event.endDate).getTime() - new Date(event.startDate).getTime()) / (1000 * 60 * 60)) : 0} hodin
+                                        </Typography>
+                                    </Box>
+                                </Box>
                             </Grid>
                         </Grid>
                     </Box>

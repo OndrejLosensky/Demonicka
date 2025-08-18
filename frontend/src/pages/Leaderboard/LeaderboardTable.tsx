@@ -19,17 +19,17 @@ const getTrophyColor = (rank: number): string => {
 
 export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableProps) => (
   <Paper 
-    elevation={0}
+    elevation={1}
     sx={{ 
       p: 3,
       height: '100%',
       border: '1px solid',
       borderColor: 'divider',
-      borderRadius: 2
+      borderRadius: 2,
     }}
   >
     <Box display="flex" alignItems="center" gap={2} mb={3}>
-      <GiTrophy style={{ fontSize: '1.5rem' }} />
+      <GiTrophy style={{ fontSize: '1.5rem', color: 'primary.main' }} />
       <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
         {title}
       </Typography>
@@ -38,18 +38,18 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
     <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px' }}>
       <thead>
         <tr>
-          <th style={{ textAlign: 'left', padding: '8px 16px' }}>
-            <Typography color="text.secondary" variant="body2">
+          <th style={{ textAlign: 'left', padding: '10px 16px' }}>
+            <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
               {translations.table.columns.rank}
             </Typography>
           </th>
-          <th style={{ textAlign: 'left', padding: '8px 16px' }}>
-            <Typography color="text.secondary" variant="body2">
+          <th style={{ textAlign: 'left', padding: '10px 16px' }}>
+            <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
               {translations.table.columns.name}
             </Typography>
           </th>
-          <th style={{ textAlign: 'right', padding: '8px 16px' }}>
-            <Typography color="text.secondary" variant="body2">
+          <th style={{ textAlign: 'right', padding: '10px 16px' }}>
+            <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
               {translations.table.columns.beers}
             </Typography>
           </th>
@@ -58,7 +58,7 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
       <tbody>
         {participants.map((participant, index) => (
           <tr key={participant.id}>
-            <td style={{ padding: '8px 16px', width: '60px' }}>
+            <td style={{ padding: '10px 16px', width: '70px' }}>
               <Box display="flex" alignItems="center" gap={1}>
                 <Typography 
                   variant={index < 3 ? 'h6' : 'body1'} 
@@ -71,13 +71,13 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
                 </Typography>
                 {index < 3 && (
                   <GiTrophy style={{ 
-                    fontSize: '1.5rem',
+                    fontSize: '1.2rem',
                     color: getTrophyColor(index)
                   }} />
                 )}
               </Box>
             </td>
-            <td style={{ padding: '8px 16px' }}>
+            <td style={{ padding: '10px 16px' }}>
               <Box display="flex" alignItems="center" gap={1}>
                 <Typography 
                   variant={index < 3 ? 'h6' : 'body1'}
@@ -99,7 +99,7 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
                 )}
               </Box>
             </td>
-            <td style={{ padding: '8px 16px', textAlign: 'right' }}>
+            <td style={{ padding: '10px 16px', textAlign: 'right' }}>
               <Box display="flex" alignItems="center" justifyContent="flex-end" gap={1}>
                 <Typography 
                   variant={index < 3 ? 'h6' : 'body1'}
@@ -111,8 +111,9 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
                   {participant.beerCount}
                 </Typography>
                 <FaBeer style={{ 
-                  fontSize: index < 3 ? '1.25rem' : '1rem',
-                  opacity: index < 3 ? 1 : 0.5
+                  fontSize: index < 3 ? '1.1rem' : '1rem',
+                  opacity: index < 3 ? 1 : 0.6,
+                  color: index < 3 ? 'error.main' : 'text.secondary',
                 }} />
               </Box>
             </td>
@@ -120,7 +121,7 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
         ))}
         {(!participants || participants.length === 0) && (
           <tr>
-            <td colSpan={3} style={{ textAlign: 'center', padding: '32px 16px' }}>
+            <td colSpan={3} style={{ textAlign: 'center', padding: '40px 16px' }}>
               <Typography color="text.secondary">
                 {translations.table.noParticipants}
               </Typography>

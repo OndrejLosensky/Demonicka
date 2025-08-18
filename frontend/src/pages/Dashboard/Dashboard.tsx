@@ -201,10 +201,20 @@ export const Dashboard: React.FC = () => {
             {/* Main Statistics Cards */}
             <Grid container spacing={3} mb={4}>
                 <Grid item xs={12} sm={6} md={3}>
-                    <MetricCard title={translations.stats.totalBeers} value={stats.totalBeers} icon={<BeerIcon />} color="primary" />
+                    <MetricCard 
+                        title={translations.stats.totalBeers} 
+                        value={stats.totalBeers} 
+                        icon={<BeerIcon />} 
+                        color="primary" 
+                    />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                    <MetricCard title={translations.stats.averagePerHour} value={stats.averageBeersPerHour.toFixed(1)} icon={<SpeedIcon />} color="error" />
+                    <MetricCard 
+                        title={translations.stats.averagePerHour} 
+                        value={stats.averageBeersPerHour.toFixed(1)} 
+                        icon={<SpeedIcon />} 
+                        color="error" 
+                    />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                     <MetricCard
@@ -215,7 +225,12 @@ export const Dashboard: React.FC = () => {
                     />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                    <MetricCard title={translations.stats.totalParticipants} value={stats.participantsCount} icon={<GroupIcon />} color="warning" />
+                    <MetricCard 
+                        title={translations.stats.totalParticipants} 
+                        value={stats.participantsCount} 
+                        icon={<GroupIcon />} 
+                        color="warning" 
+                    />
                 </Grid>
             </Grid>
 
