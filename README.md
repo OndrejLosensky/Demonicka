@@ -1,23 +1,18 @@
-# 🍺 Démonická
+# 🍺 Démonická BMS (Beer Management System)
 
 <div align="center">
 
-![Démonická Banner](docs/assets/banner.png)
+<!-- Add your banner here -->
+<!-- ![Démonická BMS Banner](docs/assets/banner.png) -->
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![NestJS](https://img.shields.io/badge/NestJS-10.0-ea2845.svg)](https://nestjs.com/)
-[![React](https://img.shields.io/badge/React-18.0-61dafb.svg)](https://reactjs.org/)
-[![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
-[![SQLite](https://img.shields.io/badge/SQLite-3.0-003b57.svg)](https://www.sqlite.org/)
+<!-- Add your badges here -->
+[![wakatime](https://wakatime.com/badge/user/018dd279-af88-40d4-86db-db3b3100ed1e/project/721ad3f8-d413-4a1a-b09b-010a5b6f036d.svg)](https://wakatime.com/badge/user/018dd279-af88-40d4-86db-db3b3100ed1e/project/721ad3f8-d413-4a1a-b09b-010a5b6f036d)
 
-A modern, full-stack event management system for tracking consumption, managing participants, and monitoring inventory at the annual Démonická gathering.
+A modern, full-stack beer management system for tracking consumption, managing participants, and monitoring inventory at the annual Démonická gathering.
 
-[Getting Started](#getting-started) •
-[Features](#features) •
-[Documentation](#documentation) •
-[Roadmap](#roadmap) •
-[Contributing](#contributing)
+[Features](#-features) •
+[Documentation](#-documentation) •
+[Project Structure](#️-project-structure)
 
 </div>
 
@@ -26,11 +21,11 @@ A modern, full-stack event management system for tracking consumption, managing 
 ### Web Admin Interface
 - 📊 Real-time dashboard with consumption statistics
 - 👥 Participant management and tracking
-- 🛢️ Inventory management
+- 🛢️ Inventory and barrel management
 - 📈 Leaderboard with gender categories
 - 📱 Responsive design for all devices
 
-### iOS Admin App (Coming Soon)
+### iOS Admin App
 - 📲 Native iOS experience
 - 🔐 Biometric authentication
 - 🔄 Offline support
@@ -44,55 +39,45 @@ A modern, full-stack event management system for tracking consumption, managing 
 - 🔄 Refresh token rotation
 - 📦 SQLite database
 
-
 ## 📚 Documentation
 
-- [API Documentation](docs/API.md)
-- [Security Enhancements](docs/security_enhancements.md)
-- [Future Updates](docs/future_updates.md)
-- [iOS Admin App](docs/admin-swift.md)
-- [Backend Mobile Updates](docs/backend-mobile-updates.md)
+- [API Documentation](server/docs/api/API.md)
+- [Getting Started](server/docs/getting-started/)
+- [User Guide](server/docs/user-guide/)
 
 ## 🗺️ Project Structure
 
 ```
-demonicka/
+auth/
 ├── server/             # NestJS backend
 │   ├── src/
 │   │   ├── auth/       # Authentication
-│   │   └── participants/  # Participants 
+│   │   ├── participants/  # Participants 
 │   │   ├── beers/      # Consumption tracking
 │   │   ├── barrels/    # Barrel management
 │   │   └── dashboard/  # Statistics & analytics
-|   |   └── users       # User management 
-│   └── test/
+│   │   └── users       # User management 
+│   └── docs/
 ├── frontend/           # React frontend
 │   ├── src/
 │   │   ├── components/
 │   │   ├── pages/
 │   │   └── services/
 │   └── public/
-└── ios/               # Swift admin app (coming soon)
+└── mobile/             # Swift admin app
 ```
 
 ## 🙏 Acknowledgments
 
 - [NestJS](https://nestjs.com/) - Backend framework
 - [React](https://reactjs.org/) - Frontend library
-- [Material-UI](https://mui.com/) - UI components
 - [Swift](https://swift.org) - iOS development
 - [SQLite](https://www.sqlite.org/) - Database
-
-## 📬 Contact
-
-Your Name - [@yourtwitter](https://twitter.com/yourtwitter) - email@example.com
-
-Project Link: [https://github.com/yourusername/demonicka](https://github.com/yourusername/demonicka)
 
 ---
 
 <div align="center">
 
-Made with ❤️ by [Your Name](https://github.com/yourusername)
+Made with ❤️ for the Démonická
 
 </div> 
