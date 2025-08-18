@@ -82,7 +82,7 @@ struct BarrelsView: View {
                                 .padding(.horizontal)
                                 
                                 LazyVStack(spacing: 12) {
-                                    ForEach(barrels) { barrel in
+                                    ForEach(barrels.sorted(by: { $0.orderNumber < $1.orderNumber })) { barrel in
                                         HStack(spacing: 16) {
                                             // Barrel icon with status
                                             ZStack {
@@ -100,9 +100,15 @@ struct BarrelsView: View {
                                             
                                             // Barrel info
                                             VStack(alignment: .leading, spacing: 4) {
-                                                Text("\(barrel.size)L")
-                                                    .font(.headline)
-                                                    .fontWeight(.semibold)
+                                                HStack(spacing: 8) {
+                                                    Text("#\(barrel.orderNumber)")
+                                                        .font(.title2)
+                                                        .fontWeight(.bold)
+                                                        .foregroundColor(AppColors.primary)
+                                                    Text("\(barrel.size)L")
+                                                        .font(.headline)
+                                                        .fontWeight(.semibold)
+                                                }
                                                 Text(barrel.isActive ? "Aktivní" : "Neaktivní")
                                                     .font(.caption)
                                                     .foregroundColor(barrel.isActive ? AppColors.success : .secondary)
@@ -296,6 +302,12 @@ struct BarrelsView: View {
     // Enhanced barrel card for both iPhone and iPad
     private func activeBarrelCard(barrel: Barrel) -> some View {
         VStack(spacing: 12) {
+            // Order number header
+            Text("#\(barrel.orderNumber)")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(AppColors.primary)
+            
             CircularProgressView(
                 progress: barrel.remainingPercentage / 100.0,
                 total: barrel.totalBeers,
@@ -340,9 +352,15 @@ struct BarrelsView: View {
             
             // Barrel info
             VStack(spacing: 8) {
-                Text("\(barrel.size)L")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                HStack(spacing: 8) {
+                    Text("#\(barrel.orderNumber)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(AppColors.primary)
+                    Text("\(barrel.size)L")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                }
                 
                 Text(barrel.isActive ? "Aktivní" : "Neaktivní")
                     .font(.subheadline)
@@ -393,9 +411,15 @@ struct BarrelsView: View {
             
             // Barrel info
             VStack(alignment: .leading, spacing: 4) {
-                Text("\(barrel.size)L")
-                    .font(.headline)
-                    .fontWeight(.semibold)
+                HStack(spacing: 8) {
+                    Text("#\(barrel.orderNumber)")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(AppColors.primary)
+                    Text("\(barrel.size)L")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                }
                 Text(barrel.isActive ? "Aktivní" : "Neaktivní")
                     .font(.caption)
                     .foregroundColor(barrel.isActive ? AppColors.success : .secondary)

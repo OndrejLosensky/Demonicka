@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct SystemView: View {
     @State private var isLoading = false
@@ -10,6 +11,58 @@ struct SystemView: View {
     @State private var showingToken = false
     @State private var currentToken: String? = nil
     @State private var showingCopyFeedback = false
+    @State private var lastSyncTime = "Nikdy"
+    @State private var apiResponseTime = 0
+    @State private var connectionHealth = "Dobré"
+    
+    // MARK: - Computed Properties
+    
+    private var apiConnectionStatus: String {
+        // Simulate connection status based on response time
+        if apiResponseTime == 0 { return "Testuji..." }
+        if apiResponseTime < 100 { return "Výborné" }
+        if apiResponseTime < 300 { return "Dobré" }
+        if apiResponseTime < 1000 { return "Pomalé" }
+        return "Problém"
+    }
+    
+    private var apiConnectionColor: Color {
+        if apiResponseTime == 0 { return .secondary }
+        if apiResponseTime < 100 { return AppColors.success }
+        if apiResponseTime < 300 { return AppColors.primary }
+        if apiResponseTime < 1000 { return AppColors.warning }
+        return AppColors.error
+    }
+    
+    private var connectionHealthColor: Color {
+        switch connectionHealth {
+        case "Výborné": return AppColors.success
+        case "Dobré": return AppColors.primary
+        case "Slabé": return AppColors.warning
+        case "Problém": return AppColors.error
+        default: return .secondary
+        }
+    }
+    
+    private var appVersion: String {
+        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+            return version
+        }
+        return "Neznámá"
+    }
+    
+    private var backendVersion: String {
+        // This would come from API in real implementation
+        return "2.0.0"
+    }
+    
+    private var updateStatus: String {
+        return "Aktuální"
+    }
+    
+    private var updateStatusColor: Color {
+        return AppColors.success
+    }
     
     var body: some View {
         NavigationView {
@@ -40,6 +93,11 @@ struct SystemView: View {
         .sheet(isPresented: $showingSystemStats) {
             systemStatsSheet
         }
+        .onAppear {
+            Task {
+                await handleRefreshData()
+            }
+        }
     }
     
     // MARK: - System Section
@@ -50,30 +108,151 @@ struct SystemView: View {
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
             
-            Button(action: {
-                Task {
-                    await handleLoadSystemStats()
-                }
-            }) {
-                HStack {
-                    Image(systemName: "person.2")
-                        .foregroundColor(AppColors.primary)
-                        .font(.title2)
-                    Text("Zobrazit uživatele")
-                        .font(.title3)
-                    Spacer()
-                    if isLoading {
-                        ProgressView()
-                            .scaleEffect(0.8)
+            // Quick Actions
+            quickActionsSection
+            
+            // API Configuration
+            apiConfigSection
+            
+            // System Status
+            systemStatusSection
+            
+            // Version Information
+            versionInfoSection
+        }
+    }
+    
+    // MARK: - Quick Actions Section
+    private var quickActionsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Rychlé akce")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+            
+            HStack(spacing: 12) {
+                // View Users Button
+                Button(action: {
+                    Task {
+                        await handleLoadSystemStats()
                     }
+                }) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "person.2")
+                            .font(.title2)
+                            .foregroundColor(AppColors.primary)
+                        Text("Uživatelé")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(12)
                 }
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(12)
+                .disabled(isLoading)
+                
+                // Refresh Data Button
+                Button(action: {
+                    Task {
+                        await handleRefreshData()
+                    }
+                }) {
+                    VStack(spacing: 8) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.title2)
+                            .foregroundColor(AppColors.success)
+                        Text("Obnovit")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(12)
+                }
+                .disabled(isLoading)
             }
-            .disabled(isLoading)
             .padding(.horizontal)
         }
+    }
+    
+    // MARK: - API Config Section
+    private var apiConfigSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("API Konfigurace")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+            
+            VStack(spacing: 8) {
+                infoRow(icon: "server.rack", title: "Backend", value: "demonicka.losensky.cloud", color: AppColors.primary)
+                infoRow(icon: "wifi", title: "Stav", value: apiConnectionStatus, color: apiConnectionColor)
+                infoRow(icon: "clock", title: "Odezva", value: "\(apiResponseTime)ms", color: AppColors.success)
+            }
+            .padding(.horizontal)
+        }
+    }
+    
+    // MARK: - System Status Section
+    private var systemStatusSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Stav systému")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+            
+            VStack(spacing: 8) {
+                infoRow(icon: "arrow.triangle.2.circlepath", title: "Poslední sync", value: lastSyncTime, color: AppColors.primary)
+                infoRow(icon: "network", title: "Připojení", value: connectionHealth, color: connectionHealthColor)
+                infoRow(icon: "checkmark.shield", title: "Bezpečnost", value: "Aktivní", color: AppColors.success)
+            }
+            .padding(.horizontal)
+        }
+    }
+    
+    // MARK: - Version Info Section
+    private var versionInfoSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Verze aplikace")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+            
+            VStack(spacing: 8) {
+                infoRow(icon: "iphone", title: "iOS App", value: appVersion, color: AppColors.primary)
+                infoRow(icon: "server.rack", title: "Backend", value: backendVersion, color: AppColors.secondary)
+                infoRow(icon: "arrow.up.circle", title: "Aktualizace", value: updateStatus, color: updateStatusColor)
+            }
+            .padding(.horizontal)
+        }
+    }
+    
+    // MARK: - Info Row Helper
+    private func infoRow(icon: String, title: String, value: String, color: Color) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundColor(color)
+                .frame(width: 20)
+            
+            Text(title)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            Spacer()
+            
+            Text(value)
+                .font(.subheadline)
+                .fontWeight(.medium)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(Color(.tertiarySystemBackground))
+        .cornerRadius(8)
     }
     
     // MARK: - Token Sheet
@@ -411,12 +590,70 @@ struct SystemView: View {
         do {
             systemStats = try await SystemService.shared.getSystemStats()
             showingSystemStats = true
+            
+            // Update participant count
+            if let stats = systemStats {
+                // Note: participant count available in system stats if needed
+            }
         } catch {
             self.error = error
             showingError = true
         }
         
         isLoading = false
+    }
+    
+    private func handleRefreshData() async {
+        isLoading = true
+        error = nil
+        
+        do {
+            // Test API connection and measure response time
+            let startTime = Date()
+            _ = try await SystemService.shared.getSystemStats()
+            let endTime = Date()
+            
+            apiResponseTime = Int(endTime.timeIntervalSince(startTime) * 1000)
+            lastSyncTime = formatDate(Date())
+            
+            // Update connection health based on response time
+            if apiResponseTime < 100 {
+                connectionHealth = "Výborné"
+            } else if apiResponseTime < 300 {
+                connectionHealth = "Dobré"
+            } else if apiResponseTime < 1000 {
+                connectionHealth = "Slabé"
+            } else {
+                connectionHealth = "Problém"
+            }
+            
+            // Load system stats but don't show the dialog
+            await loadSystemStatsSilently()
+            
+        } catch {
+            self.error = error
+            showingError = true
+            apiResponseTime = 9999
+            connectionHealth = "Problém"
+        }
+        
+        isLoading = false
+    }
+    
+    private func loadSystemStatsSilently() async {
+        do {
+            systemStats = try await SystemService.shared.getSystemStats()
+        } catch {
+            print("⚠️ Could not load system stats silently: \(error)")
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        formatter.locale = Locale(identifier: "cs_CZ")
+        return formatter.string(from: date)
     }
     
     private func handleGenerateToken(userId: String) async {

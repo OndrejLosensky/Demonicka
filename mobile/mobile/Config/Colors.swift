@@ -8,6 +8,7 @@ extension Color {
     
     // Secondary colors
     static let appSecondary = Color(red: 0.6, green: 0.6, blue: 0.6) // #999999
+    static let secondary = Color(red: 0.6, green: 0.6, blue: 0.6) // #999999
     
     // Status colors
     static let appSuccess = Color(red: 0.18, green: 0.49, blue: 0.20) // #2e7d32

@@ -34,6 +34,7 @@ enum HTTPMethod: String {
     case post = "POST"
     case delete = "DELETE"
     case put = "PUT"
+    case patch = "PATCH"
 }
 
 class APIClient {

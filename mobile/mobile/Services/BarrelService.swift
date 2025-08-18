@@ -42,6 +42,6 @@ class BarrelService {
     }
     
     func activateBarrel(id: String) async throws {
-        try await apiClient.requestWithoutResponse("barrels/\(id)/activate", method: .put)
+        try await apiClient.requestWithoutResponse("barrels/\(id)/activate", method: .patch)
     }
 } 
