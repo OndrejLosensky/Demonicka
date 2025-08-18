@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct mobileApp: App {
     @StateObject private var splashCoordinator = SplashCoordinator()
+    @StateObject private var webSocketService = WebSocketService.shared
     
     var body: some Scene {
         WindowGroup {
@@ -30,6 +31,14 @@ struct mobileApp: App {
             .animation(.easeInOut(duration: 0.3), value: splashCoordinator.isShowingSplash)
             .onAppear {
                 splashCoordinator.startSplash()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .leaderboardUpdated)) { _ in
+                // Handle leaderboard updates
+                print("📊 Leaderboard updated via WebSocket")
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .dashboardUpdated)) { _ in
+                // Handle dashboard updates
+                print("📈 Dashboard updated via WebSocket")
             }
         }
     }

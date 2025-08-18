@@ -5,6 +5,7 @@ import { Barrel } from './entities/barrel.entity';
 import { CreateBarrelDto } from './dto/create-barrel.dto';
 import { UpdateBarrelDto } from './dto/update-barrel.dto';
 import { LoggingService } from '../logging/logging.service';
+import { LeaderboardGateway } from '../leaderboard/leaderboard.gateway';
 
 @Injectable()
 export class BarrelsService {
@@ -12,6 +13,7 @@ export class BarrelsService {
     @InjectRepository(Barrel)
     private barrelsRepository: Repository<Barrel>,
     private loggingService: LoggingService,
+    private readonly leaderboardGateway: LeaderboardGateway,
   ) {}
 
   async findAll(withDeleted = false): Promise<Barrel[]> {
@@ -57,6 +59,10 @@ export class BarrelsService {
       });
       const savedBarrel = await this.barrelsRepository.save(barrel);
       this.loggingService.logBarrelCreated(savedBarrel.id, savedBarrel.size);
+      
+      // Emit live updates for dashboard
+      await this.leaderboardGateway.emitDashboardUpdate();
+      
       return savedBarrel;
     } catch (error: unknown) {
       this.loggingService.error('Failed to create barrel', {
@@ -73,6 +79,10 @@ export class BarrelsService {
       Object.assign(barrel, updateBarrelDto);
       const savedBarrel = await this.barrelsRepository.save(barrel);
       this.loggingService.logBarrelUpdated(id, updateBarrelDto);
+      
+      // Emit live updates for dashboard
+      await this.leaderboardGateway.emitDashboardUpdate();
+      
       return savedBarrel;
     } catch (error: unknown) {
       this.loggingService.error('Failed to update barrel', {
@@ -103,6 +113,10 @@ export class BarrelsService {
       barrel.isActive = true;
       const savedBarrel = await this.barrelsRepository.save(barrel);
       this.loggingService.logBarrelStatusChanged(id, true);
+      
+      // Emit live updates for dashboard
+      await this.leaderboardGateway.emitDashboardUpdate();
+      
       return savedBarrel;
     } catch (error: unknown) {
       this.loggingService.error('Failed to set barrel active status', {

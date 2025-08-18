@@ -15,6 +15,7 @@ import { CompleteRegistrationDto } from './dto/complete-registration.dto';
 import { UserRole } from './enums/user-role.enum';
 import { subDays } from 'date-fns';
 import { LoggingService } from '../logging/logging.service';
+import { LeaderboardGateway } from '../leaderboard/leaderboard.gateway';
 
 /**
  * Users Service
@@ -32,6 +33,7 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private readonly loggingService: LoggingService,
+    private readonly leaderboardGateway: LeaderboardGateway,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserWithoutPassword> {
@@ -57,6 +59,10 @@ export class UsersService {
       savedUser.name || 'Unknown',
       savedUser.gender || 'Unknown',
     );
+
+    // Emit live updates for leaderboard and dashboard
+    await this.leaderboardGateway.emitLeaderboardUpdate();
+    await this.leaderboardGateway.emitDashboardUpdate();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;
@@ -84,6 +90,10 @@ export class UsersService {
       savedUser.name || 'Unknown',
       savedUser.gender || 'Unknown',
     );
+
+    // Emit live updates for leaderboard and dashboard
+    await this.leaderboardGateway.emitLeaderboardUpdate();
+    await this.leaderboardGateway.emitDashboardUpdate();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;

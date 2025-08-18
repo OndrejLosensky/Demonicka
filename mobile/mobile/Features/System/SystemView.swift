@@ -125,56 +125,50 @@ struct SystemView: View {
     // MARK: - Quick Actions Section
     private var quickActionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Rychlé akce")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundColor(.secondary)
-                .padding(.horizontal)
+            sectionHeader(title: "Rychlé akce", icon: "bolt.fill")
             
-            HStack(spacing: 12) {
-                // View Users Button
+            VStack(spacing: 8) {
                 Button(action: {
-                    Task {
-                        await handleLoadSystemStats()
-                    }
+                    showingSystemStats = true
                 }) {
-                    VStack(spacing: 8) {
-                        Image(systemName: "person.2")
-                            .font(.title2)
+                    HStack {
+                        Image(systemName: "person.2.fill")
                             .foregroundColor(AppColors.primary)
-                        Text("Uživatelé")
+                        Text("Zobrazit uživatele")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.secondary)
                             .font(.caption)
-                            .fontWeight(.medium)
                     }
-                    .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color(.secondarySystemBackground))
-                    .cornerRadius(12)
+                    .cornerRadius(10)
                 }
-                .disabled(isLoading)
+                .buttonStyle(PlainButtonStyle())
                 
-                // Refresh Data Button
                 Button(action: {
-                    Task {
-                        await handleRefreshData()
+                    if WebSocketService.shared.connectionStatus == .connected {
+                        WebSocketService.shared.disconnect()
+                    } else {
+                        WebSocketService.shared.connect()
                     }
                 }) {
-                    VStack(spacing: 8) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.title2)
-                            .foregroundColor(AppColors.success)
-                        Text("Obnovit")
-                            .font(.caption)
-                            .fontWeight(.medium)
+                    HStack {
+                        Image(systemName: WebSocketService.shared.connectionStatus == .connected ? "wifi.slash" : "wifi")
+                            .foregroundColor(WebSocketService.shared.connectionStatus == .connected ? AppColors.error : AppColors.success)
+                        Text(WebSocketService.shared.connectionStatus == .connected ? "Odpojit WebSocket" : "Připojit WebSocket")
+                        Spacer()
+                        if WebSocketService.shared.connectionStatus == .connecting {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        }
                     }
-                    .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color(.secondarySystemBackground))
-                    .cornerRadius(12)
+                    .cornerRadius(10)
                 }
-                .disabled(isLoading)
+                .buttonStyle(PlainButtonStyle())
             }
-            .padding(.horizontal)
         }
     }
     
@@ -183,7 +177,6 @@ struct SystemView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("API Konfigurace")
                 .font(.subheadline)
-                .fontWeight(.semibold)
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
             
@@ -199,18 +192,31 @@ struct SystemView: View {
     // MARK: - System Status Section
     private var systemStatusSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Stav systému")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundColor(.secondary)
-                .padding(.horizontal)
+            sectionHeader(title: "Stav připojení", icon: "wifi")
             
             VStack(spacing: 8) {
-                infoRow(icon: "arrow.triangle.2.circlepath", title: "Poslední sync", value: lastSyncTime, color: AppColors.primary)
-                infoRow(icon: "network", title: "Připojení", value: connectionHealth, color: connectionHealthColor)
-                infoRow(icon: "checkmark.shield", title: "Bezpečnost", value: "Aktivní", color: AppColors.success)
+                infoRow(
+                    icon: "wifi",
+                    title: "WebSocket",
+                    value: WebSocketService.shared.connectionStatus == .connected ? "Připojeno" : "Odpojeno",
+                    color: WebSocketService.shared.connectionStatus == .connected ? AppColors.success : AppColors.error
+                )
+                
+                infoRow(
+                    icon: "clock",
+                    title: "Poslední synchronizace",
+                    value: lastSyncTime ?? "Nikdy",
+                    color: .secondary
+                )
+                
+                infoRow(
+                    icon: "speedometer",
+                    title: "Odezva API",
+                    value: "\(apiResponseTime)ms",
+                    color: connectionHealth == "Výborné" || connectionHealth == "Dobré" ? AppColors.success : 
+                           connectionHealth == "Slabé" ? AppColors.warning : AppColors.error
+                )
             }
-            .padding(.horizontal)
         }
     }
     
@@ -219,7 +225,6 @@ struct SystemView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Verze aplikace")
                 .font(.subheadline)
-                .fontWeight(.semibold)
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
             
@@ -247,12 +252,25 @@ struct SystemView: View {
             
             Text(value)
                 .font(.subheadline)
-                .fontWeight(.medium)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
         .background(Color(.tertiarySystemBackground))
         .cornerRadius(8)
+    }
+    
+    // MARK: - Section Header Helper
+    private func sectionHeader(title: String, icon: String) -> some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(AppColors.primary)
+                .imageScale(.medium)
+            Text(title)
+                .font(.title2)
+                .fontWeight(.bold)
+            Spacer()
+        }
+        .padding(.horizontal)
     }
     
     // MARK: - Token Sheet

@@ -4,24 +4,61 @@ struct DashboardView: View {
     @State private var dashboardData: DashboardData?
     @State private var isLoading = false
     @State private var error: Error?
+    @State private var showingError = false
     
     var body: some View {
         NavigationView {
             Group {
-                if isLoading {
-                    loadingView
-                } else if let error = error {
-                    errorView(error: error)
+                if isLoading && dashboardData == nil {
+                    ProgressView("Načítám dashboard...")
                 } else if let data = dashboardData {
                     dashboardContent(data: data)
                 } else {
-                    Text("No data available")
+                    VStack {
+                        Image(systemName: "chart.bar.fill")
+                            .font(.system(size: 50))
+                            .foregroundColor(.gray)
+                            .padding()
+                        Text("Žádná data")
+                            .font(.title2)
+                            .foregroundColor(.primary)
+                        Text("Nepodařilo se načíst data")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(UIColor.systemBackground))
                 }
             }
-            .navigationTitle("Přehled")
+            .navigationTitle("Dashboard")
+            .refreshable {
+                await loadDashboardData()
+            }
+            .alert("Error", isPresented: $showingError) {
+                Button("OK", role: .cancel) {}
+                Button("Opakovat") {
+                    Task {
+                        await loadDashboardData()
+                    }
+                }
+            } message: {
+                if let apiError = error as? APIError {
+                    Text(apiError.description)
+                } else {
+                    Text(error?.localizedDescription ?? "An unknown error occurred")
+                }
+            }
         }
         .navigationViewStyle(StackNavigationViewStyle()) // Force stack navigation style
         .onAppear {
+            Task {
+                await loadDashboardData()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .dashboardUpdated)) { _ in
+            // Automatically refresh dashboard when WebSocket update is received
             Task {
                 await loadDashboardData()
             }

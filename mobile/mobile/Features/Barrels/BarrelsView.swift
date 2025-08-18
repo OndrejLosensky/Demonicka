@@ -185,6 +185,12 @@ struct BarrelsView: View {
                 await loadBarrels()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .dashboardUpdated)) { _ in
+            // Automatically refresh barrels when WebSocket update is received
+            Task {
+                await loadBarrels()
+            }
+        }
     }
     
     private func loadBarrels() async {
@@ -203,11 +209,16 @@ struct BarrelsView: View {
             }
         } catch {
             print("❌ Error loading barrels: \(error)")
-            if let apiError = error as? APIError {
-                print("📝 API Error details: \(apiError.description)")
+            // Ignore benign cancellations (-999) that can happen during refresh
+            if let urlError = (error as NSError?) as NSError?, urlError.domain == NSURLErrorDomain && urlError.code == NSURLErrorCancelled {
+                print("ℹ️ Request was cancelled, ignoring")
+            } else {
+                if let apiError = error as? APIError {
+                    print("📝 API Error details: \(apiError.description)")
+                }
+                self.error = error
+                showingError = true
             }
-            self.error = error
-            showingError = true
         }
         
         isLoading = false

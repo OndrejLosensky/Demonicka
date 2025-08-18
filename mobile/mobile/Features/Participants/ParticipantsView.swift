@@ -108,6 +108,12 @@ struct ParticipantsView: View {
                 await loadParticipants()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .leaderboardUpdated)) { _ in
+            // Automatically refresh participants when WebSocket update is received
+            Task {
+                await loadParticipants()
+            }
+        }
     }
     
     // MARK: - Helper Functions
@@ -173,8 +179,13 @@ struct ParticipantsView: View {
         do {
             participants = try await ParticipantService.shared.fetchParticipants()
         } catch {
-            self.error = error
-            showingError = true
+            // Ignore benign cancellations (-999) that can happen during refresh
+            if let urlError = (error as NSError?) as NSError?, urlError.domain == NSURLErrorDomain && urlError.code == NSURLErrorCancelled {
+                print("ℹ️ Request was cancelled, ignoring")
+            } else {
+                self.error = error
+                showingError = true
+            }
         }
         
         isLoading = false
