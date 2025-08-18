@@ -15,7 +15,6 @@ import {
   Typography,
   Chip,
   Divider,
-  Badge,
 } from '@mui/material';
 import {
   Logout as LogoutIcon,
@@ -24,7 +23,6 @@ import {
   History as HistoryIcon,
   AccessTime as AccessTimeIcon,
   Event as EventIcon,
-  Notifications as NotificationsIcon,
 } from '@mui/icons-material';
 import { FaBook } from 'react-icons/fa';
 import { format } from 'date-fns';
