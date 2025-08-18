@@ -1,10 +1,16 @@
 import { io, Socket } from 'socket.io-client';
 import { config } from '../config/index';
 import type { LeaderboardData } from '../pages/Leaderboard/types';
+import type { DashboardStats } from '../types/dashboard';
+import type { PublicStats } from '../types/public';
 
 type WebSocketEvents = {
   'leaderboard:update': LeaderboardData;
   'dashboard:update': void;
+  'dashboard:stats:update': {
+    dashboard: DashboardStats;
+    public: PublicStats;
+  };
   'event:join': { eventId: string };
   'event:leave': { eventId: string };
 };
@@ -43,6 +49,21 @@ class WebSocketService {
     this.socket.on('dashboard:update', () => {
       this.notifyEventListeners('dashboard:update', undefined as unknown as void);
     });
+
+    // Listen for dashboard stats updates (new real-time data)
+    this.socket.on('dashboard:stats:update', (data: WebSocketEvents['dashboard:stats:update']) => {
+      console.log('WebSocket: dashboard:stats:update received:', data);
+      this.notifyEventListeners('dashboard:stats:update', data);
+    });
+
+    // Legacy event names for backward compatibility
+    this.socket.on('leaderboardUpdate', (data: WebSocketEvents['leaderboard:update']) => {
+      this.notifyEventListeners('leaderboard:update', data);
+    });
+
+    this.socket.on('dashboardStatsUpdate', (data: WebSocketEvents['dashboard:stats:update']) => {
+      this.notifyEventListeners('dashboard:stats:update', data);
+    });
   }
 
   disconnect() {
@@ -73,7 +94,10 @@ class WebSocketService {
     eventName: T,
     data: WebSocketEvents[T]
   ) {
-    this.eventHandlers.get(eventName)?.forEach(callback => {
+    const handlers = this.eventHandlers.get(eventName);
+    console.log(`WebSocket: Notifying ${handlers?.size || 0} listeners for ${eventName}:`, data);
+    
+    handlers?.forEach(callback => {
       try {
         callback(data);
       } catch (error) {

@@ -81,9 +81,8 @@ export class EventBeersService {
     // Log beer addition
     this.loggingService.logBeerAdded(userId, barrelId);
 
-    // Emit live updates for leaderboard and dashboard
-    await this.leaderboardGateway.emitLeaderboardUpdate(eventId);
-    await this.leaderboardGateway.emitDashboardUpdate(eventId);
+    // Emit live updates for leaderboard and dashboard stats
+    await this.leaderboardGateway.emitFullUpdate(eventId);
 
     return savedEventBeer;
   }
@@ -103,9 +102,8 @@ export class EventBeersService {
     // Log beer removal
     this.loggingService.logBeerRemoved(userId, lastBeer.barrelId);
 
-    // Emit live updates for leaderboard and dashboard
-    await this.leaderboardGateway.emitLeaderboardUpdate(eventId);
-    await this.leaderboardGateway.emitDashboardUpdate(eventId);
+    // Emit live updates for leaderboard and dashboard stats
+    await this.leaderboardGateway.emitFullUpdate(eventId);
   }
 
   async findByEventId(eventId: string): Promise<EventBeer[]> {

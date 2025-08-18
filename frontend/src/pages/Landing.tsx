@@ -9,9 +9,10 @@ import { BsArrowUpRight, BsLightning } from 'react-icons/bs';
 import { formatDistanceToNow } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
-import type { LeaderboardData } from '../types/leaderboard';
+import type { LeaderboardData } from '../pages/Leaderboard/types';
 import { dashboardService } from '../services/dashboardService';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { websocketService } from '../services/websocketService';
 
 const fadeInUp = {
   initial: { y: 20, opacity: 0 },
@@ -159,6 +160,61 @@ export default function Landing() {
 
     fetchLeaderboard();
   }, [activeEvent?.id, isActiveEventLoading]);
+
+  // Subscribe to real-time WebSocket updates
+  useEffect(() => {
+    if (!activeEvent?.id) return;
+
+    // Join the event room for real-time updates
+    websocketService.joinEvent(activeEvent.id);
+
+    // Subscribe to real-time updates
+    const onLeaderboardUpdate = (data: LeaderboardData) => {
+      setLeaderboard(data);
+    };
+
+    const onDashboardStatsUpdate = (data: { dashboard: unknown; public: PublicStats }) => {
+      console.log('Real-time dashboard stats update received on Landing:', data);
+      setStats(data.public);
+    };
+
+    websocketService.subscribe('leaderboard:update', onLeaderboardUpdate);
+    websocketService.subscribe('dashboard:stats:update', onDashboardStatsUpdate);
+
+    return () => {
+      websocketService.unsubscribe('leaderboard:update', onLeaderboardUpdate);
+      websocketService.unsubscribe('dashboard:stats:update', onDashboardStatsUpdate);
+      websocketService.leaveEvent(activeEvent.id);
+    };
+  }, [activeEvent?.id]);
+
+  // Fallback refresh every 5 minutes in case WebSocket fails
+  useEffect(() => {
+    if (!activeEvent?.id) return;
+
+    console.log('Landing: Setting up 5-minute fallback refresh interval');
+    const interval = setInterval(async () => {
+      console.log('Landing: 5-minute fallback refresh triggered');
+      
+      try {
+        // Refresh both stats and leaderboard
+        const [statsData, leaderboardData] = await Promise.all([
+          landingApi.getStats(activeEvent.id),
+          dashboardService.getLeaderboard(activeEvent.id)
+        ]);
+        
+        setStats(statsData);
+        setLeaderboard(leaderboardData);
+      } catch (error) {
+        console.error('Landing: Fallback refresh failed:', error);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => {
+      console.log('Landing: Clearing 5-minute fallback refresh interval');
+      clearInterval(interval);
+    };
+  }, [activeEvent?.id]);
 
 
   return (

@@ -1,12 +1,9 @@
 import { Typography, Grid, Box, IconButton, Tooltip } from '@mui/material';
 import { FaBeer } from 'react-icons/fa';
 import { Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon, Speed as SpeedIcon } from '@mui/icons-material';
-import { useState, useEffect } from 'react';
 import { LeaderboardTable } from './LeaderboardTable';
 import { useLeaderboard } from './useLeaderboard';
 import { MetricCard } from '../../components/ui/MetricCard';
-import { dashboardService } from '../../services/dashboardService';
-import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import translations from '../../locales/cs/dashboard.leaderboard.json';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
 import { usePageTitle } from '../../hooks/usePageTitle';
@@ -15,42 +12,16 @@ import { useHeaderVisibility } from '../../contexts/HeaderVisibilityContext';
 
 const LeaderboardComponent: React.FC = () => {
   usePageTitle('Žebříček');
-  const { stats, isLoading } = useLeaderboard();
-  const { activeEvent } = useActiveEvent();
+  const { stats, dashboardStats, publicStats, isLoading } = useLeaderboard();
   const { isHeaderVisible, toggleHeader } = useHeaderVisibility();
-  const [metricStats, setMetricStats] = useState({
-    totalBeers: 0,
-    averagePerHour: 0,
-    totalBarrels: 0,
-    averagePerPerson: 0,
-  });
-
-  // Load metric data when component mounts
-  useEffect(() => {
-    const loadMetricStats = async () => {
-      if (activeEvent?.id) {
-        try {
-          const dashboardData = await dashboardService.getDashboardStats(activeEvent.id);
-          const hourlyData = await dashboardService.getHourlyStats(activeEvent.id);
-          
-          // Calculate average per hour (active hours only)
-          const activeHours = hourlyData.filter(h => h.count > 0).length || 1;
-          const averagePerHour = hourlyData.reduce((sum, h) => sum + h.count, 0) / activeHours;
-          
-          setMetricStats({
-            totalBeers: dashboardData.totalBeers,
-            averagePerHour: averagePerHour,
-            totalBarrels: dashboardData.totalBarrels,
-            averagePerPerson: dashboardData.totalUsers > 0 ? dashboardData.totalBeers / dashboardData.totalUsers : 0,
-          });
-        } catch (error) {
-          console.error('Failed to load metric stats:', error);
-        }
-      }
-    };
-
-    loadMetricStats();
-  }, [activeEvent?.id]);
+  
+  // Use real-time stats from WebSocket, fallback to calculated values
+  const metricStats = {
+    totalBeers: publicStats?.totalBeers || 0,
+    averagePerHour: dashboardStats?.averageBeersPerUser || 0, // This will be updated via WebSocket
+    totalBarrels: publicStats?.totalBarrels || 0,
+    averagePerPerson: (publicStats?.totalUsers && publicStats?.totalBeers) ? publicStats.totalBeers / publicStats.totalUsers : 0,
+  };
 
   if (isLoading) {
     return null; // withPageLoader will handle loading state

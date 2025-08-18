@@ -60,9 +60,8 @@ export class UsersService {
       savedUser.gender || 'Unknown',
     );
 
-    // Emit live updates for leaderboard and dashboard
-    await this.leaderboardGateway.emitLeaderboardUpdate();
-    await this.leaderboardGateway.emitDashboardUpdate();
+    // Emit live updates for leaderboard and dashboard stats
+    await this.leaderboardGateway.emitFullUpdate();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;
@@ -91,9 +90,8 @@ export class UsersService {
       savedUser.gender || 'Unknown',
     );
 
-    // Emit live updates for leaderboard and dashboard
-    await this.leaderboardGateway.emitLeaderboardUpdate();
-    await this.leaderboardGateway.emitDashboardUpdate();
+    // Emit live updates for leaderboard and dashboard stats
+    await this.leaderboardGateway.emitFullUpdate();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;
