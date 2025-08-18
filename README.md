@@ -7,6 +7,8 @@
 
 <!-- Add your badges here -->
 [![wakatime](https://wakatime.com/badge/user/018dd279-af88-40d4-86db-db3b3100ed1e/project/721ad3f8-d413-4a1a-b09b-010a5b6f036d.svg)](https://wakatime.com/badge/user/018dd279-af88-40d4-86db-db3b3100ed1e/project/721ad3f8-d413-4a1a-b09b-010a5b6f036d)
+[![Version](https://img.shields.io/badge/version-2.0-blue.svg)](https://github.com/OndrejLosensky/Demonicka/releases)
+[![Code Quality](https://img.shields.io/badge/code%20quality-A-green.svg)](https://github.com/OndrejLosensky/Demonicka)
 
 A modern, full-stack beer management system for tracking consumption, managing participants, and monitoring inventory at the annual Démonická gathering.
 

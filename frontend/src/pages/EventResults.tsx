@@ -165,7 +165,7 @@ export const EventResults: React.FC = () => {
                                         sx={{ 
                                             fontSize: '1.1rem',
                                             mb: 0.5,
-                                            color: index < 3 ? 'text.primary' : 'text.primary',
+                                            color: 'text.primary',
                                         }}
                                     >
                                         {user.username}
