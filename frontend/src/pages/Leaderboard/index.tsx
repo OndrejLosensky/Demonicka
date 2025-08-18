@@ -66,7 +66,31 @@ const LeaderboardComponent: React.FC = () => {
 
   return (
     <Box p={3} sx={{ pt: isHeaderVisible ? 3 : 0.5 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={isHeaderVisible ? 3 : 1.5}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={isHeaderVisible ? 3 : 1.5} sx={{ position: 'relative' }}>
+        {/* Logo - only shown when header is hidden, positioned absolutely above the title */}
+        {!isHeaderVisible && (
+          <Box 
+            sx={{
+              position: 'absolute',
+              top: '-130px',
+              left: 0,
+              zIndex: 1,
+              animation: 'fadeIn 0.5s ease-in-out'
+            }}
+          >
+            <img
+              src="/logo.svg"
+              alt="Démonická"
+              style={{
+                width: '180px',
+                height: '180px',
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 0 15px rgba(255,59,48,0.15))'
+              }}
+            />
+          </Box>
+        )}
+        
         <PageHeader title={translations.title} />
         <Tooltip title={isHeaderVisible ? "Skrýt hlavičku" : "Zobrazit hlavičku"} arrow>
           <IconButton
