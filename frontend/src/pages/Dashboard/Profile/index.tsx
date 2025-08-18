@@ -1,4 +1,4 @@
-import React from 'react';
+// React import not needed in modern React with JSX transform
 import { Box, Paper, Typography, List, ListItem, ListItemText, ListItemIcon, Chip, Avatar } from '@mui/material';
 import { useAuth } from '../../../contexts/AuthContext';
 import { PageHeader } from '../../../components/ui/PageHeader';

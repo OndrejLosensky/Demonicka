@@ -58,10 +58,12 @@ export function createAppTheme(mode: PaletteMode) {
         },
       },
       MuiPaper: {
+        defaultProps: { elevation: 0 },
         styleOverrides: {
           root: {
             borderRadius: 16,
             border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+            backgroundImage: 'none',
           },
         },
       },
@@ -120,14 +122,6 @@ export function createAppTheme(mode: PaletteMode) {
         styleOverrides: {
           root: {
             backgroundColor: isDark ? '#141922' : '#f8f9fb',
-          },
-        },
-      },
-      MuiPaper: {
-        defaultProps: { elevation: 0 },
-        styleOverrides: {
-          root: {
-            backgroundImage: 'none',
           },
         },
       },
