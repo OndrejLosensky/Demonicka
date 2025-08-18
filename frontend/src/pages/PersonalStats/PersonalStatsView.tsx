@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { MetricCard } from '../../components/ui/MetricCard';
-import { useToast } from '../../hooks/useToast';
 import { personalStatsService } from '../../services/personalStatsService';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -29,26 +28,32 @@ export const PersonalStatsView: React.FC = () => {
   const [stats, setStats] = useState<PersonalStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const toast = useToast();
 
   const loadStats = useCallback(async () => {
+    console.log('loadStats called, userId:', userId);
     try {
       setIsLoading(true);
       setError(null);
+      console.log('Making API call to /dashboard/personal');
       const data = await personalStatsService.getPersonalStats();
+      console.log('API response:', data);
       setStats(data);
     } catch (error) {
       console.error('Failed to load personal stats:', error);
       setError('Failed to load personal statistics');
-      toast.error('Failed to load personal statistics');
+      // Don't call toast.error here to avoid infinite loops
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, []); // Remove isLoading dependency to prevent infinite loops
 
   useEffect(() => {
+    console.log('useEffect triggered, userId:', userId);
     if (userId) {
+      console.log('Calling loadStats with userId:', userId);
       loadStats();
+    } else {
+      console.log('No userId, not calling loadStats');
     }
   }, [userId, loadStats]);
 
