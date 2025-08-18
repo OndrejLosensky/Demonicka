@@ -90,6 +90,11 @@ export class EventsController {
 
   @Delete(':id/active')
   deactivate(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
+    return this.eventsService.deactivate(id);
+  }
+
+  @Put(':id/end')
+  endEvent(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
     return this.eventsService.endEvent(id);
   }
 

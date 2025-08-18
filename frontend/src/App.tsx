@@ -14,6 +14,7 @@ import Header from './components/Header';
 import ProfilePage from './pages/Profile/index';
 import { Events } from './pages/Events';
 import { EventDetail } from './pages/EventDetail';
+import { EventResults } from './pages/EventResults';
 import { Docs } from './pages/Docs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -110,6 +111,14 @@ function App() {
                         element={
                           <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
                             <EventDetail />
+                          </RoleRoute>
+                        }
+                      />
+                      <Route
+                        path="events/:id/results"
+                        element={
+                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                            <EventResults />
                           </RoleRoute>
                         }
                       />

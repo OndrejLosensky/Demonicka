@@ -178,6 +178,29 @@ export const EventDetail: React.FC = () => {
         }
     };
 
+    const handleEvaluateEvent = async () => {
+        if (!id || !event) return;
+        
+        try {
+            // End the event first
+            await eventService.endEvent(id);
+            
+            // Navigate to results page
+            navigate(`/events/${id}/results`);
+            
+            toast.success('Událost byla úspěšně ukončena a vyhodnocena');
+            
+            // Reload data
+            await Promise.all([
+                loadEventData(),
+                loadActiveEvent()
+            ]);
+        } catch (error) {
+            console.error('Failed to evaluate event:', error);
+            toast.error('Nepodařilo se vyhodnotit událost');
+        }
+    };
+
     if (!event) {
         return (
             <Container>
@@ -270,28 +293,56 @@ export const EventDetail: React.FC = () => {
                             </Box>
                         </Box>
 
-                        <Button
-                            variant="contained"
-                            startIcon={event.isActive ? undefined : <AddIcon />}
-                            onClick={event.isActive ? handleDeactivate : handleSetActive}
-                            sx={{
-                                bgcolor: 'background.paper',
-                                color: 'error.main',
-                                '&:hover': {
-                                    bgcolor: 'rgba(255, 255, 255, 0.9)',
-                                },
-                                px: 3,
-                                py: 1,
-                                borderRadius: 2,
-                                position: 'relative',
-                                zIndex: 2,
-                                minWidth: 'auto',
-                                boxShadow: 1,
-                                fontWeight: 500,
-                            }}
-                        >
-                            {event.isActive ? 'Deaktivovat událost' : 'Aktivovat událost'}
-                        </Button>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Button
+                                variant="contained"
+                                startIcon={event.isActive ? undefined : <AddIcon />}
+                                onClick={event.isActive ? handleDeactivate : handleSetActive}
+                                sx={{
+                                    bgcolor: 'background.paper',
+                                    color: 'error.main',
+                                    '&:hover': {
+                                        bgcolor: 'rgba(255, 255, 255, 0.9)',
+                                    },
+                                    px: 3,
+                                    py: 1,
+                                    borderRadius: 2,
+                                    position: 'relative',
+                                    zIndex: 2,
+                                    minWidth: 'auto',
+                                    boxShadow: 1,
+                                    fontWeight: 500,
+                                }}
+                            >
+                                {event.isActive ? 'Deaktivovat událost' : 'Aktivovat událost'}
+                            </Button>
+                            
+                            {event.isActive && (
+                                <Button
+                                    variant="contained"
+                                    startIcon={<TrendingUpIcon />}
+                                    onClick={handleEvaluateEvent}
+                                    sx={{
+                                        bgcolor: 'success.main',
+                                        color: 'white',
+                                        '&:hover': {
+                                            bgcolor: 'success.dark',
+                                        },
+                                        px: 3,
+                                        py: 1,
+                                        borderRadius: 2,
+                                        position: 'relative',
+                                        zIndex: 2,
+                                        minWidth: 'auto',
+                                        boxShadow: 1,
+                                        fontWeight: 500,
+                                        ml: 2,
+                                    }}
+                                >
+                                    Vyhodnotit událost
+                                </Button>
+                            )}
+                        </Box>
                     </Box>
                 </Box>
 
@@ -517,7 +568,7 @@ export const EventDetail: React.FC = () => {
                 <DialogActions>
                     <Button onClick={() => setOpenUser(false)}>Zrušit</Button>
                     <Button 
-                        variant="contained" 
+                        variant="contained"
                         color="error"
                         onClick={handleAddUser}
                         disabled={!selectedUser}

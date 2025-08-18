@@ -87,6 +87,12 @@ export class EventsService {
         return this.eventRepository.save(event);
     }
 
+    async deactivate(id: string): Promise<Event> {
+        const event = await this.findOne(id);
+        event.isActive = false;
+        return this.eventRepository.save(event);
+    }
+
     async getActiveEvent(): Promise<Event | null> {
         return this.eventRepository.findOne({
             where: { isActive: true },

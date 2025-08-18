@@ -45,6 +45,11 @@ export const eventService = {
         return response.data;
     },
 
+    async endEvent(id: string): Promise<Event> {
+        const response = await api.put(`/events/${id}/end`);
+        return response.data;
+    },
+
     async addUser(id: string, userId: string): Promise<Event> {
         const response = await api.put(`/events/${id}/users/${userId}`);
         return response.data;
