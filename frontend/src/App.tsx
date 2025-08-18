@@ -20,6 +20,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ActiveEventProvider } from './contexts/ActiveEventContext';
 import { AppThemeProvider } from './contexts/ThemeContext';
 import { SelectedEventProvider } from './contexts/SelectedEventContext';
+import { HeaderVisibilityProvider } from './contexts/HeaderVisibilityContext';
 import { CompleteRegistration } from './pages/CompleteRegistration';
 import { EnterToken } from './pages/Auth/EnterToken';
 import { USER_ROLE } from './types/user';
@@ -52,6 +53,7 @@ function App() {
             <AuthProvider>
               <ActiveEventProvider>
                 <SelectedEventProvider>
+                  <HeaderVisibilityProvider>
                   <Routes>
                     <Route path="/" element={<Header />}>
                       <Route index element={<Landing />} />
@@ -184,11 +186,12 @@ function App() {
                     />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
-                </SelectedEventProvider>
-              </ActiveEventProvider>
-            </AuthProvider>
-          </LocalizationProvider>
-        </AppThemeProvider>
+                </HeaderVisibilityProvider>
+              </SelectedEventProvider>
+            </ActiveEventProvider>
+          </AuthProvider>
+        </LocalizationProvider>
+      </AppThemeProvider>
       </QueryClientProvider>
     </Router>
   );

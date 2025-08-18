@@ -31,6 +31,7 @@ import { format } from 'date-fns';
 import translations from '../locales/cs/common.header.json';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
 import { useAppTheme } from '../contexts/ThemeContext';
+import { useHeaderVisibility } from '../contexts/HeaderVisibilityContext';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 
@@ -43,6 +44,7 @@ export default function Header() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { activeEvent } = useActiveEvent();
   const { mode, toggleMode } = useAppTheme();
+  const { isHeaderVisible } = useHeaderVisibility();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -90,15 +92,16 @@ export default function Header() {
   return (
     <div>
       <div className={`min-h-screen ${isLandingPage ? '' : 'bg-background-secondary'}`}>
-        <motion.nav
-          initial={{ y: -100 }}
-          animate={{ y: 0 }}
-          className={`fixed w-full z-50 transition-all duration-300 ${
-            isScrolled || !isLandingPage
-              ? 'bg-background-primary/95 backdrop-blur-sm shadow-lg border-b border-border-secondary/30'
-              : 'bg-background-primary/80 backdrop-blur-md shadow-md border-b border-border-secondary/20'
-          }`}
-        >
+        {isHeaderVisible && (
+          <motion.nav
+            initial={{ y: -100 }}
+            animate={{ y: 0 }}
+            className={`fixed w-full z-50 transition-all duration-300 ${
+              isScrolled || !isLandingPage
+                ? 'bg-background-primary/95 backdrop-blur-sm shadow-lg border-b border-border-secondary/30'
+                : 'bg-background-primary/80 backdrop-blur-md shadow-md border-b border-border-secondary/20'
+            }`}
+          >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex">
@@ -278,7 +281,7 @@ export default function Header() {
                       </motion.div>
                     )}
                     
-                    {/* Notification Bell */}
+                    {/* Notification Bell - Temporarily hidden
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -303,6 +306,7 @@ export default function Header() {
                         </IconButton>
                       </Tooltip>
                     </motion.div>
+                    */}
 
                     {/* User Profile */}
                     <motion.div
@@ -480,6 +484,7 @@ export default function Header() {
             </div>
           </div>
         </motion.nav>
+        )}
         <main className={`${isLandingPage ? '' : 'max-w-7xl mx-auto py-6 pt-20'}`}>
           <Outlet />
         </main>

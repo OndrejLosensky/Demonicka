@@ -204,7 +204,7 @@ export const Dashboard: React.FC = () => {
                     <MetricCard title={translations.stats.totalBeers} value={stats.totalBeers} icon={<BeerIcon />} color="primary" />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                    <MetricCard title={translations.stats.averagePerHour} value={stats.averageBeersPerHour.toFixed(1)} subtitle="Průměr za vybraný den (jen aktivní hodiny)" icon={<SpeedIcon />} color="error" />
+                    <MetricCard title={translations.stats.averagePerHour} value={stats.averageBeersPerHour.toFixed(1)} icon={<SpeedIcon />} color="error" />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                     <MetricCard
