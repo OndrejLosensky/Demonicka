@@ -278,83 +278,80 @@ export class DashboardService {
   }
 
   async getLeaderboard(eventId?: string): Promise<LeaderboardDto> {
-    let event: Event | null = null;
+    // Always require an eventId - no more global fallback
+    if (!eventId) {
+      throw new Error('Event ID is required for leaderboard');
+    }
+
+    this.logger.log(`Loading leaderboard for event: ${eventId}`);
+
+    const event = await this.eventRepository.findOne({
+      where: { id: eventId },
+      relations: ['users'],
+    });
     
-    if (eventId) {
-      event = await this.eventRepository.findOne({
-        where: { id: eventId },
-        relations: ['users'],
-      });
-      
-      if (!event) {
-        throw new Error('Event not found');
-      }
+    if (!event) {
+      throw new Error('Event not found');
     }
 
-    if (event) {
-      // Event-specific leaderboard
-      const eventUserIds = event.users.map((u) => u.id);
-      
-      const users = eventUserIds.length > 0
-        ? await this.userRepository
-            .createQueryBuilder('user')
-            .leftJoin('user.eventBeers', 'event_beer', 'event_beer.eventId = :eventId', { eventId: event.id })
-            .select([
-              'user.id as id',
-              'user.username as username',
-              'user.gender as gender',
-              'COUNT(event_beer.id) as beerCount',
-            ])
-            .where('user.id IN (:...ids)', { ids: eventUserIds })
-            .groupBy('user.id')
-            .orderBy('beerCount', 'DESC')
-            .getRawMany<UserLeaderboardDto>()
-        : [];
+    this.logger.log(`Event found: ${event.name} with ${event.users.length} users`);
 
-      return {
-        males: users
-          .filter((u) => u.gender === 'MALE')
-          .map((u) => ({
-            ...u,
-            beerCount: parseInt(u.beerCount as unknown as string),
-          })),
-        females: users
-          .filter((u) => u.gender === 'FEMALE')
-          .map((u) => ({
-            ...u,
-            beerCount: parseInt(u.beerCount as unknown as string),
-          })),
-      };
-    } else {
-      // Global leaderboard
-      const users = await this.userRepository
-        .createQueryBuilder('user')
-        .leftJoin('user.beers', 'beer')
-        .select([
-          'user.id as id',
-          'user.username as username',
-          'user.gender as gender',
-          'COUNT(beer.id) as beerCount',
-        ])
-        .groupBy('user.id')
-        .orderBy('beerCount', 'DESC')
-        .getRawMany<UserLeaderboardDto>();
+    // Event-specific leaderboard only - STRICTLY filter by eventId
+    const eventUserIds = event.users.map((u) => u.id);
+    
+    // Get total event beers using same method as dashboard
+    const totalEventBeers = await this.eventBeerRepository
+      .createQueryBuilder('event_beer')
+      .where('event_beer.eventId = :eventId', { eventId: event.id })
+      .getCount();
+    
+    this.logger.log(`Total event beers from event_beers table for event ${event.id}: ${totalEventBeers}`);
+    
+    // Get user rankings with their individual beer counts - STRICTLY for this event only
+    const users = eventUserIds.length > 0
+      ? await this.userRepository
+          .createQueryBuilder('user')
+          .leftJoin('user.eventBeers', 'event_beer', 'event_beer.eventId = :eventId', { eventId: event.id })
+          .select([
+            'user.id as id',
+            'user.username as username',
+            'user.gender as gender',
+            'COUNT(event_beer.id) as beerCount',
+          ])
+          .where('user.id IN (:...ids)', { ids: eventUserIds })
+          .andWhere('event_beer.eventId = :eventId', { eventId: event.id }) // Double-check event filtering
+          .groupBy('user.id')
+          .orderBy('beerCount', 'DESC')
+          .getRawMany<UserLeaderboardDto>()
+      : [];
 
-      return {
-        males: users
-          .filter((u) => u.gender === 'MALE')
-          .map((u) => ({
-            ...u,
-            beerCount: parseInt(u.beerCount as unknown as string),
-          })),
-        females: users
-          .filter((u) => u.gender === 'FEMALE')
-          .map((u) => ({
-            ...u,
-            beerCount: parseInt(u.beerCount as unknown as string),
-          })),
-      };
+    const result = {
+      males: users
+        .filter((u) => u.gender === 'MALE')
+        .map((u) => ({
+          ...u,
+          beerCount: parseInt(u.beerCount as unknown as string),
+        })),
+      females: users
+        .filter((u) => u.gender === 'FEMALE')
+        .map((u) => ({
+          ...u,
+          beerCount: parseInt(u.beerCount as unknown as string),
+        })),
+    };
+
+    const totalBeers = result.males.reduce((sum, u) => sum + u.beerCount, 0) + 
+                      result.females.reduce((sum, u) => sum + u.beerCount, 0);
+    
+    this.logger.log(`Leaderboard result: ${result.males.length} males, ${result.females.length} females, total beers: ${totalBeers}`);
+    this.logger.log(`Verification: Direct count from event_beers table: ${totalEventBeers}, Sum from user counts: ${totalBeers}`);
+    
+    // Verify our counts match
+    if (totalBeers !== totalEventBeers) {
+      this.logger.warn(`COUNT MISMATCH! Direct count: ${totalEventBeers}, User sum: ${totalBeers}`);
     }
+    
+    return result;
   }
 
   async getSystemStats(): Promise<SystemStatsDto> {

@@ -11,11 +11,19 @@ export const useLeaderboard = () => {
 
   useEffect(() => {
     const loadLeaderboard = async () => {
+      // Only load if we have an active event
+      if (!activeEvent?.id) {
+        setStats(null);
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const data = await leaderboardApi.getLeaderboard(activeEvent?.id);
+        const data = await leaderboardApi.getLeaderboard(activeEvent.id);
         setStats(data);
       } catch (error) {
         console.error('Failed to load leaderboard:', error);
+        setStats(null);
       } finally {
         setIsLoading(false);
       }

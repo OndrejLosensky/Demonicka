@@ -24,11 +24,11 @@ export class BackupService {
       fs.mkdirSync(this.backupDir, { recursive: true });
     }
 
-    // Initialize email transporter
-    this.initializeEmailTransporter();
+    // TEMPORARILY DISABLED - causing VPS crashes
+    // this.initializeEmailTransporter();
+    // this.initializeGoogleDrive();
     
-    // Initialize Google Drive client
-    this.initializeGoogleDrive();
+    this.logger.log('Backup service initialized (email/Google Drive temporarily disabled)');
   }
 
   private initializeEmailTransporter() {
@@ -65,7 +65,7 @@ export class BackupService {
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  // @Cron(CronExpression.EVERY_HOUR) // TEMPORARILY DISABLED - causing VPS crashes
   async handleBackup() {
     try {
       const activeEvent = await this.eventsService.getActiveEvent();
