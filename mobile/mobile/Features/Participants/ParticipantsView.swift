@@ -14,22 +14,31 @@ struct ParticipantsView: View {
                 if isLoading && participants.isEmpty {
                     ProgressView("Načítám účastníky...")
                 } else {
-                    List {
-                        ForEach(participants) { participant in
-                            ParticipantRow(
-                                participant: participant,
-                                isProcessing: processingUserId == participant.id,
-                                onAddBeer: {
-                                    Task {
-                                        await handleAddBeer(for: participant)
+                    ScrollView {
+                        LazyVStack(spacing: 0) {
+                            ForEach(participants) { participant in
+                                ParticipantRow(
+                                    participant: participant,
+                                    isProcessing: processingUserId == participant.id,
+                                    onAddBeer: {
+                                        Task {
+                                            await handleAddBeer(for: participant)
+                                        }
+                                    },
+                                    onRemoveBeer: {
+                                        Task {
+                                            await handleRemoveBeer(for: participant)
+                                        }
                                     }
-                                },
-                                onRemoveBeer: {
-                                    Task {
-                                        await handleRemoveBeer(for: participant)
-                                    }
+                                )
+                                .padding(.horizontal)
+                                .padding(.vertical, 4)
+                                
+                                if participant.id != participants.last?.id {
+                                    Divider()
+                                        .padding(.horizontal)
                                 }
-                            )
+                            }
                         }
                     }
                     .refreshable {
@@ -45,6 +54,7 @@ struct ParticipantsView: View {
                     }
                 }
             }
+
             .sheet(isPresented: $showingAddDialog) {
                 AddParticipantDialog(isPresented: $showingAddDialog) { participant in
                     Task {
@@ -102,6 +112,9 @@ struct ParticipantsView: View {
         guard processingUserId == nil else { return }
         processingUserId = participant.id
         
+        print("🔄 Adding beer for participant: \(participant.username) (ID: \(participant.id))")
+        print("📊 Current beer count: \(participant.eventBeerCount)")
+        
         do {
             try await ParticipantService.shared.addBeer(userId: participant.id)
             await loadParticipants()
@@ -116,6 +129,9 @@ struct ParticipantsView: View {
     private func handleRemoveBeer(for participant: Participant) async {
         guard processingUserId == nil else { return }
         processingUserId = participant.id
+        
+        print("🔄 Removing beer for participant: \(participant.username) (ID: \(participant.id))")
+        print("📊 Current beer count: \(participant.eventBeerCount)")
         
         do {
             try await ParticipantService.shared.removeBeer(userId: participant.id)
@@ -160,6 +176,7 @@ struct ParticipantRow: View {
                 HStack(spacing: 12) {
                     // Remove beer button
                     Button {
+                        print("🔴 Remove button pressed for: \(participant.username)")
                         onRemoveBeer()
                     } label: {
                         Image(systemName: "minus.circle.fill")
@@ -167,10 +184,14 @@ struct ParticipantRow: View {
                             .font(.title2)
                             .frame(width: 44, height: 44)
                     }
+                    .buttonStyle(PlainButtonStyle())
                     .disabled(participant.eventBeerCount == 0)
+                    .opacity(participant.eventBeerCount == 0 ? 0.5 : 1.0)
+                    .contentShape(Rectangle())
                     
                     // Add beer button
                     Button {
+                        print("🟢 Add button pressed for: \(participant.username)")
                         onAddBeer()
                     } label: {
                         Image(systemName: "plus.circle.fill")
@@ -178,10 +199,13 @@ struct ParticipantRow: View {
                             .font(.title2)
                             .frame(width: 44, height: 44)
                     }
+                    .buttonStyle(PlainButtonStyle())
+                    .contentShape(Rectangle())
+                    
+
                 }
             }
         }
-        .padding(.vertical, 4)
     }
 }
 

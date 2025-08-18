@@ -240,9 +240,13 @@ struct StatCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(UIDevice.current.userInterfaceIdiom == .pad ? 20 : 16)
-        .background(Color(.systemBackground))
+        .background(Color(.secondarySystemBackground))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color(.separator), lineWidth: 0.5)
+        )
         .cornerRadius(12)
-        .shadow(radius: 1)
+        .shadow(color: Color(.sRGBLinear, white: 0, opacity: 0.1), radius: 2, x: 0, y: 1)
     }
 }
 
