@@ -52,10 +52,13 @@ export class DashboardService {
       const eventUserIds = event.users.map((u) => u.id);
       const eventBarrelIds = event.barrels.map((b) => b.id);
 
-      // Get beer count for event users using event_beers table
+      // Get beer count for event users using event_beers table - ONLY from active users
       const totalBeers = await this.eventBeerRepository
         .createQueryBuilder('event_beer')
         .where('event_beer.eventId = :eventId', { eventId: event.id })
+        .andWhere('event_beer.userId IN (:...userIds)', {
+          userIds: eventUserIds,
+        })
         .getCount();
 
       // Get top users for this event using event_beers
@@ -166,10 +169,13 @@ export class DashboardService {
       const eventUserIds = event.users.map((u) => u.id);
       const eventBarrelIds = event.barrels.map((b) => b.id);
 
-      // Get beer count for event users using event_beers table
+      // Get beer count for event users using event_beers table - ONLY from active users
       const totalBeers = await this.eventBeerRepository
         .createQueryBuilder('event_beer')
         .where('event_beer.eventId = :eventId', { eventId: event.id })
+        .andWhere('event_beer.userId IN (:...userIds)', {
+          userIds: eventUserIds,
+        })
         .getCount();
 
       const totalUsers = event.users.length;
@@ -299,10 +305,13 @@ export class DashboardService {
     // Event-specific leaderboard only - STRICTLY filter by eventId
     const eventUserIds = event.users.map((u) => u.id);
     
-    // Get total event beers using same method as dashboard
+    // Get total event beers using same method as dashboard - ONLY from active users
     const totalEventBeers = await this.eventBeerRepository
       .createQueryBuilder('event_beer')
       .where('event_beer.eventId = :eventId', { eventId: event.id })
+      .andWhere('event_beer.userId IN (:...userIds)', {
+        userIds: eventUserIds,
+      })
       .getCount();
     
     this.logger.log(`Total event beers from event_beers table for event ${event.id}: ${totalEventBeers}`);
@@ -316,10 +325,9 @@ export class DashboardService {
             'user.id as id',
             'user.username as username',
             'user.gender as gender',
-            'COUNT(event_beer.id) as beerCount',
+            'COALESCE(COUNT(event_beer.id), 0) as beerCount',
           ])
           .where('user.id IN (:...ids)', { ids: eventUserIds })
-          .andWhere('event_beer.eventId = :eventId', { eventId: event.id }) // Double-check event filtering
           .groupBy('user.id')
           .orderBy('beerCount', 'DESC')
           .getRawMany<UserLeaderboardDto>()

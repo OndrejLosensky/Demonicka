@@ -26,6 +26,7 @@ export class LeaderboardService {
   async getLeaderboard(eventId?: string): Promise<LeaderboardDto> {
     if (eventId) {
       // Get all event participants with their event-specific beer counts
+      // Use LEFT JOIN to ensure users with 0 beers are included
       const participants = await this.usersRepository
         .createQueryBuilder('user')
         .leftJoin('user.events', 'event', 'event.id = :eventId', { eventId })
@@ -34,7 +35,7 @@ export class LeaderboardService {
           'user.id as id',
           'user.username as username',
           'user.gender as gender',
-          'COUNT(DISTINCT eventBeer.id) as beerCount'
+          'COALESCE(COUNT(DISTINCT eventBeer.id), 0) as beerCount'
         ])
         .where('event.id = :eventId', { eventId })
         .groupBy('user.id, user.username, user.gender')
@@ -60,7 +61,7 @@ export class LeaderboardService {
         'user.id as id',
         'user.username as username',
         'user.gender as gender',
-        'COUNT(DISTINCT beer.id) as beerCount',
+        'COALESCE(COUNT(DISTINCT beer.id), 0) as beerCount',
       ])
       .groupBy('user.id, user.username, user.gender')
       .orderBy('beerCount', 'DESC')
