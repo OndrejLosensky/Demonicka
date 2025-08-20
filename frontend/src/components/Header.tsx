@@ -37,21 +37,11 @@ export default function Header() {
   const { user, logout, hasRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isScrolled, setIsScrolled] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const { activeEvent } = useActiveEvent();
   const { mode, toggleMode } = useAppTheme();
   const { isHeaderVisible } = useHeaderVisibility();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -88,18 +78,22 @@ export default function Header() {
   const isLandingPage = location.pathname === '/';
 
   return (
-    <div>
-      <div className={`min-h-screen ${isLandingPage ? '' : 'bg-background-secondary'}`}>
-        {isHeaderVisible && (
-          <motion.nav
-            initial={{ y: -100 }}
-            animate={{ y: 0 }}
-            className={`fixed w-full z-50 transition-all duration-300 ${
-              isScrolled || !isLandingPage
-                ? 'bg-background-primary/95 backdrop-blur-sm shadow-lg border-b border-border-secondary/30'
-                : 'bg-background-primary/80 backdrop-blur-md shadow-md border-b border-border-secondary/20'
-            }`}
-          >
+    <Box sx={{ bgcolor: 'background.default' }}>
+      {isHeaderVisible && (
+        <motion.nav
+          initial={{ y: -100 }}
+          animate={{ y: 0 }}
+          style={{
+            position: 'fixed',
+            width: '100%',
+            zIndex: 50,
+            backgroundColor: mode === 'dark' ? 'rgba(13, 17, 23, 0.95)' : 'rgba(250, 250, 250, 0.95)',
+            backdropFilter: 'blur(8px)',
+            boxShadow: mode === 'dark' ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            borderBottom: `1px solid ${mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'}`,
+            transition: 'all 0.3s ease'
+          }}
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex">
@@ -486,7 +480,6 @@ export default function Header() {
         <main className={`${isLandingPage ? '' : 'max-w-7xl mx-auto py-6 pt-20'}`}>
           <Outlet />
         </main>
-      </div>
-    </div>
+      </Box>
   );
 } 

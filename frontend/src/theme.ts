@@ -51,9 +51,20 @@ export function createAppTheme(mode: PaletteMode) {
           '::selection': {
             background: isDark ? '#ff6a6433' : '#ff3b3033',
           },
+          html: {
+            backgroundColor: isDark ? '#0d1117' : '#fafafa',
+            color: isDark ? '#e6e8ee' : '#1a1a1a',
+          },
           body: {
             backgroundColor: isDark ? '#0d1117' : '#fafafa',
             color: isDark ? '#e6e8ee' : '#1a1a1a',
+            margin: 0,
+            padding: 0,
+            minHeight: '100vh',
+          },
+          '#root': {
+            backgroundColor: isDark ? '#0d1117' : '#fafafa',
+            minHeight: '100vh',
           },
         },
       },

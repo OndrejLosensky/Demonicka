@@ -19,18 +19,20 @@ const getTrophyColor = (rank: number): string => {
 
 export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableProps) => (
   <Paper 
-    elevation={1}
+    elevation={3}
     sx={{ 
       p: 3,
       height: '100%',
-      border: '1px solid',
+      border: '2px solid',
       borderColor: 'divider',
-      borderRadius: 2,
+      borderRadius: 3,
+      bgcolor: 'background.paper',
+      boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
     }}
   >
     <Box display="flex" alignItems="center" gap={2} mb={3}>
       <GiTrophy style={{ fontSize: '1.5rem', color: 'primary.main' }} />
-      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+      <Typography variant="h6" sx={{ fontWeight: 900, fontSize: '1.4rem' }}>
         {title}
       </Typography>
     </Box>
@@ -38,18 +40,18 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
     <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px' }}>
       <thead>
         <tr>
-          <th style={{ textAlign: 'left', padding: '10px 16px' }}>
-            <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
+          <th style={{ textAlign: 'left', padding: '12px 16px' }}>
+            <Typography color="text.primary" variant="body1" sx={{ fontWeight: 800, fontSize: '1rem' }}>
               {translations.table.columns.rank}
             </Typography>
           </th>
-          <th style={{ textAlign: 'left', padding: '10px 16px' }}>
-            <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
+          <th style={{ textAlign: 'left', padding: '12px 16px' }}>
+            <Typography color="text.primary" variant="body1" sx={{ fontWeight: 800, fontSize: '1rem' }}>
               {translations.table.columns.name}
             </Typography>
           </th>
-          <th style={{ textAlign: 'right', padding: '10px 16px' }}>
-            <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
+          <th style={{ textAlign: 'right', padding: '12px 16px' }}>
+            <Typography color="text.primary" variant="body1" sx={{ fontWeight: 800, fontSize: '1rem' }}>
               {translations.table.columns.beers}
             </Typography>
           </th>
@@ -58,13 +60,15 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
       <tbody>
         {participants.map((participant, index) => (
           <tr key={participant.id}>
-            <td style={{ padding: '10px 16px', width: '70px' }}>
+            <td style={{ padding: '12px 16px', width: '70px' }}>
               <Box display="flex" alignItems="center" gap={1}>
                 <Typography 
                   variant={index < 3 ? 'h6' : 'body1'} 
                   sx={{ 
-                    fontWeight: 'bold',
-                    color: index < 3 ? 'text.primary' : 'text.secondary'
+                    fontWeight: 900,
+                    fontSize: index < 3 ? '1.2rem' : '1rem',
+                    color: 'text.primary',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.5)',
                   }}
                 >
                   {index + 1}.
@@ -77,11 +81,16 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
                 )}
               </Box>
             </td>
-            <td style={{ padding: '10px 16px' }}>
+            <td style={{ padding: '12px 16px' }}>
               <Box display="flex" alignItems="center" gap={1}>
                 <Typography 
                   variant={index < 3 ? 'h6' : 'body1'}
-                  sx={{ fontWeight: index < 3 ? 'bold' : 'normal' }}
+                  sx={{ 
+                    fontWeight: index < 3 ? 900 : 700,
+                    fontSize: index < 3 ? '1.2rem' : '1rem',
+                    color: 'text.primary',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                  }}
                 >
                   {participant.username}
                 </Typography>
@@ -90,30 +99,35 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
                     label={translations.table.champion}
                     size="small"
                     sx={{ 
-                      bgcolor: 'warning.light',
-                      color: 'warning.dark',
-                      fontWeight: 'bold',
-                      fontSize: '0.75rem'
+                      bgcolor: 'warning.main',
+                      color: 'warning.contrastText',
+                      fontWeight: 900,
+                      fontSize: '0.8rem',
+                      px: 0.8,
+                      py: 0.3,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                     }}
                   />
                 )}
               </Box>
             </td>
-            <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+            <td style={{ padding: '12px 16px', textAlign: 'right' }}>
               <Box display="flex" alignItems="center" justifyContent="flex-end" gap={1}>
                 <Typography 
                   variant={index < 3 ? 'h6' : 'body1'}
                   sx={{ 
-                    fontWeight: 'bold',
-                    color: index < 3 ? 'error.main' : 'text.primary'
+                    fontWeight: 900,
+                    fontSize: index < 3 ? '1.2rem' : '1rem',
+                    color: index < 3 ? 'text.primary' : 'text.primary',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.5)',
                   }}
                 >
                   {participant.beerCount}
                 </Typography>
                 <FaBeer style={{ 
                   fontSize: index < 3 ? '1.1rem' : '1rem',
-                  opacity: index < 3 ? 1 : 0.6,
-                  color: index < 3 ? 'error.main' : 'text.secondary',
+                  opacity: index < 3 ? 1 : 0.8,
+                  color: index < 3 ? 'primary.main' : 'text.primary',
                 }} />
               </Box>
             </td>
@@ -122,7 +136,7 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
         {(!participants || participants.length === 0) && (
           <tr>
             <td colSpan={3} style={{ textAlign: 'center', padding: '40px 16px' }}>
-              <Typography color="text.secondary">
+              <Typography color="text.primary" variant="body1" sx={{ fontWeight: 600, fontSize: '1rem' }}>
                 {translations.table.noParticipants}
               </Typography>
             </td>

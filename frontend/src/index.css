@@ -33,6 +33,33 @@
   --ease-default: cubic-bezier(0.2, 0, 0, 1);
 }
 
+/* Ensure body and html follow theme */
+html, body, #root {
+  background-color: inherit;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+/* Force body background to always be dark in dark mode */
+body {
+  background-color: #0d1117 !important;
+}
+
+/* Dark mode overrides for body background */
+[data-mui-color-scheme="dark"] html,
+[data-mui-color-scheme="dark"] body,
+[data-mui-color-scheme="dark"] #root {
+  background-color: #0d1117 !important;
+}
+
+[data-mui-color-scheme="light"] html,
+[data-mui-color-scheme="light"] body,
+[data-mui-color-scheme="light"] #root {
+  background-color: #fafafa !important;
+}
+
 /* Component Styles */
 .bg-primary {
   background-color: var(--color-primary-500);
