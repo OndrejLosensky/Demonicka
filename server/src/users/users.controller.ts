@@ -15,7 +15,6 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateParticipantDto } from './dto/create-participant.dto';
-import { CompleteRegistrationDto } from './dto/complete-registration.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from './enums/user-role.enum';
@@ -56,18 +55,6 @@ export class UsersController {
     return this.usersService.createParticipant(createParticipantDto);
   }
 
-  @Post('complete-registration')
-  @Public()
-  completeRegistration(@Body() completeRegistrationDto: CompleteRegistrationDto) {
-    return this.usersService.completeRegistration(completeRegistrationDto);
-  }
-
-  @Get('token/:token/username')
-  @Public()
-  getUsernameFromToken(@Param('token') token: string) {
-    return this.usersService.getUsernameFromToken(token);
-  }
-
   @Get()
   @BypassAuth()
   async findAll() {
@@ -89,6 +76,12 @@ export class UsersController {
   @Post('cleanup')
   cleanup() {
     return this.usersService.cleanup();
+  }
+
+  @Get('token/:token/username')
+  @Public()
+  getUsernameFromToken(@Param('token') token: string) {
+    return this.usersService.getUsernameFromToken(token);
   }
 
   @Get(':id')

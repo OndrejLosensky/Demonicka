@@ -20,8 +20,8 @@ import { LeaderboardGateway } from '../leaderboard/leaderboard.gateway';
 /**
  * Users Service
  *
- * Registration tokens are now generated in the format: username#randomNumber
- * Example: "Ondrej#2345" where the number is between 1000-9999
+ * Registration tokens are now generated in the format: username-randomNumber
+ * Example: "Ondrej-2345" where the number is between 1000-9999
  * This makes tokens more user-friendly and memorable while maintaining uniqueness.
  */
 
@@ -73,7 +73,7 @@ export class UsersService {
   ): Promise<UserWithoutPassword> {
     // Generate username-based token with random number
     const randomNumber = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
-    const registrationToken = `${createParticipantDto.username}#${randomNumber}`;
+    const registrationToken = `${createParticipantDto.username}-${randomNumber}`;
 
     const user = this.usersRepository.create({
       ...createParticipantDto,
@@ -142,8 +142,8 @@ export class UsersService {
       throw new NotFoundException('Neplatný registrační token');
     }
 
-    // Extract username from token format: username#randomNumber
-    const username = token.split('#')[0];
+    // Extract username from token format: username-randomNumber
+    const username = token.split('-')[0];
     return { username };
   }
 
@@ -184,11 +184,11 @@ export class UsersService {
       throw new BadRequestException('Registrace již byla dokončena');
     }
 
-    // Check if username is already taken
+    // Check if username is already taken by another user (excluding the current user)
     const existingUser = await this.findByUsername(
       completeRegistrationDto.username,
     );
-    if (existingUser) {
+    if (existingUser && existingUser.id !== user.id) {
       throw new BadRequestException('Uživatelské jméno již existuje');
     }
 
@@ -244,7 +244,7 @@ export class UsersService {
 
     // Generate username-based token with random number
     const randomNumber = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
-    const registrationToken = `${user.username}#${randomNumber}`;
+    const registrationToken = `${user.username}-${randomNumber}`;
 
     user.registrationToken = registrationToken;
     await this.usersRepository.save(user);

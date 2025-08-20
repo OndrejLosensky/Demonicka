@@ -56,10 +56,10 @@ describe('UsersService', () => {
 
       const result = await service.generateRegisterToken('123');
 
-      expect(result.token).toMatch(/^Ondrej#\d{4}$/);
-      expect(result.token.split('#')[0]).toBe('Ondrej');
-      expect(result.token.split('#')[1]).toMatch(/^\d{4}$/);
-      const number = parseInt(result.token.split('#')[1]);
+      expect(result.token).toMatch(/^Ondrej-\d{4}$/);
+      expect(result.token.split('-')[0]).toBe('Ondrej');
+      expect(result.token.split('-')[1]).toMatch(/^\d{4}$/);
+      const number = parseInt(result.token.split('-')[1]);
       expect(number).toBeGreaterThanOrEqual(1000);
       expect(number).toBeLessThanOrEqual(9999);
     });
@@ -79,8 +79,8 @@ describe('UsersService', () => {
       const result2 = await service.generateRegisterToken('123');
 
       expect(result1.token).not.toBe(result2.token);
-      expect(result1.token.split('#')[0]).toBe('Ondrej');
-      expect(result2.token.split('#')[0]).toBe('Ondrej');
+      expect(result1.token.split('-')[0]).toBe('Ondrej');
+      expect(result2.token.split('-')[0]).toBe('Ondrej');
     });
   });
 
@@ -95,7 +95,7 @@ describe('UsersService', () => {
       const mockUser = {
         id: '123',
         ...createParticipantDto,
-        registrationToken: 'TestUser#1234',
+        registrationToken: 'TestUser-1234',
         isRegistrationComplete: false,
         role: UserRole.PARTICIPANT,
       };
@@ -105,7 +105,7 @@ describe('UsersService', () => {
 
       const result = await service.createParticipant(createParticipantDto);
 
-      expect(result.registrationToken).toMatch(/^TestUser#\d{4}$/);
+      expect(result.registrationToken).toMatch(/^TestUser-\d{4}$/);
       expect(result.role).toBe(UserRole.PARTICIPANT);
       expect(result.isRegistrationComplete).toBe(false);
     });
