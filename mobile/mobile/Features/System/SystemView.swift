@@ -73,11 +73,58 @@ struct SystemView: View {
     
     // MARK: - Main Content
     private var mainContent: some View {
-        VStack(spacing: 24) {
-            systemSection
-            Spacer()
+        ScrollView {
+            VStack(spacing: 24) {
+                // Add top spacing to avoid navigation bar interference
+                Spacer(minLength: 20)
+                
+                if isLoading {
+                    HStack {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .transition(.opacity.combined(with: .scale))
+                            .animation(.easeInOut(duration: 0.3), value: isLoading)
+                        Text("Načítání...")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .transition(.opacity.combined(with: .scale))
+                            .animation(.easeInOut(duration: 0.3), value: isLoading)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
+                    .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                    .transition(.opacity.combined(with: .scale))
+                    .animation(.easeInOut(duration: 0.2), value: isLoading)
+                } else {
+                    systemSection
+                        .padding()
+                        .background(Color(.systemBackground))
+                        .cornerRadius(16)
+                        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        .animation(.easeInOut(duration: 0.3), value: isLoading)
+                }
+                
+                // Add bottom spacing to avoid tab bar interference
+                Spacer(minLength: 100)
+            }
+            .padding(.horizontal, 16)
+        }
+        .background(Color(.systemGroupedBackground))
+        .refreshable {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                // Trigger loading state with smooth animation
+                isLoading = true
+            }
+            await handleRefreshData()
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isLoading = false
+            }
         }
         .navigationTitle("Systém")
+        .navigationBarTitleDisplayMode(.large)
         .alert("Error", isPresented: $showingError) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -94,6 +141,12 @@ struct SystemView: View {
             systemStatsSheet
         }
         .onAppear {
+            // Add subtle haptic feedback with animation
+            withAnimation(.easeInOut(duration: 0.2)) {
+                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                impactFeedback.impactOccurred()
+            }
+            
             Task {
                 await handleRefreshData()
             }
@@ -102,23 +155,55 @@ struct SystemView: View {
     
     // MARK: - System Section
     private var systemSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 24) {
             Text("Systém")
-                .font(.headline)
-                .foregroundColor(.secondary)
-                .padding(.horizontal)
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
+                .padding(.bottom, 8)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+                .animation(.easeInOut(duration: 0.4), value: isLoading)
             
             // Quick Actions
             quickActionsSection
+                .transition(.opacity.combined(with: .move(edge: .leading)))
+                .animation(.easeInOut(duration: 0.4), value: isLoading)
+            
+            Rectangle()
+                .fill(Color(.separator).opacity(0.3))
+                .frame(height: 1)
+                .padding(.vertical, 8)
+                .transition(.opacity.combined(with: .scale))
+                .animation(.easeInOut(duration: 0.3), value: isLoading)
             
             // API Configuration
             apiConfigSection
+                .transition(.opacity.combined(with: .move(edge: .trailing)))
+                .animation(.easeInOut(duration: 0.5), value: isLoading)
+            
+            Rectangle()
+                .fill(Color(.separator).opacity(0.3))
+                .frame(height: 1)
+                .padding(.vertical, 8)
+                .transition(.opacity.combined(with: .scale))
+                .animation(.easeInOut(duration: 0.3), value: isLoading)
             
             // System Status
             systemStatusSection
+                .transition(.opacity.combined(with: .move(edge: .leading)))
+                .animation(.easeInOut(duration: 0.6), value: isLoading)
+            
+            Rectangle()
+                .fill(Color(.separator).opacity(0.3))
+                .frame(height: 1)
+                .padding(.vertical, 8)
+                .transition(.opacity.combined(with: .scale))
+                .animation(.easeInOut(duration: 0.3), value: isLoading)
             
             // Version Information
             versionInfoSection
+                .transition(.opacity.combined(with: .move(edge: .trailing)))
+                .animation(.easeInOut(duration: 0.7), value: isLoading)
         }
     }
     
@@ -134,17 +219,27 @@ struct SystemView: View {
                     HStack {
                         Image(systemName: "person.2.fill")
                             .foregroundColor(AppColors.primary)
+                            .frame(width: 20)
+                            .font(.system(size: 16, weight: .medium))
                         Text("Zobrazit uživatele")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
                         Spacer()
                         Image(systemName: "chevron.right")
                             .foregroundColor(.secondary)
                             .font(.caption)
                     }
-                    .padding()
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                     .background(Color(.secondarySystemBackground))
                     .cornerRadius(10)
+                    .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .scaleEffect(1.0)
+                .animation(.easeInOut(duration: 0.1), value: true)
+                .transition(.opacity.combined(with: .move(edge: .leading)))
+                .animation(.easeInOut(duration: 0.3), value: true)
                 
                 Button(action: {
                     if WebSocketService.shared.connectionStatus == .connected {
@@ -156,18 +251,28 @@ struct SystemView: View {
                     HStack {
                         Image(systemName: WebSocketService.shared.connectionStatus == .connected ? "wifi.slash" : "wifi")
                             .foregroundColor(WebSocketService.shared.connectionStatus == .connected ? AppColors.error : AppColors.success)
+                            .frame(width: 20)
+                            .font(.system(size: 16, weight: .medium))
                         Text(WebSocketService.shared.connectionStatus == .connected ? "Odpojit WebSocket" : "Připojit WebSocket")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
                         Spacer()
                         if WebSocketService.shared.connectionStatus == .connecting {
                             ProgressView()
                                 .scaleEffect(0.8)
                         }
                     }
-                    .padding()
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                     .background(Color(.secondarySystemBackground))
                     .cornerRadius(10)
+                    .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .scaleEffect(1.0)
+                .animation(.easeInOut(duration: 0.1), value: true)
+                .transition(.opacity.combined(with: .move(edge: .trailing)))
+                .animation(.easeInOut(duration: 0.3), value: true)
             }
         }
     }
@@ -176,16 +281,17 @@ struct SystemView: View {
     private var apiConfigSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("API Konfigurace")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .padding(.horizontal)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+                .transition(.opacity.combined(with: .move(edge: .leading)))
+                .animation(.easeInOut(duration: 0.3), value: isLoading)
             
             VStack(spacing: 8) {
                 infoRow(icon: "server.rack", title: "Backend", value: "demonicka.losensky.cloud", color: AppColors.primary)
                 infoRow(icon: "wifi", title: "Stav", value: apiConnectionStatus, color: apiConnectionColor)
                 infoRow(icon: "clock", title: "Odezva", value: "\(apiResponseTime)ms", color: AppColors.success)
             }
-            .padding(.horizontal)
         }
     }
     
@@ -224,16 +330,17 @@ struct SystemView: View {
     private var versionInfoSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Verze aplikace")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .padding(.horizontal)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+                .transition(.opacity.combined(with: .move(edge: .leading)))
+                .animation(.easeInOut(duration: 0.3), value: isLoading)
             
             VStack(spacing: 8) {
                 infoRow(icon: "iphone", title: "iOS App", value: appVersion, color: AppColors.primary)
                 infoRow(icon: "server.rack", title: "Backend", value: backendVersion, color: AppColors.secondary)
                 infoRow(icon: "arrow.up.circle", title: "Aktualizace", value: updateStatus, color: updateStatusColor)
             }
-            .padding(.horizontal)
         }
     }
     
@@ -243,6 +350,7 @@ struct SystemView: View {
             Image(systemName: icon)
                 .foregroundColor(color)
                 .frame(width: 20)
+                .font(.system(size: 16, weight: .medium))
             
             Text(title)
                 .font(.subheadline)
@@ -252,11 +360,15 @@ struct SystemView: View {
             
             Text(value)
                 .font(.subheadline)
+                .fontWeight(.medium)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.vertical, 12)
         .background(Color(.tertiarySystemBackground))
-        .cornerRadius(8)
+        .cornerRadius(10)
+        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .transition(.opacity.combined(with: .move(edge: .trailing)))
+        .animation(.easeInOut(duration: 0.2), value: true)
     }
     
     // MARK: - Section Header Helper
@@ -265,12 +377,17 @@ struct SystemView: View {
             Image(systemName: icon)
                 .foregroundColor(AppColors.primary)
                 .imageScale(.medium)
+                .frame(width: 24)
+                .scaleEffect(1.0)
+                .animation(.easeInOut(duration: 0.2), value: true)
             Text(title)
                 .font(.title2)
                 .fontWeight(.bold)
             Spacer()
         }
-        .padding(.horizontal)
+        .padding(.bottom, 4)
+        .transition(.opacity.combined(with: .move(edge: .leading)))
+        .animation(.easeInOut(duration: 0.3), value: true)
     }
     
     // MARK: - Token Sheet
