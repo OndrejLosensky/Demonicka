@@ -27,7 +27,6 @@ import {
 import { FaBeer } from 'react-icons/fa';
 import type { ParticipantTableProps } from './types';
 import { format } from 'date-fns';
-import { cs } from 'date-fns/locale';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import translations from '../../../locales/cs/dashboard.participants.json';
 
@@ -76,9 +75,9 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
             <TableRow>
               <TableCell>{translations.table.columns.name}</TableCell>
               <TableCell align="center">{translations.table.columns.beers}</TableCell>
-              <TableCell>{translations.table.columns.gender}</TableCell>
-              <TableCell>{translations.table.columns.lastBeer}</TableCell>
-              <TableCell align="right" sx={{ width: 220 }}>{translations.table.columns.actions}</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{translations.table.columns.gender}</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{translations.table.columns.lastBeer}</TableCell>
+              <TableCell align="right" sx={{ width: { xs: 120, sm: 180, md: 220 } }}>{translations.table.columns.actions}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -113,7 +112,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                     <Typography>{participant.eventBeerCount || 0}</Typography>
                   </Box>
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                   <Chip
                     icon={participant.gender === 'MALE' ? <MaleIcon /> : <FemaleIcon />}
                     label={participant.gender === 'MALE' ? translations.dialogs.add.fields.gender.male : translations.dialogs.add.fields.gender.female}
@@ -127,10 +126,10 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                     }}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                   {participant.lastBeerTime ? (
                     <Typography variant="body2" color="text.secondary">
-                      {format(new Date(participant.lastBeerTime), 'PPp', { locale: cs })}
+                      {format(new Date(participant.lastBeerTime), 'HH:mm')}
                     </Typography>
                   ) : (
                     '-'
@@ -146,7 +145,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                             onClick={() => onRemoveBeer(participant.id)}
                             disabled={(participant.eventBeerCount ?? participant.beerCount) === 0}
                             sx={{
-                              mr: 1,
+                              mr: { xs: 0.5, sm: 1 },
                               border: 1,
                               borderColor: (participant.eventBeerCount ?? participant.beerCount) === 0 ? 'grey.300' : 'primary.main',
                               '&:hover': {
@@ -163,7 +162,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                           size="small"
                           onClick={() => onAddBeer(participant.id)}
                           sx={{
-                            mr: 1,
+                            mr: { xs: 0.5, sm: 1 },
                             bgcolor: 'primary.main',
                             color: 'white',
                             '&:hover': {

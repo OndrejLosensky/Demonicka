@@ -13,10 +13,10 @@
   },
   "table": {
     "columns": {
-      "name": "Uživatelské jméno",
+      "name": "Jméno",
       "beers": "Piva",
       "gender": "Pohlaví",
-      "lastBeer": "Poslední pivo",
+      "lastBeer": "Poslední",
       "actions": "Akce"
     },
     "status": {

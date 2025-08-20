@@ -15,6 +15,10 @@ import {
   Typography,
   Chip,
   Divider,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
 } from '@mui/material';
 import {
   Logout as LogoutIcon,
@@ -23,6 +27,7 @@ import {
   History as HistoryIcon,
   AccessTime as AccessTimeIcon,
   Event as EventIcon,
+  Menu as MenuIcon,
 } from '@mui/icons-material';
 import { FaBook } from 'react-icons/fa';
 import { format } from 'date-fns';
@@ -39,6 +44,7 @@ export default function Header() {
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { activeEvent } = useActiveEvent();
   const { mode, toggleMode } = useAppTheme();
   const { isHeaderVisible } = useHeaderVisibility();
@@ -53,6 +59,7 @@ export default function Header() {
 
   const handleLogout = () => {
     handleCloseMenu();
+    setMobileMenuOpen(false);
     logout();
     navigate('/login');
   };
@@ -67,6 +74,7 @@ export default function Header() {
 
   const handleProfileClick = () => {
     handleCloseMenu();
+    setMobileMenuOpen(false);
     if (hasRole([USER_ROLE.ADMIN, USER_ROLE.USER])) {
       navigate('/profile');
     } else {
@@ -74,8 +82,43 @@ export default function Header() {
     }
   };
 
+  const handleMobileMenuClose = () => {
+    setMobileMenuOpen(false);
+  };
+
   const isActive = (path: string) => location.pathname === path;
   const isLandingPage = location.pathname === '/';
+
+  // Navigation items for mobile menu
+  const getNavigationItems = () => {
+    if (!user) return [];
+    
+    const items = [];
+    
+    if (hasRole([USER_ROLE.ADMIN])) {
+      items.push(
+        { to: '/dashboard', label: translations.navigation.dashboard, icon: null },
+        { to: '/events', label: translations.navigation.events, icon: null }
+      );
+      
+      if (activeEvent) {
+        items.push(
+          { to: '/dashboard/participants', label: translations.navigation.participants, icon: null },
+          { to: '/dashboard/barrels', label: translations.navigation.barrels, icon: null },
+          { to: '/leaderboard', label: translations.navigation.leaderboard, icon: null }
+        );
+      }
+    }
+    
+    if (user?.role === USER_ROLE.USER) {
+      items.push(
+        { to: `/${user?.id}/dashboard`, label: 'Moje statistiky', icon: null },
+        { to: '/achievements', label: 'Úspěchy', icon: null }
+      );
+    }
+    
+    return items;
+  };
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
@@ -120,8 +163,10 @@ export default function Header() {
                     </motion.div>
                   </Link>
                 </motion.div>
+                
+                {/* Desktop Navigation - Hidden on mobile */}
                 {user && (
-                  <div className="ml-10 flex items-center space-x-4">
+                  <div className="hidden md:flex ml-10 items-center space-x-4">
                     {hasRole([USER_ROLE.ADMIN]) && (
                       <>
                         <Link
@@ -213,18 +258,23 @@ export default function Header() {
                   </div>
                 )}
               </div>
+              
               <div className="flex items-center">
                 {/* Theme Toggle - Always visible */}
                 <IconButton
                   size="small"
                   onClick={toggleMode}
                   aria-label="Toggle theme"
+                  className="bg-gradient-to-br from-background-secondary/15 to-background-secondary/5 hover:from-background-secondary/25 hover:to-background-secondary/10 border border-border-secondary/30 shadow-sm"
                   sx={{
-                    border: '1px solid',
+                    width: 36,
+                    height: 36,
                     marginRight: 2,
-                    borderColor: 'divider',
-                    bgcolor: 'background.paper',
-                    '&:hover': { bgcolor: 'action.hover' },
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
+                    }
                   }}
                 >
                   {mode === 'light' ? (
@@ -236,11 +286,12 @@ export default function Header() {
                 
                 {user ? (
                   <div className="flex items-center space-x-3">
+                    {/* Active Event Info - Hidden on mobile */}
                     {activeEvent && (
                       <motion.div 
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center bg-background-secondary/60 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-border-secondary/30"
+                        className="hidden md:flex items-center bg-background-secondary/60 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-border-secondary/30"
                       >
                         <div className="flex items-center space-x-3">
                           <div className="flex items-center space-x-2">
@@ -275,32 +326,25 @@ export default function Header() {
                       </motion.div>
                     )}
                     
-                    {/* Notification Bell - Temporarily hidden
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Tooltip title="Notifikace" arrow placement="bottom">
-                        <IconButton
-                          size="small"
-                          className="bg-background-secondary/50 hover:bg-background-secondary/70 border border-border-secondary/30"
-                          sx={{ 
-                            width: 36, 
-                            height: 36,
-                            transition: 'all 0.2s ease-in-out',
-                            '&:hover': {
-                              transform: 'translateY(-1px)',
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                            }
-                          }}
-                        >
-                          <Badge badgeContent={0} color="primary" max={99}>
-                            <NotificationsIcon className="text-text-secondary" fontSize="small" />
-                          </Badge>
-                        </IconButton>
-                      </Tooltip>
-                    </motion.div>
-                    */}
+                    {/* Mobile Menu Button */}
+                    <div className="md:hidden">
+                      <IconButton
+                        onClick={() => setMobileMenuOpen(true)}
+                        size="small"
+                        className="bg-gradient-to-br from-background-secondary/15 to-background-secondary/5 hover:from-background-secondary/25 hover:to-background-secondary/10 border border-border-secondary/30 shadow-sm"
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            transform: 'translateY(-1px)',
+                            boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
+                          }
+                        }}
+                      >
+                        <MenuIcon fontSize="small" />
+                      </IconButton>
+                    </div>
 
                     {/* User Profile */}
                     <motion.div
@@ -317,8 +361,8 @@ export default function Header() {
                           size="medium"
                           className="bg-gradient-to-br from-primary/15 to-primary/5 hover:from-primary/25 hover:to-primary/10 border border-primary/30 shadow-sm"
                           sx={{ 
-                            width: 40, 
-                            height: 40,
+                            width: 36, 
+                            height: 36,
                             transition: 'all 0.2s ease-in-out',
                             '&:hover': {
                               transform: 'translateY(-1px)',
@@ -478,10 +522,81 @@ export default function Header() {
             </div>
           </div>
         </motion.nav>
-        )}
-        <main className={`${isLandingPage ? '' : 'max-w-7xl mx-auto py-6 pt-20'}`}>
-          <Outlet />
-        </main>
-      </Box>
+      )}
+      
+      {/* Mobile Navigation Drawer */}
+      <Drawer
+        anchor="right"
+        open={mobileMenuOpen}
+        onClose={handleMobileMenuClose}
+        PaperProps={{
+          sx: {
+            width: 280,
+            bgcolor: 'background.paper',
+            borderLeft: '1px solid',
+            borderColor: 'divider',
+          },
+        }}
+      >
+        <Box sx={{ p: 2 }}>
+          <Typography variant="h6" className="text-text-primary font-semibold mb-4">
+            Navigace
+          </Typography>
+          
+          <List>
+            {getNavigationItems().map((item) => (
+              <ListItem key={item.to} disablePadding>
+                <ListItemButton
+                  onClick={() => {
+                    navigate(item.to);
+                    handleMobileMenuClose();
+                  }}
+                  className={`${
+                    isActive(item.to)
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-text-primary hover:bg-background-secondary/50'
+                  }`}
+                  sx={{ borderRadius: 1, mb: 0.5 }}
+                >
+                  <ListItemText 
+                    primary={item.label}
+                    primaryTypographyProps={{
+                      className: "font-medium"
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+          
+          {/* Active Event Info for Mobile */}
+          {activeEvent && (
+            <Box sx={{ mt: 3, p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
+              <Typography variant="subtitle2" className="text-text-primary font-semibold mb-2">
+                Aktivní událost
+              </Typography>
+              <div className="flex items-center space-x-2">
+                <EventIcon className="text-text-secondary" fontSize="small" />
+                <Chip
+                  label={activeEvent.name}
+                  size="small"
+                  className="bg-primary/10 text-primary border-primary/20"
+                />
+              </div>
+              <div className="flex items-center space-x-2 mt-2">
+                <AccessTimeIcon className="text-text-secondary" fontSize="small" />
+                <Typography variant="body2" className="text-text-primary font-mono">
+                  {format(new Date(currentTime), 'HH:mm:ss')}
+                </Typography>
+              </div>
+            </Box>
+          )}
+        </Box>
+      </Drawer>
+      
+      <main className={`${isLandingPage ? '' : 'max-w-7xl mx-auto py-6 pt-20'}`}>
+        <Outlet />
+      </main>
+    </Box>
   );
 } 

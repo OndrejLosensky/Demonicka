@@ -156,14 +156,6 @@ struct SystemView: View {
     // MARK: - System Section
     private var systemSection: some View {
         VStack(alignment: .leading, spacing: 24) {
-            Text("Systém")
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-                .padding(.bottom, 8)
-                .transition(.opacity.combined(with: .move(edge: .top)))
-                .animation(.easeInOut(duration: 0.4), value: isLoading)
-            
             // Quick Actions
             quickActionsSection
                 .transition(.opacity.combined(with: .move(edge: .leading)))
