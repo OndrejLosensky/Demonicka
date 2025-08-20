@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { toast } from 'react-hot-toast';
+import { userService } from '../services/userService';
+import { Input } from '../components/ui/Input';
+import { PasswordInput } from '../components/ui/PasswordInput';
+import { Button } from '../components/ui/Button';
 
 export function CompleteRegistration() {
   usePageTitle('Dokončení registrace');
@@ -13,6 +17,26 @@ export function CompleteRegistration() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingUsername, setIsLoadingUsername] = useState(true);
+
+  useEffect(() => {
+    if (token) {
+      loadUsernameFromToken();
+    }
+  }, [token]);
+
+  const loadUsernameFromToken = async () => {
+    try {
+      setIsLoadingUsername(true);
+      const { username: tokenUsername } = await userService.getUsernameFromToken(token!);
+      setUsername(tokenUsername);
+    } catch (error) {
+      console.error('Error loading username from token:', error);
+      toast.error('Nepodařilo se načíst uživatelské jméno z tokenu');
+    } finally {
+      setIsLoadingUsername(false);
+    }
+  };
 
   if (!token) {
     return (
@@ -56,50 +80,39 @@ export function CompleteRegistration() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="username" className="sr-only">
-                Uživatelské jméno
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Uživatelské jméno"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Heslo
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Heslo"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-          </div>
+          <Input
+            id="username"
+            name="username"
+            type="text"
+            label="Uživatelské jméno"
+            required
+            value={isLoadingUsername ? 'Načítám...' : username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Uživatelské jméno"
+            disabled={true}
+          />
+          {isLoadingUsername && (
+            <p className="text-sm text-gray-500 -mt-1">Načítám uživatelské jméno...</p>
+          )}
+          <p className="text-sm text-gray-500 -mt-1">Uživatelské jméno nelze změnit - je určeno vaším registračním tokenem</p>
+          <PasswordInput
+            id="password"
+            name="password"
+            label="Heslo"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Heslo"
+            disabled={isLoading || isLoadingUsername}
+          />
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {isLoading ? 'Dokončuji registraci...' : 'Dokončit registraci'}
-            </button>
-          </div>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading || isLoadingUsername}
+          >
+            {isLoading ? 'Dokončuji registraci...' : 'Dokončit registraci'}
+          </Button>
         </form>
       </div>
     </div>

@@ -62,6 +62,12 @@ export class UsersController {
     return this.usersService.completeRegistration(completeRegistrationDto);
   }
 
+  @Get('token/:token/username')
+  @Public()
+  getUsernameFromToken(@Param('token') token: string) {
+    return this.usersService.getUsernameFromToken(token);
+  }
+
   @Get()
   @BypassAuth()
   async findAll() {

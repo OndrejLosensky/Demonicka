@@ -136,6 +136,17 @@ export class UsersService {
     });
   }
 
+  async getUsernameFromToken(token: string): Promise<{ username: string }> {
+    const user = await this.findByRegistrationToken(token);
+    if (!user) {
+      throw new NotFoundException('Neplatný registrační token');
+    }
+
+    // Extract username from token format: username#randomNumber
+    const username = token.split('#')[0];
+    return { username };
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
     const updatedUser = { ...user, ...updateUserDto };

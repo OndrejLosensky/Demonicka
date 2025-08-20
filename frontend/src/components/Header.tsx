@@ -214,26 +214,28 @@ export default function Header() {
                 )}
               </div>
               <div className="flex items-center">
+                {/* Theme Toggle - Always visible */}
+                <IconButton
+                  size="small"
+                  onClick={toggleMode}
+                  aria-label="Toggle theme"
+                  sx={{
+                    border: '1px solid',
+                    marginRight: 2,
+                    borderColor: 'divider',
+                    bgcolor: 'background.paper',
+                    '&:hover': { bgcolor: 'action.hover' },
+                  }}
+                >
+                  {mode === 'light' ? (
+                    <DarkModeIcon fontSize="small" />
+                  ) : (
+                    <LightModeIcon fontSize="small" />
+                  )}
+                </IconButton>
+                
                 {user ? (
                   <div className="flex items-center space-x-3">
-                    <IconButton
-                      size="small"
-                      onClick={toggleMode}
-                      aria-label="Toggle theme"
-                      sx={{
-                        border: '1px solid',
-                        marginRight: 1,
-                        borderColor: 'divider',
-                        bgcolor: 'background.paper',
-                        '&:hover': { bgcolor: 'action.hover' },
-                      }}
-                    >
-                      {mode === 'light' ? (
-                        <DarkModeIcon fontSize="small" />
-                      ) : (
-                        <LightModeIcon fontSize="small" />
-                      )}
-                    </IconButton>
                     {activeEvent && (
                       <motion.div 
                         initial={{ opacity: 0, x: 20 }}

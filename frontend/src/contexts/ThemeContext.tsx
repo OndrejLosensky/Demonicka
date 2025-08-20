@@ -11,7 +11,7 @@ interface ThemeCtx {
 const Ctx = createContext<ThemeCtx | undefined>(undefined);
 
 export function AppThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<PaletteMode>('light');
+  const [mode, setMode] = useState<PaletteMode>('dark');
 
   useEffect(() => {
     const stored = localStorage.getItem('app_theme');

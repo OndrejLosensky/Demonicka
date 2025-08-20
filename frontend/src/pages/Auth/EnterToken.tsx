@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { toast } from 'react-hot-toast';
+import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 
 export function EnterToken() {
   usePageTitle('Registrační token');
@@ -41,32 +43,25 @@ export function EnterToken() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="token" className="sr-only">
-              Registrační token
-            </label>
-            <input
-              id="token"
-              name="token"
-              type="text"
-              required
-              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Zadejte váš registrační token"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
+          <Input
+            id="token"
+            name="token"
+            type="text"
+            label="Registrační token"
+            required
+            placeholder="Zadejte váš registrační token"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            disabled={isLoading}
+          />
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {isLoading ? 'Zpracovávám...' : 'Pokračovat'}
-            </button>
-          </div>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Zpracovávám...' : 'Pokračovat'}
+          </Button>
         </form>
 
         <div className="text-center">

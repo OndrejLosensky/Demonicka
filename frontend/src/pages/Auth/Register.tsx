@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthLayout } from '../../components/auth/AuthLayout';
 import { Input } from '../../components/ui/Input';
+import { PasswordInput } from '../../components/ui/PasswordInput';
 import { Button } from '../../components/ui/Button';
 import translations from '../../locales/cs/auth.json';
 
@@ -84,20 +85,18 @@ export default function Register() {
               <option value="FEMALE">{translations.register.genders.female}</option>
             </select>
           </div>
-          <Input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             label={translations.register.password}
             required
             value={formData.password}
             onChange={handleChange}
             placeholder={translations.register.password}
           />
-          <Input
+          <PasswordInput
             id="confirmPassword"
             name="confirmPassword"
-            type="password"
             label={translations.register.confirmPassword}
             required
             value={formData.confirmPassword}

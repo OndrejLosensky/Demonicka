@@ -18,7 +18,7 @@ export function Input({
       {label && (
         <label 
           htmlFor={id} 
-          className="block text-sm font-medium text-text-primary dark:text-text-dark-primary"
+          className="block text-sm font-medium text-text-primary"
         >
           {label}
         </label>
@@ -27,15 +27,16 @@ export function Input({
         id={id}
         className={clsx(
           'block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
-          error ? 'border-red-300' : 'border-gray-300 dark:border-dark-primary',
-          'text-text-primary dark:text-text-dark-primary bg-background-card dark:bg-background-dark-card',
-          'placeholder-text-tertiary dark:placeholder-text-dark-tertiary',
+          error ? 'border-red-300' : 'border-gray-300 dark:border-gray-600',
+          'text-text-primary bg-background-card dark:bg-background-dark-card',
+          'placeholder-text-secondary',
+          'disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed',
           className
         )}
         {...props}
       />
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
     </div>
   );

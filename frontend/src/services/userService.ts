@@ -58,5 +58,10 @@ export const userService = {
   async restoreUser(id: string) {
     const response = await api.patch(`/users/${id}/restore`);
     return response.data;
+  },
+
+  async getUsernameFromToken(token: string): Promise<{ username: string }> {
+    const response = await api.get(`/users/token/${token}/username`);
+    return response.data;
   }
 }; 
