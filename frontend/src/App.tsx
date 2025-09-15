@@ -10,7 +10,7 @@ import Participants from './pages/Dashboard/Participants';
 import Barrels from './pages/Dashboard/Barrels';
 import Leaderboard from './pages/Leaderboard';
 import Landing from './pages/Landing';
-import Header from './components/Header';
+import Layout from './components/Layout';
 import ProfilePage from './pages/Profile/index';
 import { Events } from './pages/Events';
 import { EventDetail } from './pages/EventDetail';
@@ -22,6 +22,8 @@ import { ActiveEventProvider } from './contexts/ActiveEventContext';
 import { AppThemeProvider } from './contexts/ThemeContext';
 import { SelectedEventProvider } from './contexts/SelectedEventContext';
 import { HeaderVisibilityProvider } from './contexts/HeaderVisibilityContext';
+import { SidebarProvider } from './contexts/SidebarContext';
+import { SearchProvider } from './contexts/SearchContext';
 import { CompleteRegistration } from './pages/CompleteRegistration';
 import { EnterToken } from './pages/Auth/EnterToken';
 import { USER_ROLE } from './types/user';
@@ -55,8 +57,10 @@ function App() {
               <ActiveEventProvider>
                 <SelectedEventProvider>
                   <HeaderVisibilityProvider>
-                  <Routes>
-                    <Route path="/" element={<Header />}>
+                    <SidebarProvider>
+                      <SearchProvider>
+                        <Routes>
+                    <Route path="/" element={<Layout />}>
                       <Route index element={<Landing />} />
                       <Route
                         path="dashboard"
@@ -194,7 +198,9 @@ function App() {
                       }
                     />
                     <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
+                        </Routes>
+                      </SearchProvider>
+                    </SidebarProvider>
                 </HeaderVisibilityProvider>
               </SelectedEventProvider>
             </ActiveEventProvider>
