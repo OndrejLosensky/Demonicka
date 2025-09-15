@@ -5,7 +5,7 @@ interface MetricCardProps {
   title: string;
   value: React.ReactNode;
   subtitle?: string;
-  icon?: React.ReactNode;
+  icon?: string | React.ReactNode;
   color?: 'primary' | 'success' | 'warning' | 'error' | 'info';
 }
 
@@ -33,9 +33,10 @@ export const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, 
               justifyContent: 'center',
               color: 'common.white',
               flexShrink: 0,
+              fontSize: '1rem',
             }}
           >
-            {React.cloneElement(icon as React.ReactElement, { 
+            {typeof icon === 'string' ? icon : React.cloneElement(icon as React.ReactElement, { 
               sx: { fontSize: '1rem' } 
             })}
           </Box>

@@ -59,6 +59,30 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ isLandingPage = fa
   } = useSearch();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 'k') {
+        event.preventDefault();
+        openSearch();
+        setTimeout(() => searchInputRef.current?.focus(), 100);
+      }
+      if (event.key === 'Escape') {
+        closeSearch();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [openSearch, closeSearch]);
+
+  // Focus search input when opened
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
+
   // Don't show on landing page or when user is not logged in
   if (isLandingPage || !user) {
     return null;
@@ -141,30 +165,6 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ isLandingPage = fa
     setSearchQuery(value);
     performSearch(value);
   };
-
-  // Handle keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.key === 'k') {
-        event.preventDefault();
-        openSearch();
-        setTimeout(() => searchInputRef.current?.focus(), 100);
-      }
-      if (event.key === 'Escape') {
-        closeSearch();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [openSearch, closeSearch]);
-
-  // Focus search input when opened
-  useEffect(() => {
-    if (isSearchOpen && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [isSearchOpen]);
 
   return (
     <motion.div
