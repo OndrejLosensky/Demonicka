@@ -406,7 +406,7 @@ export default function Landing() {
 
                   {/* CTA Buttons */}
                   <motion.div
-                    className="mt-10 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start"
+                    className="mt-10 flex flex-col sm:flex-row items-center sm:items-baseline gap-4 justify-center lg:justify-start"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6, duration: 0.8 }}
@@ -426,6 +426,7 @@ export default function Landing() {
                     <Link
                       to="/leaderboard"
                       className="group text-lg font-semibold text-gray-600 hover:text-primary transition-colors duration-300 flex items-center gap-2"
+                      style={{ lineHeight: '1.5' }}
                     >
                       {translations.hero.learnMore}
                       <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>

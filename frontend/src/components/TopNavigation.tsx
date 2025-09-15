@@ -22,7 +22,9 @@ import {
   ChevronRight as ChevronRightIcon,
   Wifi as WifiIcon,
   WifiOff as WifiOffIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  DarkMode as DarkModeIcon,
+  LightMode as LightModeIcon
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -30,6 +32,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useSearch } from '../contexts/SearchContext';
+import { useAppTheme } from '../contexts/ThemeContext';
 import { SearchResults } from './SearchResults';
 
 interface TopNavigationProps {
@@ -42,6 +45,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ isLandingPage = fa
   const { user } = useAuth();
   const { activeEvent } = useActiveEvent();
   const { isCollapsed } = useSidebar();
+  const { mode, toggleMode } = useAppTheme();
   const { 
     isSearchOpen, 
     searchQuery, 
@@ -237,31 +241,29 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ isLandingPage = fa
             </Breadcrumbs>
           </Box>
 
-          {/* Active Event Status */}
-          {activeEvent && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Chip
-                label={activeEvent.name}
-                size="small"
-                sx={{
-                  bgcolor: 'success.light',
-                  color: 'success.contrastText',
-                  fontWeight: 500,
-                  borderRadius: 0,
-                  '& .MuiChip-label': {
-                    fontSize: '0.75rem'
-                  }
-                }}
-              />
-            </motion.div>
-          )}
-
           {/* Quick Actions */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {/* Theme Toggle */}
+            <Tooltip title={`Přepnout na ${mode === 'light' ? 'tmavý' : 'světlý'} režim`} arrow>
+              <IconButton
+                onClick={toggleMode}
+                size="small"
+                sx={{
+                  color: 'text.secondary',
+                  '&:hover': {
+                    color: 'primary.main',
+                    bgcolor: alpha('#000', 0.04)
+                  }
+                }}
+              >
+                {mode === 'light' ? (
+                  <DarkModeIcon fontSize="small" />
+                ) : (
+                  <LightModeIcon fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
+
             {/* Search */}
             <Tooltip title="Vyhledávání (Ctrl+K)" arrow>
               <IconButton

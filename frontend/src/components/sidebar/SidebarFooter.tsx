@@ -9,7 +9,8 @@ import {
   ListItemText, 
   Divider,
   Typography,
-  Tooltip
+  Tooltip,
+  Link
 } from '@mui/material';
 import { useSidebar } from '../../contexts/SidebarContext';
 import { 
@@ -17,20 +18,16 @@ import {
   Person as PersonIcon,
   Settings as SettingsIcon,
   History as HistoryIcon,
-  DarkMode as DarkModeIcon,
-  LightMode as LightModeIcon,
 } from '@mui/icons-material';
 import { FaBook } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-import { useAppTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { USER_ROLE } from '../../types/user';
 import translations from '../../locales/cs/common.header.json';
 
 export const SidebarFooter: React.FC = () => {
   const { user, logout, hasRole } = useAuth();
-  const { mode, toggleMode } = useAppTheme();
   const navigate = useNavigate();
   const { isCollapsed } = useSidebar();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -64,7 +61,7 @@ export const SidebarFooter: React.FC = () => {
 
   return (
     <Box sx={{ 
-      p: 2, 
+      p: 1, 
       borderTop: '1px solid', 
       borderColor: 'divider',
       bgcolor: 'background.default',
@@ -72,31 +69,33 @@ export const SidebarFooter: React.FC = () => {
       flexDirection: 'column',
       alignItems: 'stretch'
     }}>
-      {/* Theme Toggle */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2, px: isCollapsed ? 0.5 : 1 }}>
-        <Tooltip title={`Přepnout na ${mode === 'light' ? 'tmavý' : 'světlý'} režim`} arrow placement={isCollapsed ? 'right' : 'top'}>
-          <IconButton
-            onClick={toggleMode}
-            size="small"
-            className="bg-gradient-to-br from-background-secondary/15 to-background-secondary/5 hover:from-background-secondary/25 hover:to-background-secondary/10 border border-border-secondary/30 shadow-sm"
+      {/* System Link */}
+      {hasRole([USER_ROLE.ADMIN]) && (
+        <Box sx={{ mb: 1 }}>
+          <Link
+            component="button"
+            onClick={() => navigate('/dashboard/system')}
+            className="w-full text-left text-text-secondary hover:text-primary transition-colors duration-200"
             sx={{
-              width: isCollapsed ? 32 : 36,
-              height: isCollapsed ? 32 : 36,
-              transition: 'all 0.2s ease-in-out',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              p: 1,
+              borderRadius: 1,
+              textDecoration: 'none',
+              fontSize: '0.85rem',
+              fontWeight: 500,
               '&:hover': {
-                transform: 'translateY(-1px)',
-                boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
+                bgcolor: 'action.hover',
+                textDecoration: 'none'
               }
             }}
           >
-            {mode === 'light' ? (
-              <DarkModeIcon fontSize="small" />
-            ) : (
-              <LightModeIcon fontSize="small" />
-            )}
-          </IconButton>
-        </Tooltip>
-      </Box>
+            <SettingsIcon fontSize="small" />
+            {!isCollapsed && 'Systém'}
+          </Link>
+        </Box>
+      )}
 
       {/* User Profile */}
       <motion.div
@@ -221,17 +220,6 @@ export const SidebarFooter: React.FC = () => {
 
         {hasRole([USER_ROLE.ADMIN]) && (
           <>
-            <MenuItem onClick={() => navigate('/dashboard/system')} sx={{ py: 1, px: 2 }}>
-              <ListItemIcon>
-                <SettingsIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Systém"
-                primaryTypographyProps={{
-                  className: "font-medium"
-                }}
-              />
-            </MenuItem>
             <MenuItem onClick={() => navigate('/docs')} sx={{ py: 1, px: 2 }}>
               <ListItemIcon>
                 <FaBook className="text-lg" />

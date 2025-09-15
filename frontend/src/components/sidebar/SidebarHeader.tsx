@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, IconButton, Tooltip } from '@mui/material';
 import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { useSidebar } from '../../contexts/SidebarContext';
 
 interface SidebarHeaderProps {
@@ -29,12 +30,14 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ onMenuClick }) => 
         transition={{ duration: 0.3 }}
         className="flex items-center justify-center"
       >
-        <img
-          src="/logo.svg"
-          alt="Démonická"
-          className="h-10 w-auto"
-          style={{ maxWidth: isCollapsed ? '40px' : 'none' }}
-        />
+        <Link to="/" className="flex items-center justify-center">
+          <img
+            src="/logo.svg"
+            alt="Démonická"
+            className="h-10 w-auto hover:opacity-80 transition-opacity duration-200"
+            style={{ maxWidth: isCollapsed ? '40px' : 'none' }}
+          />
+        </Link>
       </motion.div>
 
       {/* Collapse/Expand Button */}
@@ -48,8 +51,12 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ onMenuClick }) => 
             height: 32,
             transition: 'all 0.2s ease-in-out',
             display: { xs: 'none', md: 'flex' },
+            alignItems: 'center',
+            justifyContent: 'center',
+            top: '50%',
+            transform: 'translateY(-50%)',
             '&:hover': {
-              transform: 'translateY(-1px)',
+              transform: 'translateY(-50%) translateY(-1px)',
               boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
             }
           }}
@@ -73,8 +80,12 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ onMenuClick }) => 
           height: 32,
           transition: 'all 0.2s ease-in-out',
           display: { xs: 'flex', md: 'none' },
+          alignItems: 'center',
+          justifyContent: 'center',
+          top: '50%',
+          transform: 'translateY(-50%)',
           '&:hover': {
-            transform: 'translateY(-1px)',
+            transform: 'translateY(-50%) translateY(-1px)',
             boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
           }
         }}
