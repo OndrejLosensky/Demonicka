@@ -8,7 +8,7 @@ export { Dashboard } from './Dashboard/Dashboard';
 export { default as Participants } from './Dashboard/Participants';
 export { default as Barrels } from './Dashboard/Barrels';
 export { SystemPage } from './Dashboard/System';
-export { Activity } from './Dashboard/Activity';
+export { Activity } from './Dashboard/Activity/index.tsx';
 export { Events } from './Dashboard/Events';
 export { EventDetail } from './Dashboard/Events/EventDetail';
 export { EventResults } from './Dashboard/Events/EventResults';
