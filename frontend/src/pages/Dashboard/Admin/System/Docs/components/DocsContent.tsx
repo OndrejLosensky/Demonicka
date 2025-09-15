@@ -7,7 +7,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { SimpleMarkdownParser } from '../../../../../utils/markdownParser';
+import { SimpleMarkdownParser } from '../../../../../../utils/markdownParser';
 import type { DocFile } from '../types';
 
 interface DocsContentProps {

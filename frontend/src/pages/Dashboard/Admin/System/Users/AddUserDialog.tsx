@@ -13,13 +13,13 @@ import {
 } from '@mui/material';
 import type { AxiosError } from 'axios';
 import type { AddUserDialogProps } from './types';
-import { userService } from '../../../../services/userService';
-import { useActiveEvent } from '../../../../contexts/ActiveEventContext';
-import { useSelectedEvent } from '../../../../contexts/SelectedEventContext';
-import { eventService } from '../../../../services/eventService';
-import { useToast } from '../../../../hooks/useToast';
-import translations from '../../../../locales/cs/dashboard.users.json';
-import toastTranslations from '../../../../locales/cs/toasts.json';
+import { userService } from '../../../../../services/userService';
+import { useActiveEvent } from '../../../../../contexts/ActiveEventContext';
+import { useSelectedEvent } from '../../../../../contexts/SelectedEventContext';
+import { eventService } from '../../../../../services/eventService';
+import { useToast } from '../../../../../hooks/useToast';
+import translations from '../../../../../locales/cs/dashboard.users.json';
+import toastTranslations from '../../../../../locales/cs/toasts.json';
 
 export const AddUserDialog: React.FC<AddUserDialogProps> = ({
   open,

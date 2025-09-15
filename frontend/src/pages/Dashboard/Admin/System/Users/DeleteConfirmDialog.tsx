@@ -6,7 +6,7 @@ import {
   Button,
   Typography,
 } from '@mui/material';
-import translations from '../../../../locales/cs/dashboard.users.json';
+import translations from '../../../../../locales/cs/dashboard.users.json';
 
 interface DeleteConfirmDialogProps {
   open: boolean;

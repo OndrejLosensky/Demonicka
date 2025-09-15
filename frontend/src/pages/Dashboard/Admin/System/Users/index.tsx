@@ -11,13 +11,13 @@ import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { UsersTable } from './UsersTable';
 import { useUsers } from './useUsers';
 import { AddUserDialog } from './AddUserDialog';
-import { useFeatureFlag } from '../../../../hooks/useFeatureFlag';
-import { FeatureFlagKey } from '../../../../types/featureFlags';
+import { useFeatureFlag } from '../../../../../hooks/useFeatureFlag';
+import { FeatureFlagKey } from '../../../../../types/featureFlags';
 import { EventSelector } from '../../EventSelector';
-import { PageHeader } from '../../../../components/ui/PageHeader';
-import { useActiveEvent } from '../../../../contexts/ActiveEventContext';
-import translations from '../../../../locales/cs/dashboard.users.json';
-import { withPageLoader } from '../../../../components/hoc/withPageLoader';
+import { PageHeader } from '../../../../../components/ui/PageHeader';
+import { useActiveEvent } from '../../../../../contexts/ActiveEventContext';
+import translations from '../../../../../locales/cs/dashboard.users.json';
+import { withPageLoader } from '../../../../../components/hoc/withPageLoader';
 
 const UsersPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);

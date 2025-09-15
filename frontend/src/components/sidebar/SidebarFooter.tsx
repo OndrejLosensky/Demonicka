@@ -220,7 +220,7 @@ export const SidebarFooter: React.FC = () => {
 
         {hasRole([USER_ROLE.ADMIN]) && (
           <>
-            <MenuItem onClick={() => navigate('/docs')} sx={{ py: 1, px: 2 }}>
+            <MenuItem onClick={() => navigate('/system/docs')} sx={{ py: 1, px: 2 }}>
               <ListItemIcon>
                 <FaBook className="text-lg" />
               </ListItemIcon>
@@ -231,7 +231,7 @@ export const SidebarFooter: React.FC = () => {
                 }}
               />
             </MenuItem>
-            <MenuItem onClick={() => navigate('/activity')} sx={{ py: 1, px: 2 }}>
+            <MenuItem onClick={() => navigate('/system/logs')} sx={{ py: 1, px: 2 }}>
               <ListItemIcon>
                 <HistoryIcon fontSize="small" />
               </ListItemIcon>

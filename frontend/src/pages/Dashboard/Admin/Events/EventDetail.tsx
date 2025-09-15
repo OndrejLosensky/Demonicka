@@ -29,6 +29,7 @@ import {
     Timer as TimeIcon,
     Person as PersonIcon,
     Storage as BarrelIcon,
+    Link as LinkIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
@@ -342,6 +343,28 @@ export const EventDetail: React.FC = () => {
                                     Vyhodnotit událost
                                 </Button>
                             )}
+                            
+                            <Button
+                                variant="outlined"
+                                startIcon={<LinkIcon />}
+                                onClick={() => {
+                                    const arrivalUrl = `${window.location.origin}/event/${event.id}/arrival`;
+                                    navigator.clipboard.writeText(arrivalUrl);
+                                    toast.success('Odkaz na registraci příchodu zkopírován do schránky');
+                                }}
+                                sx={{
+                                    px: 3,
+                                    py: 1,
+                                    borderRadius: 2,
+                                    position: 'relative',
+                                    zIndex: 2,
+                                    minWidth: 'auto',
+                                    fontWeight: 500,
+                                    ml: 2,
+                                }}
+                            >
+                                Kopírovat odkaz na příchod
+                            </Button>
                         </Box>
                     </Box>
                 </Box>

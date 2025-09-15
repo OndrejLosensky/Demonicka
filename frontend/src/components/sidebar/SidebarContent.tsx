@@ -31,6 +31,7 @@ export const SidebarContent: React.FC = () => {
           items: [
             { to: '/dashboard/participants', label: 'Účastníci', icon: 'people' },
             { to: '/dashboard/barrels', label: 'Sudy', icon: 'local_drink' },
+            { to: '/dashboard/beer-pong', label: 'Beer Pong', icon: 'sports_bar' },
             { to: '/dashboard/leaderboard', label: 'Žebříček', icon: 'leaderboard' },
           ]
         });

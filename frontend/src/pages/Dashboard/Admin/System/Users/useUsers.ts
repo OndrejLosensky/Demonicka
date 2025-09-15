@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { userService } from '../../../../services/userService';
-import type { User } from '../../../../types/user';
-import { useSelectedEvent } from '../../../../contexts/SelectedEventContext';
-import { useToast } from '../../../../hooks/useToast';
-import translations from '../../../../locales/cs/dashboard.users.json';
-import toastTranslations from '../../../../locales/cs/toasts.json';
+import { userService } from '../../../../../services/userService';
+import type { User } from '../../../../../types/user';
+import { useSelectedEvent } from '../../../../../contexts/SelectedEventContext';
+import { useToast } from '../../../../../hooks/useToast';
+import translations from '../../../../../locales/cs/dashboard.users.json';
+import toastTranslations from '../../../../../locales/cs/toasts.json';
 
 export const useUsers = (includeDeleted = false) => {
   const [users, setUsers] = useState<User[]>([]);

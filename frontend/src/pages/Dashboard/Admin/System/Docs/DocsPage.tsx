@@ -1,9 +1,9 @@
 import React from 'react';
 import { Container, Grid } from '@mui/material';
-import '../../../../styles/markdown.css';
-import { withPageLoader } from '../../../../components/hoc/withPageLoader';
-import { usePageTitle } from '../../../../hooks/usePageTitle';
-import { PageHeader } from '../../../../components/ui/PageHeader';
+import '../../../../../styles/markdown.css';
+import { withPageLoader } from '../../../../../components/hoc/withPageLoader';
+import { usePageTitle } from '../../../../../hooks/usePageTitle';
+import { PageHeader } from '../../../../../components/ui/PageHeader';
 import { useDocumentation } from './hooks';
 import { DocsSidebar, DocsContent } from './components';
 

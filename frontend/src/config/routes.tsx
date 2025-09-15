@@ -8,6 +8,7 @@ import {
   Dashboard,
   Participants,
   Barrels,
+  BeerPong,
   Leaderboard,
   Landing,
   ProfilePage,
@@ -21,6 +22,7 @@ import {
   Logs,
   PersonalStatsView,
   AchievementsPage,
+  ArrivalRegistration,
 } from '../pages';
 import { Layout, RoleRoute } from '../components';
 
@@ -72,6 +74,14 @@ export function AppRoutes() {
           }
         />
         <Route
+          path="dashboard/beer-pong"
+          element={
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
+              <BeerPong />
+            </RoleRoute>
+          }
+        />
+        <Route
           path="dashboard/system"
           element={
             <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
@@ -88,7 +98,7 @@ export function AppRoutes() {
           }
         />
         <Route
-          path="activity"
+          path="system/logs"
           element={
             <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <Logs />
@@ -120,7 +130,7 @@ export function AppRoutes() {
           }
         />
         <Route
-          path="docs"
+          path="system/docs"
           element={
             <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <Docs />
@@ -190,6 +200,10 @@ export function AppRoutes() {
           </GuestRoute>
         }
       />
+      
+      {/* Public Event Routes (no auth required) */}
+      <Route path="event/:eventId/arrival" element={<ArrivalRegistration />} />
+      <Route path="arrival/:token" element={<ArrivalRegistration />} />
       
       {/* Fallback Route */}
       <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />

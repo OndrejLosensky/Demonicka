@@ -25,7 +25,7 @@ import {
 import type { UserTableProps } from './types';
 import { format } from 'date-fns';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
-import translations from '../../../../locales/cs/dashboard.users.json';
+import translations from '../../../../../locales/cs/dashboard.users.json';
 
 export const UsersTable: React.FC<UserTableProps> = ({
   users,
