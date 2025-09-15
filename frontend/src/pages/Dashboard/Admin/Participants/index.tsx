@@ -45,6 +45,7 @@ const ParticipantsPage: React.FC = () => {
     handleDelete,
     handleAddBeer,
     handleRemoveBeer,
+    handleAddSpilledBeer,
     fetchParticipants,
   } = useParticipants(showDeleted);
 
@@ -123,6 +124,7 @@ const ParticipantsPage: React.FC = () => {
           onDelete={handleDelete}
           onAddBeer={handleAddBeer}
           onRemoveBeer={handleRemoveBeer}
+          onAddSpilledBeer={handleAddSpilledBeer}
         />
       ) : (
         <Grid container spacing={3}>
@@ -138,6 +140,7 @@ const ParticipantsPage: React.FC = () => {
               onDelete={handleDelete}
               onAddBeer={handleAddBeer}
               onRemoveBeer={handleRemoveBeer}
+              onAddSpilledBeer={handleAddSpilledBeer}
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -152,6 +155,7 @@ const ParticipantsPage: React.FC = () => {
               onDelete={handleDelete}
               onAddBeer={handleAddBeer}
               onRemoveBeer={handleRemoveBeer}
+              onAddSpilledBeer={handleAddSpilledBeer}
             />
           </Grid>
         </Grid>

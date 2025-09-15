@@ -6,6 +6,7 @@ export interface Participant {
   role: 'ADMIN' | 'USER' | 'PARTICIPANT';
   beerCount: number;  // Global beer count
   eventBeerCount?: number;  // Event-specific beer count
+  spilledBeerCount?: number;  // Event-specific spilled beer count
   lastBeerTime: string | null;
   profilePicture: string | null;
   createdAt: string;
@@ -19,6 +20,7 @@ export interface ParticipantTableProps {
   showDeleted: boolean;
   onAddBeer: (participantId: string) => Promise<void>;
   onRemoveBeer: (participantId: string) => Promise<void>;
+  onAddSpilledBeer: (participantId: string) => Promise<void>;
   onDelete: (participantId: string) => Promise<void>;
 }
 

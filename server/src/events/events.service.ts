@@ -122,11 +122,15 @@ export class EventsService {
             users = event.users || [];
         }
 
-        // Add event beer counts to each user
-        return users.map(user => ({
-            ...user,
-            eventBeerCount: event.eventBeers.filter(eb => eb.userId === user.id).length
-        }));
+        // Add event beer counts and spilled beer counts to each user
+        return users.map(user => {
+            const userEventBeers = event.eventBeers.filter(eb => eb.userId === user.id);
+            return {
+                ...user,
+                eventBeerCount: userEventBeers.length,
+                spilledBeerCount: userEventBeers.filter(eb => eb.spilled).length
+            };
+        });
     }
 
     async addUser(id: string, userId: string): Promise<Event> {
@@ -225,6 +229,35 @@ export class EventsService {
             this.loggingService.logBeerAdded(userId, barrelId);
         } catch (error: unknown) {
             this.loggingService.error('Failed to add beer to event', {
+                error: error instanceof Error ? error.message : String(error),
+                eventId,
+                userId,
+            });
+            throw error;
+        }
+    }
+
+    async addSpilledBeer(eventId: string, userId: string): Promise<void> {
+        try {
+            await this.findOne(eventId);
+            await this.usersService.findOne(userId);
+
+            // Get active barrel
+            const activeBarrel = await this.barrelsService.getActiveBarrel();
+            let barrelId: string | undefined = undefined;
+
+            if (activeBarrel) {
+                // If there is an active barrel, use it and decrement its beers
+                barrelId = activeBarrel.id;
+                await this.barrelsService.decrementBeers(activeBarrel.id);
+            }
+
+            // Create spilled event beer
+            await this.eventBeersService.create(eventId, userId, barrelId, true);
+
+            this.loggingService.logBeerAdded(userId, barrelId);
+        } catch (error: unknown) {
+            this.loggingService.error('Failed to add spilled beer to event', {
                 error: error instanceof Error ? error.message : String(error),
                 eventId,
                 userId,

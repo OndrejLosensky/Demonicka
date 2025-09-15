@@ -51,6 +51,14 @@ export const participantsApi = {
     }
   },
 
+  addSpilledBeer: async (id: string, eventId?: string): Promise<void> => {
+    if (eventId) {
+      await api.post(`/events/${eventId}/users/${id}/beers/spilled`);
+    } else {
+      throw new Error('Event ID is required for spilled beer');
+    }
+  },
+
   cleanup: async (): Promise<void> => {
     await api.post('/users/cleanup');
   },

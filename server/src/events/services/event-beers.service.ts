@@ -38,6 +38,7 @@ export class EventBeersService {
     eventId: string,
     userId: string,
     barrelId?: string,
+    spilled: boolean = false,
   ): Promise<EventBeer> {
     const event = await this.eventRepository.findOne({
       where: { id: eventId },
@@ -71,6 +72,7 @@ export class EventBeersService {
       eventId,
       userId,
       barrelId: barrel?.id || null,
+      spilled,
     });
 
     const savedEventBeer = await this.eventBeerRepository.save(eventBeer);

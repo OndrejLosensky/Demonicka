@@ -104,6 +104,18 @@ export const useParticipants = (includeDeleted = false) => {
     }
   }, [activeEvent?.id, fetchParticipants]); // Remove toast and participants from dependencies
 
+  const handleAddSpilledBeer = useCallback(async (id: string) => {
+    const participant = participantsRef.current.find(p => p.id === id);
+    try {
+      await participantsApi.addSpilledBeer(id, activeEvent?.id);
+      toast.success(`Rozlité pivo přidáno pro ${participant?.name || id}`);
+      await fetchParticipants();
+    } catch (error) {
+      console.error('Failed to add spilled beer:', error);
+      toast.error('Nepodařilo se přidat rozlité pivo');
+    }
+  }, [activeEvent?.id, fetchParticipants]); // Remove toast and participants from dependencies
+
   const handleCleanup = useCallback(async () => {
     try {
       await participantsApi.cleanup();
@@ -126,6 +138,7 @@ export const useParticipants = (includeDeleted = false) => {
     handleDelete,
     handleAddBeer,
     handleRemoveBeer,
+    handleAddSpilledBeer,
     handleCleanup,
     fetchParticipants,
   };

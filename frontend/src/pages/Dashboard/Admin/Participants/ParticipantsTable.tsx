@@ -24,6 +24,7 @@ import {
   Remove as RemoveIcon,
   Male as MaleIcon,
   Female as FemaleIcon,
+  LocalDrink as SpillIcon,
 } from '@mui/icons-material';
 import { FaBeer } from 'react-icons/fa';
 import type { ParticipantTableProps } from './types';
@@ -38,6 +39,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   showDeleted,
   onAddBeer,
   onRemoveBeer,
+  onAddSpilledBeer,
   onDelete,
 }) => {
   const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; participant: { id: string; username: string } }>(null);
@@ -77,6 +79,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
             <TableRow>
               <TableCell>{translations.table.columns.name}</TableCell>
               <TableCell align="center">{translations.table.columns.beers}</TableCell>
+              <TableCell align="center">Rozlils</TableCell>
               <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{translations.table.columns.gender}</TableCell>
               <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{translations.table.columns.lastBeer}</TableCell>
               <TableCell align="right" sx={{ width: { xs: 120, sm: 180, md: 220 } }}>{translations.table.columns.actions}</TableCell>
@@ -128,6 +131,16 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                   }}>
                     <FaBeer style={{ color: 'rgba(0, 0, 0, 0.6)' }} />
                     <Typography>{participant.eventBeerCount || 0}</Typography>
+                  </Box>
+                </TableCell>
+                <TableCell align="center">
+                  <Box sx={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: 1,
+                  }}>
+                    <SpillIcon sx={{ color: 'rgba(255, 87, 34, 0.8)' }} />
+                    <Typography>{participant.spilledBeerCount || 0}</Typography>
                   </Box>
                 </TableCell>
                 <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
@@ -189,6 +202,22 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                           }}
                         >
                           <AddIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Rozlít pivo">
+                        <IconButton
+                          size="small"
+                          onClick={() => onAddSpilledBeer(participant.id)}
+                          sx={{
+                            mr: { xs: 0.5, sm: 1 },
+                            bgcolor: 'warning.main',
+                            color: 'white',
+                            '&:hover': {
+                              bgcolor: 'warning.dark',
+                            },
+                          }}
+                        >
+                          <SpillIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title={translations.table.actions.delete}>

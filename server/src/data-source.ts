@@ -22,6 +22,7 @@ import { AddFirstLastNameToUser1749763388825 } from './migrations/1749763388825-
 import { AddTotalBeersToBarrels1749975358935 } from './migrations/1749975358935-AddTotalBeersToBarrels';
 import { CreateAchievementsTables1750000000000 } from './migrations/1750000000000-CreateAchievementsTables';
 import { AddProfilePictureToUser1757947503551 } from './migrations/1757947503551-AddProfilePictureToUser';
+import { AddSpilledToEventBeer1757950602334 } from './migrations/1757950602334-AddSpilledToEventBeer';
 
 config();
 
@@ -57,6 +58,7 @@ export const AppDataSource = new DataSource({
     AddTotalBeersToBarrels1749975358935,
     CreateAchievementsTables1750000000000,
     AddProfilePictureToUser1757947503551,
+    AddSpilledToEventBeer1757950602334,
   ],
   synchronize: process.env.NODE_ENV === 'development',
   logging: process.env.NODE_ENV === 'development',

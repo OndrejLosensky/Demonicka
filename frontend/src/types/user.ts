@@ -15,6 +15,7 @@ export interface User {
     gender: 'MALE' | 'FEMALE';
     role: UserRole;
     beerCount: number;
+    spilledBeerCount: number;
     lastBeerTime: string | null;
     registrationToken: string | null;
     isRegistrationComplete: boolean;

@@ -40,6 +40,9 @@ export class EventBeer {
   @CreateDateColumn()
   consumedAt: Date;
 
+  @Column({ default: false })
+  spilled: boolean;
+
   @DeleteDateColumn()
   deletedAt: Date;
 } 

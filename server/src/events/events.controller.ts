@@ -183,4 +183,13 @@ export class EventsController {
   ): Promise<number> {
     return this.eventBeersService.getEventBeerCount(eventId, userId);
   }
+
+  @Post(':id/users/:userId/beers/spilled')
+  @BypassAuth()
+  addSpilledBeer(
+    @Param('id', ParseUUIDPipe) eventId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.eventsService.addSpilledBeer(eventId, userId);
+  }
 }
