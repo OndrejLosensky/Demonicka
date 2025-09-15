@@ -4,6 +4,7 @@ export class UserLeaderboardDto {
   gender: 'MALE' | 'FEMALE';
   beerCount: number;
   profilePicture: string | null;
+  lastBeerTime: string | null;
 }
 
 export class LeaderboardDto {

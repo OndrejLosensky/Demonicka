@@ -3,7 +3,7 @@ import { Typography, Grid, Box, IconButton, Tooltip, Paper, Chip, Avatar } from 
 import { FaBeer } from 'react-icons/fa';
 import { Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon, Speed as SpeedIcon } from '@mui/icons-material';
 import { GiTrophy } from 'react-icons/gi';
-import { useLeaderboard, type LeaderboardTableProps } from './index.ts';
+import { useLeaderboard, type LeaderboardTableProps, groupUsersByBeerCount, type GroupedUser } from './index.ts';
 import { MetricCard } from '../../../../components/ui/MetricCard';
 import translations from '../../../../locales/cs/dashboard.leaderboard.json';
 import { withPageLoader } from '../../../../components/hoc/withPageLoader';
@@ -14,11 +14,13 @@ import { profilePictureService } from '../../../../services/profilePictureServic
 
 // LeaderboardTable Component
 const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ participants = [], title }) => {
+  const groupedUsers = groupUsersByBeerCount(participants);
+  
   const getTrophyColor = (rank: number): string => {
     switch (rank) {
-      case 0: return '#FFD700'; // Gold
-      case 1: return '#C0C0C0'; // Silver
-      case 2: return '#CD7F32'; // Bronze
+      case 1: return '#FFD700'; // Gold
+      case 2: return '#C0C0C0'; // Silver
+      case 3: return '#CD7F32'; // Bronze
       default: return 'transparent';
     }
   };
@@ -64,96 +66,116 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ participants = [], 
           </tr>
         </thead>
         <tbody>
-          {participants.map((participant, index) => (
-            <tr key={participant.id}>
-              <td style={{ padding: '12px 16px', width: '70px' }}>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <Typography 
-                    variant={index < 3 ? 'h6' : 'body1'} 
-                    sx={{ 
-                      fontWeight: 900,
-                      fontSize: index < 3 ? '1.2rem' : '1rem',
-                      color: 'text.primary',
-                      textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                    }}
-                  >
-                    {index + 1}.
-                  </Typography>
-                  {index < 3 && (
-                    <GiTrophy style={{ 
-                      fontSize: '1.2rem',
-                      color: getTrophyColor(index)
-                    }} />
-                  )}
-                </Box>
-              </td>
-              <td style={{ padding: '12px 16px' }}>
-                <Box display="flex" alignItems="center" gap={2}>
-                  <Avatar 
-                    src={participant.profilePicture ? profilePictureService.getProfilePictureUrl(participant.profilePicture) : undefined}
-                    sx={{ 
-                      width: index < 3 ? 40 : 32, 
-                      height: index < 3 ? 40 : 32,
-                      bgcolor: 'primary.main',
-                      fontSize: index < 3 ? '1rem' : '0.8rem',
-                      fontWeight: 'bold',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                    }}
-                  >
-                    {!participant.profilePicture && participant.username.charAt(0).toUpperCase()}
-                  </Avatar>
-                  <Box>
-                    <Typography 
-                      variant={index < 3 ? 'h6' : 'body1'}
-                      sx={{ 
-                        fontWeight: index < 3 ? 900 : 700,
-                        fontSize: index < 3 ? '1.2rem' : '1rem',
-                        color: 'text.primary',
-                        textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                      }}
-                    >
-                      {participant.username}
-                    </Typography>
-                    {index === 0 && (
-                      <Chip 
-                        label={translations.table.champion}
-                        size="small"
+          {groupedUsers.map((group, groupIndex) => (
+            <React.Fragment key={`group-${group.beerCount}`}>
+              {group.users.map((participant, userIndex) => (
+                <tr key={participant.id}>
+                  <td style={{ padding: '12px 16px', width: '70px' }}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      {userIndex === 0 ? (
+                        <>
+                          <Typography 
+                            variant={group.rank <= 3 ? 'h6' : 'body1'} 
+                            sx={{ 
+                              fontWeight: 900,
+                              fontSize: group.rank <= 3 ? '1.2rem' : '1rem',
+                              color: 'text.primary',
+                              textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                            }}
+                          >
+                            {group.rank}.
+                          </Typography>
+                          {group.rank <= 3 && (
+                            <GiTrophy style={{ 
+                              fontSize: '1.2rem',
+                              color: getTrophyColor(group.rank)
+                            }} />
+                          )}
+                        </>
+                      ) : (
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            color: 'text.secondary',
+                            fontStyle: 'italic',
+                          }}
+                        >
+                          =
+                        </Typography>
+                      )}
+                    </Box>
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <Avatar 
+                        src={participant.profilePicture ? profilePictureService.getProfilePictureUrl(participant.profilePicture) : undefined}
                         sx={{ 
-                          bgcolor: 'warning.main',
-                          color: 'warning.contrastText',
-                          fontWeight: 900,
-                          fontSize: '0.8rem',
-                          px: 0.8,
-                          py: 0.3,
+                          width: group.rank <= 3 ? 40 : 32, 
+                          height: group.rank <= 3 ? 40 : 32,
+                          bgcolor: 'primary.main',
+                          fontSize: group.rank <= 3 ? '1rem' : '0.8rem',
+                          fontWeight: 'bold',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                          mt: 0.5,
                         }}
-                      />
-                    )}
-                  </Box>
-                </Box>
-              </td>
-              <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                <Box display="flex" alignItems="center" justifyContent="flex-end" gap={1}>
-                  <Typography 
-                    variant={index < 3 ? 'h6' : 'body1'}
-                    sx={{ 
-                      fontWeight: 900,
-                      fontSize: index < 3 ? '1.2rem' : '1rem',
-                      color: 'text.primary',
-                      textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                    }}
-                  >
-                    {participant.beerCount}
-                  </Typography>
-                  <FaBeer style={{ 
-                    fontSize: index < 3 ? '1.1rem' : '1rem',
-                    opacity: index < 3 ? 1 : 0.8,
-                    color: index < 3 ? 'primary.main' : 'text.primary',
-                  }} />
-                </Box>
-              </td>
-            </tr>
+                      >
+                        {!participant.profilePicture && participant.username.charAt(0).toUpperCase()}
+                      </Avatar>
+                      <Box>
+                        <Typography 
+                          variant={group.rank <= 3 ? 'h6' : 'body1'}
+                          sx={{ 
+                            fontWeight: group.rank <= 3 ? 900 : 700,
+                            fontSize: group.rank <= 3 ? '1.2rem' : '1rem',
+                            color: 'text.primary',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                          }}
+                        >
+                          {participant.username}
+                        </Typography>
+                        {group.rank === 1 && userIndex === 0 && (
+                          <Chip 
+                            label={translations.table.champion}
+                            size="small"
+                            sx={{ 
+                              bgcolor: 'warning.main',
+                              color: 'warning.contrastText',
+                              fontWeight: 900,
+                              fontSize: '0.8rem',
+                              px: 0.8,
+                              py: 0.3,
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                              mt: 0.5,
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                    <Box display="flex" alignItems="center" justifyContent="flex-end" gap={1}>
+                      <Typography 
+                        variant={group.rank <= 3 ? 'h6' : 'body1'}
+                        sx={{ 
+                          fontWeight: 900,
+                          fontSize: group.rank <= 3 ? '1.2rem' : '1rem',
+                          color: 'text.primary',
+                          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                        }}
+                      >
+                        {participant.beerCount}
+                      </Typography>
+                      <FaBeer style={{ 
+                        fontSize: group.rank <= 3 ? '1.1rem' : '1rem',
+                        opacity: group.rank <= 3 ? 1 : 0.8,
+                        color: group.rank <= 3 ? 'primary.main' : 'text.primary',
+                      }} />
+                    </Box>
+                  </td>
+                </tr>
+              ))}
+            </React.Fragment>
           ))}
           {(!participants || participants.length === 0) && (
             <tr>

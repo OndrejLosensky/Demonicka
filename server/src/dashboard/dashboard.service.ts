@@ -331,10 +331,12 @@ export class DashboardService {
             'user.gender as gender',
             'user.profilePicture as profilePicture',
             'COALESCE(COUNT(event_beer.id), 0) as beerCount',
+            'MAX(event_beer.consumedAt) as lastBeerTime',
           ])
           .where('user.id IN (:...ids)', { ids: eventUserIds })
           .groupBy('user.id')
           .orderBy('beerCount', 'DESC')
+          .addOrderBy('lastBeerTime', 'DESC') // Most recent beer first for ties
           .getRawMany<UserLeaderboardDto>()
       : [];
 
@@ -345,6 +347,7 @@ export class DashboardService {
           ...u,
           beerCount: parseInt(u.beerCount as unknown as string),
           profilePicture: u.profilePicture,
+          lastBeerTime: u.lastBeerTime,
         })),
       females: users
         .filter((u) => u.gender === 'FEMALE')
@@ -352,6 +355,7 @@ export class DashboardService {
           ...u,
           beerCount: parseInt(u.beerCount as unknown as string),
           profilePicture: u.profilePicture,
+          lastBeerTime: u.lastBeerTime,
         })),
     };
 

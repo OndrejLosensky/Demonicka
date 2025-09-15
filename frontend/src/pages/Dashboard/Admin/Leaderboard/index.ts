@@ -11,6 +11,7 @@ export interface UserLeaderboard {
   username: string;
   beerCount: number;
   profilePicture: string | null;
+  lastBeerTime: string | null;
 }
 
 export interface LeaderboardData {
@@ -18,11 +19,46 @@ export interface LeaderboardData {
   females: UserLeaderboard[];
 }
 
+export interface GroupedUser {
+  users: UserLeaderboard[];
+  beerCount: number;
+  rank: number;
+}
+
 export interface LeaderboardTableProps {
   participants: UserLeaderboard[];
   title: string;
   icon?: React.ReactNode;
 }
+
+// Utility function to group users by beer count for split rows
+export const groupUsersByBeerCount = (participants: UserLeaderboard[]): GroupedUser[] => {
+  const grouped = participants.reduce((acc, user) => {
+    const existingGroup = acc.find(group => group.beerCount === user.beerCount);
+    if (existingGroup) {
+      existingGroup.users.push(user);
+    } else {
+      acc.push({
+        users: [user],
+        beerCount: user.beerCount,
+        rank: 0 // Will be set later
+      });
+    }
+    return acc;
+  }, [] as GroupedUser[]);
+
+  // Sort groups by beer count (descending)
+  grouped.sort((a, b) => b.beerCount - a.beerCount);
+
+  // Assign ranks - sequential ranking (1, 1, 2, 3, 4...)
+  let currentRank = 1;
+  grouped.forEach(group => {
+    group.rank = currentRank;
+    currentRank += 1; // Sequential ranking - next group gets next rank
+  });
+
+  return grouped;
+};
 
 // API
 export const leaderboardApi = {
