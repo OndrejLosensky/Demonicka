@@ -17,7 +17,7 @@ import type { Event } from '../../../types/event';
 import { eventService } from '../../../services/eventService';
 import { format } from 'date-fns';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
-import { EmptyEventState } from '../../../components/EmptyEventState';
+import { EmptyEventState } from '../EmptyEventState';
 import { PageLoader } from '../../../components/ui/PageLoader';
 import { 
     Add as AddIcon, 

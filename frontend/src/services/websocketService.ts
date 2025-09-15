@@ -22,6 +22,12 @@ class WebSocketService {
   connect() {
     if (this.socket?.connected) return;
 
+    // Ensure config is available before connecting
+    if (!config.wsUrl) {
+      console.warn('WebSocket URL not configured, skipping connection');
+      return;
+    }
+
     this.socket = io(config.wsUrl, {
       transports: ['websocket'],
       withCredentials: true,
@@ -77,6 +83,9 @@ class WebSocketService {
     eventName: T,
     callback: (data: WebSocketEvents[T]) => void
   ) {
+    // Ensure connection is established
+    this.connect();
+    
     if (!this.eventHandlers.has(eventName)) {
       this.eventHandlers.set(eventName, new Set());
     }
@@ -108,6 +117,9 @@ class WebSocketService {
 
   // Join a specific event room to receive updates
   joinEvent(eventId: string) {
+    // Ensure connection is established
+    this.connect();
+    
     if (this.socket?.connected) {
       this.socket.emit('event:join', { eventId });
     }
@@ -123,5 +135,5 @@ class WebSocketService {
 
 export const websocketService = new WebSocketService();
 
-// Initialize the connection
-websocketService.connect(); 
+// Initialize the connection lazily to avoid circular dependency
+// The connection will be established when first needed 

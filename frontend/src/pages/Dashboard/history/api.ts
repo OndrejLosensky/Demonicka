@@ -1,5 +1,5 @@
 import type { LogStats, LogsResponse } from './types';
-import { api } from '../../../services/api';
+import { apiClient as api } from '../../../utils/apiClient';
 
 interface GetLogsParams {
   level?: string;

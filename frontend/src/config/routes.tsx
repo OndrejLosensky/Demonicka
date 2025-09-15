@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { USER_ROLE } from '../types';
+import { ROUTES, USER_ROLES } from './constants';
 import {
   Login,
   Register,
@@ -29,10 +29,10 @@ function GuestRoute({ children }: { children: React.ReactElement }) {
   const { user, isLoading, hasRole } = useAuth();
   if (isLoading) return null;
   if (user) {
-    if (hasRole([USER_ROLE.USER])) {
-      return <Navigate to={`/${user.id}/dashboard`} replace />;
+    if (hasRole([USER_ROLES.USER])) {
+      return <Navigate to={ROUTES.USER_DASHBOARD(user.id)} replace />;
     } else {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to={ROUTES.DASHBOARD} replace />;
     }
   }
   return children;
@@ -42,7 +42,7 @@ function GuestRoute({ children }: { children: React.ReactElement }) {
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Layout />}>
+      <Route path={ROUTES.HOME} element={<Layout />}>
         {/* Public Routes */}
         <Route index element={<Landing />} />
         <Route path="leaderboard" element={<Leaderboard />} />
@@ -51,7 +51,7 @@ export function AppRoutes() {
         <Route
           path="dashboard"
           element={
-            <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <Dashboard />
             </RoleRoute>
           }
@@ -59,7 +59,7 @@ export function AppRoutes() {
         <Route
           path="dashboard/participants"
           element={
-            <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <Participants />
             </RoleRoute>
           }
@@ -67,7 +67,7 @@ export function AppRoutes() {
         <Route
           path="dashboard/barrels"
           element={
-            <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <Barrels />
             </RoleRoute>
           }
@@ -75,7 +75,7 @@ export function AppRoutes() {
         <Route
           path="dashboard/system"
           element={
-            <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <SystemPage />
             </RoleRoute>
           }
@@ -83,7 +83,7 @@ export function AppRoutes() {
         <Route
           path="activity"
           element={
-            <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <Activity />
             </RoleRoute>
           }
@@ -91,7 +91,7 @@ export function AppRoutes() {
         <Route
           path="events"
           element={
-            <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <Events />
             </RoleRoute>
           }
@@ -99,7 +99,7 @@ export function AppRoutes() {
         <Route
           path="events/:id"
           element={
-            <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <EventDetail />
             </RoleRoute>
           }
@@ -107,7 +107,7 @@ export function AppRoutes() {
         <Route
           path="events/:id/results"
           element={
-            <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <EventResults />
             </RoleRoute>
           }
@@ -115,7 +115,7 @@ export function AppRoutes() {
         <Route
           path="docs"
           element={
-            <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <Docs />
             </RoleRoute>
           }
@@ -125,7 +125,7 @@ export function AppRoutes() {
         <Route
           path="profile"
           element={
-            <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.USER]}>
               <ProfilePage />
             </RoleRoute>
           }
@@ -133,7 +133,7 @@ export function AppRoutes() {
         <Route
           path="achievements"
           element={
-            <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.USER]}>
               <AchievementsPage />
             </RoleRoute>
           }
@@ -143,7 +143,7 @@ export function AppRoutes() {
         <Route
           path=":userId/dashboard"
           element={
-            <RoleRoute allowedRoles={[USER_ROLE.USER]}>
+            <RoleRoute allowedRoles={[USER_ROLES.USER]}>
               <PersonalStatsView />
             </RoleRoute>
           }
@@ -152,7 +152,7 @@ export function AppRoutes() {
       
       {/* Auth Routes (Guest only) */}
       <Route
-        path="/login"
+        path={ROUTES.LOGIN}
         element={
           <GuestRoute>
             <Login />
@@ -160,7 +160,7 @@ export function AppRoutes() {
         }
       />
       <Route
-        path="/register"
+        path={ROUTES.REGISTER}
         element={
           <GuestRoute>
             <Register />
@@ -168,7 +168,7 @@ export function AppRoutes() {
         }
       />
       <Route
-        path="/complete-registration"
+        path={ROUTES.COMPLETE_REGISTRATION}
         element={
           <GuestRoute>
             <CompleteRegistration />
@@ -176,7 +176,7 @@ export function AppRoutes() {
         }
       />
       <Route
-        path="/enter-token"
+        path={ROUTES.ENTER_TOKEN}
         element={
           <GuestRoute>
             <EnterToken />
@@ -185,7 +185,7 @@ export function AppRoutes() {
       />
       
       {/* Fallback Route */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
     </Routes>
   );
 }

@@ -9,10 +9,10 @@ import {
     Alert,
 } from '@mui/material';
 import HistoryIcon from '@mui/icons-material/History';
-import type { Event } from '../types/event';
-import { eventService } from '../services/eventService';
-import { useActiveEvent } from '../contexts/ActiveEventContext';
-import { useSelectedEvent } from '../contexts/SelectedEventContext';
+import type { Event } from '../../types/event';
+import { eventService } from '../../services/eventService';
+import { useActiveEvent } from '../../contexts/ActiveEventContext';
+import { useSelectedEvent } from '../../contexts/SelectedEventContext';
 import { format } from 'date-fns';
 
 export const EventSelector: React.FC = () => {

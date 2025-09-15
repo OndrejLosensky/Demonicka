@@ -1,5 +1,5 @@
 import type { DashboardStats } from '../../types/dashboard';
-import { api } from '../../services/api';
+import { apiClient as api } from '../../utils/apiClient';
 
 export const dashboardApi = {
   getOverview: async (eventId?: string): Promise<DashboardStats> => {

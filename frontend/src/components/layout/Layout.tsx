@@ -1,11 +1,10 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Box } from '@mui/material';
-import { Sidebar } from './sidebar';
-import Header from './Header';
+import { Sidebar } from '../sidebar';
 import LandingHeader from './LandingHeader';
 import { TopNavigation } from './TopNavigation';
-import { useSidebar } from '../contexts/SidebarContext';
+import { useSidebar } from '../../contexts/SidebarContext';
 
 const DRAWER_WIDTH = 280;
 const DRAWER_WIDTH_COLLAPSED = 64;

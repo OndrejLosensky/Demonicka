@@ -1,5 +1,5 @@
 import type { Barrel } from './types';
-import { api } from '../../../services/api';
+import { apiClient as api } from '../../../utils/apiClient';
 
 export const barrelsApi = {
   getAll: async (withDeleted?: boolean): Promise<Barrel[]> => {

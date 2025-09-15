@@ -48,7 +48,6 @@ export const NavigationItem: React.FC<NavigationItemProps> = ({ to, label, icon 
         justifyContent: isCollapsed ? 'center' : 'flex-start',
         px: isCollapsed ? 1 : 2,
         '&:hover': {
-          backgroundColor: isActive ? 'primary.main' : 'background.secondary',
           backgroundColor: isActive ? 'primary.main' : 'action.hover',
           transform: isCollapsed ? 'scale(1.05)' : 'translateX(2px)',
         },

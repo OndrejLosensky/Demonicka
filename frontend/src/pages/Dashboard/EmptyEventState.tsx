@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import { Add as AddIcon, Celebration as PartyIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import translations from '../locales/cs/dashboard.json';
+import translations from '../../locales/cs/dashboard.json';
 
 interface EmptyEventStateProps {
   title?: string;

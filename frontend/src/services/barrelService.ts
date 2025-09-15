@@ -1,4 +1,4 @@
-import { api } from './api';
+import { apiClient as api } from '../utils/apiClient';
 import type { Barrel } from '../types/barrel';
 import type { CreateBarrelDto } from '../types/dto';
 

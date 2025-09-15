@@ -1,5 +1,5 @@
 import type { Participant } from './types';
-import { api } from '../../../services/api';
+import { apiClient as api } from '../../../utils/apiClient';
 
 interface CreateParticipantDto {
   username: string;

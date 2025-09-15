@@ -9,7 +9,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
-import { api } from '../../services/api';
+import { apiClient as api } from '../../utils/apiClient';
 
 export const PersonalInfoTab = () => {
   const { user, refreshUser } = useAuth();

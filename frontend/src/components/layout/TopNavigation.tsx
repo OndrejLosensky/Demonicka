@@ -28,12 +28,12 @@ import {
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '../contexts/AuthContext';
-import { useActiveEvent } from '../contexts/ActiveEventContext';
-import { useSidebar } from '../contexts/SidebarContext';
-import { useSearch } from '../contexts/SearchContext';
-import { useAppTheme } from '../contexts/ThemeContext';
-import { SearchResults } from './SearchResults';
+import { useAuth } from '../../contexts/AuthContext';
+import { useActiveEvent } from '../../contexts/ActiveEventContext';
+import { useSidebar } from '../../contexts/SidebarContext';
+import { useSearch } from '../../contexts/SearchContext';
+import { useAppTheme } from '../../contexts/ThemeContext';
+import { SearchResults } from '../search/SearchResults';
 
 interface TopNavigationProps {
   isLandingPage?: boolean;

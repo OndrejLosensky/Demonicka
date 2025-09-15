@@ -16,8 +16,8 @@ import {
 } from '@mui/icons-material';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '../contexts/AuthContext';
-import { useAppTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useAppTheme } from '../../contexts/ThemeContext';
 
 export default function LandingHeader() {
   const { user } = useAuth();

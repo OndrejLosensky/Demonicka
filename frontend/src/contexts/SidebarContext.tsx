@@ -28,7 +28,7 @@ export const SidebarProvider: React.FC<SidebarProviderProps> = ({ children }) =>
   });
 
   const toggleCollapse = () => {
-    setIsCollapsed(prev => !prev);
+    setIsCollapsed((prev: boolean) => !prev);
   };
 
   const setCollapsed = (collapsed: boolean) => {

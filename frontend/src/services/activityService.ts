@@ -1,4 +1,4 @@
-import { api } from './api';
+import { apiClient as api } from '../utils/apiClient';
 import type { ActivityLog, ActivityLogsResponse, ActivityLogsParams } from '../types/activity';
 
 export const activityService = {

@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import type { UserRole } from '../types/user';
-import { USER_ROLE } from '../types/user';
+import { useAuth } from '../../contexts/AuthContext';
+import type { UserRole } from '../../types/user';
+import { USER_ROLE } from '../../types/user';
 
 interface RoleRouteProps {
   children: React.ReactNode;

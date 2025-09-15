@@ -13,7 +13,7 @@ import { useUsers } from './useUsers';
 import { AddUserDialog } from './AddUserDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
-import { EventSelector } from '../../../components/EventSelector';
+import { EventSelector } from '../EventSelector';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.users.json';

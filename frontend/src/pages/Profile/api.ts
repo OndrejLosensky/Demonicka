@@ -1,4 +1,4 @@
-import { api } from '../../services/api';
+import { apiClient as api } from '../../utils/apiClient';
 import type { User } from '../../types/user';
 
 export const profileApi = {

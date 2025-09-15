@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useSearch } from '../contexts/SearchContext';
+import { useSearch } from '../../contexts/SearchContext';
 
 interface SearchResult {
   id: string;

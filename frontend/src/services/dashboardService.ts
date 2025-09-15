@@ -1,4 +1,4 @@
-import { api } from './api';
+import { apiClient as api } from '../utils/apiClient';
 import type { DashboardStats } from '../types/dashboard';
 import type { PublicStats } from '../types/public';
 import type { LeaderboardData } from '../types/leaderboard';

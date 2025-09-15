@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
-import { config } from '../config/index';
+import { config } from '../config';
+import { toast } from 'react-hot-toast';
 
 const API_URL = `${config.apiUrl}${config.apiPrefix}`;
 
@@ -39,11 +40,17 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add response interceptor for token refresh
+// Add response interceptor for token refresh and error handling
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Handle network errors
+    if (!error.response) {
+      toast.error('Chyba připojení k serveru');
+      return Promise.reject(error);
+    }
 
     // If the error is 401 and we haven't retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -85,6 +92,26 @@ apiClient.interceptors.response.use(
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
+      }
+    }
+
+    // Handle other errors (but not 401, which is handled above)
+    if (error.response.status !== 401) {
+      switch (error.response.status) {
+        case 403:
+          toast.error('Nemáte oprávnění k této akci');
+          break;
+        case 404:
+          toast.error('Požadovaný zdroj nebyl nalezen');
+          break;
+        case 409:
+          toast.error('Došlo ke konfliktu při zpracování požadavku');
+          break;
+        case 500:
+          toast.error('Chyba serveru');
+          break;
+        default:
+          toast.error('Neočekávaná chyba');
       }
     }
 

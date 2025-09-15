@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo, useState, useEffect } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import type { PaletteMode } from '@mui/material';
-import { createAppTheme } from '../theme';
+import { createAppTheme } from '../config';
 
 interface ThemeCtx {
   mode: PaletteMode;

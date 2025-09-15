@@ -45,7 +45,7 @@ export class SimpleMarkdownParser {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      const listMatch = line.match(/^(\s*)([*\-]|\d+\.)\s+(.+)$/);
+      const listMatch = line.match(/^(\s*)([*-]|\d+\.)\s+(.+)$/);
       
       if (listMatch) {
         const [, , marker, content] = listMatch;
