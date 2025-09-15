@@ -26,7 +26,7 @@ import { cs } from 'date-fns/locale';
 import { eventService } from '../../services/eventService';
 import { barrelService } from '../../services/barrelService';
 import { dashboardService } from '../../services/dashboardService';
-import { ActiveBarrelGraph } from './Barrels/ActiveBarrelGraph';
+import { ActiveBarrelGraph } from './Admin/Barrels/ActiveBarrelGraph';
 import type { Event } from '../../types/event';
 import type { DashboardStats } from '../../types/dashboard';
 import type { HourlyStats } from '../../types/hourlyStats';

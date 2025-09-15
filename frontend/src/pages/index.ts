@@ -5,18 +5,22 @@ export { CompleteRegistration, EnterToken } from './Auth/Token';
 
 // Dashboard Pages
 export { Dashboard } from './Dashboard/Dashboard';
-export { default as Participants } from './Dashboard/Participants';
-export { default as Barrels } from './Dashboard/Barrels';
-export { SystemPage } from './Dashboard/System';
-export { Activity } from './Dashboard/Activity/index.tsx';
-export { Events } from './Dashboard/Events';
-export { EventDetail } from './Dashboard/Events/EventDetail';
-export { EventResults } from './Dashboard/Events/EventResults';
-export { Docs } from './Dashboard/Docs';
-export { PersonalStatsView } from './Dashboard/PersonalStats/PersonalStatsView';
-export { AchievementsPage } from './Dashboard/Achievements';
-export { default as Leaderboard } from './Dashboard/Leaderboard';
-export { default as ProfilePage } from './Dashboard/Profile';
+
+// Admin Pages
+export { default as Participants } from './Dashboard/Admin/Participants';
+export { default as Barrels } from './Dashboard/Admin/Barrels';
+export { SystemPage } from './Dashboard/Admin/System';
+export { Logs } from './Dashboard/Admin/Logs';
+export { Events } from './Dashboard/Admin/Events';
+export { EventDetail } from './Dashboard/Admin/Events/EventDetail';
+export { EventResults } from './Dashboard/Admin/Events/EventResults';
+export { Docs } from './Dashboard/Admin/Docs';
+export { default as Leaderboard } from './Dashboard/Admin/Leaderboard';
+
+// User Pages
+export { PersonalStatsView } from './Dashboard/User/PersonalStats/PersonalStatsView';
+export { AchievementsPage } from './Dashboard/User/Achievements';
+export { default as ProfilePage } from './Dashboard/User/Profile';
 
 // Other Pages
 export { default as Landing } from './Landing';

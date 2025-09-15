@@ -18,7 +18,7 @@ import {
   CompleteRegistration,
   EnterToken,
   SystemPage,
-  Activity,
+  Logs,
   PersonalStatsView,
   AchievementsPage,
 } from '../pages';
@@ -91,7 +91,7 @@ export function AppRoutes() {
           path="activity"
           element={
             <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
-              <Activity />
+              <Logs />
             </RoleRoute>
           }
         />

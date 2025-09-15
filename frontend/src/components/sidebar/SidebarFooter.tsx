@@ -236,7 +236,7 @@ export const SidebarFooter: React.FC = () => {
                 <HistoryIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText 
-                primary="Aktivita"
+                primary="Logy"
                 primaryTypographyProps={{
                   className: "font-medium"
                 }}
