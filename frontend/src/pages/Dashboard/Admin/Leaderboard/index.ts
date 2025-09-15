@@ -10,6 +10,7 @@ export interface UserLeaderboard {
   id: string;
   username: string;
   beerCount: number;
+  profilePicture: string | null;
 }
 
 export interface LeaderboardData {

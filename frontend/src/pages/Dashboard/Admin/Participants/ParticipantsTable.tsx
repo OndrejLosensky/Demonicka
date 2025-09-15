@@ -16,6 +16,7 @@ import {
   Typography,
   Chip,
   Box,
+  Avatar,
 } from '@mui/material';
 import { 
   Delete as DeleteIcon,
@@ -29,6 +30,7 @@ import type { ParticipantTableProps } from './types';
 import { format } from 'date-fns';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import translations from '../../../../locales/cs/dashboard.participants.json';
+import { profilePictureService } from '../../../../services/profilePictureService';
 
 export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   participants,
@@ -92,15 +94,31 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                 }}
               >
                 <TableCell>
-                  <Typography sx={{ fontWeight: 500 }}>{participant.username}</Typography>
-                  {showDeleted && participant.deletedAt && (
-                    <Chip
-                      label={translations.table.status.deleted}
-                      color="error"
-                      size="small"
-                      sx={{ ml: 1 }}
-                    />
-                  )}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar 
+                      src={participant.profilePicture ? profilePictureService.getProfilePictureUrl(participant.profilePicture) : undefined}
+                      sx={{ 
+                        width: 32, 
+                        height: 32,
+                        bgcolor: 'primary.main',
+                        fontSize: '0.8rem',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {!participant.profilePicture && participant.username.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Box>
+                      <Typography sx={{ fontWeight: 500 }}>{participant.username}</Typography>
+                      {showDeleted && participant.deletedAt && (
+                        <Chip
+                          label={translations.table.status.deleted}
+                          color="error"
+                          size="small"
+                          sx={{ mt: 0.5 }}
+                        />
+                      )}
+                    </Box>
+                  </Box>
                 </TableCell>
                 <TableCell align="center">
                   <Box sx={{ 

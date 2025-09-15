@@ -85,6 +85,9 @@ export class User {
   @Column({ type: 'datetime', nullable: true })
   lastAdminLogin: Date | null;
 
+  @Column({ type: 'varchar', nullable: true })
+  profilePicture: string | null;
+
   // Relations
   @OneToMany(() => Beer, (beer) => beer.user, {
     cascade: true,

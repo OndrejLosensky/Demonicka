@@ -2,6 +2,7 @@ export class UserStatsDto {
   id: string;
   username: string;
   beerCount: number;
+  profilePicture: string | null;
 }
 
 export class BarrelStatsDto {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Grid, Box, IconButton, Tooltip, Paper, Chip } from '@mui/material';
+import { Typography, Grid, Box, IconButton, Tooltip, Paper, Chip, Avatar } from '@mui/material';
 import { FaBeer } from 'react-icons/fa';
 import { Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon, Speed as SpeedIcon } from '@mui/icons-material';
 import { GiTrophy } from 'react-icons/gi';
@@ -10,6 +10,7 @@ import { withPageLoader } from '../../../../components/hoc/withPageLoader';
 import { usePageTitle } from '../../../../hooks/usePageTitle';
 import { PageHeader } from '../../../../components/ui/PageHeader';
 import { useHeaderVisibility } from '../../../../contexts/HeaderVisibilityContext';
+import { profilePictureService } from '../../../../services/profilePictureService';
 
 // LeaderboardTable Component
 const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ participants = [], title }) => {
@@ -87,33 +88,49 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ participants = [], 
                 </Box>
               </td>
               <td style={{ padding: '12px 16px' }}>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <Typography 
-                    variant={index < 3 ? 'h6' : 'body1'}
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Avatar 
+                    src={participant.profilePicture ? profilePictureService.getProfilePictureUrl(participant.profilePicture) : undefined}
                     sx={{ 
-                      fontWeight: index < 3 ? 900 : 700,
-                      fontSize: index < 3 ? '1.2rem' : '1rem',
-                      color: 'text.primary',
-                      textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                      width: index < 3 ? 40 : 32, 
+                      height: index < 3 ? 40 : 32,
+                      bgcolor: 'primary.main',
+                      fontSize: index < 3 ? '1rem' : '0.8rem',
+                      fontWeight: 'bold',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                     }}
                   >
-                    {participant.username}
-                  </Typography>
-                  {index === 0 && (
-                    <Chip 
-                      label={translations.table.champion}
-                      size="small"
+                    {!participant.profilePicture && participant.username.charAt(0).toUpperCase()}
+                  </Avatar>
+                  <Box>
+                    <Typography 
+                      variant={index < 3 ? 'h6' : 'body1'}
                       sx={{ 
-                        bgcolor: 'warning.main',
-                        color: 'warning.contrastText',
-                        fontWeight: 900,
-                        fontSize: '0.8rem',
-                        px: 0.8,
-                        py: 0.3,
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                        fontWeight: index < 3 ? 900 : 700,
+                        fontSize: index < 3 ? '1.2rem' : '1rem',
+                        color: 'text.primary',
+                        textShadow: '0 1px 2px rgba(0,0,0,0.5)',
                       }}
-                    />
-                  )}
+                    >
+                      {participant.username}
+                    </Typography>
+                    {index === 0 && (
+                      <Chip 
+                        label={translations.table.champion}
+                        size="small"
+                        sx={{ 
+                          bgcolor: 'warning.main',
+                          color: 'warning.contrastText',
+                          fontWeight: 900,
+                          fontSize: '0.8rem',
+                          px: 0.8,
+                          py: 0.3,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                          mt: 0.5,
+                        }}
+                      />
+                    )}
+                  </Box>
                 </Box>
               </td>
               <td style={{ padding: '12px 16px', textAlign: 'right' }}>

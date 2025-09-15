@@ -197,18 +197,20 @@ export class DashboardService {
             .select([
               'user.id as id',
               'user.username as username',
+              'user.profilePicture as profilePicture',
               'COUNT(event_beer.id) as beerCount',
             ])
             .where('user.id IN (:...ids)', { ids: eventUserIds })
             .groupBy('user.id')
             .orderBy('beerCount', 'DESC')
-            .getRawMany<{ id: string; username: string; beerCount: string }>()
+            .getRawMany<{ id: string; username: string; profilePicture: string | null; beerCount: string }>()
         : [];
 
       const topUsers: UserStatsDto[] = usersWithBeerCounts.map((u) => ({
         id: u.id,
         username: u.username,
         beerCount: parseInt(u.beerCount),
+        profilePicture: u.profilePicture,
       }));
 
       // Get barrel statistics for this event
@@ -249,16 +251,18 @@ export class DashboardService {
         .select([
           'user.id as id',
           'user.username as username',
+          'user.profilePicture as profilePicture',
           'COUNT(beer.id) as beerCount',
         ])
         .groupBy('user.id')
         .orderBy('beerCount', 'DESC')
-        .getRawMany<{ id: string; username: string; beerCount: string }>();
+        .getRawMany<{ id: string; username: string; profilePicture: string | null; beerCount: string }>();
 
       const topUsers: UserStatsDto[] = usersWithBeerCounts.map((u) => ({
         id: u.id,
         username: u.username,
         beerCount: parseInt(u.beerCount),
+        profilePicture: u.profilePicture,
       }));
 
       const barrelStats = await this.barrelRepository
@@ -325,6 +329,7 @@ export class DashboardService {
             'user.id as id',
             'user.username as username',
             'user.gender as gender',
+            'user.profilePicture as profilePicture',
             'COALESCE(COUNT(event_beer.id), 0) as beerCount',
           ])
           .where('user.id IN (:...ids)', { ids: eventUserIds })
@@ -339,12 +344,14 @@ export class DashboardService {
         .map((u) => ({
           ...u,
           beerCount: parseInt(u.beerCount as unknown as string),
+          profilePicture: u.profilePicture,
         })),
       females: users
         .filter((u) => u.gender === 'FEMALE')
         .map((u) => ({
           ...u,
           beerCount: parseInt(u.beerCount as unknown as string),
+          profilePicture: u.profilePicture,
         })),
     };
 

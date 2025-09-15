@@ -12,9 +12,11 @@ import * as cookieParser from 'cookie-parser';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { Reflector } from '@nestjs/core';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
 
   // Enable cookie parser
@@ -58,6 +60,11 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     exposedHeaders: ['Set-Cookie'],
+  });
+
+  // Serve static files for profile pictures (before global prefix)
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/api/users/profile-pictures/',
   });
 
   // Set global prefix for all routes

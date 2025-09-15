@@ -4,6 +4,7 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { User } from './entities/user.entity';
 import { UserStatsService } from './user-stats.service';
+import { FileUploadService } from './services/file-upload.service';
 import { LoggingModule } from '../logging/logging.module';
 import { Beer } from '../beers/entities/beer.entity';
 import { Event } from '../events/entities/event.entity';
@@ -16,7 +17,7 @@ import { LeaderboardModule } from '../leaderboard/leaderboard.module';
     LoggingModule,
     LeaderboardModule,
   ],
-  providers: [UsersService, UserStatsService],
+  providers: [UsersService, UserStatsService, FileUploadService],
   controllers: [UsersController],
   exports: [UsersService],
 })

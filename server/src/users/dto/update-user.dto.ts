@@ -76,4 +76,8 @@ export class UpdateUserDto {
   @IsDate()
   @IsOptional()
   lastAdminLogin?: Date;
+
+  @IsString()
+  @IsOptional()
+  profilePicture?: string | null;
 }

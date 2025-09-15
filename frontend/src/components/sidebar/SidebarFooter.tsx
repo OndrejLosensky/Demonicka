@@ -25,6 +25,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { USER_ROLE } from '../../types/user';
 import translations from '../../locales/cs/common.header.json';
+import { profilePictureService } from '../../services/profilePictureService';
 
 export const SidebarFooter: React.FC = () => {
   const { user, logout, hasRole } = useAuth();
@@ -126,6 +127,7 @@ export const SidebarFooter: React.FC = () => {
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: isCollapsed ? 0 : 2, width: '100%', justifyContent: isCollapsed ? 'center' : 'flex-start' }}>
               <Avatar 
+                src={user.profilePicture ? profilePictureService.getProfilePictureUrl(user.profilePicture) : undefined}
                 sx={{ 
                   width: isCollapsed ? 28 : 32, 
                   height: isCollapsed ? 28 : 32,
@@ -136,7 +138,7 @@ export const SidebarFooter: React.FC = () => {
                   flexShrink: 0
                 }}
               >
-                {user.username.charAt(0).toUpperCase()}
+                {!user.profilePicture && user.username.charAt(0).toUpperCase()}
               </Avatar>
               {!isCollapsed && (
                 <Box sx={{ 

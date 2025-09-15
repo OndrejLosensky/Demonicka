@@ -7,6 +7,7 @@ export interface Participant {
   beerCount: number;  // Global beer count
   eventBeerCount?: number;  // Event-specific beer count
   lastBeerTime: string | null;
+  profilePicture: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

@@ -18,6 +18,7 @@ export interface User {
     lastBeerTime: string | null;
     registrationToken: string | null;
     isRegistrationComplete: boolean;
+    profilePicture: string | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;

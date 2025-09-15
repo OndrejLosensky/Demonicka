@@ -3,6 +3,7 @@ export class UserLeaderboardDto {
   username: string;
   gender: 'MALE' | 'FEMALE';
   beerCount: number;
+  profilePicture: string | null;
 }
 
 export class LeaderboardDto {

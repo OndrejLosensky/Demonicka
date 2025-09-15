@@ -10,7 +10,15 @@ import {
   // ForbiddenException,
   // Query,
   ParseUUIDPipe,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
+import { join } from 'path';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -27,6 +35,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserStatsService } from './user-stats.service';
 import { RoleGuard } from '../auth/guards/role.guard';
 import { BypassAuth } from '../auth/decorators/bypass-auth.decorator';
+import { FileUploadService } from './services/file-upload.service';
 
 /**
  * Users controller handling user profile management.
@@ -39,6 +48,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly userStatsService: UserStatsService,
+    private readonly fileUploadService: FileUploadService,
   ) {}
 
   @Post()
@@ -125,5 +135,63 @@ export class UsersController {
   @Roles(UserRole.ADMIN)
   async generateRegisterToken(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.generateRegisterToken(id);
+  }
+
+  @Post('profile-picture')
+  @BypassAuth()
+  @Roles(UserRole.ADMIN, UserRole.USER)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: 'uploads/profile-pictures',
+        filename: (req, file, cb) => {
+          const fileExt = file.originalname.split('.').pop();
+          const uniqueId = require('uuid').v4();
+          const uniqueName = `${uniqueId}.${fileExt}`;
+          cb(null, uniqueName);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
+          return cb(new BadRequestException('Only image files are allowed!'), false);
+        }
+        cb(null, true);
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+      },
+    }),
+  )
+  async uploadProfilePicture(
+    @UploadedFile() file: Express.Multer.File,
+    @GetUser() user: User,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    // Update user's profile picture field
+    await this.usersService.update(user.id, { profilePicture: file.filename });
+    
+    return {
+      message: 'Profile picture uploaded successfully',
+      filename: file.filename,
+      url: `/api/users/profile-pictures/${file.filename}`,
+    };
+  }
+
+  @Delete('profile-picture')
+  @BypassAuth()
+  @Roles(UserRole.ADMIN, UserRole.USER)
+  async removeProfilePicture(@GetUser() user: User) {
+    await this.usersService.update(user.id, { profilePicture: null });
+    return { message: 'Profile picture removed successfully' };
+  }
+
+  @Get('profile-pictures/:filename')
+  @Public()
+  async getProfilePicture(@Param('filename') filename: string, @Res() res: Response) {
+    const filePath = join(process.cwd(), 'uploads', 'profile-pictures', filename);
+    res.sendFile(filePath);
   }
 }

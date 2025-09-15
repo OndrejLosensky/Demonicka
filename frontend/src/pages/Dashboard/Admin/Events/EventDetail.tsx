@@ -43,6 +43,7 @@ import { toast } from 'react-hot-toast';
 import { useActiveEvent } from '../../../../contexts/ActiveEventContext';
 import { usePageTitle } from '../../../../hooks/usePageTitle';
 import { MetricCard } from '../../../../components/ui/MetricCard';
+import { profilePictureService } from '../../../../services/profilePictureService';
 
 export const EventDetail: React.FC = () => {
     usePageTitle('Detail události');
@@ -470,8 +471,15 @@ export const EventDetail: React.FC = () => {
                                             gap: 2,
                                         }}
                                     >
-                                        <Avatar sx={{ bgcolor: '#EEF2FF' }}>
-                                            <PersonIcon sx={{ color: '#6366F1' }} />
+                                        <Avatar 
+                                            src={user.profilePicture ? profilePictureService.getProfilePictureUrl(user.profilePicture) : undefined}
+                                            sx={{ 
+                                                bgcolor: '#EEF2FF',
+                                                width: 40,
+                                                height: 40,
+                                            }}
+                                        >
+                                            {!user.profilePicture && <PersonIcon sx={{ color: '#6366F1' }} />}
                                         </Avatar>
                                         <Box flex={1}>
                                             <Typography fontWeight="bold">

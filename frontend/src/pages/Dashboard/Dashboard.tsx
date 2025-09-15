@@ -42,6 +42,7 @@ import { MetricCard } from '../../components/ui/MetricCard';
 import { PageLoader } from '../../components/ui/PageLoader';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { websocketService } from '../../services/websocketService';
+import { profilePictureService } from '../../services/profilePictureService';
 
 export const Dashboard: React.FC = () => {
     usePageTitle('Dashboard');
@@ -479,6 +480,7 @@ export const Dashboard: React.FC = () => {
                                             background: index === 0 ? 'primary.50' : 'background.paper'
                                         }}>
                                             <Avatar 
+                                                src={user.profilePicture ? profilePictureService.getProfilePictureUrl(user.profilePicture) : undefined}
                                                 sx={{ 
                                                     width: 40, 
                                                     height: 40, 
@@ -487,7 +489,7 @@ export const Dashboard: React.FC = () => {
                                                     fontWeight: 'bold'
                                                 }}
                                             >
-                                                {user.username.charAt(0).toUpperCase()}
+                                                {!user.profilePicture && user.username.charAt(0).toUpperCase()}
                                             </Avatar>
                                             <Box sx={{ flex: 1 }}>
                                                 <Typography variant="body1" fontWeight="bold">{user.username}</Typography>
