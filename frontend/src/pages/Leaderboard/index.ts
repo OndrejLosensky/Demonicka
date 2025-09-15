@@ -1,27 +1,56 @@
 import { websocketService } from '../../services/websocketService';
-import { leaderboardApi } from './api';
 import { dashboardService } from '../../services/dashboardService';
-import type { LeaderboardData } from './types';
-import type { DashboardStats } from '../../types/dashboard';
-import type { PublicStats } from '../../types/public';
 import { useState, useEffect } from 'react';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { useSelectedEvent } from '../../contexts/SelectedEventContext';
+import { apiClient as api } from '../../utils/apiClient';
 
+// Types
+export interface UserLeaderboard {
+  id: string;
+  username: string;
+  beerCount: number;
+}
+
+export interface LeaderboardData {
+  males: UserLeaderboard[];
+  females: UserLeaderboard[];
+}
+
+export interface LeaderboardTableProps {
+  participants: UserLeaderboard[];
+  title: string;
+  icon?: React.ReactNode;
+}
+
+// API
+export const leaderboardApi = {
+  getLeaderboard: async (eventId: string): Promise<LeaderboardData> => {
+    if (!eventId) {
+      throw new Error('Event ID is required for leaderboard');
+    }
+    
+    const response = await api.get('/dashboard/leaderboard', { params: { eventId } });
+    return {
+      ...response.data,
+      updatedAt: new Date().toISOString(),
+    };
+  }
+};
+
+// Hook
 export const useLeaderboard = () => {
   const [stats, setStats] = useState<LeaderboardData | null>(null);
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
-  const [publicStats, setPublicStats] = useState<PublicStats | null>(null);
+  const [dashboardStats, setDashboardStats] = useState<any | null>(null);
+  const [publicStats, setPublicStats] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { activeEvent, isActiveEventLoading } = useActiveEvent();
   const { selectedEvent } = useSelectedEvent();
   
-  // Use selectedEvent if available, otherwise fall back to activeEvent
   const currentEvent = selectedEvent || activeEvent;
 
   useEffect(() => {
     const loadLeaderboard = async () => {
-      // Only load if we have a current event
       if (!currentEvent?.id) {
         setStats(null);
         setDashboardStats(null);
@@ -31,7 +60,6 @@ export const useLeaderboard = () => {
       }
 
       try {
-        // Load both leaderboard and dashboard stats initially
         const [leaderboardData, dashboardData, publicData] = await Promise.all([
           leaderboardApi.getLeaderboard(currentEvent.id),
           dashboardService.getDashboardStats(currentEvent.id),
@@ -53,10 +81,9 @@ export const useLeaderboard = () => {
 
     loadLeaderboard();
 
-    // Subscribe to real-time updates
+    // WebSocket subscriptions
     const onLeaderboard = (data: LeaderboardData) => setStats(data);
-    const onDashboardStats = (data: { dashboard: DashboardStats; public: PublicStats }) => {
-      console.log('Leaderboard: Real-time dashboard stats update received:', data);
+    const onDashboardStats = (data: { dashboard: any; public: any }) => {
       setDashboardStats(data.dashboard);
       setPublicStats(data.public);
     };
@@ -70,29 +97,20 @@ export const useLeaderboard = () => {
     };
   }, [currentEvent?.id, isActiveEventLoading]);
 
-  // Join event room for real-time updates
+  // Join event room
   useEffect(() => {
     if (currentEvent?.id) {
-      console.log('Leaderboard: Joining event room:', currentEvent.id);
       websocketService.joinEvent(currentEvent.id);
-      
-      return () => {
-        console.log('Leaderboard: Leaving event room:', currentEvent.id);
-        websocketService.leaveEvent(currentEvent.id);
-      };
+      return () => websocketService.leaveEvent(currentEvent.id);
     }
   }, [currentEvent?.id]);
 
-  // Fallback refresh every 5 minutes in case WebSocket fails
+  // Fallback refresh
   useEffect(() => {
     if (!currentEvent?.id) return;
 
-    console.log('Leaderboard: Setting up 5-minute fallback refresh interval');
     const interval = setInterval(async () => {
-      console.log('Leaderboard: 5-minute fallback refresh triggered');
-      
       try {
-        // Refresh both leaderboard and dashboard stats
         const [leaderboardData, dashboardData, publicData] = await Promise.all([
           leaderboardApi.getLeaderboard(currentEvent.id),
           dashboardService.getDashboardStats(currentEvent.id),
@@ -105,13 +123,10 @@ export const useLeaderboard = () => {
       } catch (error) {
         console.error('Leaderboard: Fallback refresh failed:', error);
       }
-    }, 5 * 60 * 1000); // 5 minutes
+    }, 5 * 60 * 1000);
 
-    return () => {
-      console.log('Leaderboard: Clearing 5-minute fallback refresh interval');
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [currentEvent?.id]);
 
   return { stats, dashboardStats, publicStats, isLoading };
-}; 
+};
