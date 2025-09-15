@@ -15,8 +15,8 @@ export { EventResults } from './Dashboard/Events/EventResults';
 export { Docs } from './Dashboard/Docs';
 export { PersonalStatsView } from './Dashboard/PersonalStats/PersonalStatsView';
 export { AchievementsPage } from './Dashboard/Achievements';
+export { default as Leaderboard } from './Dashboard/Leaderboard';
+export { default as ProfilePage } from './Dashboard/Profile';
 
 // Other Pages
 export { default as Landing } from './Landing';
-export { default as Leaderboard } from './Leaderboard';
-export { default as ProfilePage } from './Profile';

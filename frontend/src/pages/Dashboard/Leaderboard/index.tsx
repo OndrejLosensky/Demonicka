@@ -4,12 +4,12 @@ import { FaBeer } from 'react-icons/fa';
 import { Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon, Speed as SpeedIcon } from '@mui/icons-material';
 import { GiTrophy } from 'react-icons/gi';
 import { useLeaderboard, type LeaderboardTableProps } from './index.ts';
-import { MetricCard } from '../../components/ui/MetricCard';
-import translations from '../../locales/cs/dashboard.leaderboard.json';
-import { withPageLoader } from '../../components/hoc/withPageLoader';
-import { usePageTitle } from '../../hooks/usePageTitle';
-import { PageHeader } from '../../components/ui/PageHeader';
-import { useHeaderVisibility } from '../../contexts/HeaderVisibilityContext';
+import { MetricCard } from '../../../components/ui/MetricCard';
+import translations from '../../../locales/cs/dashboard.leaderboard.json';
+import { withPageLoader } from '../../../components/hoc/withPageLoader';
+import { usePageTitle } from '../../../hooks/usePageTitle';
+import { PageHeader } from '../../../components/ui/PageHeader';
+import { useHeaderVisibility } from '../../../contexts/HeaderVisibilityContext';
 
 // LeaderboardTable Component
 const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ participants = [], title }) => {

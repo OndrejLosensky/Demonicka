@@ -1,9 +1,9 @@
-import { websocketService } from '../../services/websocketService';
-import { dashboardService } from '../../services/dashboardService';
+import { websocketService } from '../../../services/websocketService';
+import { dashboardService } from '../../../services/dashboardService';
 import { useState, useEffect } from 'react';
-import { useActiveEvent } from '../../contexts/ActiveEventContext';
-import { useSelectedEvent } from '../../contexts/SelectedEventContext';
-import { apiClient as api } from '../../utils/apiClient';
+import { useActiveEvent } from '../../../contexts/ActiveEventContext';
+import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
+import { apiClient as api } from '../../../utils/apiClient';
 
 // Types
 export interface UserLeaderboard {
@@ -130,3 +130,6 @@ export const useLeaderboard = () => {
 
   return { stats, dashboardStats, publicStats, isLoading };
 };
+
+// Re-export the default component from index.tsx
+export { default } from './index.tsx';

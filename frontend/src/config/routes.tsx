@@ -45,7 +45,6 @@ export function AppRoutes() {
       <Route path={ROUTES.HOME} element={<Layout />}>
         {/* Public Routes */}
         <Route index element={<Landing />} />
-        <Route path="leaderboard" element={<Leaderboard />} />
         
         {/* Admin Routes */}
         <Route
@@ -77,6 +76,14 @@ export function AppRoutes() {
           element={
             <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
               <SystemPage />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="dashboard/leaderboard"
+          element={
+            <RoleRoute allowedRoles={[USER_ROLES.ADMIN]}>
+              <Leaderboard />
             </RoleRoute>
           }
         />

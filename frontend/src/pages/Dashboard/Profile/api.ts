@@ -1,5 +1,5 @@
-import { apiClient as api } from '../../utils/apiClient';
-import type { User } from '../../types/user';
+import { apiClient as api } from '../../../utils/apiClient';
+import type { User } from '../../../types/user';
 
 export const profileApi = {
   getProfile: async (): Promise<User> => {
