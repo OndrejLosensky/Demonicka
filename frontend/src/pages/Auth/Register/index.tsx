@@ -1,53 +1,22 @@
-import React, { useState } from 'react';
-import { usePageTitle } from '../../hooks/usePageTitle';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { AuthLayout } from '../../components/auth/AuthLayout';
-import { Input } from '../../components/ui/Input';
-import { PasswordInput } from '../../components/ui/PasswordInput';
-import { Button } from '../../components/ui/Button';
-import translations from '../../locales/cs/auth.json';
+import { usePageTitle } from '../../../hooks/usePageTitle';
+import { AuthLayout } from '../../../components/auth/AuthLayout';
+import { Input } from '../../../components/ui/Input';
+import { PasswordInput } from '../../../components/ui/PasswordInput';
+import { Button } from '../../../components/ui/Button';
+import translations from '../../../locales/cs/auth.json';
+import { useRegister } from './index.ts';
 
-export default function Register() {
+const Register: React.FC = () => {
   usePageTitle('Registrace');
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    confirmPassword: '',
-    gender: 'MALE' as 'MALE' | 'FEMALE'
-  });
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Hesla se neshodují');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const { username, password, gender } = formData;
-      await register(username, password, null, gender);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Něco se pokazilo');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    formData,
+    error,
+    isLoading,
+    handleChange,
+    handleSubmit,
+  } = useRegister();
 
   return (
     <AuthLayout
@@ -127,4 +96,6 @@ export default function Register() {
       </div>
     </AuthLayout>
   );
-} 
+};
+
+export default Register;

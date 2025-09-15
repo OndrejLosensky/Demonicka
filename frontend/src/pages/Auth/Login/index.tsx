@@ -1,35 +1,23 @@
-import React, { useState } from 'react';
-import { usePageTitle } from '../../hooks/usePageTitle';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { AuthLayout } from '../../components/auth/AuthLayout';
-import { Input } from '../../components/ui/Input';
-import { PasswordInput } from '../../components/ui/PasswordInput';
-import { Button } from '../../components/ui/Button';
-import translations from '../../locales/cs/auth.json';
-import { withPageLoader } from '../../components/hoc/withPageLoader';
+import { usePageTitle } from '../../../hooks/usePageTitle';
+import { AuthLayout } from '../../../components/auth/AuthLayout';
+import { Input } from '../../../components/ui/Input';
+import { PasswordInput } from '../../../components/ui/PasswordInput';
+import { Button } from '../../../components/ui/Button';
+import translations from '../../../locales/cs/auth.json';
+import { useLogin } from './index.ts';
 
 const LoginComponent: React.FC = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   usePageTitle('Přihlášení');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    try {
-      await login(username, password);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Něco se pokazilo');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    formData,
+    error,
+    isLoading,
+    handleSubmit,
+    handleUsernameChange,
+    handlePasswordChange,
+  } = useLogin();
 
   return (
     <AuthLayout
@@ -49,8 +37,8 @@ const LoginComponent: React.FC = () => {
           label={translations.login.username}
           autoComplete="username"
           required
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          value={formData.username}
+          onChange={handleUsernameChange}
           placeholder={translations.login.username}
         />
         <PasswordInput
@@ -59,8 +47,8 @@ const LoginComponent: React.FC = () => {
           label={translations.login.password}
           autoComplete="current-password"
           required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={formData.password}
+          onChange={handlePasswordChange}
           placeholder={translations.login.password}
         />
         <Button
@@ -89,5 +77,7 @@ const LoginComponent: React.FC = () => {
   );
 };
 
+import { withPageLoader } from '../../../components/hoc/withPageLoader';
+
 const Login = withPageLoader(LoginComponent);
-export default Login; 
+export default Login;

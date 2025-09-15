@@ -1,8 +1,7 @@
 // Auth Pages
 export { default as Login } from './Auth/Login';
 export { default as Register } from './Auth/Register';
-export { CompleteRegistration } from './Auth/CompleteRegistration';
-export { EnterToken } from './Auth/EnterToken';
+export { CompleteRegistration, EnterToken } from './Auth/Token';
 
 // Dashboard Pages
 export { Dashboard } from './Dashboard/Dashboard';
