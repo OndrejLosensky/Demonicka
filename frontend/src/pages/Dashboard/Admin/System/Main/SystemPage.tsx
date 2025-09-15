@@ -21,15 +21,15 @@ import {
   Refresh as RefreshIcon,
   ContentCopy as CopyIcon,
 } from '@mui/icons-material';
-import { systemService, type SystemStats } from '../../../../services/systemService';
-import { userService } from '../../../../services/userService';
-import { useToast } from '../../../../hooks/useToast';
-import translations from '../../../../locales/cs/system.json';
+import { systemService, type SystemStats } from '../../../../../services/systemService';
+import { userService } from '../../../../../services/userService';
+import { useToast } from '../../../../../hooks/useToast';
+import translations from '../../../../../locales/cs/system.json';
 import { CleanupSection } from './components/CleanupSection';
 import { SystemHealthDashboard } from './components/SystemHealthDashboard';
-import { usePageTitle } from '../../../../hooks/usePageTitle';
-import { PageHeader } from '../../../../components/ui/PageHeader';
-import { MetricCard } from '../../../../components/ui/MetricCard';
+import { usePageTitle } from '../../../../../hooks/usePageTitle';
+import { PageHeader } from '../../../../../components/ui/PageHeader';
+import { MetricCard } from '../../../../../components/ui/MetricCard';
 
 const SystemPage: React.FC = () => {
   usePageTitle('Systém');

@@ -32,7 +32,7 @@ import {
   Wifi as WifiIcon,
 
 } from '@mui/icons-material';
-import { systemHealthService, type SystemHealth, type PerformanceMetrics, type SystemAlerts } from '../../../../../services/systemHealthService';
+import { systemHealthService, type SystemHealth, type PerformanceMetrics, type SystemAlerts } from '../../../../../../services/systemHealthService';
 import { toast } from 'react-hot-toast';
 
 interface SystemHealthDashboardProps {

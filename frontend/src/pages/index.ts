@@ -16,6 +16,7 @@ export { Events } from './Dashboard/Admin/Events';
 export { EventDetail } from './Dashboard/Admin/Events/EventDetail';
 export { EventResults } from './Dashboard/Admin/Events/EventResults';
 export { Docs } from './Dashboard/Admin/System/Docs';
+export { default as Users } from './Dashboard/Admin/System/Users';
 export { default as Leaderboard } from './Dashboard/Admin/Leaderboard';
 
 // User Pages

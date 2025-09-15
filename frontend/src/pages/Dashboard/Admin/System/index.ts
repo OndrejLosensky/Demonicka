@@ -1,1 +1,1 @@
-export { SystemPage } from './SystemPage'; 
+export { SystemPage } from '../System/Main/SystemPage'; 
