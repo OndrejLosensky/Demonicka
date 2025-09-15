@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import type { User } from '../types/user';
+import type { User } from '../../../types/user';
 import {
     Container,
     Typography,
@@ -25,15 +25,15 @@ import {
     LocalBar as BeerIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
-import { useActiveEvent } from '../contexts/ActiveEventContext';
-import { userService } from '../services/userService';
-import { eventService } from '../services/eventService';
-import { usePageTitle } from '../hooks/usePageTitle';
-import { PageHeader } from '../components/ui/PageHeader';
-import { MetricCard } from '../components/ui/MetricCard';
+import { useActiveEvent } from '../../../contexts/ActiveEventContext';
+import { userService } from '../../../services/userService';
+import { eventService } from '../../../services/eventService';
+import { usePageTitle } from '../../../hooks/usePageTitle';
+import { PageHeader } from '../../../components/ui/PageHeader';
+import { MetricCard } from '../../../components/ui/MetricCard';
 
-export const Users: React.FC = () => {
-    usePageTitle('Účastníci');
+export const UsersManagement: React.FC = () => {
+    usePageTitle('Správa uživatelů');
     const [users, setUsers] = useState<User[]>([]);
     const [showDeleted, setShowDeleted] = useState(false);
     const [eventBeerCounts, setEventBeerCounts] = useState<Record<string, number>>({});
@@ -113,7 +113,7 @@ export const Users: React.FC = () => {
     return (
         <Container maxWidth="xl">
             <PageHeader
-                title="Účastníci"
+                title="Správa uživatelů"
                 action={
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                         <FormControlLabel
@@ -217,4 +217,4 @@ export const Users: React.FC = () => {
             </TableContainer>
         </Container>
     );
-}; 
+};

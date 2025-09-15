@@ -1,18 +1,18 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { landingApi } from '../api/landing';
-import type { PublicStats, ActivityEvent } from '../types/public';
-import translations from '../locales/cs/landing.json';
+import { landingApi } from './api';
+import type { PublicStats, ActivityEvent } from '../../types/public';
+import translations from '../../locales/cs/landing.json';
 import { FaTrophy, FaUsers, FaChartLine, FaBeer, FaAward, FaUserPlus } from 'react-icons/fa';
 import { BsArrowUpRight, BsLightning } from 'react-icons/bs';
 import { formatDistanceToNow } from 'date-fns';
 import { cs } from 'date-fns/locale';
-import { useActiveEvent } from '../contexts/ActiveEventContext';
-import type { LeaderboardData } from '../pages/Leaderboard/types';
-import { dashboardService } from '../services/dashboardService';
-import { usePageTitle } from '../hooks/usePageTitle';
-import { websocketService } from '../services/websocketService';
+import { useActiveEvent } from '../../contexts/ActiveEventContext';
+import type { LeaderboardData } from '../Leaderboard/types';
+import { dashboardService } from '../../services/dashboardService';
+import { usePageTitle } from '../../hooks/usePageTitle';
+import { websocketService } from '../../services/websocketService';
 
 const fadeInUp = {
   initial: { y: 20, opacity: 0 },

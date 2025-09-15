@@ -22,13 +22,13 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
-import { eventService } from '../services/eventService';
-import { dashboardService } from '../services/dashboardService';
-import type { Event } from '../types/event';
-import type { LeaderboardData, UserLeaderboardData } from '../types/leaderboard';
+import { eventService } from '../../../services/eventService';
+import { dashboardService } from '../../../services/dashboardService';
+import type { Event } from '../../../types/event';
+import type { LeaderboardData, UserLeaderboardData } from '../../../types/leaderboard';
 import { toast } from 'react-hot-toast';
-import { usePageTitle } from '../hooks/usePageTitle';
-import { MetricCard } from '../components/ui/MetricCard';
+import { usePageTitle } from '../../../hooks/usePageTitle';
+import { MetricCard } from '../../../components/ui/MetricCard';
 
 export const EventResults: React.FC = () => {
     usePageTitle('Výsledky události');
