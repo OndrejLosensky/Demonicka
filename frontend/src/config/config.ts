@@ -1,7 +1,7 @@
 export const config = {
-  apiUrl: 'http://localhost:3000',
+  apiUrl: import.meta.env.VITE_API_URL,
   apiPrefix: '/api',
-  wsUrl: 'http://localhost:3000',
+  wsUrl: import.meta.env.VITE_WS_URL,
 };
 
-export const API_URL = 'http://localhost:3000/api'; 
+export const API_URL = import.meta.env.VITE_API_URL;
