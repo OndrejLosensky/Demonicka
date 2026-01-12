@@ -1,6 +1,5 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { BeersModule } from './beers/beers.module';
@@ -14,9 +13,9 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { BackupModule } from './backup/backup.module';
 import { SystemModule } from './system/system.module';
 import { AchievementsModule } from './achievements/achievements.module';
+import { PrismaModule } from './prisma/prisma.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
-import { AppDataSource } from './data-source';
 
 @Module({
   imports: [
@@ -24,7 +23,7 @@ import { AppDataSource } from './data-source';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    TypeOrmModule.forRoot(AppDataSource.options),
+    PrismaModule,
     AuthModule,
     UsersModule,
     BeersModule,

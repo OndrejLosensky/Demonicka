@@ -1,0 +1,246 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  USER
+  PARTICIPANT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum DeviceType {
+  ios
+  android
+  web
+}
+
+enum AchievementType {
+  EVENT_WIN
+  BEERS_IN_EVENT
+  BEERS_IN_HOUR
+  EVENTS_PARTICIPATED
+  TOTAL_BEERS
+  CONSECUTIVE_DAYS
+  FIRST_BEER
+  MILESTONE
+}
+
+enum AchievementCategory {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+  LEGENDARY
+}
+
+// Models
+model User {
+  id                     String    @id @default(uuid()) @db.Uuid
+  username               String?   @unique
+  password               String?
+  name                   String?
+  firstName              String?
+  lastName               String?
+  gender                 Gender
+  role                   UserRole  @default(PARTICIPANT)
+  beerCount              Int       @default(0)
+  lastBeerTime           DateTime? @db.Timestamptz(6)
+  registrationToken      String?   @unique
+  isRegistrationComplete Boolean   @default(false)
+  isTwoFactorEnabled     Boolean   @default(false)
+  twoFactorSecret        String?
+  isAdminLoginEnabled    Boolean   @default(false)
+  allowedIPs             String[]  @default([])
+  lastAdminLogin         DateTime? @db.Timestamptz(6)
+  createdAt              DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt              DateTime? @db.Timestamptz(6)
+
+  // Relations
+  beers            Beer[]
+  refreshTokens    RefreshToken[]
+  deviceTokens     DeviceToken[]
+  eventBeers       EventBeer[]
+  userAchievements UserAchievement[]
+  events           EventUsers[]
+}
+
+model RefreshToken {
+  id            String   @id @default(uuid()) @db.Uuid
+  token         String   @unique
+  userId        String   @db.Uuid
+  expiresAt     DateTime @db.Timestamptz(6)
+  isRevoked     Boolean  @default(false)
+  reasonRevoked String?
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model DeviceToken {
+  id               String     @id @default(uuid()) @db.Uuid
+  token            String
+  deviceType       DeviceType @default(web)
+  deviceName       String?
+  deviceModel      String?
+  osVersion        String?
+  isActive         Boolean    @default(true)
+  lastUsed         DateTime?  @db.Timestamptz(6)
+  userId           String     @db.Uuid
+  isAdminDevice    Boolean    @default(false)
+  biometricEnabled Boolean?
+  createdAt        DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime   @updatedAt @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Barrel {
+  id             String    @id @default(uuid()) @db.Uuid
+  size           Int // 15, 30, or 50
+  isActive       Boolean   @default(false)
+  orderNumber    Int
+  remainingBeers Int
+  totalBeers     Int
+  createdAt      DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt      DateTime? @db.Timestamptz(6)
+
+  // Relations
+  beers      Beer[]
+  eventBeers EventBeer[]
+  events     EventBarrels[]
+}
+
+model Beer {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  barrelId  String?   @db.Uuid
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  barrel Barrel? @relation(fields: [barrelId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([barrelId])
+}
+
+model Event {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  startDate   DateTime  @db.Timestamptz(6)
+  endDate     DateTime? @db.Timestamptz(6)
+  isActive    Boolean   @default(false)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime? @db.Timestamptz(6)
+
+  // Relations
+  eventBeers EventBeer[]
+  users      EventUsers[]
+  barrels    EventBarrels[]
+}
+
+model EventBeer {
+  id         String    @id @default(uuid()) @db.Uuid
+  eventId    String    @db.Uuid
+  userId     String    @db.Uuid
+  barrelId   String?   @db.Uuid
+  spilled    Boolean   @default(false)
+  consumedAt DateTime  @default(now()) @db.Timestamptz(6)
+  deletedAt  DateTime? @db.Timestamptz(6)
+
+  event  Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  barrel Barrel? @relation(fields: [barrelId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([userId])
+  @@index([barrelId])
+}
+
+model Achievement {
+  id             String              @id
+  name           String
+  description    String?
+  type           AchievementType
+  category       AchievementCategory @default(BEGINNER)
+  targetValue    Int
+  points         Int                 @default(0)
+  icon           String?
+  isActive       Boolean             @default(true)
+  isRepeatable   Boolean             @default(false)
+  maxCompletions Int                 @default(1)
+  createdAt      DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime            @updatedAt @db.Timestamptz(6)
+  deletedAt      DateTime?           @db.Timestamptz(6)
+
+  // Relations
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  id                 String    @id @default(uuid()) @db.Uuid
+  userId             String    @db.Uuid
+  achievementId      String    @db.Uuid
+  progress           Int       @default(0)
+  isCompleted        Boolean   @default(false)
+  completedAt        DateTime? @db.Timestamptz(6)
+  completionCount    Int       @default(0)
+  lastProgressUpdate DateTime? @db.Timestamptz(6)
+  createdAt          DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt          DateTime? @db.Timestamptz(6)
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+}
+
+// Many-to-many relation tables
+model EventUsers {
+  eventId String @db.Uuid
+  userId  String @db.Uuid
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, userId])
+  @@index([userId])
+}
+
+model EventBarrels {
+  eventId  String @db.Uuid
+  barrelId String @db.Uuid
+
+  event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  barrel Barrel @relation(fields: [barrelId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, barrelId])
+  @@index([barrelId])
+}

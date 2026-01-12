@@ -1,0 +1,22 @@
+{
+  "name": "migration-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "export:sqlite": "tsx export-sqlite.ts",
+    "import:postgres": "tsx import-postgres.ts",
+    "migrate:data": "tsx migrate-data.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "pg": "^8.12.0",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
