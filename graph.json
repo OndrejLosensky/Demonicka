@@ -1,0 +1,735 @@
+{
+  "graph": {
+    "nodes": {
+      "shared-types": {
+        "name": "shared-types",
+        "type": "lib",
+        "data": {
+          "root": "packages/shared-types",
+          "name": "shared-types",
+          "tags": [
+            "npm:private",
+            "scope:shared",
+            "type:types"
+          ],
+          "metadata": {
+            "targetGroups": {},
+            "description": "Shared TypeScript types for Démonická",
+            "js": {
+              "packageName": "@demonicka/shared-types",
+              "packageVersion": "2.0.0",
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "targets": {
+            "build": {
+              "executor": "@nx/js:tsc",
+              "outputs": [
+                "{options.outputPath}"
+              ],
+              "options": {
+                "outputPath": "dist/packages/shared-types",
+                "main": "packages/shared-types/src/index.ts",
+                "tsConfig": "packages/shared-types/tsconfig.json",
+                "assets": [
+                  "packages/shared-types/*.md"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/shared-types/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "shared-utils": {
+        "name": "shared-utils",
+        "type": "lib",
+        "data": {
+          "root": "packages/shared-utils",
+          "name": "shared-utils",
+          "tags": [
+            "npm:private",
+            "scope:shared",
+            "type:utils"
+          ],
+          "metadata": {
+            "targetGroups": {},
+            "description": "Shared utilities for Démonická",
+            "js": {
+              "packageName": "@demonicka/shared-utils",
+              "packageVersion": "2.0.0",
+              "packageMain": "./src/index.ts",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "targets": {
+            "build": {
+              "executor": "@nx/js:tsc",
+              "outputs": [
+                "{options.outputPath}"
+              ],
+              "options": {
+                "outputPath": "dist/packages/shared-utils",
+                "main": "packages/shared-utils/src/index.ts",
+                "tsConfig": "packages/shared-utils/tsconfig.json",
+                "assets": [
+                  "packages/shared-utils/*.md"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/shared-utils/src",
+          "projectType": "library",
+          "implicitDependencies": []
+        }
+      },
+      "mobile": {
+        "name": "mobile",
+        "type": "app",
+        "data": {
+          "root": "packages/mobile",
+          "name": "mobile",
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/mobile",
+          "projectType": "application",
+          "tags": [
+            "scope:mobile",
+            "type:app"
+          ],
+          "targets": {},
+          "implicitDependencies": []
+        }
+      },
+      "server": {
+        "name": "server",
+        "type": "app",
+        "data": {
+          "root": "packages/server",
+          "metadata": {
+            "targetGroups": {
+              "Docker": [
+                "docker:build",
+                "docker:run",
+                "nx-release-publish"
+              ],
+              "NPM Scripts": [
+                "format",
+                "start",
+                "start:dev",
+                "start:debug",
+                "start:prod",
+                "postinstall",
+                "test:watch",
+                "test:cov",
+                "test:debug",
+                "test:e2e",
+                "typeorm",
+                "migration:generate",
+                "migration:run",
+                "migration:revert",
+                "migration:mark-complete",
+                "cleanup:all",
+                "cleanup:data",
+                "promote:admin"
+              ]
+            },
+            "description": "Backend server for Démonická",
+            "js": {
+              "packageName": "demonicka-server",
+              "packageVersion": "2.0.0",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "targets": {
+            "docker:build": {
+              "dependsOn": [
+                "build",
+                "^build"
+              ],
+              "options": {
+                "cwd": "packages/server",
+                "args": [
+                  "--tag packages-server"
+                ],
+                "command": "docker build ."
+              },
+              "inputs": [
+                "default",
+                "^default"
+              ],
+              "metadata": {
+                "technologies": [
+                  "docker"
+                ],
+                "description": "Run Docker build",
+                "help": {
+                  "command": "docker build --help",
+                  "example": {
+                    "options": {
+                      "cache-from": "type=s3,region=eu-west-1,bucket=mybucket .",
+                      "cache-to": "type=s3,region=eu-west-1,bucket=mybucket ."
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "docker:run": {
+              "dependsOn": [
+                "docker:build"
+              ],
+              "options": {
+                "cwd": "packages/server",
+                "command": "docker run {args} packages-server"
+              },
+              "inputs": [
+                "default",
+                "^default"
+              ],
+              "metadata": {
+                "technologies": [
+                  "docker"
+                ],
+                "description": "Run Docker run",
+                "help": {
+                  "command": "docker run --help",
+                  "example": {
+                    "options": {
+                      "args": [
+                        "-p",
+                        "3000:3000"
+                      ]
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/docker:release-publish",
+              "configurations": {},
+              "options": {},
+              "parallelism": true
+            },
+            "format": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "format"
+              },
+              "metadata": {
+                "scriptContent": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+                "runCommand": "npm run format"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "start": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "start"
+              },
+              "metadata": {
+                "scriptContent": "nest start",
+                "runCommand": "npm run start"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "start:dev": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "start:dev"
+              },
+              "metadata": {
+                "scriptContent": "nest start --watch",
+                "runCommand": "npm run start:dev"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "start:debug": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "start:debug"
+              },
+              "metadata": {
+                "scriptContent": "nest start --debug --watch",
+                "runCommand": "npm run start:debug"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "start:prod": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "start:prod"
+              },
+              "metadata": {
+                "scriptContent": "node dist/main",
+                "runCommand": "npm run start:prod"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "postinstall": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "postinstall"
+              },
+              "metadata": {
+                "scriptContent": "npm run build",
+                "runCommand": "npm run postinstall"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:watch": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "test:watch"
+              },
+              "metadata": {
+                "scriptContent": "jest --watch",
+                "runCommand": "npm run test:watch"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:cov": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "test:cov"
+              },
+              "metadata": {
+                "scriptContent": "jest --coverage",
+                "runCommand": "npm run test:cov"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:debug": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "test:debug"
+              },
+              "metadata": {
+                "scriptContent": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+                "runCommand": "npm run test:debug"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:e2e": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "test:e2e"
+              },
+              "metadata": {
+                "scriptContent": "jest --config ./test/jest-e2e.json",
+                "runCommand": "npm run test:e2e"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typeorm": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "typeorm"
+              },
+              "metadata": {
+                "scriptContent": "ts-node ./node_modules/typeorm/cli -d src/data-source.ts",
+                "runCommand": "npm run typeorm"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "migration:generate": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "migration:generate"
+              },
+              "metadata": {
+                "scriptContent": "npm run typeorm migration:generate",
+                "runCommand": "npm run migration:generate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "migration:run": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "migration:run"
+              },
+              "metadata": {
+                "scriptContent": "npm run typeorm migration:run",
+                "runCommand": "npm run migration:run"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "migration:revert": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "migration:revert"
+              },
+              "metadata": {
+                "scriptContent": "npm run typeorm migration:revert",
+                "runCommand": "npm run migration:revert"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "migration:mark-complete": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "migration:mark-complete"
+              },
+              "metadata": {
+                "scriptContent": "ts-node src/scripts/markMigrationsAsComplete.ts",
+                "runCommand": "npm run migration:mark-complete"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "cleanup:all": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "cleanup:all"
+              },
+              "metadata": {
+                "scriptContent": "ts-node scripts/cleanupAll.ts",
+                "runCommand": "npm run cleanup:all"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "cleanup:data": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "cleanup:data"
+              },
+              "metadata": {
+                "scriptContent": "ts-node scripts/cleanupData.ts",
+                "runCommand": "npm run cleanup:data"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "promote:admin": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "promote:admin"
+              },
+              "metadata": {
+                "scriptContent": "ts-node promote-admin.ts",
+                "runCommand": "npm run promote:admin"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "@nx/js:tsc",
+              "outputs": [
+                "{options.outputPath}"
+              ],
+              "options": {
+                "outputPath": "dist/packages/server",
+                "main": "packages/server/src/main.ts",
+                "tsConfig": "packages/server/tsconfig.build.json",
+                "assets": [
+                  "packages/server/src/assets"
+                ]
+              },
+              "configurations": {
+                "production": {
+                  "optimization": true,
+                  "extractLicenses": true,
+                  "inspect": false
+                }
+              },
+              "parallelism": true
+            },
+            "serve": {
+              "executor": "@nx/js:node",
+              "options": {
+                "buildTarget": "server:build"
+              },
+              "configurations": {
+                "production": {
+                  "buildTarget": "server:build:production"
+                },
+                "dev": {
+                  "buildTarget": "server:build",
+                  "watch": true
+                }
+              },
+              "parallelism": true
+            },
+            "lint": {
+              "executor": "@nx/eslint:lint",
+              "outputs": [
+                "{options.outputFile}"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true
+            },
+            "test": {
+              "executor": "@nx/jest:jest",
+              "outputs": [
+                "{workspaceFolder}/coverage/{projectRoot}"
+              ],
+              "options": {
+                "passWithNoTests": true
+              },
+              "configurations": {
+                "unit": {
+                  "passWithNoTests": true
+                },
+                "integration": {
+                  "passWithNoTests": true
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "name": "server",
+          "tags": [
+            "npm:private",
+            "scope:server",
+            "type:app"
+          ],
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/server/src",
+          "projectType": "application",
+          "implicitDependencies": []
+        }
+      },
+      "web": {
+        "name": "web",
+        "type": "app",
+        "data": {
+          "root": "packages/web",
+          "metadata": {
+            "targetGroups": {
+              "Docker": [
+                "docker:build",
+                "docker:run",
+                "nx-release-publish"
+              ],
+              "NPM Scripts": [
+                "dev"
+              ]
+            },
+            "description": "Web admin interface for Démonická",
+            "js": {
+              "packageName": "demonicka-web",
+              "packageVersion": "2.0.0",
+              "isInPackageManagerWorkspaces": true
+            }
+          },
+          "targets": {
+            "docker:build": {
+              "dependsOn": [
+                "build",
+                "^build"
+              ],
+              "options": {
+                "cwd": "packages/web",
+                "args": [
+                  "--tag packages-web"
+                ],
+                "command": "docker build ."
+              },
+              "inputs": [
+                "default",
+                "^default"
+              ],
+              "metadata": {
+                "technologies": [
+                  "docker"
+                ],
+                "description": "Run Docker build",
+                "help": {
+                  "command": "docker build --help",
+                  "example": {
+                    "options": {
+                      "cache-from": "type=s3,region=eu-west-1,bucket=mybucket .",
+                      "cache-to": "type=s3,region=eu-west-1,bucket=mybucket ."
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "docker:run": {
+              "dependsOn": [
+                "docker:build"
+              ],
+              "options": {
+                "cwd": "packages/web",
+                "command": "docker run {args} packages-web"
+              },
+              "inputs": [
+                "default",
+                "^default"
+              ],
+              "metadata": {
+                "technologies": [
+                  "docker"
+                ],
+                "description": "Run Docker run",
+                "help": {
+                  "command": "docker run --help",
+                  "example": {
+                    "options": {
+                      "args": [
+                        "-p",
+                        "3000:3000"
+                      ]
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/docker:release-publish",
+              "configurations": {},
+              "options": {},
+              "parallelism": true
+            },
+            "dev": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "dev"
+              },
+              "metadata": {
+                "scriptContent": "vite",
+                "runCommand": "npm run dev"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "@nx/vite:build",
+              "outputs": [
+                "{options.outputPath}"
+              ],
+              "defaultConfiguration": "production",
+              "options": {
+                "outputPath": "dist/packages/web"
+              },
+              "configurations": {
+                "development": {
+                  "mode": "development"
+                },
+                "production": {
+                  "mode": "production"
+                }
+              },
+              "parallelism": true
+            },
+            "serve": {
+              "executor": "@nx/vite:dev-server",
+              "defaultConfiguration": "development",
+              "options": {
+                "buildTarget": "web:build"
+              },
+              "configurations": {
+                "development": {
+                  "buildTarget": "web:build:development",
+                  "hmr": true
+                },
+                "production": {
+                  "buildTarget": "web:build:production",
+                  "hmr": false
+                }
+              },
+              "parallelism": true,
+              "continuous": true
+            },
+            "preview": {
+              "executor": "@nx/vite:preview-server",
+              "defaultConfiguration": "production",
+              "options": {
+                "buildTarget": "web:build:production"
+              },
+              "configurations": {
+                "production": {
+                  "buildTarget": "web:build:production"
+                }
+              },
+              "parallelism": true,
+              "continuous": true
+            },
+            "lint": {
+              "executor": "@nx/eslint:lint",
+              "outputs": [
+                "{options.outputFile}"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true
+            }
+          },
+          "name": "web",
+          "tags": [
+            "npm:private",
+            "scope:web",
+            "type:app"
+          ],
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "packages/web/src",
+          "projectType": "application",
+          "implicitDependencies": []
+        }
+      }
+    },
+    "dependencies": {
+      "shared-types": [],
+      "shared-utils": [],
+      "mobile": [],
+      "server": [
+        {
+          "source": "server",
+          "target": "shared-types",
+          "type": "static"
+        },
+        {
+          "source": "server",
+          "target": "shared-utils",
+          "type": "static"
+        }
+      ],
+      "web": [
+        {
+          "source": "web",
+          "target": "shared-types",
+          "type": "static"
+        },
+        {
+          "source": "web",
+          "target": "shared-utils",
+          "type": "static"
+        }
+      ]
+    }
+  }
+}
