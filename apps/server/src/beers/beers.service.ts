@@ -1,9 +1,6 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Beer } from './entities/beer.entity';
-import { User } from '../users/entities/user.entity';
-import { Barrel } from '../barrels/entities/barrel.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { Beer } from '@prisma/client';
 import { EventsService } from '../events/events.service';
 import { EventBeersService } from '../events/services/event-beers.service';
 import { LoggingService } from '../logging/logging.service';
@@ -14,12 +11,7 @@ export class BeersService {
   private readonly logger = new Logger(BeersService.name);
 
   constructor(
-    @InjectRepository(Beer)
-    private readonly beerRepository: Repository<Beer>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Barrel)
-    private readonly barrelRepository: Repository<Barrel>,
+    private prisma: PrismaService,
     @Inject(forwardRef(() => EventsService))
     private readonly eventsService: EventsService,
     @Inject(forwardRef(() => EventBeersService))
@@ -29,7 +21,7 @@ export class BeersService {
   ) {}
 
   async create(userId: string, barrelId?: string, skipEventBeer = false): Promise<Beer> {
-    const user = await this.userRepository.findOne({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
 
@@ -37,9 +29,9 @@ export class BeersService {
       throw new Error('User not found');
     }
 
-    let barrel: Barrel | null = null;
+    let barrel = null;
     if (barrelId) {
-      barrel = await this.barrelRepository.findOne({
+      barrel = await this.prisma.barrel.findUnique({
         where: { id: barrelId },
       });
 
@@ -49,17 +41,21 @@ export class BeersService {
     }
 
     // Create global beer record
-    const beer = this.beerRepository.create({
-      userId,
-      barrelId: barrel?.id || null,
+    const savedBeer = await this.prisma.beer.create({
+      data: {
+        userId,
+        barrelId: barrel?.id || null,
+      },
     });
 
-    const savedBeer = await this.beerRepository.save(beer);
-
     // Update user's beer count and last beer time
-    user.beerCount = (user.beerCount || 0) + 1;
-    user.lastBeerTime = new Date();
-    await this.userRepository.save(user);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        beerCount: (user.beerCount || 0) + 1,
+        lastBeerTime: new Date(),
+      },
+    });
 
     // Check for active event and create event beer if user is participant
     if (!skipEventBeer) {
@@ -98,42 +94,42 @@ export class BeersService {
   }
 
   async findByUserId(userId: string): Promise<Beer[]> {
-    return this.beerRepository.find({
-      where: { userId },
-      relations: ['barrel'],
+    return this.prisma.beer.findMany({
+      where: { userId, deletedAt: null },
+      include: { barrel: true },
     });
   }
 
   async findAll(): Promise<Beer[]> {
-    return this.beerRepository.find({
-      relations: ['user', 'barrel'],
+    return this.prisma.beer.findMany({
+      where: { deletedAt: null },
+      include: { user: true, barrel: true },
     });
   }
 
   async findOne(id: string): Promise<Beer | null> {
-    return this.beerRepository.findOne({
+    return this.prisma.beer.findUnique({
       where: { id },
-      relations: ['user', 'barrel'],
+      include: { user: true, barrel: true },
     });
   }
 
   async getUserBeerCount(userId: string): Promise<number> {
-    const beers = await this.beerRepository.find({
-      where: { userId },
+    return this.prisma.beer.count({
+      where: { userId, deletedAt: null },
     });
-    return beers.length;
   }
 
   async getLastBeerTime(userId: string): Promise<Date | null> {
-    const lastBeer = await this.beerRepository.findOne({
-      where: { userId },
-      order: { createdAt: 'DESC' },
+    const lastBeer = await this.prisma.beer.findFirst({
+      where: { userId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
     });
     return lastBeer?.createdAt || null;
   }
 
   async remove(userId: string): Promise<void> {
-    const user = await this.userRepository.findOne({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
 
@@ -142,21 +138,28 @@ export class BeersService {
     }
 
     // Find the last beer for this user
-    const lastBeer = await this.beerRepository.findOne({
-      where: { userId },
-      order: { createdAt: 'DESC' },
+    const lastBeer = await this.prisma.beer.findFirst({
+      where: { userId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
     });
 
     if (!lastBeer) {
       throw new Error('No beers found for this user');
     }
 
-    // Remove the last beer
-    await this.beerRepository.remove(lastBeer);
+    // Remove the last beer (soft delete)
+    await this.prisma.beer.update({
+      where: { id: lastBeer.id },
+      data: { deletedAt: new Date() },
+    });
 
     // Update user's beer count
-    user.beerCount = Math.max(0, (user.beerCount || 0) - 1);
-    await this.userRepository.save(user);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        beerCount: Math.max(0, (user.beerCount || 0) - 1),
+      },
+    });
 
     // Log beer removal
     this.loggingService.logBeerRemoved(userId, lastBeer.barrelId);

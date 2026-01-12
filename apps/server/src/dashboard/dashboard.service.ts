@@ -1,17 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
-import { User } from '../users/entities/user.entity';
-import { Beer } from '../beers/entities/beer.entity';
-import { Barrel } from '../barrels/entities/barrel.entity';
-import { Event } from '../events/entities/event.entity';
-import { EventBeer } from '../events/entities/event-beer.entity';
+import { PrismaService } from '../prisma/prisma.service';
 import { DashboardResponseDto, UserStatsDto, BarrelStatsDto } from './dto/dashboard.dto';
 import { LeaderboardDto, UserLeaderboardDto } from './dto/leaderboard.dto';
 import { PublicStatsDto } from './dto/public-stats.dto';
 import { SystemStatsDto } from './dto/system-stats.dto';
 import { PersonalStatsDto, EventStatsDto, HourlyStatsDto } from './dto/personal-stats.dto';
-import { UserRole } from '../users/enums/user-role.enum';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class DashboardService {
@@ -20,26 +14,18 @@ export class DashboardService {
   private cachedStats: SystemStatsDto | null = null;
   private readonly CACHE_TTL = 30000; // 30 seconds in milliseconds
 
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Beer)
-    private readonly beerRepository: Repository<Beer>,
-    @InjectRepository(Barrel)
-    private readonly barrelRepository: Repository<Barrel>,
-    @InjectRepository(Event)
-    private readonly eventRepository: Repository<Event>,
-    @InjectRepository(EventBeer)
-    private readonly eventBeerRepository: Repository<EventBeer>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async getPublicStats(eventId?: string): Promise<PublicStatsDto> {
-    let event: Event | null = null;
+    let event = null;
     
     if (eventId) {
-      event = await this.eventRepository.findOne({
+      event = await this.prisma.event.findUnique({
         where: { id: eventId },
-        relations: ['users', 'barrels'],
+        include: {
+          users: { include: { user: true } },
+          barrels: { include: { barrel: true } },
+        },
       });
       
       if (!event) {
@@ -49,57 +35,62 @@ export class DashboardService {
 
     if (event) {
       // Event-specific stats
-      const eventUserIds = event.users.map((u) => u.id);
-      const eventBarrelIds = event.barrels.map((b) => b.id);
+      const eventUserIds = event.users.map((eu) => eu.userId);
+      const eventBarrelIds = event.barrels.map((eb) => eb.barrelId);
 
-      // Get beer count for event users using event_beers table - ONLY from active users
-      const totalBeers = await this.eventBeerRepository
-        .createQueryBuilder('event_beer')
-        .where('event_beer.eventId = :eventId', { eventId: event.id })
-        .andWhere('event_beer.userId IN (:...userIds)', {
-          userIds: eventUserIds,
-        })
-        .getCount();
+      // Get beer count for event users using event_beers table
+      const totalBeers = await this.prisma.eventBeer.count({
+        where: {
+          eventId: event.id,
+          userId: { in: eventUserIds },
+          deletedAt: null,
+        },
+      });
 
       // Get top users for this event using event_beers
-      const usersWithBeerCounts = eventUserIds.length > 0
-        ? await this.userRepository
-            .createQueryBuilder('user')
-            .leftJoin(
-              'user.eventBeers',
-              'event_beer',
-              'event_beer.eventId = :eventId',
-              { eventId: event.id },
-            )
-            .select([
-              'user.username as username',
-              'COUNT(event_beer.id) as beerCount',
-            ])
-            .where('user.id IN (:...ids)', { ids: eventUserIds })
-            .groupBy('user.id')
-            .orderBy('beerCount', 'DESC')
-            .limit(6)
-            .getRawMany<{ username: string; beerCount: string }>()
-        : [];
+      const eventBeerCounts = await this.prisma.eventBeer.groupBy({
+        by: ['userId'],
+        where: {
+          eventId: event.id,
+          userId: { in: eventUserIds },
+          deletedAt: null,
+        },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 6,
+      });
 
-      const topUsers = usersWithBeerCounts.map((u) => ({
-        username: u.username,
-        beerCount: parseInt(u.beerCount),
-      }));
+      const userIds = eventBeerCounts.map(eb => eb.userId);
+      const users = await this.prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, username: true },
+      });
+
+      const topUsers = eventBeerCounts.map(eb => {
+        const user = users.find(u => u.id === eb.userId);
+        return {
+          username: user?.username || '',
+          beerCount: eb._count.id,
+        };
+      });
 
       // Get barrel statistics for this event
-      const barrelStats = eventBarrelIds.length > 0
-        ? await this.barrelRepository
-            .createQueryBuilder('barrel')
-            .select(['barrel.size as size', 'COUNT(*) as count'])
-            .where('barrel.id IN (:...ids)', { ids: eventBarrelIds })
-            .groupBy('barrel.size')
-            .getRawMany<{ size: string; count: string }>()
-        : [];
+      const barrels = await this.prisma.barrel.findMany({
+        where: {
+          id: { in: eventBarrelIds },
+          deletedAt: null,
+        },
+        select: { size: true },
+      });
 
-      const formattedBarrelStats = barrelStats.map((stat) => ({
-        size: parseInt(stat.size),
-        count: parseInt(stat.count),
+      const barrelStatsMap = new Map<number, number>();
+      barrels.forEach(barrel => {
+        barrelStatsMap.set(barrel.size, (barrelStatsMap.get(barrel.size) || 0) + 1);
+      });
+
+      const formattedBarrelStats = Array.from(barrelStatsMap.entries()).map(([size, count]) => ({
+        size,
+        count,
       }));
 
       return {
@@ -111,33 +102,37 @@ export class DashboardService {
       };
     } else {
       // Global stats
-      const totalUsers = await this.userRepository.count();
-      const totalBeers = await this.beerRepository.count();
-      const totalBarrels = await this.barrelRepository.count();
+      const totalUsers = await this.prisma.user.count({ where: { deletedAt: null } });
+      const totalBeers = await this.prisma.beer.count({ where: { deletedAt: null } });
+      const totalBarrels = await this.prisma.barrel.count({ where: { deletedAt: null } });
 
-      const usersWithBeerCounts = await this.userRepository
-        .createQueryBuilder('user')
-        .leftJoin('user.beers', 'beer')
-        .select(['user.username as username', 'COUNT(beer.id) as beerCount'])
-        .groupBy('user.id')
-        .orderBy('beerCount', 'DESC')
-        .limit(6)
-        .getRawMany<{ username: string; beerCount: string }>();
+      // Get top users by beer count
+      const topUsersData = await this.prisma.user.findMany({
+        where: { deletedAt: null },
+        select: { id: true, username: true, beerCount: true },
+        orderBy: { beerCount: 'desc' },
+        take: 6,
+      });
 
-      const topUsers = usersWithBeerCounts.map((u) => ({
-        username: u.username,
-        beerCount: parseInt(u.beerCount),
+      const topUsers = topUsersData.map(u => ({
+        username: u.username || '',
+        beerCount: u.beerCount || 0,
       }));
 
-      const barrelStats = await this.barrelRepository
-        .createQueryBuilder('barrel')
-        .select(['barrel.size as size', 'COUNT(*) as count'])
-        .groupBy('barrel.size')
-        .getRawMany<{ size: string; count: string }>();
+      // Get barrel statistics
+      const barrels = await this.prisma.barrel.findMany({
+        where: { deletedAt: null },
+        select: { size: true },
+      });
 
-      const formattedBarrelStats = barrelStats.map((stat) => ({
-        size: parseInt(stat.size),
-        count: parseInt(stat.count),
+      const barrelStatsMap = new Map<number, number>();
+      barrels.forEach(barrel => {
+        barrelStatsMap.set(barrel.size, (barrelStatsMap.get(barrel.size) || 0) + 1);
+      });
+
+      const formattedBarrelStats = Array.from(barrelStatsMap.entries()).map(([size, count]) => ({
+        size,
+        count,
       }));
 
       return {
@@ -151,12 +146,15 @@ export class DashboardService {
   }
 
   async getDashboardStats(eventId?: string): Promise<DashboardResponseDto> {
-    let event: Event | null = null;
+    let event = null;
     
     if (eventId) {
-      event = await this.eventRepository.findOne({
+      event = await this.prisma.event.findUnique({
         where: { id: eventId },
-        relations: ['users', 'barrels'],
+        include: {
+          users: { include: { user: true } },
+          barrels: { include: { barrel: true } },
+        },
       });
       
       if (!event) {
@@ -166,64 +164,67 @@ export class DashboardService {
 
     if (event) {
       // Event-specific stats
-      const eventUserIds = event.users.map((u) => u.id);
-      const eventBarrelIds = event.barrels.map((b) => b.id);
+      const eventUserIds = event.users.map((eu) => eu.userId);
+      const eventBarrelIds = event.barrels.map((eb) => eb.barrelId);
 
-      // Get beer count for event users using event_beers table - ONLY from active users
-      const totalBeers = await this.eventBeerRepository
-        .createQueryBuilder('event_beer')
-        .where('event_beer.eventId = :eventId', { eventId: event.id })
-        .andWhere('event_beer.userId IN (:...userIds)', {
-          userIds: eventUserIds,
-        })
-        .getCount();
+      // Get beer count for event users using event_beers table
+      const totalBeers = await this.prisma.eventBeer.count({
+        where: {
+          eventId: event.id,
+          userId: { in: eventUserIds },
+          deletedAt: null,
+        },
+      });
 
       const totalUsers = event.users.length;
       const totalBarrels = event.barrels.length;
-      const averageBeersPerUser = totalUsers
-        ? totalBeers / totalUsers
-        : 0;
+      const averageBeersPerUser = totalUsers ? totalBeers / totalUsers : 0;
 
       // Get top users for this event using event_beers
-      const usersWithBeerCounts = eventUserIds.length > 0
-        ? await this.userRepository
-            .createQueryBuilder('user')
-            .leftJoin(
-              'user.eventBeers',
-              'event_beer',
-              'event_beer.eventId = :eventId',
-              { eventId: event.id },
-            )
-            .select([
-              'user.id as id',
-              'user.username as username',
-              'COUNT(event_beer.id) as beerCount',
-            ])
-            .where('user.id IN (:...ids)', { ids: eventUserIds })
-            .groupBy('user.id')
-            .orderBy('beerCount', 'DESC')
-            .getRawMany<{ id: string; username: string; beerCount: string }>()
-        : [];
+      const eventBeerCounts = await this.prisma.eventBeer.groupBy({
+        by: ['userId'],
+        where: {
+          eventId: event.id,
+          userId: { in: eventUserIds },
+          deletedAt: null,
+        },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 10,
+      });
 
-      const topUsers: UserStatsDto[] = usersWithBeerCounts.map((u) => ({
-        id: u.id,
-        username: u.username,
-        beerCount: parseInt(u.beerCount),
-      }));
+      const userIds = eventBeerCounts.map(eb => eb.userId);
+      const users = await this.prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, username: true },
+      });
+
+      const topUsers: UserStatsDto[] = eventBeerCounts.map(eb => {
+        const user = users.find(u => u.id === eb.userId);
+        return {
+          id: eb.userId,
+          username: user?.username || '',
+          beerCount: eb._count.id,
+        };
+      });
 
       // Get barrel statistics for this event
-      const barrelStats = eventBarrelIds.length > 0
-        ? await this.barrelRepository
-            .createQueryBuilder('barrel')
-            .select(['barrel.size as size', 'COUNT(*) as count'])
-            .where('barrel.id IN (:...ids)', { ids: eventBarrelIds })
-            .groupBy('barrel.size')
-            .getRawMany<{ size: string; count: string }>()
-        : [];
+      const barrels = await this.prisma.barrel.findMany({
+        where: {
+          id: { in: eventBarrelIds },
+          deletedAt: null,
+        },
+        select: { size: true },
+      });
 
-      const formattedBarrelStats: BarrelStatsDto[] = barrelStats.map((stat) => ({
-        size: parseInt(stat.size),
-        count: parseInt(stat.count),
+      const barrelStatsMap = new Map<number, number>();
+      barrels.forEach(barrel => {
+        barrelStatsMap.set(barrel.size, (barrelStatsMap.get(barrel.size) || 0) + 1);
+      });
+
+      const formattedBarrelStats: BarrelStatsDto[] = Array.from(barrelStatsMap.entries()).map(([size, count]) => ({
+        size,
+        count,
       }));
 
       return {
@@ -236,40 +237,39 @@ export class DashboardService {
       };
     } else {
       // Global stats
-      const totalUsers = await this.userRepository.count();
-      const totalBeers = await this.beerRepository.count();
-      const totalBarrels = await this.barrelRepository.count();
-      const averageBeersPerUser = totalUsers
-        ? totalBeers / totalUsers
-        : 0;
+      const totalUsers = await this.prisma.user.count({ where: { deletedAt: null } });
+      const totalBeers = await this.prisma.beer.count({ where: { deletedAt: null } });
+      const totalBarrels = await this.prisma.barrel.count({ where: { deletedAt: null } });
+      const averageBeersPerUser = totalUsers ? totalBeers / totalUsers : 0;
 
-      const usersWithBeerCounts = await this.userRepository
-        .createQueryBuilder('user')
-        .leftJoin('user.beers', 'beer')
-        .select([
-          'user.id as id',
-          'user.username as username',
-          'COUNT(beer.id) as beerCount',
-        ])
-        .groupBy('user.id')
-        .orderBy('beerCount', 'DESC')
-        .getRawMany<{ id: string; username: string; beerCount: string }>();
+      // Get top users by beer count
+      const topUsersData = await this.prisma.user.findMany({
+        where: { deletedAt: null },
+        select: { id: true, username: true, beerCount: true },
+        orderBy: { beerCount: 'desc' },
+        take: 10,
+      });
 
-      const topUsers: UserStatsDto[] = usersWithBeerCounts.map((u) => ({
+      const topUsers: UserStatsDto[] = topUsersData.map(u => ({
         id: u.id,
-        username: u.username,
-        beerCount: parseInt(u.beerCount),
+        username: u.username || '',
+        beerCount: u.beerCount || 0,
       }));
 
-      const barrelStats = await this.barrelRepository
-        .createQueryBuilder('barrel')
-        .select(['barrel.size as size', 'COUNT(*) as count'])
-        .groupBy('barrel.size')
-        .getRawMany<{ size: string; count: string }>();
+      // Get barrel statistics
+      const barrels = await this.prisma.barrel.findMany({
+        where: { deletedAt: null },
+        select: { size: true },
+      });
 
-      const formattedBarrelStats: BarrelStatsDto[] = barrelStats.map((stat) => ({
-        size: parseInt(stat.size),
-        count: parseInt(stat.count),
+      const barrelStatsMap = new Map<number, number>();
+      barrels.forEach(barrel => {
+        barrelStatsMap.set(barrel.size, (barrelStatsMap.get(barrel.size) || 0) + 1);
+      });
+
+      const formattedBarrelStats: BarrelStatsDto[] = Array.from(barrelStatsMap.entries()).map(([size, count]) => ({
+        size,
+        count,
       }));
 
       return {
@@ -291,9 +291,11 @@ export class DashboardService {
 
     this.logger.log(`Loading leaderboard for event: ${eventId}`);
 
-    const event = await this.eventRepository.findOne({
+    const event = await this.prisma.event.findUnique({
       where: { id: eventId },
-      relations: ['users'],
+      include: {
+        users: { include: { user: true } },
+      },
     });
     
     if (!event) {
@@ -302,50 +304,64 @@ export class DashboardService {
 
     this.logger.log(`Event found: ${event.name} with ${event.users.length} users`);
 
-    // Event-specific leaderboard only - STRICTLY filter by eventId
-    const eventUserIds = event.users.map((u) => u.id);
+    // Event-specific leaderboard only
+    const eventUserIds = event.users.map((eu) => eu.userId);
     
-    // Get total event beers using same method as dashboard - ONLY from active users
-    const totalEventBeers = await this.eventBeerRepository
-      .createQueryBuilder('event_beer')
-      .where('event_beer.eventId = :eventId', { eventId: event.id })
-      .andWhere('event_beer.userId IN (:...userIds)', {
-        userIds: eventUserIds,
-      })
-      .getCount();
+    // Get total event beers
+    const totalEventBeers = await this.prisma.eventBeer.count({
+      where: {
+        eventId: event.id,
+        userId: { in: eventUserIds },
+        deletedAt: null,
+      },
+    });
     
     this.logger.log(`Total event beers from event_beers table for event ${event.id}: ${totalEventBeers}`);
     
-    // Get user rankings with their individual beer counts - STRICTLY for this event only
-    const users = eventUserIds.length > 0
-      ? await this.userRepository
-          .createQueryBuilder('user')
-          .leftJoin('user.eventBeers', 'event_beer', 'event_beer.eventId = :eventId', { eventId: event.id })
-          .select([
-            'user.id as id',
-            'user.username as username',
-            'user.gender as gender',
-            'COALESCE(COUNT(event_beer.id), 0) as beerCount',
-          ])
-          .where('user.id IN (:...ids)', { ids: eventUserIds })
-          .groupBy('user.id')
-          .orderBy('beerCount', 'DESC')
-          .getRawMany<UserLeaderboardDto>()
-      : [];
+    // Get user rankings with their individual beer counts
+    const eventBeerCounts = await this.prisma.eventBeer.groupBy({
+      by: ['userId'],
+      where: {
+        eventId: event.id,
+        userId: { in: eventUserIds },
+        deletedAt: null,
+      },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+    });
+
+    const userIds = eventBeerCounts.map(eb => eb.userId);
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, username: true, gender: true },
+    });
+
+    const userMap = new Map(users.map(u => [u.id, u]));
+    const beerCountMap = new Map(eventBeerCounts.map(eb => [eb.userId, eb._count.id]));
+
+    // Include users with 0 beers
+    eventUserIds.forEach(userId => {
+      if (!beerCountMap.has(userId)) {
+        beerCountMap.set(userId, 0);
+      }
+      if (!userMap.has(userId)) {
+        const eventUser = event.users.find(eu => eu.userId === userId);
+        if (eventUser) {
+          userMap.set(userId, eventUser.user);
+        }
+      }
+    });
+
+    const allUsers = Array.from(userMap.entries()).map(([userId, user]) => ({
+      id: userId,
+      username: user.username || '',
+      gender: user.gender,
+      beerCount: beerCountMap.get(userId) || 0,
+    })).sort((a, b) => b.beerCount - a.beerCount);
 
     const result = {
-      males: users
-        .filter((u) => u.gender === 'MALE')
-        .map((u) => ({
-          ...u,
-          beerCount: parseInt(u.beerCount as unknown as string),
-        })),
-      females: users
-        .filter((u) => u.gender === 'FEMALE')
-        .map((u) => ({
-          ...u,
-          beerCount: parseInt(u.beerCount as unknown as string),
-        })),
+      males: allUsers.filter((u) => u.gender === 'MALE'),
+      females: allUsers.filter((u) => u.gender === 'FEMALE'),
     };
 
     const totalBeers = result.males.reduce((sum, u) => sum + u.beerCount, 0) + 
@@ -374,19 +390,17 @@ export class DashboardService {
     this.logger.log('Cache miss - fetching fresh system stats');
     
     try {
-      const users = await this.userRepository.find({
-        select: [
-          'id',
-          'username',
-          'role',
-          'isRegistrationComplete',
-          'isTwoFactorEnabled',
-          'isAdminLoginEnabled',
-          'lastAdminLogin'
-        ],
-        where: {
-          deletedAt: IsNull()
-        }
+      const users = await this.prisma.user.findMany({
+        where: { deletedAt: null },
+        select: {
+          id: true,
+          username: true,
+          role: true,
+          isRegistrationComplete: true,
+          isTwoFactorEnabled: true,
+          isAdminLoginEnabled: true,
+          lastAdminLogin: true,
+        },
       });
 
       this.logger.log(`Found ${users.length} users`);
@@ -399,12 +413,12 @@ export class DashboardService {
           isRegistrationComplete: user.isRegistrationComplete,
           isTwoFactorEnabled: user.isTwoFactorEnabled,
           isAdminLoginEnabled: user.isAdminLoginEnabled,
-          lastAdminLogin: user.lastAdminLogin
+          lastAdminLogin: user.lastAdminLogin,
         })),
         totalUsers: users.length,
         totalAdminUsers: users.filter(u => u.role === UserRole.ADMIN).length,
         totalCompletedRegistrations: users.filter(u => u.isRegistrationComplete).length,
-        total2FAEnabled: users.filter(u => u.isTwoFactorEnabled).length
+        total2FAEnabled: users.filter(u => u.isTwoFactorEnabled).length,
       };
 
       // Update cache
@@ -424,56 +438,55 @@ export class DashboardService {
       this.logger.log(`Fetching personal stats for user: ${userId}`);
       
       // Get total beers for the user
-      const totalBeers = await this.beerRepository.count({
-        where: { userId }
+      const totalBeers = await this.prisma.beer.count({
+        where: { userId, deletedAt: null },
       });
       
       this.logger.log(`Total beers for user: ${totalBeers}`);
 
       // Get all events the user participated in
-      const userEvents = await this.eventRepository
-        .createQueryBuilder('event')
-        .innerJoin('event.users', 'user', 'user.id = :userId', { userId })
-        .select(['event.id', 'event.name'])
-        .getMany();
-        
-      this.logger.log(`User events count: ${userEvents.length}`);
+      const userEvents = await this.prisma.eventUsers.findMany({
+        where: { userId },
+        include: { event: true },
+      });
+
+      const events = userEvents.map(eu => eu.event);
+      this.logger.log(`User events count: ${events.length}`);
 
       const eventStats: EventStatsDto[] = [];
 
-      for (const event of userEvents) {
+      for (const event of events) {
         // Get user's beers for this event
-        const userBeers = await this.eventBeerRepository.count({
-          where: { eventId: event.id, userId }
+        const userBeers = await this.prisma.eventBeer.count({
+          where: { eventId: event.id, userId, deletedAt: null },
         });
 
         // Get total beers for this event
-        const totalEventBeers = await this.eventBeerRepository.count({
-          where: { eventId: event.id }
+        const totalEventBeers = await this.prisma.eventBeer.count({
+          where: { eventId: event.id, deletedAt: null },
         });
 
         // Calculate contribution percentage
         const contribution = totalEventBeers > 0 ? (userBeers / totalEventBeers) * 100 : 0;
 
-        // Get hourly stats for this event
-        const timezoneOffset = process.env.TIMEZONE_OFFSET || '+2';
+        // Get hourly stats for this event (using PostgreSQL date functions)
+        const timezoneOffset = process.env.TIMEZONE_OFFSET || '+02:00';
         
-        // Get hourly stats for this event
-        const hourlyStats = await this.eventBeerRepository
-          .createQueryBuilder('event_beer')
-          .select([
-            `strftime("%H", datetime(event_beer.consumedAt, "${timezoneOffset} hours")) as hour`,
-            'COUNT(*) as count'
-          ])
-          .where('event_beer.eventId = :eventId', { eventId: event.id })
-          .andWhere('event_beer.userId = :userId', { userId })
-          .groupBy(`strftime("%H", datetime(event_beer.consumedAt, "${timezoneOffset} hours"))`)
-          .orderBy('hour', 'ASC')
-          .getRawMany<{ hour: string; count: string }>();
+        const hourlyStatsRaw = await this.prisma.$queryRaw<Array<{ hour: number; count: bigint }>>`
+          SELECT 
+            EXTRACT(HOUR FROM ("consumedAt" AT TIME ZONE ${timezoneOffset}))::int as hour,
+            COUNT(*)::bigint as count
+          FROM "EventBeer"
+          WHERE "eventId" = ${event.id}::uuid
+            AND "userId" = ${userId}::uuid
+            AND "deletedAt" IS NULL
+          GROUP BY hour
+          ORDER BY hour ASC
+        `;
 
-        const formattedHourlyStats: HourlyStatsDto[] = hourlyStats.map(stat => ({
-          hour: parseInt(stat.hour),
-          count: parseInt(stat.count)
+        const formattedHourlyStats: HourlyStatsDto[] = hourlyStatsRaw.map(stat => ({
+          hour: Number(stat.hour),
+          count: Number(stat.count),
         }));
 
         // Calculate average per hour
@@ -488,13 +501,13 @@ export class DashboardService {
           totalEventBeers,
           contribution,
           hourlyStats: formattedHourlyStats,
-          averagePerHour
+          averagePerHour,
         });
       }
 
       return {
         totalBeers,
-        eventStats
+        eventStats,
       };
     } catch (error) {
       this.logger.error('Failed to fetch personal stats', error);
@@ -507,35 +520,43 @@ export class DashboardService {
       this.logger.log(`Fetching hourly stats for event: ${eventId}, date: ${date || 'current day'}`);
       
       // Get timezone offset from environment or default to UTC+2
-      const timezoneOffset = process.env.TIMEZONE_OFFSET || '+2';
+      const timezoneOffset = process.env.TIMEZONE_OFFSET || '+02:00';
       
-      // Build the query
-      const queryBuilder = this.eventBeerRepository
-        .createQueryBuilder('event_beer')
-        .select([
-          `strftime("%H", datetime(event_beer.consumedAt, "${timezoneOffset} hours")) as hour`,
-          'COUNT(*) as count'
-        ])
-        .where('event_beer.eventId = :eventId', { eventId });
-      
-      // Add date filter if provided
+      let hourlyStatsRaw: Array<{ hour: number; count: bigint }>;
+
       if (date) {
         const targetDate = new Date(date);
         const startOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
         const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
         
-        queryBuilder.andWhere('event_beer.consumedAt >= :startOfDay', { startOfDay })
-                  .andWhere('event_beer.consumedAt < :endOfDay', { endOfDay });
+        hourlyStatsRaw = await this.prisma.$queryRaw<Array<{ hour: number; count: bigint }>>`
+          SELECT 
+            EXTRACT(HOUR FROM ("consumedAt" AT TIME ZONE ${timezoneOffset}))::int as hour,
+            COUNT(*)::bigint as count
+          FROM "EventBeer"
+          WHERE "eventId" = ${eventId}::uuid
+            AND "deletedAt" IS NULL
+            AND "consumedAt" >= ${startOfDay}::timestamptz
+            AND "consumedAt" < ${endOfDay}::timestamptz
+          GROUP BY hour
+          ORDER BY hour ASC
+        `;
+      } else {
+        hourlyStatsRaw = await this.prisma.$queryRaw<Array<{ hour: number; count: bigint }>>`
+          SELECT 
+            EXTRACT(HOUR FROM ("consumedAt" AT TIME ZONE ${timezoneOffset}))::int as hour,
+            COUNT(*)::bigint as count
+          FROM "EventBeer"
+          WHERE "eventId" = ${eventId}::uuid
+            AND "deletedAt" IS NULL
+          GROUP BY hour
+          ORDER BY hour ASC
+        `;
       }
-      
-      const hourlyStats = await queryBuilder
-        .groupBy(`strftime("%H", datetime(event_beer.consumedAt, "${timezoneOffset} hours"))`)
-        .orderBy('hour', 'ASC')
-        .getRawMany<{ hour: string; count: string }>();
 
-      const formattedHourlyStats: HourlyStatsDto[] = hourlyStats.map(stat => ({
-        hour: parseInt(stat.hour),
-        count: parseInt(stat.count)
+      const formattedHourlyStats: HourlyStatsDto[] = hourlyStatsRaw.map(stat => ({
+        hour: Number(stat.hour),
+        count: Number(stat.count),
       }));
 
       // Fill in missing hours with 0 count
@@ -545,7 +566,7 @@ export class DashboardService {
       const missingHours = allHours.filter(hour => !existingHours.includes(hour));
       const completeHourlyStats = [
         ...formattedHourlyStats,
-        ...missingHours.map(hour => ({ hour, count: 0 }))
+        ...missingHours.map(hour => ({ hour, count: 0 })),
       ].sort((a, b) => a.hour - b.hour);
 
       this.logger.log(`Hourly stats fetched: ${completeHourlyStats.length} hours with timezone offset ${timezoneOffset}`);

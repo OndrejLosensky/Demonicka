@@ -13,7 +13,7 @@ import { AdminLoginDto } from './dto/admin-login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
-import { UserRole } from '../users/enums/user-role.enum';
+import { UserRole } from '@prisma/client';
 import { Request } from 'express';
 import { UsersService } from '../users/users.service';
 

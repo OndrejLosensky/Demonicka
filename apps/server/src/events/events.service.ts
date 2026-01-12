@@ -1,12 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Event } from './entities/event.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { Event, User, Barrel } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { User } from '../users/entities/user.entity';
-import { Barrel } from '../barrels/entities/barrel.entity';
-import { In } from 'typeorm';
 import { EventBeersService } from './services/event-beers.service';
 import { BarrelsService } from '../barrels/barrels.service';
 import { LoggingService } from '../logging/logging.service';
@@ -15,12 +11,7 @@ import { UsersService } from '../users/users.service';
 @Injectable()
 export class EventsService {
     constructor(
-        @InjectRepository(Event)
-        private readonly eventRepository: Repository<Event>,
-        @InjectRepository(User)
-        private readonly userRepository: Repository<User>,
-        @InjectRepository(Barrel)
-        private readonly barrelRepository: Repository<Barrel>,
+        private prisma: PrismaService,
         private readonly eventBeersService: EventBeersService,
         private readonly barrelsService: BarrelsService,
         private readonly loggingService: LoggingService,
@@ -28,20 +19,28 @@ export class EventsService {
     ) {}
 
     async create(createEventDto: CreateEventDto): Promise<Event> {
-        const event = this.eventRepository.create(createEventDto);
-        return this.eventRepository.save(event);
+        return this.prisma.event.create({
+            data: createEventDto,
+        });
     }
 
     async findAll(): Promise<Event[]> {
-        return this.eventRepository.find({
-            relations: ['users', 'barrels'],
+        return this.prisma.event.findMany({
+            where: { deletedAt: null },
+            include: {
+                users: { include: { user: true } },
+                barrels: { include: { barrel: true } },
+            },
         });
     }
 
     async findOne(id: string): Promise<Event> {
-        const event = await this.eventRepository.findOne({
+        const event = await this.prisma.event.findUnique({
             where: { id },
-            relations: ['users', 'barrels'],
+            include: {
+                users: { include: { user: true } },
+                barrels: { include: { barrel: true } },
+            },
         });
 
         if (!event) {
@@ -52,156 +51,175 @@ export class EventsService {
     }
 
     async update(id: string, updateEventDto: UpdateEventDto): Promise<Event> {
-        const event = await this.findOne(id);
-        Object.assign(event, updateEventDto);
-        return this.eventRepository.save(event);
+        await this.findOne(id); // Verify event exists
+        return this.prisma.event.update({
+            where: { id },
+            data: updateEventDto,
+        });
     }
 
     async remove(id: string): Promise<void> {
-        const event = await this.findOne(id);
-        await this.eventRepository.remove(event);
+        await this.findOne(id);
+        await this.prisma.event.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
     }
 
     async setActive(id: string): Promise<Event> {
         // First, find the currently active event
-        const activeEvent = await this.eventRepository.findOne({
-            where: { isActive: true }
+        const activeEvent = await this.prisma.event.findFirst({
+            where: { isActive: true, deletedAt: null },
         });
 
         // If there is an active event, deactivate it
         if (activeEvent) {
-            activeEvent.isActive = false;
-            await this.eventRepository.save(activeEvent);
+            await this.prisma.event.update({
+                where: { id: activeEvent.id },
+                data: { isActive: false },
+            });
         }
 
         // Then activate the specified event
-        const event = await this.findOne(id);
-        event.isActive = true;
-        return this.eventRepository.save(event);
-    }
-
-    async endEvent(id: string): Promise<Event> {
-        const event = await this.findOne(id);
-        event.isActive = false;
-        event.endDate = new Date();
-        return this.eventRepository.save(event);
-    }
-
-    async deactivate(id: string): Promise<Event> {
-        const event = await this.findOne(id);
-        event.isActive = false;
-        return this.eventRepository.save(event);
-    }
-
-    async getActiveEvent(): Promise<Event | null> {
-        return this.eventRepository.findOne({
-            where: { isActive: true },
-            relations: ['users', 'barrels'],
+        await this.findOne(id); // Verify event exists
+        return this.prisma.event.update({
+            where: { id },
+            data: { isActive: true },
         });
     }
 
-    async getEventUsers(id: string, withDeleted?: boolean): Promise<User[]> {
-        const event = await this.eventRepository.findOne({
+    async endEvent(id: string): Promise<Event> {
+        await this.findOne(id);
+        return this.prisma.event.update({
             where: { id },
-            relations: ['users', 'eventBeers'],
-            withDeleted: withDeleted
+            data: {
+                isActive: false,
+                endDate: new Date(),
+            },
+        });
+    }
+
+    async deactivate(id: string): Promise<Event> {
+        await this.findOne(id);
+        return this.prisma.event.update({
+            where: { id },
+            data: { isActive: false },
+        });
+    }
+
+    async getActiveEvent(): Promise<Event | null> {
+        return this.prisma.event.findFirst({
+            where: { isActive: true, deletedAt: null },
+            include: {
+                users: { include: { user: true } },
+                barrels: { include: { barrel: true } },
+            },
+        });
+    }
+
+    async getEventUsers(id: string, withDeleted?: boolean): Promise<(User & { eventBeerCount: number })[]> {
+        const event = await this.prisma.event.findUnique({
+            where: { id },
+            include: {
+                users: { include: { user: true } },
+                eventBeers: true,
+            },
         });
         if (!event) {
             throw new NotFoundException(`Event with ID ${id} not found`);
         }
         
-        // If withDeleted is true, return all users including deleted ones
-        let users: User[];
-        if (withDeleted) {
-            const userIds = event.users.map(user => user.id);
-            users = await this.userRepository.find({
-                where: { id: In(userIds) },
-                withDeleted: true
-            });
-        } else {
-            users = event.users || [];
-        }
+        // Get user IDs from event users
+        const userIds = event.users.map(eu => eu.userId);
+        
+        // Fetch users (with or without deleted)
+        const users = await this.prisma.user.findMany({
+            where: {
+                id: { in: userIds },
+                ...(withDeleted ? {} : { deletedAt: null }),
+            },
+        });
 
         // Add event beer counts to each user
         return users.map(user => ({
             ...user,
-            eventBeerCount: event.eventBeers.filter(eb => eb.userId === user.id).length
+            eventBeerCount: event.eventBeers.filter(eb => eb.userId === user.id && !eb.deletedAt).length
         }));
     }
 
     async addUser(id: string, userId: string): Promise<Event> {
-        const event = await this.findOne(id);
-        const user = await this.userRepository.findOne({
-            where: { id: userId },
+        await this.findOne(id);
+        await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+
+        // Check if user is already in event
+        const existing = await this.prisma.eventUsers.findUnique({
+            where: {
+                eventId_userId: { eventId: id, userId },
+            },
         });
 
-        if (!user) {
-            throw new NotFoundException(`User with ID ${userId} not found`);
+        if (!existing) {
+            await this.prisma.eventUsers.create({
+                data: { eventId: id, userId },
+            });
         }
 
-        if (!event.users) {
-            event.users = [];
-        }
-
-        if (!event.users.some((u) => u.id === userId)) {
-            event.users.push(user);
-            await this.eventRepository.save(event);
-        }
-
-        return event;
+        return this.findOne(id);
     }
 
     async removeUser(id: string, userId: string): Promise<Event> {
-        const event = await this.findOne(id);
-        event.users = event.users.filter((user) => user.id !== userId);
-        return this.eventRepository.save(event);
+        await this.findOne(id);
+        await this.prisma.eventUsers.deleteMany({
+            where: { eventId: id, userId },
+        });
+        return this.findOne(id);
     }
 
     async getEventBarrels(id: string): Promise<Barrel[]> {
-        const event = await this.eventRepository.findOne({
+        const event = await this.prisma.event.findUnique({
             where: { id },
-            relations: ['barrels']
+            include: { barrels: { include: { barrel: true } } },
         });
         if (!event) {
             throw new NotFoundException(`Event with ID ${id} not found`);
         }
-        return event.barrels || [];
+        return event.barrels.map(eb => eb.barrel);
     }
 
     async addBarrel(id: string, barrelId: string): Promise<Event> {
-        const event = await this.findOne(id);
-        const barrel = await this.barrelRepository.findOne({
-            where: { id: barrelId },
+        await this.findOne(id);
+        await this.prisma.barrel.findUniqueOrThrow({ where: { id: barrelId } });
+
+        // Check if barrel is already in event
+        const existing = await this.prisma.eventBarrels.findUnique({
+            where: {
+                eventId_barrelId: { eventId: id, barrelId },
+            },
         });
 
-        if (!barrel) {
-            throw new NotFoundException(`Barrel with ID ${barrelId} not found`);
+        if (!existing) {
+            await this.prisma.eventBarrels.create({
+                data: { eventId: id, barrelId },
+            });
         }
 
-        if (!event.barrels) {
-            event.barrels = [];
-        }
-
-        if (!event.barrels.some((b) => b.id === barrelId)) {
-            event.barrels.push(barrel);
-            await this.eventRepository.save(event);
-        }
-
-        return event;
+        return this.findOne(id);
     }
 
     async removeBarrel(id: string, barrelId: string): Promise<Event> {
-        const event = await this.findOne(id);
-        event.barrels = event.barrels.filter((barrel) => barrel.id !== barrelId);
-        return this.eventRepository.save(event);
+        await this.findOne(id);
+        await this.prisma.eventBarrels.deleteMany({
+            where: { eventId: id, barrelId },
+        });
+        return this.findOne(id);
     }
 
     async findUserEvents(userId: string): Promise<Event[]> {
-        return this.eventRepository
-            .createQueryBuilder('event')
-            .innerJoin('event.participants', 'participant')
-            .where('participant.id = :userId', { userId })
-            .getMany();
+        const eventUsers = await this.prisma.eventUsers.findMany({
+            where: { userId },
+            include: { event: true },
+        });
+        return eventUsers.map(eu => eu.event).filter(e => !e.deletedAt);
     }
 
     async addBeer(eventId: string, userId: string): Promise<void> {
@@ -234,15 +252,20 @@ export class EventsService {
     }
 
     async cleanup(): Promise<void> {
-        const events = await this.eventRepository.find();
+        const events = await this.prisma.event.findMany({
+            where: { deletedAt: null },
+        });
         
         for (const event of events) {
             try {
                 // Remove all event beers first
                 await this.eventBeersService.removeAllForEvent(event.id);
                 
-                // Remove the event
-                await this.eventRepository.remove(event);
+                // Remove the event (soft delete)
+                await this.prisma.event.update({
+                    where: { id: event.id },
+                    data: { deletedAt: new Date() },
+                });
             } catch (error) {
                 console.error(`Failed to cleanup event ${event.id}:`, error);
             }
@@ -250,4 +273,4 @@ export class EventsService {
         
         this.loggingService.logCleanup('ALL', { eventsDeleted: events.length });
     }
-} 
+}

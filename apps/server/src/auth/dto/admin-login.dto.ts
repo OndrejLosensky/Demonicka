@@ -1,5 +1,5 @@
 import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
-import { DeviceType } from '../entities/device-token.entity';
+import { DeviceType } from '@prisma/client';
 
 export class AdminLoginDto {
   @IsString()

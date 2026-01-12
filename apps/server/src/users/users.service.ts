@@ -3,16 +3,14 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull, Not, LessThan } from 'typeorm';
-import { User } from './entities/user.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { User, UserRole } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 
 import { CompleteRegistrationDto } from './dto/complete-registration.dto';
-import { UserRole } from './enums/user-role.enum';
 import { subDays } from 'date-fns';
 import { LoggingService } from '../logging/logging.service';
 import { LeaderboardGateway } from '../leaderboard/leaderboard.gateway';
@@ -30,8 +28,7 @@ type UserWithoutPassword = Omit<User, 'password'>;
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private prisma: PrismaService,
     private readonly loggingService: LoggingService,
     private readonly leaderboardGateway: LeaderboardGateway,
   ) {}
@@ -43,15 +40,16 @@ export class UsersService {
       throw new BadRequestException('Uživatelské jméno již existuje');
     }
 
-    const user = this.usersRepository.create({
-      ...createUserDto,
-      password: createUserDto.password
-        ? await bcrypt.hash(createUserDto.password, 10)
-        : null,
-      isRegistrationComplete: true,
-      role: UserRole.USER,
+    const savedUser = await this.prisma.user.create({
+      data: {
+        ...createUserDto,
+        password: createUserDto.password
+          ? await bcrypt.hash(createUserDto.password, 10)
+          : null,
+        isRegistrationComplete: true,
+        role: UserRole.USER,
+      },
     });
-    const savedUser = await this.usersRepository.save(user);
 
     // Log user creation
     this.loggingService.logUserCreated(
@@ -75,13 +73,14 @@ export class UsersService {
     const randomNumber = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
     const registrationToken = `${createParticipantDto.username}-${randomNumber}`;
 
-    const user = this.usersRepository.create({
-      ...createParticipantDto,
-      registrationToken,
-      isRegistrationComplete: false,
-      role: UserRole.PARTICIPANT,
+    const savedUser = await this.prisma.user.create({
+      data: {
+        ...createParticipantDto,
+        registrationToken,
+        isRegistrationComplete: false,
+        role: UserRole.PARTICIPANT,
+      },
     });
-    const savedUser = await this.usersRepository.save(user);
 
     // Log user creation
     this.loggingService.logUserCreated(
@@ -99,23 +98,22 @@ export class UsersService {
   }
 
   async findAll(withDeleted = false): Promise<User[]> {
-    return this.usersRepository.find({
-      where: withDeleted ? {} : { deletedAt: IsNull() },
-      order: { createdAt: 'DESC' },
+    return this.prisma.user.findMany({
+      where: withDeleted ? {} : { deletedAt: null },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async findDeleted(): Promise<User[]> {
-    return this.usersRepository.find({
-      withDeleted: true,
+    return this.prisma.user.findMany({
       where: {
-        deletedAt: Not(IsNull()),
+        deletedAt: { not: null },
       },
     });
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.usersRepository.findOne({
+    const user = await this.prisma.user.findUnique({
       where: { id },
     });
     if (!user) {
@@ -125,13 +123,13 @@ export class UsersService {
   }
 
   async findByUsername(username: string): Promise<User | null> {
-    return this.usersRepository.findOne({
+    return this.prisma.user.findUnique({
       where: { username },
     });
   }
 
   async findByRegistrationToken(token: string): Promise<User | null> {
-    return this.usersRepository.findOne({
+    return this.prisma.user.findUnique({
       where: { registrationToken: token },
     });
   }
@@ -148,24 +146,34 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.findOne(id);
-    const updatedUser = { ...user, ...updateUserDto };
-    return this.usersRepository.save(updatedUser);
+    await this.findOne(id); // Verify user exists
+    return this.prisma.user.update({
+      where: { id },
+      data: updateUserDto,
+    });
   }
 
   async remove(id: string): Promise<void> {
     await this.findOne(id);
-    await this.usersRepository.softDelete(id);
+    await this.prisma.user.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 
   async restore(id: string): Promise<void> {
-    await this.usersRepository.restore(id);
+    await this.prisma.user.update({
+      where: { id },
+      data: { deletedAt: null },
+    });
   }
 
   async cleanup(): Promise<void> {
-    await this.usersRepository.delete({
-      isRegistrationComplete: false,
-      createdAt: LessThan(subDays(new Date(), 7)),
+    await this.prisma.user.deleteMany({
+      where: {
+        isRegistrationComplete: false,
+        createdAt: { lt: subDays(new Date(), 7) },
+      },
     });
   }
 
@@ -193,13 +201,16 @@ export class UsersService {
     }
 
     // Update user with new information
-    user.username = completeRegistrationDto.username;
-    user.password = await bcrypt.hash(completeRegistrationDto.password, 10);
-    user.isRegistrationComplete = true;
-    user.registrationToken = null; // Clear the token after successful registration
-    user.role = UserRole.USER; // Update role to USER
-
-    const savedUser = await this.usersRepository.save(user);
+    const savedUser = await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        username: completeRegistrationDto.username,
+        password: await bcrypt.hash(completeRegistrationDto.password, 10),
+        isRegistrationComplete: true,
+        registrationToken: null, // Clear the token after successful registration
+        role: UserRole.USER, // Update role to USER
+      },
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;
@@ -217,8 +228,10 @@ export class UsersService {
       throw new BadRequestException(`Uživatel ${username} je již admin`);
     }
 
-    user.role = UserRole.ADMIN;
-    const savedUser = await this.usersRepository.save(user);
+    const savedUser = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { role: UserRole.ADMIN },
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;
@@ -246,8 +259,10 @@ export class UsersService {
     const randomNumber = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
     const registrationToken = `${user.username}-${randomNumber}`;
 
-    user.registrationToken = registrationToken;
-    await this.usersRepository.save(user);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { registrationToken },
+    });
 
     return { token: registrationToken };
   }

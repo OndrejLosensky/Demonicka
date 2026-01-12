@@ -1,4 +1,4 @@
-import { AchievementType, AchievementCategory } from '../entities/achievement.entity';
+import { AchievementType, AchievementCategory } from '@prisma/client';
 
 export class AchievementDto {
   id: string;

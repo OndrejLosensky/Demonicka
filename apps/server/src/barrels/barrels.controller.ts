@@ -12,7 +12,7 @@ import { BarrelsService } from './barrels.service';
 import { CreateBarrelDto } from './dto/create-barrel.dto';
 import { UpdateBarrelDto } from './dto/update-barrel.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { Barrel } from './entities/barrel.entity';
+import { Barrel } from '@prisma/client';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { BypassAuth } from 'src/auth/decorators/bypass-auth.decorator';

@@ -8,7 +8,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { BeersService } from './beers.service';
-import { Beer } from './entities/beer.entity';
+import { Beer } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
 import { Versions } from '../versioning/decorators/version.decorator';

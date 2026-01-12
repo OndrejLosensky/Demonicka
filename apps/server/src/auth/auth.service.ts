@@ -1,9 +1,7 @@
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../users/entities/user.entity';
-import { RefreshToken } from './entities/refresh-token.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { User } from '@prisma/client';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
 import { ConfigService } from '@nestjs/config';
@@ -17,8 +15,7 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
-    @InjectRepository(RefreshToken)
-    private refreshTokenRepository: Repository<RefreshToken>,
+    private prisma: PrismaService,
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
@@ -82,9 +79,9 @@ export class AuthService {
   }
 
   async refreshTokens(refreshTokenStr: string) {
-    const refreshToken = await this.refreshTokenRepository.findOne({
+    const refreshToken = await this.prisma.refreshToken.findUnique({
       where: { token: refreshTokenStr },
-      relations: ['user'],
+      include: { user: true },
     });
 
     if (
@@ -115,34 +112,39 @@ export class AuthService {
     };
   }
 
-  private async createRefreshToken(userId: string): Promise<RefreshToken> {
+  private async createRefreshToken(userId: string) {
     const timestamp = Date.now();
     const token = this.jwtService.sign(
       { sub: userId, iat: timestamp },
       { expiresIn: '7d' }, // 7 days
     );
 
-    const refreshToken = this.refreshTokenRepository.create({
-      token,
-      userId,
-      expiresAt: new Date(timestamp + 7 * 24 * 60 * 60 * 1000), // 7 days
+    const refreshToken = await this.prisma.refreshToken.create({
+      data: {
+        token,
+        userId,
+        expiresAt: new Date(timestamp + 7 * 24 * 60 * 60 * 1000), // 7 days
+      },
     });
 
-    return this.refreshTokenRepository.save(refreshToken);
+    return refreshToken;
   }
 
   private async revokeRefreshToken(
     tokenId: string,
     reason: string,
   ): Promise<void> {
-    await this.refreshTokenRepository.update(tokenId, {
-      isRevoked: true,
-      reasonRevoked: reason,
+    await this.prisma.refreshToken.update({
+      where: { id: tokenId },
+      data: {
+        isRevoked: true,
+        reasonRevoked: reason,
+      },
     });
   }
 
   async validateRefreshToken(token: string, userId: number): Promise<boolean> {
-    const refreshToken = await this.refreshTokenRepository.findOne({
+    const refreshToken = await this.prisma.refreshToken.findFirst({
       where: { token, userId: userId.toString() },
     });
 

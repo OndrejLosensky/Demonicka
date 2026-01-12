@@ -1,11 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Achievement, AchievementType } from './entities/achievement.entity';
-import { UserAchievement } from './entities/user-achievement.entity';
-import { User } from '../users/entities/user.entity';
-import { EventBeer } from '../events/entities/event-beer.entity';
-import { Event } from '../events/entities/event.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { Achievement, AchievementType, UserAchievement } from '@prisma/client';
 import {
   AchievementDto,
   UserAchievementDto,
@@ -13,32 +8,22 @@ import {
   CreateAchievementDto,
   UpdateAchievementDto,
 } from './dto/achievement.dto';
+import { subHours } from 'date-fns';
 
 @Injectable()
 export class AchievementsService {
   private readonly logger = new Logger(AchievementsService.name);
 
-  constructor(
-    @InjectRepository(Achievement)
-    private readonly achievementRepository: Repository<Achievement>,
-    @InjectRepository(UserAchievement)
-    private readonly userAchievementRepository: Repository<UserAchievement>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(EventBeer)
-    private readonly eventBeerRepository: Repository<EventBeer>,
-    @InjectRepository(Event)
-    private readonly eventRepository: Repository<Event>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async getUserAchievements(userId: string): Promise<UserAchievementsResponseDto> {
     // Ensure user achievements are initialized and up-to-date on first load
     await this.checkAndUpdateAchievements(userId);
 
-    const userAchievements = await this.userAchievementRepository.find({
-      where: { userId },
-      relations: ['achievement'],
-      order: { createdAt: 'ASC' },
+    const userAchievements = await this.prisma.userAchievement.findMany({
+      where: { userId, deletedAt: null },
+      include: { achievement: true },
+      orderBy: { createdAt: 'asc' },
     });
 
     const totalPoints = userAchievements
@@ -60,8 +45,8 @@ export class AchievementsService {
     this.logger.log(`Checking achievements for user: ${userId}`);
 
     // Get all active achievements
-    const achievements = await this.achievementRepository.find({
-      where: { isActive: true },
+    const achievements = await this.prisma.achievement.findMany({
+      where: { isActive: true, deletedAt: null },
     });
 
     for (const achievement of achievements) {
@@ -71,17 +56,21 @@ export class AchievementsService {
 
   private async checkAchievement(userId: string, achievement: Achievement): Promise<void> {
     // Get or create user achievement record
-    let userAchievement = await this.userAchievementRepository.findOne({
-      where: { userId, achievementId: achievement.id },
+    let userAchievement = await this.prisma.userAchievement.findUnique({
+      where: {
+        userId_achievementId: { userId, achievementId: achievement.id },
+      },
     });
 
     if (!userAchievement) {
-      userAchievement = this.userAchievementRepository.create({
-        userId,
-        achievementId: achievement.id,
-        progress: 0,
-        isCompleted: false,
-        completionCount: 0,
+      userAchievement = await this.prisma.userAchievement.create({
+        data: {
+          userId,
+          achievementId: achievement.id,
+          progress: 0,
+          isCompleted: false,
+          completionCount: 0,
+        },
       });
     }
 
@@ -98,28 +87,34 @@ export class AchievementsService {
     // Calculate current progress based on achievement type
     const currentProgress = await this.calculateProgress(userId, achievement);
     
+    const updateData: any = {
+      lastProgressUpdate: new Date(),
+    };
+
     if (currentProgress >= achievement.targetValue) {
       // Achievement completed
       if (!userAchievement.isCompleted) {
-        userAchievement.isCompleted = true;
-        userAchievement.completedAt = new Date();
+        updateData.isCompleted = true;
+        updateData.completedAt = new Date();
         this.logger.log(`Achievement ${achievement.name} completed by user ${userId}`);
       }
       
-      userAchievement.completionCount += 1;
-      userAchievement.progress = achievement.targetValue;
+      updateData.completionCount = userAchievement.completionCount + 1;
+      updateData.progress = achievement.targetValue;
       
       // If repeatable, reset for next completion
       if (achievement.isRepeatable) {
-        userAchievement.isCompleted = false;
-        userAchievement.completedAt = null;
+        updateData.isCompleted = false;
+        updateData.completedAt = null;
       }
     } else {
-      userAchievement.progress = currentProgress;
+      updateData.progress = currentProgress;
     }
 
-    userAchievement.lastProgressUpdate = new Date();
-    await this.userAchievementRepository.save(userAchievement);
+    await this.prisma.userAchievement.update({
+      where: { id: userAchievement.id },
+      data: updateData,
+    });
   }
 
   private async calculateProgress(userId: string, achievement: Achievement): Promise<number> {
@@ -151,7 +146,7 @@ export class AchievementsService {
   }
 
   private async calculateTotalBeers(userId: string): Promise<number> {
-    const user = await this.userRepository.findOne({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
     return user?.beerCount || 0;
@@ -159,34 +154,33 @@ export class AchievementsService {
 
   private async calculateBeersInEvent(userId: string): Promise<number> {
     // Get the most recent event where user participated
-    const recentEventBeer = await this.eventBeerRepository.findOne({
-      where: { userId },
-      order: { consumedAt: 'DESC' },
-      relations: ['event'],
+    const recentEventBeer = await this.prisma.eventBeer.findFirst({
+      where: { userId, deletedAt: null },
+      orderBy: { consumedAt: 'desc' },
     });
 
     if (!recentEventBeer) return 0;
 
-    const eventBeers = await this.eventBeerRepository.count({
+    return this.prisma.eventBeer.count({
       where: {
         userId,
         eventId: recentEventBeer.eventId,
+        deletedAt: null,
       },
     });
-
-    return eventBeers;
   }
 
   private async calculateBeersInHour(userId: string): Promise<number> {
     // Get beers from the last hour
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const oneHourAgo = subHours(new Date(), 1);
     
-    const recentBeers = await this.eventBeerRepository.find({
+    const recentBeers = await this.prisma.eventBeer.findMany({
       where: {
         userId,
-        consumedAt: { $gte: oneHourAgo } as any,
+        deletedAt: null,
+        consumedAt: { gte: oneHourAgo },
       },
-      order: { consumedAt: 'ASC' },
+      orderBy: { consumedAt: 'asc' },
     });
 
     if (recentBeers.length === 0) return 0;
@@ -203,36 +197,35 @@ export class AchievementsService {
   }
 
   private async calculateEventsParticipated(userId: string): Promise<number> {
-    const eventCount = await this.eventRepository
-      .createQueryBuilder('event')
-      .innerJoin('event.users', 'user', 'user.id = :userId', { userId })
-      .getCount();
-
-    return eventCount;
+    return this.prisma.eventUsers.count({
+      where: { userId },
+    });
   }
 
   private async calculateEventWins(userId: string): Promise<number> {
     // Get all events where user participated
-    const userEvents = await this.eventRepository
-      .createQueryBuilder('event')
-      .innerJoin('event.users', 'user', 'user.id = :userId', { userId })
-      .getMany();
+    const userEvents = await this.prisma.eventUsers.findMany({
+      where: { userId },
+      include: { event: true },
+    });
 
     let wins = 0;
 
-    for (const event of userEvents) {
+    for (const eventUser of userEvents) {
       // Get all users' beer counts for this event
-      const userBeerCounts = await this.eventBeerRepository
-        .createQueryBuilder('eventBeer')
-        .select(['eventBeer.userId', 'COUNT(*) as count'])
-        .where('eventBeer.eventId = :eventId', { eventId: event.id })
-        .groupBy('eventBeer.userId')
-        .orderBy('count', 'DESC')
-        .getRawMany();
+      const eventBeers = await this.prisma.eventBeer.groupBy({
+        by: ['userId'],
+        where: {
+          eventId: eventUser.eventId,
+          deletedAt: null,
+        },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+      });
 
-      if (userBeerCounts.length > 0) {
-        const topUser = userBeerCounts[0];
-        if (topUser.eventBeer_userId === userId) {
+      if (eventBeers.length > 0) {
+        const topUser = eventBeers[0];
+        if (topUser.userId === userId) {
           wins++;
         }
       }
@@ -242,9 +235,9 @@ export class AchievementsService {
   }
 
   private async calculateFirstBeer(userId: string): Promise<number> {
-    const firstBeer = await this.eventBeerRepository.findOne({
-      where: { userId },
-      order: { consumedAt: 'ASC' },
+    const firstBeer = await this.prisma.eventBeer.findFirst({
+      where: { userId, deletedAt: null },
+      orderBy: { consumedAt: 'asc' },
     });
 
     return firstBeer ? 1 : 0;
@@ -252,22 +245,28 @@ export class AchievementsService {
 
   private async calculateConsecutiveDays(userId: string): Promise<number> {
     // Get all beer dates for the user
-    const beerDates = await this.eventBeerRepository
-      .createQueryBuilder('eventBeer')
-      .select('DATE(eventBeer.consumedAt) as date')
-      .where('eventBeer.userId = :userId', { userId })
-      .groupBy('DATE(eventBeer.consumedAt)')
-      .orderBy('date', 'ASC')
-      .getRawMany();
+    const eventBeers = await this.prisma.eventBeer.findMany({
+      where: { userId, deletedAt: null },
+      select: { consumedAt: true },
+      orderBy: { consumedAt: 'asc' },
+    });
 
-    if (beerDates.length === 0) return 0;
+    if (eventBeers.length === 0) return 0;
+
+    // Extract unique dates
+    const dates = new Set<string>();
+    eventBeers.forEach(eb => {
+      const date = new Date(eb.consumedAt).toISOString().split('T')[0];
+      dates.add(date);
+    });
+    const sortedDates = Array.from(dates).sort();
 
     let maxConsecutive = 1;
     let currentConsecutive = 1;
 
-    for (let i = 1; i < beerDates.length; i++) {
-      const prevDate = new Date(beerDates[i - 1].date);
-      const currDate = new Date(beerDates[i].date);
+    for (let i = 1; i < sortedDates.length; i++) {
+      const prevDate = new Date(sortedDates[i - 1]);
+      const currDate = new Date(sortedDates[i]);
       
       const diffDays = Math.floor((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
       
@@ -282,7 +281,7 @@ export class AchievementsService {
     return maxConsecutive;
   }
 
-  private mapToUserAchievementDto(userAchievement: UserAchievement): UserAchievementDto {
+  private mapToUserAchievementDto(userAchievement: UserAchievement & { achievement: Achievement }): UserAchievementDto {
     return {
       id: userAchievement.id,
       userId: userAchievement.userId,
@@ -314,14 +313,18 @@ export class AchievementsService {
 
   // Admin methods for managing achievements
   async createAchievement(createDto: CreateAchievementDto): Promise<AchievementDto> {
-    const achievement = this.achievementRepository.create(createDto);
-    const saved = await this.achievementRepository.save(achievement);
+    const saved = await this.prisma.achievement.create({
+      data: createDto,
+    });
     return this.mapToAchievementDto(saved);
   }
 
   async updateAchievement(id: string, updateDto: UpdateAchievementDto): Promise<AchievementDto> {
-    await this.achievementRepository.update(id, updateDto);
-    const achievement = await this.achievementRepository.findOne({ where: { id } });
+    await this.prisma.achievement.update({
+      where: { id },
+      data: updateDto,
+    });
+    const achievement = await this.prisma.achievement.findUnique({ where: { id } });
     if (!achievement) {
       throw new Error(`Achievement with id ${id} not found`);
     }
@@ -329,12 +332,16 @@ export class AchievementsService {
   }
 
   async deleteAchievement(id: string): Promise<void> {
-    await this.achievementRepository.softDelete(id);
+    await this.prisma.achievement.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 
   async getAllAchievements(): Promise<AchievementDto[]> {
-    const achievements = await this.achievementRepository.find({
-      order: { category: 'ASC', targetValue: 'ASC' },
+    const achievements = await this.prisma.achievement.findMany({
+      where: { deletedAt: null },
+      orderBy: [{ category: 'asc' }, { targetValue: 'asc' }],
     });
     return achievements.map(a => this.mapToAchievementDto(a));
   }
@@ -356,4 +363,4 @@ export class AchievementsService {
       updatedAt: achievement.updatedAt,
     };
   }
-} 
+}

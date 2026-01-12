@@ -1,15 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { DeviceToken, DeviceType } from './entities/device-token.entity';
-import { User } from '../users/entities/user.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { DeviceToken, DeviceType } from '@prisma/client';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class DeviceTokenService {
-  constructor(
-    @InjectRepository(DeviceToken)
-    private deviceTokenRepository: Repository<DeviceToken>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async createOrUpdateToken(
     user: User,
@@ -23,39 +19,42 @@ export class DeviceTokenService {
     },
   ): Promise<DeviceToken> {
     // Check if device token already exists
-    const existingToken = await this.deviceTokenRepository.findOne({
+    const existingToken = await this.prisma.deviceToken.findFirst({
       where: { token, userId: user.id },
     });
 
     if (existingToken) {
       // Update existing token
-      existingToken.lastUsed = new Date();
-      existingToken.isActive = true;
-      existingToken.deviceName = deviceInfo.deviceName;
-      existingToken.deviceModel = deviceInfo.deviceModel ?? null;
-      existingToken.osVersion = deviceInfo.osVersion ?? null;
-      existingToken.isAdminDevice = deviceInfo.isAdminDevice ?? false;
-
-      return this.deviceTokenRepository.save(existingToken);
+      return this.prisma.deviceToken.update({
+        where: { id: existingToken.id },
+        data: {
+          lastUsed: new Date(),
+          isActive: true,
+          deviceName: deviceInfo.deviceName,
+          deviceModel: deviceInfo.deviceModel ?? null,
+          osVersion: deviceInfo.osVersion ?? null,
+          isAdminDevice: deviceInfo.isAdminDevice ?? false,
+        },
+      });
     }
 
     // Create new token
-    const newDeviceToken = this.deviceTokenRepository.create({
-      userId: user.id,
-      token,
-      deviceType: deviceInfo.deviceType,
-      deviceName: deviceInfo.deviceName,
-      deviceModel: deviceInfo.deviceModel ?? null,
-      osVersion: deviceInfo.osVersion ?? null,
-      isAdminDevice: deviceInfo.isAdminDevice ?? false,
-      lastUsed: new Date(),
+    return this.prisma.deviceToken.create({
+      data: {
+        userId: user.id,
+        token,
+        deviceType: deviceInfo.deviceType,
+        deviceName: deviceInfo.deviceName,
+        deviceModel: deviceInfo.deviceModel ?? null,
+        osVersion: deviceInfo.osVersion ?? null,
+        isAdminDevice: deviceInfo.isAdminDevice ?? false,
+        lastUsed: new Date(),
+      },
     });
-
-    return this.deviceTokenRepository.save(newDeviceToken);
   }
 
   async deactivateToken(userId: string, token: string): Promise<void> {
-    const deviceToken = await this.deviceTokenRepository.findOne({
+    const deviceToken = await this.prisma.deviceToken.findFirst({
       where: { token, userId },
     });
 
@@ -63,21 +62,23 @@ export class DeviceTokenService {
       throw new NotFoundException('Device token not found');
     }
 
-    deviceToken.isActive = false;
-    await this.deviceTokenRepository.save(deviceToken);
+    await this.prisma.deviceToken.update({
+      where: { id: deviceToken.id },
+      data: { isActive: false },
+    });
   }
 
   async deactivateAllUserTokens(userId: string): Promise<void> {
-    await this.deviceTokenRepository.update(
-      { userId, isActive: true },
-      { isActive: false },
-    );
+    await this.prisma.deviceToken.updateMany({
+      where: { userId, isActive: true },
+      data: { isActive: false },
+    });
   }
 
   async getActiveDevices(userId: string): Promise<DeviceToken[]> {
-    return this.deviceTokenRepository.find({
+    return this.prisma.deviceToken.findMany({
       where: { userId, isActive: true },
-      order: { lastUsed: 'DESC' },
+      orderBy: { lastUsed: 'desc' },
     });
   }
 
@@ -86,7 +87,7 @@ export class DeviceTokenService {
     token: string,
     enabled: boolean,
   ): Promise<void> {
-    const deviceToken = await this.deviceTokenRepository.findOne({
+    const deviceToken = await this.prisma.deviceToken.findFirst({
       where: { token, userId },
     });
 
@@ -94,8 +95,10 @@ export class DeviceTokenService {
       throw new NotFoundException('Device token not found');
     }
 
-    deviceToken.biometricEnabled = enabled;
-    await this.deviceTokenRepository.save(deviceToken);
+    await this.prisma.deviceToken.update({
+      where: { id: deviceToken.id },
+      data: { biometricEnabled: enabled },
+    });
   }
 
   async validateDeviceToken(
@@ -103,7 +106,7 @@ export class DeviceTokenService {
     token: string,
     requireAdmin = false,
   ): Promise<boolean> {
-    const deviceToken = await this.deviceTokenRepository.findOne({
+    const deviceToken = await this.prisma.deviceToken.findFirst({
       where: { token, userId, isActive: true },
     });
 
@@ -115,9 +118,11 @@ export class DeviceTokenService {
       return false;
     }
 
-    deviceToken.lastUsed = new Date();
-    await this.deviceTokenRepository.save(deviceToken);
+    await this.prisma.deviceToken.update({
+      where: { id: deviceToken.id },
+      data: { lastUsed: new Date() },
+    });
 
     return true;
   }
-} 
+}

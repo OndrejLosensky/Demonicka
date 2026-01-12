@@ -11,16 +11,13 @@ import {
   Query,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
-import { Event } from './entities/event.entity';
+import { Event, Barrel, EventBeer, User } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { Barrel } from '../barrels/entities/barrel.entity';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { EventBeersService } from './services/event-beers.service';
-import { EventBeer } from './entities/event-beer.entity';
-import { User } from '../users/entities/user.entity';
 import { BypassAuth } from 'src/auth/decorators/bypass-auth.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 

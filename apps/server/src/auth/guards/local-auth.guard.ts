@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { User } from '../../users/entities/user.entity';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class LocalAuthGuard extends AuthGuard('local') {

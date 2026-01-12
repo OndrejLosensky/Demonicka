@@ -6,8 +6,7 @@ import { BYPASS_AUTH_KEY } from '../decorators/bypass-auth.decorator';
 import { config } from '../../config';
 import { Request } from 'express';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { User } from '../../users/entities/user.entity';
-import { UserRole } from '../../users/enums/user-role.enum';
+import { User, UserRole } from '@prisma/client';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -36,12 +35,28 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       
       if (bypassToken === config.bypassAuth?.token) {
         // Inject admin user for bypass auth
-        const adminUser = new User();
-        adminUser.id = '00000000-0000-0000-0000-000000000000';
-        adminUser.username = 'bypass.admin';
-        adminUser.role = UserRole.ADMIN;
-        adminUser.isRegistrationComplete = true;
-        adminUser.gender = 'MALE';
+        const adminUser: User = {
+          id: '00000000-0000-0000-0000-000000000000',
+          username: 'bypass.admin',
+          role: UserRole.ADMIN,
+          isRegistrationComplete: true,
+          gender: 'MALE',
+          password: null,
+          name: null,
+          firstName: null,
+          lastName: null,
+          beerCount: 0,
+          lastBeerTime: null,
+          registrationToken: null,
+          isTwoFactorEnabled: false,
+          twoFactorSecret: null,
+          isAdminLoginEnabled: false,
+          allowedIPs: [],
+          lastAdminLogin: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+        };
         request.user = adminUser;
         return true;
       }

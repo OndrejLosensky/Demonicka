@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { PrismaService } from '../prisma/prisma.service';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -10,10 +9,7 @@ export class SystemService {
   private readonly logger = new Logger(SystemService.name);
   private startTime = Date.now();
 
-  constructor(
-    @InjectDataSource()
-    private dataSource: DataSource,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async getSystemHealth() {
     const uptime = Math.floor((Date.now() - this.startTime) / 1000);
@@ -55,14 +51,14 @@ export class SystemService {
       },
       database: {
         size: dbStats.size,
-        connections: 1, // SQLite typically has 1 connection
+        connections: 1, // PostgreSQL connection pool size
         responseTime: 10, // Mock value
         status: dbStats.status,
       },
       api: apiStats,
       storage: storageStats,
       services: {
-        database: true, // SQLite is always available
+        database: true,
         logging: true,
         websocket: true,
         fileSystem: true,
@@ -162,30 +158,35 @@ export class SystemService {
 
   async getDatabaseStats() {
     try {
-      // Get database file size
-      const dbPath = this.dataSource.options.database as string;
-      const stats = await fs.stat(dbPath);
-      const size = stats.size;
+      // Get database size using PostgreSQL query
+      const sizeResult = await this.prisma.$queryRaw<Array<{ size: bigint }>>`
+        SELECT pg_database_size(current_database()) as size
+      `;
+      const size = Number(sizeResult[0]?.size || 0);
 
       // Get table information
-      const tables = await this.dataSource.query(`
-        SELECT name FROM sqlite_master 
-        WHERE type='table' AND name NOT LIKE 'sqlite_%'
-      `);
+      const tables = await this.prisma.$queryRaw<Array<{ tablename: string }>>`
+        SELECT tablename 
+        FROM pg_tables 
+        WHERE schemaname = 'public'
+      `;
 
       const tableStats: Array<{
         name: string;
         rowCount: number;
         size: number;
       }> = [];
+
       for (const table of tables) {
-        const countResult = await this.dataSource.query(
-          `SELECT COUNT(*) as count FROM ${table.name}`
-        );
+        const countResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+          SELECT COUNT(*) as count FROM ${this.prisma.$queryRawUnsafe(`"${table.tablename}"`)}
+        `;
+        const rowCount = Number(countResult[0]?.count || 0);
+        
         tableStats.push({
-          name: table.name,
-          rowCount: countResult[0].count,
-          size: 0, // SQLite doesn't provide per-table size easily
+          name: table.tablename,
+          rowCount,
+          size: 0, // Could calculate with pg_total_relation_size if needed
         });
       }
 
@@ -201,7 +202,7 @@ export class SystemService {
       return {
         size,
         tables: tableStats,
-        indexes: 0, // SQLite doesn't provide index count easily
+        indexes: 0, // Could query pg_indexes if needed
         lastBackup: null, // Would need to implement backup tracking
         status,
       };
@@ -383,4 +384,4 @@ export class SystemService {
     
     return 'healthy';
   }
-} 
+}

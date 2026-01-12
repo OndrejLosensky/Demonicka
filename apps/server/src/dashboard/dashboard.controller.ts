@@ -12,9 +12,8 @@ import { SystemStatsDto } from './dto/system-stats.dto';
 import { PersonalStatsDto } from './dto/personal-stats.dto';
 import { RoleGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '../users/enums/user-role.enum';
+import { UserRole, User } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { User } from '../users/entities/user.entity';
 import { HourlyStatsDto } from './dto/personal-stats.dto';
 
 @Controller('dashboard')

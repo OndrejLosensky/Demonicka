@@ -18,8 +18,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RoleGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '../users/enums/user-role.enum';
-import { User } from '../users/entities/user.entity';
+import { UserRole, User } from '@prisma/client';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { BypassAuth } from '../auth/decorators/bypass-auth.decorator';

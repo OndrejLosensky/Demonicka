@@ -1,5 +1,3 @@
-import { User } from '../../users/entities/user.entity';
-
 export class SystemUserDto {
   id: string;
   username: string;

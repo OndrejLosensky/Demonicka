@@ -5,7 +5,7 @@ import { Public } from '../auth/decorators/public.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RoleGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '../users/enums/user-role.enum';
+import { UserRole } from "@prisma/client"';
 import { LeaderboardDto } from '../dashboard/dto/leaderboard.dto';
 
 @Controller('leaderboard')

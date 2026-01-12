@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
-import { Barrel } from './entities/barrel.entity';
+import { PrismaService } from '../prisma/prisma.service';
+import { Barrel } from '@prisma/client';
 import { CreateBarrelDto } from './dto/create-barrel.dto';
 import { UpdateBarrelDto } from './dto/update-barrel.dto';
 import { LoggingService } from '../logging/logging.service';
@@ -10,37 +9,35 @@ import { LeaderboardGateway } from '../leaderboard/leaderboard.gateway';
 @Injectable()
 export class BarrelsService {
   constructor(
-    @InjectRepository(Barrel)
-    private barrelsRepository: Repository<Barrel>,
+    private prisma: PrismaService,
     private loggingService: LoggingService,
     private readonly leaderboardGateway: LeaderboardGateway,
   ) {}
 
   async findAll(withDeleted = false): Promise<Barrel[]> {
-    return this.barrelsRepository.find({
-      where: withDeleted ? {} : { deletedAt: IsNull() },
-      order: { orderNumber: 'ASC' },
+    return this.prisma.barrel.findMany({
+      where: withDeleted ? {} : { deletedAt: null },
+      orderBy: { orderNumber: 'asc' },
     });
   }
 
   async findDeleted(): Promise<Barrel[]> {
-    return this.barrelsRepository.find({
-      withDeleted: true,
+    return this.prisma.barrel.findMany({
       where: {
-        deletedAt: IsNull(),
+        deletedAt: { not: null },
       },
     });
   }
 
   async getActiveBarrel(): Promise<Barrel | null> {
-    return this.barrelsRepository.findOne({
-      where: { isActive: true, deletedAt: IsNull() },
-      order: { createdAt: 'ASC' },
+    return this.prisma.barrel.findFirst({
+      where: { isActive: true, deletedAt: null },
+      orderBy: { createdAt: 'asc' },
     });
   }
 
   async findOne(id: string): Promise<Barrel> {
-    const barrel = await this.barrelsRepository.findOne({
+    const barrel = await this.prisma.barrel.findUnique({
       where: { id },
     });
     if (!barrel) {
@@ -52,12 +49,13 @@ export class BarrelsService {
   async create(createBarrelDto: CreateBarrelDto): Promise<Barrel> {
     try {
       // Create new barrel (inactive by default)
-      const barrel = this.barrelsRepository.create({
-        ...createBarrelDto,
-        size: createBarrelDto.size as 15 | 30 | 50,
-        isActive: false,
+      const savedBarrel = await this.prisma.barrel.create({
+        data: {
+          ...createBarrelDto,
+          size: createBarrelDto.size as 15 | 30 | 50,
+          isActive: false,
+        },
       });
-      const savedBarrel = await this.barrelsRepository.save(barrel);
       this.loggingService.logBarrelCreated(savedBarrel.id, savedBarrel.size);
       
       // Emit live updates for dashboard
@@ -75,9 +73,11 @@ export class BarrelsService {
 
   async update(id: string, updateBarrelDto: UpdateBarrelDto): Promise<Barrel> {
     try {
-      const barrel = await this.findOne(id);
-      Object.assign(barrel, updateBarrelDto);
-      const savedBarrel = await this.barrelsRepository.save(barrel);
+      await this.findOne(id); // Verify barrel exists
+      const savedBarrel = await this.prisma.barrel.update({
+        where: { id },
+        data: updateBarrelDto,
+      });
       this.loggingService.logBarrelUpdated(id, updateBarrelDto);
       
       // Emit live updates for dashboard
@@ -105,13 +105,17 @@ export class BarrelsService {
       // Deactivate current active barrel if exists
       const currentActive = await this.getActiveBarrel();
       if (currentActive && currentActive.id !== id) {
-        currentActive.isActive = false;
-        await this.barrelsRepository.save(currentActive);
+        await this.prisma.barrel.update({
+          where: { id: currentActive.id },
+          data: { isActive: false },
+        });
       }
 
       // Activate the new barrel
-      barrel.isActive = true;
-      const savedBarrel = await this.barrelsRepository.save(barrel);
+      const savedBarrel = await this.prisma.barrel.update({
+        where: { id },
+        data: { isActive: true },
+      });
       this.loggingService.logBarrelStatusChanged(id, true);
       
       // Emit live updates for dashboard
@@ -129,8 +133,11 @@ export class BarrelsService {
 
   async remove(id: string): Promise<void> {
     try {
-      const barrel = await this.findOne(id);
-      await this.barrelsRepository.softRemove(barrel);
+      await this.findOne(id);
+      await this.prisma.barrel.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
       this.loggingService.logBarrelDeleted(id);
     } catch (error: unknown) {
       this.loggingService.error('Failed to delete barrel', {
@@ -146,7 +153,10 @@ export class BarrelsService {
       const barrels = await this.findAll(true);
       const count = barrels.length;
       for (const barrel of barrels) {
-        await this.barrelsRepository.softRemove(barrel);
+        await this.prisma.barrel.update({
+          where: { id: barrel.id },
+          data: { deletedAt: new Date() },
+        });
       }
       this.loggingService.logCleanup('BARRELS', { barrelsDeleted: count });
     } catch (error: unknown) {
@@ -166,15 +176,21 @@ export class BarrelsService {
 
       // If no beers remaining, deactivate the barrel
       if (barrel.remainingBeers <= 1) {
-        await this.barrelsRepository.update(id, {
-          remainingBeers: 0,
-          isActive: false,
+        await this.prisma.barrel.update({
+          where: { id },
+          data: {
+            remainingBeers: 0,
+            isActive: false,
+          },
         });
         this.loggingService.logBarrelEmpty(id);
         this.loggingService.logBarrelStatusChanged(id, false);
       } else {
-        await this.barrelsRepository.update(id, {
-          remainingBeers: barrel.remainingBeers - 1,
+        await this.prisma.barrel.update({
+          where: { id },
+          data: {
+            remainingBeers: barrel.remainingBeers - 1,
+          },
         });
         this.loggingService.debug('Barrel beers decremented', {
           id,

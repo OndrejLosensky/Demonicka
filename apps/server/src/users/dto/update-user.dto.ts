@@ -8,7 +8,7 @@ import {
   IsArray,
   IsDate,
 } from 'class-validator';
-import { UserRole } from '../enums/user-role.enum';
+import { UserRole } from '@prisma/client';
 
 export class UpdateUserDto {
   @IsOptional()

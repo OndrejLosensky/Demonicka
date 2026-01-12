@@ -1,7 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { UserRole } from '../../users/enums/user-role.enum';
-import { User } from '../../users/entities/user.entity';
+import { User, UserRole } from '@prisma/client';
 
 interface RequestWithUser extends Request {
   user: User;

@@ -14,7 +14,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Versions } from '../../versioning/decorators/version.decorator';
 import { VersionGuard } from '../../versioning/guards/version.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { UserRole } from '../../users/enums/user-role.enum';
+import { UserRole } from '@prisma/client';
 import { BypassAuth } from 'src/auth/decorators/bypass-auth.decorator';
 
 @Controller('events/:eventId/beers')

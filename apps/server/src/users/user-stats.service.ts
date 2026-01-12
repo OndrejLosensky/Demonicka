@@ -1,10 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
-import { Beer } from '../beers/entities/beer.entity';
-import { Event } from '../events/entities/event.entity';
-import { EventBeer } from '../events/entities/event-beer.entity';
+import { PrismaService } from '../prisma/prisma.service';
 import {
   UserStatsDto,
   TimeDistributionDto,
@@ -23,21 +18,15 @@ import {
 
 @Injectable()
 export class UserStatsService {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Beer)
-    private readonly beerRepository: Repository<Beer>,
-    @InjectRepository(Event)
-    private readonly eventRepository: Repository<Event>,
-    @InjectRepository(EventBeer)
-    private readonly eventBeerRepository: Repository<EventBeer>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async getUserStats(userId: string): Promise<UserStatsDto> {
-    const user = await this.userRepository.findOne({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      relations: ['beers', 'events'],
+      include: {
+        beers: { where: { deletedAt: null } },
+        events: { include: { event: true } },
+      },
     });
 
     if (!user) {
@@ -46,7 +35,7 @@ export class UserStatsService {
 
     const now = new Date();
     const beers = user.beers || [];
-    const events = user.events || [];
+    const events = user.events.map(eu => eu.event) || [];
 
     // Calculate beer counts for different time periods
     const beersLastHour = beers.filter(
@@ -112,22 +101,37 @@ export class UserStatsService {
     // Calculate event stats
     const eventStats: EventStatsDto[] = await Promise.all(
       events.map(async (event) => {
-        const eventBeers = beers.filter(
-          (beer) =>
-            event.startDate <= beer.createdAt &&
-            beer.createdAt <= (event.endDate ?? new Date()),
-        );
-
-        const participants = await this.userRepository.count({
-          where: { events: { id: event.id } },
+        const eventBeers = await this.prisma.eventBeer.findMany({
+          where: {
+            eventId: event.id,
+            userId,
+            deletedAt: null,
+          },
         });
+
+        const eventUserCount = await this.prisma.eventUsers.count({
+          where: { eventId: event.id },
+        });
+
+        // Get ranking
+        const allEventBeers = await this.prisma.eventBeer.groupBy({
+          by: ['userId'],
+          where: {
+            eventId: event.id,
+            deletedAt: null,
+          },
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+        });
+
+        const rank = allEventBeers.findIndex(eb => eb.userId === userId) + 1 || eventUserCount;
 
         return {
           eventId: event.id,
           eventName: event.name,
           beerCount: eventBeers.length,
-          rank: 0, // TODO: Implement ranking logic
-          totalParticipants: participants,
+          rank,
+          totalParticipants: eventUserCount,
         };
       }),
     );
@@ -147,20 +151,20 @@ export class UserStatsService {
         : 0;
 
     // Calculate global ranking
-    const allUsers = await this.userRepository.find({
+    const allUsers = await this.prisma.user.findMany({
+      where: { deletedAt: null },
       select: ['id', 'beerCount'],
+      orderBy: { beerCount: 'desc' },
     });
 
-    const sortedUsers = allUsers.sort((a, b) => b.beerCount - a.beerCount);
-    const globalRank =
-      sortedUsers.findIndex((u) => u.id === userId) + 1;
-    const totalUsers = sortedUsers.length;
+    const globalRank = allUsers.findIndex((u) => u.id === userId) + 1;
+    const totalUsers = allUsers.length;
     const percentile = (globalRank / totalUsers) * 100;
 
     const stats: UserStatsDto = {
       // Basic Info
       userId: user.id,
-      username: user.username,
+      username: user.username || '',
       name: user.name,
       role: user.role,
       createdAt: user.createdAt,
@@ -203,42 +207,49 @@ export class UserStatsService {
   }
 
   private async getEventStats(userId: string): Promise<EventStatsDto[]> {
-    const events = await this.eventRepository.find({
-      relations: ['users', 'barrels'],
+    const events = await this.prisma.event.findMany({
+      where: { deletedAt: null },
+      include: {
+        users: true,
+        barrels: true,
+      },
     });
 
     const eventStats: EventStatsDto[] = [];
 
     for (const event of events) {
       // Check if user participated in this event
-      if (!event.users.some((u) => u.id === userId)) {
+      const userInEvent = await this.prisma.eventUsers.findUnique({
+        where: {
+          eventId_userId: { eventId: event.id, userId },
+        },
+      });
+
+      if (!userInEvent) {
         continue;
       }
 
       // Get beers for this event using event_beers table
-      const eventBeers = await this.eventBeerRepository.find({
+      const eventBeers = await this.prisma.eventBeer.findMany({
         where: {
           eventId: event.id,
           userId,
+          deletedAt: null,
         },
       });
 
-      // Get all users' beers for this event to calculate ranking using event_beers
-      const userBeers = await Promise.all(
-        event.users.map(async (u) => ({
-          userId: u.id,
-          beerCount: await this.eventBeerRepository.count({
-            where: {
-              eventId: event.id,
-              userId: u.id,
-            },
-          }),
-        })),
-      );
+      // Get all users' beers for this event to calculate ranking
+      const allEventBeers = await this.prisma.eventBeer.groupBy({
+        by: ['userId'],
+        where: {
+          eventId: event.id,
+          deletedAt: null,
+        },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+      });
 
-      // Sort users by beer count to get ranking
-      const sortedUsers = userBeers.sort((a, b) => b.beerCount - a.beerCount);
-      const rank = sortedUsers.findIndex((u) => u.userId === userId) + 1;
+      const rank = allEventBeers.findIndex(eb => eb.userId === userId) + 1 || event.users.length;
 
       eventStats.push({
         eventId: event.id,
@@ -251,4 +262,4 @@ export class UserStatsService {
 
     return eventStats;
   }
-} 
+}

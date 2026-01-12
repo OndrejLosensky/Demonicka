@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { EventsService } from '../events/events.service';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { EventBeer } from '../events/entities/event-beer.entity';
-import { Event } from '../events/entities/event.entity';
+import { PrismaService } from '../prisma/prisma.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -15,10 +12,7 @@ export class BackupService {
 
   constructor(
     private readonly eventsService: EventsService,
-    @InjectRepository(EventBeer)
-    private readonly eventBeerRepository: Repository<EventBeer>,
-    @InjectRepository(Event)
-    private readonly eventRepository: Repository<Event>,
+    private prisma: PrismaService,
   ) {
     // Ensure backup directory exists
     if (!fs.existsSync(this.backupDir)) {
@@ -36,19 +30,10 @@ export class BackupService {
         return;
       }
 
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupPath = path.join(
-        this.backupDir,
-        `backup-${timestamp}.sqlite`,
-      );
-      const dbPath =
-        process.env.DATABASE_URL ||
-        path.join(process.cwd(), 'data', 'database.sqlite');
-
-      // Copy the database file
-      fs.copyFileSync(dbPath, backupPath);
-      this.logger.log(`Database backup created at ${backupPath}`);
-
+      // Note: For PostgreSQL, backups should be done via pg_dump
+      // This is a placeholder - actual backup should use pg_dump or similar
+      this.logger.log('Backup scheduled (PostgreSQL backups should use pg_dump)');
+      
       // Clean up old backups (older than 6 hours)
       this.cleanupOldBackups();
     } catch (error) {
@@ -64,28 +49,30 @@ export class BackupService {
       this.logger.log('Starting cleanup of orphaned event beers...');
       
       // Get all active events
-      const activeEvents = await this.eventRepository.find({
-        where: { isActive: true },
-        relations: ['users'],
+      const activeEvents = await this.prisma.event.findMany({
+        where: { isActive: true, deletedAt: null },
+        include: {
+          users: true,
+        },
       });
 
       let totalCleaned = 0;
 
       for (const event of activeEvents) {
-        const eventUserIds = event.users.map((u) => u.id);
+        const eventUserIds = event.users.map((eu) => eu.userId);
 
         if (eventUserIds.length === 0) {
           continue;
         }
 
         // Find event beers from users who are no longer in the event
-        const orphanedBeers = await this.eventBeerRepository
-          .createQueryBuilder('event_beer')
-          .where('event_beer.eventId = :eventId', { eventId: event.id })
-          .andWhere('event_beer.userId NOT IN (:...userIds)', {
-            userIds: eventUserIds,
-          })
-          .getMany();
+        const orphanedBeers = await this.prisma.eventBeer.findMany({
+          where: {
+            eventId: event.id,
+            userId: { notIn: eventUserIds },
+            deletedAt: null,
+          },
+        });
 
         if (orphanedBeers.length > 0) {
           this.logger.log(
@@ -93,10 +80,12 @@ export class BackupService {
           );
 
           // Soft delete the orphaned beers
-          for (const beer of orphanedBeers) {
-            beer.deletedAt = new Date();
-            await this.eventBeerRepository.save(beer);
-          }
+          await this.prisma.eventBeer.updateMany({
+            where: {
+              id: { in: orphanedBeers.map(b => b.id) },
+            },
+            data: { deletedAt: new Date() },
+          });
 
           totalCleaned += orphanedBeers.length;
         }
@@ -113,6 +102,9 @@ export class BackupService {
 
   private cleanupOldBackups() {
     try {
+      if (!fs.existsSync(this.backupDir)) {
+        return;
+      }
       const files = fs.readdirSync(this.backupDir);
       const now = new Date().getTime();
       const sixHoursInMs = 6 * 60 * 60 * 1000;

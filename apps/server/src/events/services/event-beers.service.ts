@@ -5,12 +5,8 @@ import {
   Inject,
   forwardRef,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { EventBeer } from '../entities/event-beer.entity';
-import { User } from '../../users/entities/user.entity';
-import { Event } from '../entities/event.entity';
-import { Barrel } from '../../barrels/entities/barrel.entity';
+import { PrismaService } from '../../prisma/prisma.service';
+import { EventBeer } from '@prisma/client';
 import { BeersService } from '../../beers/beers.service';
 import { LeaderboardGateway } from '../../leaderboard/leaderboard.gateway';
 import { LoggingService } from '../../logging/logging.service';
@@ -20,14 +16,7 @@ export class EventBeersService {
   private readonly logger = new Logger(EventBeersService.name);
 
   constructor(
-    @InjectRepository(EventBeer)
-    private readonly eventBeerRepository: Repository<EventBeer>,
-    @InjectRepository(Event)
-    private readonly eventRepository: Repository<Event>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Barrel)
-    private readonly barrelRepository: Repository<Barrel>,
+    private prisma: PrismaService,
     @Inject(forwardRef(() => BeersService))
     private readonly beersService: BeersService,
     private readonly leaderboardGateway: LeaderboardGateway,
@@ -39,7 +28,7 @@ export class EventBeersService {
     userId: string,
     barrelId?: string,
   ): Promise<EventBeer> {
-    const event = await this.eventRepository.findOne({
+    const event = await this.prisma.event.findUnique({
       where: { id: eventId },
     });
 
@@ -47,7 +36,7 @@ export class EventBeersService {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
 
-    const user = await this.userRepository.findOne({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
 
@@ -55,9 +44,8 @@ export class EventBeersService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    let barrel: Barrel | null = null;
     if (barrelId) {
-      barrel = await this.barrelRepository.findOne({
+      const barrel = await this.prisma.barrel.findUnique({
         where: { id: barrelId },
       });
 
@@ -67,13 +55,13 @@ export class EventBeersService {
     }
 
     // Create event-specific beer
-    const eventBeer = this.eventBeerRepository.create({
-      eventId,
-      userId,
-      barrelId: barrel?.id || null,
+    const savedEventBeer = await this.prisma.eventBeer.create({
+      data: {
+        eventId,
+        userId,
+        barrelId: barrelId || null,
+      },
     });
-
-    const savedEventBeer = await this.eventBeerRepository.save(eventBeer);
 
     // Also create a global beer record, with skipEventBeer=true to prevent infinite loop
     await this.beersService.create(userId, barrelId, true);
@@ -88,16 +76,19 @@ export class EventBeersService {
   }
 
   async remove(eventId: string, userId: string): Promise<void> {
-    const lastBeer = await this.eventBeerRepository.findOne({
-      where: { eventId, userId },
-      order: { consumedAt: 'DESC' },
+    const lastBeer = await this.prisma.eventBeer.findFirst({
+      where: { eventId, userId, deletedAt: null },
+      orderBy: { consumedAt: 'desc' },
     });
 
     if (!lastBeer) {
       throw new NotFoundException('No beers found for this user in this event');
     }
 
-    await this.eventBeerRepository.remove(lastBeer);
+    await this.prisma.eventBeer.update({
+      where: { id: lastBeer.id },
+      data: { deletedAt: new Date() },
+    });
 
     // Log beer removal
     this.loggingService.logBeerRemoved(userId, lastBeer.barrelId);
@@ -107,9 +98,9 @@ export class EventBeersService {
   }
 
   async findByEventId(eventId: string): Promise<EventBeer[]> {
-    return this.eventBeerRepository.find({
-      where: { eventId },
-      relations: ['user', 'barrel'],
+    return this.prisma.eventBeer.findMany({
+      where: { eventId, deletedAt: null },
+      include: { user: true, barrel: true },
     });
   }
 
@@ -117,44 +108,46 @@ export class EventBeersService {
     eventId: string,
     userId: string,
   ): Promise<EventBeer[]> {
-    return this.eventBeerRepository.find({
-      where: { eventId, userId },
-      relations: ['barrel'],
+    return this.prisma.eventBeer.findMany({
+      where: { eventId, userId, deletedAt: null },
+      include: { barrel: true },
     });
   }
 
   async getEventBeerCount(eventId: string, userId: string): Promise<number> {
-    const beers = await this.eventBeerRepository.find({
-      where: { eventId, userId },
+    return this.prisma.eventBeer.count({
+      where: { eventId, userId, deletedAt: null },
     });
-    return beers.length;
   }
 
   async getLastEventBeerTime(
     eventId: string,
     userId: string,
   ): Promise<Date | null> {
-    const lastBeer = await this.eventBeerRepository.findOne({
-      where: { eventId, userId },
-      order: { consumedAt: 'DESC' },
+    const lastBeer = await this.prisma.eventBeer.findFirst({
+      where: { eventId, userId, deletedAt: null },
+      orderBy: { consumedAt: 'desc' },
     });
     return lastBeer?.consumedAt || null;
   }
 
   async findAllForEvent(eventId: string): Promise<EventBeer[]> {
-    return this.eventBeerRepository.find({
-      where: { eventId },
-      order: { consumedAt: 'DESC' },
+    return this.prisma.eventBeer.findMany({
+      where: { eventId, deletedAt: null },
+      orderBy: { consumedAt: 'desc' },
     });
   }
 
   async removeAllForEvent(eventId: string): Promise<void> {
-    const eventBeers = await this.eventBeerRepository.find({
-      where: { eventId },
+    const eventBeers = await this.prisma.eventBeer.findMany({
+      where: { eventId, deletedAt: null },
     });
 
     if (eventBeers.length > 0) {
-      await this.eventBeerRepository.remove(eventBeers);
+      await this.prisma.eventBeer.updateMany({
+        where: { eventId, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
       this.logger.log(
         `Removed ${eventBeers.length} event beers for event ${eventId}`,
       );

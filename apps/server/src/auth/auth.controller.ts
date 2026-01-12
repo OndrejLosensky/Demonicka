@@ -13,12 +13,11 @@ import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { Public } from './decorators/public.decorator';
-import { User } from '../users/entities/user.entity';
+import { User } from '@prisma/client';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { UsersService } from '../users/users.service';
-import { QueryFailedError } from 'typeorm';
 import { CompleteRegistrationDto } from '../users/dto/complete-registration.dto';
 
 interface RequestWithUser extends Request {
@@ -53,11 +52,9 @@ export class AuthController {
   async register(@Body() createUserDto: CreateUserDto): Promise<UserResponse> {
     try {
       return await this.usersService.create(createUserDto);
-    } catch (error) {
-      if (
-        error instanceof QueryFailedError &&
-        error.message.includes('UNIQUE constraint failed')
-      ) {
+    } catch (error: any) {
+      // Prisma unique constraint error code is P2002
+      if (error?.code === 'P2002' && error?.meta?.target?.includes('username')) {
         throw new BadRequestException('Uživatelské jméno již existuje');
       }
       throw error;

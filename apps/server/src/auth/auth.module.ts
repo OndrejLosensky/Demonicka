@@ -5,9 +5,6 @@ import { AdminAuthController } from './admin-auth.controller';
 import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { RefreshToken } from './entities/refresh-token.entity';
-import { DeviceToken } from './entities/device-token.entity';
 import { DeviceTokenService } from './device-token.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -19,7 +16,6 @@ import { RolesGuard } from './guards/roles.guard';
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([RefreshToken, DeviceToken]),
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
