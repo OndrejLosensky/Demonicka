@@ -37,7 +37,7 @@ const heroTextVariants = {
     y: 0,
     transition: {
       duration: 0.8,
-      ease: "easeOut"
+      ease: [0.43, 0.13, 0.23, 0.96] as const
     }
   }
 };
@@ -49,7 +49,7 @@ const heroImageVariants = {
     opacity: 1,
     transition: {
       duration: 1,
-      ease: "easeOut"
+      ease: [0.43, 0.13, 0.23, 0.96] as const
     }
   }
 };
@@ -61,7 +61,7 @@ const heroStatsVariants = {
     x: 0,
     transition: {
       duration: 0.6,
-      ease: "easeOut"
+      ease: [0.43, 0.13, 0.23, 0.96] as const
     }
   }
 };
@@ -74,7 +74,7 @@ const glowAnimation = {
     transition: {
       duration: 3,
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: [0.42, 0, 0.58, 1] as const
     }
   }
 };

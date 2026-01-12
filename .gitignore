@@ -5,3 +5,4 @@ tmp/
 *.local
 .pnpm-store/
 package-lock.json
+.turbo/

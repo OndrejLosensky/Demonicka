@@ -5,10 +5,16 @@
   "description": "Démonická monorepo",
   "packageManager": "pnpm@10.17.1",
   "scripts": {
-    "dev": "turbo run dev",
     "build": "turbo run build",
     "build:server": "turbo run build --filter=demonicka-server",
     "build:web": "turbo run build --filter=demonicka-web",
+    "build:shared": "turbo run build --filter='@demonicka/*'",
+    "start": "turbo run start",
+    "start:server": "turbo run start --filter=demonicka-server",
+    "start:web": "turbo run start --filter=demonicka-web",
+    "dev": "turbo run dev",
+    "dev:server": "turbo run dev --filter=demonicka-server",
+    "dev:web": "turbo run dev --filter=demonicka-web",
     "test": "turbo run test",
     "lint": "turbo run lint"
   },
