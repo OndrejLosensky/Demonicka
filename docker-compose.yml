@@ -3,7 +3,7 @@ version: '3.8'
 services:
   backend:
     build:
-      context: ./packages/server
+      context: ./apps/server
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
@@ -13,7 +13,7 @@ services:
 
   frontend:
     build:
-      context: ./packages/web
+      context: ./apps/web
       dockerfile: Dockerfile
     ports:
       - "80:80"

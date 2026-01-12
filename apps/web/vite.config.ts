@@ -10,8 +10,8 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@demonicka/shared-types": path.resolve(__dirname, "../shared-types/src"),
-      "@demonicka/shared-utils": path.resolve(__dirname, "../shared-utils/src"),
+      "@demonicka/shared-types": path.resolve(__dirname, "../../packages/shared-types/src"),
+      "@demonicka/shared-utils": path.resolve(__dirname, "../../packages/shared-utils/src"),
     },
   },
   server: {

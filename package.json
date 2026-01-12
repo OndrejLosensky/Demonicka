@@ -3,15 +3,17 @@
   "version": "2.0.0",
   "private": true,
   "description": "Démonická monorepo",
+  "packageManager": "pnpm@10.17.1",
   "scripts": {
-    "dev": "pnpm --filter server start:dev & pnpm --filter web dev",
-    "build": "pnpm --filter './packages/*' build",
-    "build:server": "pnpm --filter server build",
-    "build:web": "pnpm --filter web build",
-    "test": "pnpm --filter './packages/*' test",
-    "lint": "pnpm --filter './packages/*' lint"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "build:server": "turbo run build --filter=demonicka-server",
+    "build:web": "turbo run build --filter=demonicka-web",
+    "test": "turbo run test",
+    "lint": "turbo run lint"
   },
   "devDependencies": {
+    "turbo": "^2.7.4",
     "typescript": "^5.7.3"
   }
 }
