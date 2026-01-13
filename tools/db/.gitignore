@@ -1,0 +1,6 @@
+# Environment variable files for db tools
+.env.prod
+.env.dev
+
+# Exported data
+/exported-data

@@ -37,10 +37,16 @@ lerna-debug.log*
 
 # dotenv environment variable files
 .env
+.env.prod
+.env.dev
 .env.development.local
 .env.test.local
 .env.production.local
 .env.local
+# Allow example files to be committed
+!.env.example
+!.env.prod.example
+!.env.dev.example
 
 # temp directory
 .temp

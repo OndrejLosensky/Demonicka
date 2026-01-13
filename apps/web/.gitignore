@@ -23,5 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment variables
+# Environment variables
 .env
+# Allow example files to be committed
+!.env.example

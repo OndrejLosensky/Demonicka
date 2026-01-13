@@ -1,12 +1,15 @@
 {
-  "name": "migration-tools",
+  "name": "db-tools",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
+    "refresh:dev": "tsx refresh-dev.ts",
     "export:sqlite": "tsx export-sqlite.ts",
     "import:postgres": "tsx import-postgres.ts",
-    "migrate:data": "tsx migrate-data.ts"
+    "migrate:data": "tsx migrate-data.ts",
+    "check:db": "tsx check-db.ts",
+    "restore:prod": "tsx restore-from-sqlite.ts"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
