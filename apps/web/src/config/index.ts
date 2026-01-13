@@ -13,7 +13,8 @@ export const config = {
   apiPrefix: import.meta.env.VITE_API_PREFIX || '/api',
   analytics: {
     enabled: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',
-  }
+  },
+  isDev: import.meta.env.MODE === 'development' || import.meta.env.MODE === 'dev',
 } as const;
 
 // Validate required environment variables

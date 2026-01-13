@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_WS_URL: string
   readonly VITE_API_PREFIX?: string
   readonly VITE_ENABLE_ANALYTICS?: string
+  readonly MODE: string
 }
 
 interface ImportMeta {

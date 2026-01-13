@@ -25,5 +25,11 @@ dist-ssr
 
 # Environment variables
 .env
+.env.prod
+.env.production
+.env.local
+.env.production.local
 # Allow example files to be committed
 !.env.example
+!.env.prod.example
+!.env.production.example

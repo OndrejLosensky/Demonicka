@@ -4,6 +4,7 @@ export interface UserLeaderboard {
   id: string;
   username: string;
   beerCount: number;
+  rank: number;
 }
 
 export interface LeaderboardTableProps {

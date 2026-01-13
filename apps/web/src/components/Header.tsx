@@ -35,6 +35,7 @@ import translations from '../locales/cs/common.header.json';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
 import { useAppTheme } from '../contexts/ThemeContext';
 import { useHeaderVisibility } from '../contexts/HeaderVisibilityContext';
+import { config } from '../config/index';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 
@@ -161,6 +162,16 @@ export default function Header() {
                     >
                       v2.0
                     </motion.div>
+                    {config.isDev && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.7, duration: 0.5, type: "spring" }}
+                        className="absolute -left-2 -top-2 bg-yellow-500 text-white rounded-full px-2 py-0.5 text-[10px] font-bold shadow-lg z-10"
+                      >
+                        DEV
+                      </motion.div>
+                    )}
                   </Link>
                 </motion.div>
                 

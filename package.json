@@ -15,6 +15,7 @@
     "dev": "turbo run dev",
     "dev:server": "turbo run dev --filter=demonicka-server",
     "dev:web": "turbo run dev --filter=demonicka-web",
+    "preview:web": "turbo run preview --filter=demonicka-web",
     "test": "turbo run test",
     "lint": "turbo run lint"
   },

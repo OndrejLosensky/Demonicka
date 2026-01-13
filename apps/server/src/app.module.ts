@@ -21,7 +21,8 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      // Load .env.prod if NODE_ENV is production, otherwise load .env (dev)
+      envFilePath: process.env.NODE_ENV === 'production' ? '.env.prod' : '.env',
     }),
     PrismaModule,
     AuthModule,
