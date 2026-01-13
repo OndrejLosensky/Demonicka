@@ -1,40 +1,49 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
+import { PrismaService } from '../prisma/prisma.service';
 import { LoggingService } from '../logging/logging.service';
-import { UserRole } from './enums/user-role.enum';
+import { UserRole } from '@prisma/client';
+import { LeaderboardGateway } from '../leaderboard/leaderboard.gateway';
 
 describe('UsersService', () => {
   let service: UsersService;
-  let mockRepository: any;
+  let mockPrismaService: any;
   let mockLoggingService: any;
+  let mockLeaderboardGateway: any;
 
   beforeEach(async () => {
-    mockRepository = {
-      create: jest.fn(),
-      save: jest.fn(),
-      findOne: jest.fn(),
-      find: jest.fn(),
-      softDelete: jest.fn(),
-      restore: jest.fn(),
-      delete: jest.fn(),
+    mockPrismaService = {
+      user: {
+        create: jest.fn(),
+        findUnique: jest.fn(),
+        findMany: jest.fn(),
+        update: jest.fn(),
+        findFirst: jest.fn(),
+      },
     };
 
     mockLoggingService = {
       logUserCreated: jest.fn(),
     };
 
+    mockLeaderboardGateway = {
+      emitFullUpdate: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
         {
-          provide: getRepositoryToken(User),
-          useValue: mockRepository,
+          provide: PrismaService,
+          useValue: mockPrismaService,
         },
         {
           provide: LoggingService,
           useValue: mockLoggingService,
+        },
+        {
+          provide: LeaderboardGateway,
+          useValue: mockLeaderboardGateway,
         },
       ],
     }).compile();
@@ -51,8 +60,8 @@ describe('UsersService', () => {
         isRegistrationComplete: false,
       };
 
-      mockRepository.findOne.mockResolvedValue(mockUser);
-      mockRepository.save.mockResolvedValue(mockUser);
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.user.update.mockResolvedValue(mockUser);
 
       const result = await service.generateRegisterToken('123');
 
@@ -72,8 +81,8 @@ describe('UsersService', () => {
         isRegistrationComplete: false,
       };
 
-      mockRepository.findOne.mockResolvedValue(mockUser);
-      mockRepository.save.mockResolvedValue(mockUser);
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.user.update.mockResolvedValue(mockUser);
 
       const result1 = await service.generateRegisterToken('123');
       const result2 = await service.generateRegisterToken('123');
@@ -89,7 +98,7 @@ describe('UsersService', () => {
       const createParticipantDto = {
         username: 'TestUser',
         name: 'Test User',
-        gender: 'MALE',
+        gender: 'MALE' as const,
       };
 
       const mockUser = {
@@ -98,10 +107,24 @@ describe('UsersService', () => {
         registrationToken: 'TestUser-1234',
         isRegistrationComplete: false,
         role: UserRole.PARTICIPANT,
+        canLogin: false,
+        createdBy: null,
+        beerCount: 0,
+        lastBeerTime: null,
+        isTwoFactorEnabled: false,
+        twoFactorSecret: null,
+        allowedIPs: [],
+        lastAdminLogin: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+        password: null,
+        firstName: null,
+        lastName: null,
       };
 
-      mockRepository.create.mockReturnValue(mockUser);
-      mockRepository.save.mockResolvedValue(mockUser);
+      mockPrismaService.user.findUnique.mockResolvedValue(null); // Username not taken
+      mockPrismaService.user.create.mockResolvedValue(mockUser);
 
       const result = await service.createParticipant(createParticipantDto);
 

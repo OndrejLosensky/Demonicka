@@ -4,14 +4,14 @@ export class SystemUserDto {
   role: string;
   isRegistrationComplete: boolean;
   isTwoFactorEnabled: boolean;
-  isAdminLoginEnabled: boolean;
+  canLogin: boolean;
   lastAdminLogin: Date | null;
 }
 
 export class SystemStatsDto {
   users: SystemUserDto[];
   totalUsers: number;
-  totalAdminUsers: number;
+  totalOperatorUsers: number;
   totalCompletedRegistrations: number;
   total2FAEnabled: number;
 } 

@@ -20,6 +20,9 @@ import { VersionGuard } from '../versioning/guards/version.guard';
 import { EventBeersService } from './services/event-beers.service';
 import { BypassAuth } from 'src/auth/decorators/bypass-auth.decorator';
 import { Public } from '../auth/decorators/public.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Permissions } from '../auth/decorators/permissions.decorator';
+import { Permission } from '@demonicka/shared';
 
 @Controller('events')
 @BypassAuth()
@@ -32,8 +35,8 @@ export class EventsController {
   ) {}
 
   @Get()
-  findAll(): Promise<Event[]> {
-    return this.eventsService.findAll();
+  findAll(@CurrentUser() user?: User): Promise<Event[]> {
+    return this.eventsService.findAll(user);
   }
 
   @Get('active')
@@ -43,26 +46,30 @@ export class EventsController {
   }
 
   @Post()
-  create(@Body() createEventDto: CreateEventDto): Promise<Event> {
-    return this.eventsService.create(createEventDto);
+  @Permissions(Permission.CREATE_EVENT)
+  create(@Body() createEventDto: CreateEventDto, @CurrentUser() user: User): Promise<Event> {
+    return this.eventsService.create(createEventDto, user.id);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
-    return this.eventsService.findOne(id);
+  findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user?: User): Promise<Event> {
+    return this.eventsService.findOne(id, user);
   }
 
   @Put(':id')
+  @Permissions(Permission.UPDATE_EVENT)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateEventDto: UpdateEventDto,
+    @CurrentUser() user: User,
   ): Promise<Event> {
-    return this.eventsService.update(id, updateEventDto);
+    return this.eventsService.update(id, updateEventDto, user);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.eventsService.remove(id);
+  @Permissions(Permission.DELETE_EVENT)
+  remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User): Promise<void> {
+    return this.eventsService.remove(id, user);
   }
 
   @Post('cleanup')

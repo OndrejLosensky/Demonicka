@@ -11,7 +11,7 @@ export class BackupController {
   constructor(private readonly backupService: BackupService) {}
 
   @Post('cleanup-orphaned-beers')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   async cleanupOrphanedEventBeers() {
     await this.backupService.cleanupOrphanedEventBeers();
     return { message: 'Cleanup completed successfully' };

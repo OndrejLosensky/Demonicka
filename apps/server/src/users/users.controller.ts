@@ -20,6 +20,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { User } from '@prisma/client';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -42,17 +43,17 @@ export class UsersController {
   ) {}
 
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   @BypassAuth()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  create(@Body() createUserDto: CreateUserDto, @CurrentUser() user?: User) {
+    return this.usersService.create(createUserDto, user?.id);
   }
 
   @Post('participant')
   @BypassAuth()
   @Public()
-  createParticipant(@Body() createParticipantDto: CreateParticipantDto) {
-    return this.usersService.createParticipant(createParticipantDto);
+  createParticipant(@Body() createParticipantDto: CreateParticipantDto, @CurrentUser() user?: User) {
+    return this.usersService.createParticipant(createParticipantDto, user?.id);
   }
 
   @Get()
@@ -63,7 +64,7 @@ export class UsersController {
 
   @Get('profile')
   @BypassAuth()
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER)
   getProfile(@GetUser() user: User) {
     return this.usersService.findOne(user.id);
   }
@@ -85,19 +86,19 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
@@ -109,20 +110,20 @@ export class UsersController {
 
   @Get(':id/stats')
   @UseGuards(RoleGuard)
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER)
   async getUserStats(@Param('id', ParseUUIDPipe) id: string) {
     return this.userStatsService.getUserStats(id);
   }
 
   @Patch('me')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER)
   updateProfile(@GetUser() user: User, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(user.id, updateUserDto);
   }
 
   @Post(':id/register-token')
   @BypassAuth()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   async generateRegisterToken(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.generateRegisterToken(id);
   }

@@ -1,3 +1,6 @@
+// Register tsconfig-paths for path mapping resolution
+import 'tsconfig-paths/register';
+
 // Crypto polyfill for @nestjs/schedule compatibility
 import { webcrypto } from 'node:crypto';
 if (!globalThis.crypto) {
@@ -9,8 +12,6 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-import { Reflector } from '@nestjs/core';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
@@ -75,8 +76,8 @@ async function bootstrap() {
     }),
   );
 
-  // Set up global JWT auth guard
-  app.useGlobalGuards(new JwtAuthGuard(app.get(Reflector)));
+  // Note: JWT auth guard is registered as APP_GUARD in AuthModule
+  // No need to register it globally here to avoid conflicts
 
   // Listen on port 3000 or the port specified in the environment
   await app.listen(process.env.PORT ?? 3000);

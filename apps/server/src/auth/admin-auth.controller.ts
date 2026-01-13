@@ -16,8 +16,13 @@ import { Roles } from './decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { Request } from 'express';
 import { UsersService } from '../users/users.service';
+import { Versions } from '../versioning/decorators/version.decorator';
+import { VersionGuard } from '../versioning/guards/version.guard';
+import { Public } from './decorators/public.decorator';
 
-@Controller('api/v1/auth/admin')
+@Controller('auth/admin')
+@Versions('1')
+@UseGuards(VersionGuard)
 export class AdminAuthController {
   constructor(
     private readonly authService: AuthService,
@@ -25,6 +30,7 @@ export class AdminAuthController {
     private readonly usersService: UsersService,
   ) {}
 
+  @Public()
   @Post('login')
   async login(@Body() adminLoginDto: AdminLoginDto) {
     // Validate user credentials
@@ -45,14 +51,14 @@ export class AdminAuthController {
       throw new UnauthorizedException('User not found');
     }
 
-    // Check if user is an admin
-    if (user.role !== UserRole.ADMIN) {
-      throw new UnauthorizedException('Only admin users can access this endpoint');
+    // Check if user is an operator or super admin
+    if (user.role !== UserRole.OPERATOR && user.role !== UserRole.SUPER_ADMIN) {
+      throw new UnauthorizedException('Only operator or super admin users can access this endpoint');
     }
 
-    // Check if admin login is enabled for this user
-    if (!user.isAdminLoginEnabled) {
-      throw new UnauthorizedException('Admin login is not enabled for this user');
+    // Check if user can login
+    if (!user.canLogin) {
+      throw new UnauthorizedException('Login is not enabled for this user');
     }
 
     // Validate 2FA if enabled
@@ -91,7 +97,7 @@ export class AdminAuthController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   async logout(@Req() req: Request) {
     const user = req.user as { id: string };
     const deviceToken = req.headers['x-device-token'] as string;
@@ -105,7 +111,7 @@ export class AdminAuthController {
 
   @Get('devices')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   async getDevices(@Req() req: Request) {
     const user = req.user as { id: string };
     return this.deviceTokenService.getActiveDevices(user.id);
@@ -113,7 +119,7 @@ export class AdminAuthController {
 
   @Post('devices/logout-all')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   async logoutAllDevices(@Req() req: Request) {
     const user = req.user as { id: string };
     await this.deviceTokenService.deactivateAllUserTokens(user.id);
@@ -122,7 +128,7 @@ export class AdminAuthController {
 
   @Post('biometric')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   async updateBiometricStatus(
     @Req() req: Request,
     @Body() body: { enabled: boolean },

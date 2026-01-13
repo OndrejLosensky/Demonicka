@@ -6,7 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && node scripts/fix-dist.js",
+    "fix-dist": "node scripts/fix-dist.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev": "nest start --watch",
@@ -24,6 +25,7 @@
     "promote:admin": "ts-node promote-admin.ts"
   },
   "dependencies": {
+    "@demonicka/shared": "workspace:*",
     "@demonicka/shared-types": "workspace:*",
     "@demonicka/shared-utils": "workspace:*",
     "@nestjs/cache-manager": "^3.0.1",

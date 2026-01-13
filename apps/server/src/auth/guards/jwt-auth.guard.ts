@@ -34,11 +34,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       const bypassToken = request.headers['x-bypass-token'];
       
       if (bypassToken === config.bypassAuth?.token) {
-        // Inject admin user for bypass auth
+        // Inject super admin user for bypass auth
         const adminUser: User = {
           id: '00000000-0000-0000-0000-000000000000',
           username: 'bypass.admin',
-          role: UserRole.ADMIN,
+          role: UserRole.SUPER_ADMIN,
           isRegistrationComplete: true,
           gender: 'MALE',
           password: null,
@@ -50,7 +50,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
           registrationToken: null,
           isTwoFactorEnabled: false,
           twoFactorSecret: null,
-          isAdminLoginEnabled: false,
+          canLogin: true,
+          createdBy: null,
           allowedIPs: [],
           lastAdminLogin: null,
           createdAt: new Date(),

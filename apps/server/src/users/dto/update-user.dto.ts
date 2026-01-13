@@ -48,7 +48,7 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsEnum(UserRole, {
-    message: 'Role must be one of: ADMIN, USER, PARTICIPANT',
+    message: 'Role must be one of: SUPER_ADMIN, OPERATOR, USER, PARTICIPANT',
   })
   role?: UserRole;
 
@@ -56,7 +56,7 @@ export class UpdateUserDto {
   @IsOptional()
   isRegistrationComplete?: boolean;
 
-  // Admin-specific fields
+  // Operator/Admin-specific fields
   @IsBoolean()
   @IsOptional()
   isTwoFactorEnabled?: boolean;
@@ -67,7 +67,7 @@ export class UpdateUserDto {
 
   @IsBoolean()
   @IsOptional()
-  isAdminLoginEnabled?: boolean;
+  canLogin?: boolean;
 
   @IsArray()
   @IsOptional()

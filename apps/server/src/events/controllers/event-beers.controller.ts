@@ -25,7 +25,7 @@ export class EventBeersController {
   constructor(private readonly eventBeersService: EventBeersService) {}
 
   @Post('users/:userId')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER)
   async createEventBeer(
     @Param('eventId', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -35,7 +35,7 @@ export class EventBeersController {
   }
 
   @Delete('users/:userId')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER)
   async removeEventBeer(
     @Param('eventId', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -44,7 +44,7 @@ export class EventBeersController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   async getEventBeers(
     @Param('eventId', ParseUUIDPipe) eventId: string,
   ): Promise<EventBeer[]> {
@@ -52,7 +52,7 @@ export class EventBeersController {
   }
 
   @Get('users/:userId')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER)
   async getUserEventBeers(
     @Param('eventId', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -61,7 +61,7 @@ export class EventBeersController {
   }
 
   @Get('users/:userId/count')
-  @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER)
   async getUserEventBeerCount(
     @Param('eventId', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,

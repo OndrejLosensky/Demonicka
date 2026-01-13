@@ -54,7 +54,7 @@ export class DashboardController {
 
   @Get('system')
   @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   @BypassAuth()
   @Header('Cache-Control', 'no-store')
   async getSystemStats(): Promise<SystemStatsDto> {

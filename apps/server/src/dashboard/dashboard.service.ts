@@ -463,7 +463,7 @@ export class DashboardService {
           role: true,
           isRegistrationComplete: true,
           isTwoFactorEnabled: true,
-          isAdminLoginEnabled: true,
+          canLogin: true,
           lastAdminLogin: true,
         },
       });
@@ -477,11 +477,11 @@ export class DashboardService {
           role: user.role,
           isRegistrationComplete: user.isRegistrationComplete,
           isTwoFactorEnabled: user.isTwoFactorEnabled,
-          isAdminLoginEnabled: user.isAdminLoginEnabled,
+          canLogin: user.canLogin,
           lastAdminLogin: user.lastAdminLogin,
         })),
         totalUsers: users.length,
-        totalAdminUsers: users.filter(u => u.role === UserRole.ADMIN).length,
+        totalOperatorUsers: users.filter(u => u.role === UserRole.OPERATOR || u.role === UserRole.SUPER_ADMIN).length,
         totalCompletedRegistrations: users.filter(u => u.isRegistrationComplete).length,
         total2FAEnabled: users.filter(u => u.isTwoFactorEnabled).length,
       };

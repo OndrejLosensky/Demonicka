@@ -49,7 +49,7 @@ export class AchievementsController {
   // Admin endpoints
   @Get()
   @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   @BypassAuth()
   async getAllAchievements(): Promise<AchievementDto[]> {
     return this.achievementsService.getAllAchievements();
@@ -57,7 +57,7 @@ export class AchievementsController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   @BypassAuth()
   async createAchievement(
     @Body() createDto: CreateAchievementDto,
@@ -67,7 +67,7 @@ export class AchievementsController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   @BypassAuth()
   async updateAchievement(
     @Param('id') id: string,
@@ -78,7 +78,7 @@ export class AchievementsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   @BypassAuth()
   async deleteAchievement(@Param('id') id: string): Promise<void> {
     await this.achievementsService.deleteAchievement(id);

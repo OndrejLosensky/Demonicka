@@ -1,5 +1,6 @@
 export const USER_ROLE = {
-  ADMIN: 'ADMIN',
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  OPERATOR: 'OPERATOR',
   USER: 'USER',
   PARTICIPANT: 'PARTICIPANT',
 } as const;
@@ -18,6 +19,8 @@ export interface User {
     lastBeerTime: string | null;
     registrationToken: string | null;
     isRegistrationComplete: boolean;
+    canLogin: boolean;
+    createdBy: string | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;

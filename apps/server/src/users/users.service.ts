@@ -33,7 +33,7 @@ export class UsersService {
     private readonly leaderboardGateway: LeaderboardGateway,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserWithoutPassword> {
+  async create(createUserDto: CreateUserDto, createdBy?: string): Promise<UserWithoutPassword> {
     // Check if username is already taken
     const existingUser = await this.findByUsername(createUserDto.username);
     if (existingUser) {
@@ -48,6 +48,8 @@ export class UsersService {
           : null,
         isRegistrationComplete: true,
         role: UserRole.USER,
+        canLogin: true, // USER can login
+        createdBy: createdBy || null,
       },
     });
 
@@ -68,6 +70,7 @@ export class UsersService {
 
   async createParticipant(
     createParticipantDto: CreateParticipantDto,
+    createdBy?: string,
   ): Promise<UserWithoutPassword> {
     // Generate username-based token with random number
     const randomNumber = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
@@ -79,6 +82,8 @@ export class UsersService {
         registrationToken,
         isRegistrationComplete: false,
         role: UserRole.PARTICIPANT,
+        canLogin: false, // PARTICIPANT cannot login
+        createdBy: createdBy || null,
       },
     });
 
@@ -224,13 +229,13 @@ export class UsersService {
       throw new NotFoundException(`Uživatel ${username} nebyl nalezen`);
     }
 
-    if (user.role === UserRole.ADMIN) {
-      throw new BadRequestException(`Uživatel ${username} je již admin`);
+    if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.OPERATOR) {
+      throw new BadRequestException(`Uživatel ${username} je již operátor nebo super admin`);
     }
 
     const savedUser = await this.prisma.user.update({
       where: { id: user.id },
-      data: { role: UserRole.ADMIN },
+      data: { role: UserRole.OPERATOR, canLogin: true },
     });
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

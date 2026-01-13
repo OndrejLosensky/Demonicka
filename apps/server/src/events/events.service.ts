@@ -1,12 +1,13 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Event, User, Barrel } from '@prisma/client';
+import { Event, User, Barrel, UserRole } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventBeersService } from './services/event-beers.service';
 import { BarrelsService } from '../barrels/barrels.service';
 import { LoggingService } from '../logging/logging.service';
 import { UsersService } from '../users/users.service';
+import { userCanAccessEvent } from '../auth/guards/permissions.guard';
 
 @Injectable()
 export class EventsService {
@@ -18,15 +19,49 @@ export class EventsService {
         private readonly usersService: UsersService,
     ) {}
 
-    async create(createEventDto: CreateEventDto): Promise<Event> {
+    async create(createEventDto: CreateEventDto, userId: string): Promise<Event> {
         return this.prisma.event.create({
-            data: createEventDto,
+            data: {
+                ...createEventDto,
+                createdBy: userId,
+            },
         });
     }
 
-    async findAll(): Promise<Event[]> {
+    async findAll(user?: User): Promise<Event[]> {
+        const where: any = { deletedAt: null };
+
+        // If user is provided, filter based on role
+        if (user) {
+            if (user.role === UserRole.SUPER_ADMIN) {
+                // SUPER_ADMIN sees all events
+                // No additional filtering needed
+            } else if (user.role === UserRole.OPERATOR) {
+                // OPERATOR sees events they created or are part of
+                const eventIds = await this.prisma.eventUsers.findMany({
+                    where: { userId: user.id },
+                    select: { eventId: true },
+                });
+                const participantEventIds = eventIds.map(eu => eu.eventId);
+
+                where.OR = [
+                    { createdBy: user.id },
+                    { id: { in: participantEventIds } },
+                ];
+            } else {
+                // USER and PARTICIPANT see only events they're part of
+                const eventIds = await this.prisma.eventUsers.findMany({
+                    where: { userId: user.id },
+                    select: { eventId: true },
+                });
+                const participantEventIds = eventIds.map(eu => eu.eventId);
+
+                where.id = { in: participantEventIds };
+            }
+        }
+
         return this.prisma.event.findMany({
-            where: { deletedAt: null },
+            where,
             include: {
                 users: { include: { user: true } },
                 barrels: { include: { barrel: true } },
@@ -34,7 +69,7 @@ export class EventsService {
         });
     }
 
-    async findOne(id: string): Promise<Event> {
+    async findOne(id: string, user?: User): Promise<Event> {
         const event = await this.prisma.event.findUnique({
             where: { id },
             include: {
@@ -47,19 +82,36 @@ export class EventsService {
             throw new NotFoundException(`Event with ID ${id} not found`);
         }
 
+        // Check access if user is provided
+        if (user && !userCanAccessEvent(user, event)) {
+            throw new ForbiddenException('You do not have access to this event');
+        }
+
         return event;
     }
 
-    async update(id: string, updateEventDto: UpdateEventDto): Promise<Event> {
-        await this.findOne(id); // Verify event exists
+    async update(id: string, updateEventDto: UpdateEventDto, user?: User): Promise<Event> {
+        const event = await this.findOne(id, user); // Verify event exists and check access
+        
+        // Check ownership for OPERATOR (SUPER_ADMIN can update any event)
+        if (user && user.role === UserRole.OPERATOR && event.createdBy !== user.id) {
+            throw new ForbiddenException('You can only update events you created');
+        }
+
         return this.prisma.event.update({
             where: { id },
             data: updateEventDto,
         });
     }
 
-    async remove(id: string): Promise<void> {
-        await this.findOne(id);
+    async remove(id: string, user?: User): Promise<void> {
+        const event = await this.findOne(id, user); // Verify event exists and check access
+        
+        // Check ownership for OPERATOR (SUPER_ADMIN can delete any event)
+        if (user && user.role === UserRole.OPERATOR && event.createdBy !== user.id) {
+            throw new ForbiddenException('You can only delete events you created');
+        }
+
         await this.prisma.event.update({
             where: { id },
             data: { deletedAt: new Date() },

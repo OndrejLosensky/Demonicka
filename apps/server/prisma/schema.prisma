@@ -11,7 +11,8 @@ datasource db {
 
 // Enums
 enum UserRole {
-  ADMIN
+  SUPER_ADMIN
+  OPERATOR
   USER
   PARTICIPANT
 }
@@ -62,7 +63,8 @@ model User {
   isRegistrationComplete Boolean   @default(false)
   isTwoFactorEnabled     Boolean   @default(false)
   twoFactorSecret        String?
-  isAdminLoginEnabled    Boolean   @default(false)
+  canLogin               Boolean   @default(true)
+  createdBy              String?   @db.Uuid
   allowedIPs             String[]  @default([])
   lastAdminLogin         DateTime? @db.Timestamptz(6)
   createdAt              DateTime  @default(now()) @db.Timestamptz(6)
@@ -76,6 +78,12 @@ model User {
   eventBeers       EventBeer[]
   userAchievements UserAchievement[]
   events           EventUsers[]
+  createdUsers     User[]         @relation("UserCreator")
+  createdEvents    Event[]
+  
+  creator          User?          @relation("UserCreator", fields: [createdBy], references: [id])
+
+  @@index([createdBy])
 }
 
 model RefreshToken {
@@ -153,6 +161,7 @@ model Event {
   startDate   DateTime  @db.Timestamptz(6)
   endDate     DateTime? @db.Timestamptz(6)
   isActive    Boolean   @default(false)
+  createdBy   String?   @db.Uuid
   createdAt   DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
   deletedAt   DateTime? @db.Timestamptz(6)
@@ -161,6 +170,9 @@ model Event {
   eventBeers EventBeer[]
   users      EventUsers[]
   barrels    EventBarrels[]
+  creator    User?      @relation(fields: [createdBy], references: [id])
+
+  @@index([createdBy])
 }
 
 model EventBeer {

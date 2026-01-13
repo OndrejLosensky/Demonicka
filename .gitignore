@@ -6,3 +6,5 @@ tmp/
 .pnpm-store/
 package-lock.json
 .turbo/
+
+docs/

@@ -13,7 +13,7 @@ import { SystemService } from './system.service';
 
 @Controller('system')
 @UseGuards(JwtAuthGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
 export class SystemController {
   constructor(private readonly systemService: SystemService) {}
 

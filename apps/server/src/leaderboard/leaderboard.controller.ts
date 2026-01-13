@@ -25,7 +25,7 @@ export class LeaderboardController {
 
   @Post('test-update')
   @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   async testWebSocketUpdate(@Query('eventId') eventId?: string) {
     await this.leaderboardGateway.emitFullUpdate(eventId);
     return { message: 'WebSocket update triggered successfully' };
