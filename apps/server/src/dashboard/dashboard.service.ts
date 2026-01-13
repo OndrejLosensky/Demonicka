@@ -344,16 +344,89 @@ export class DashboardService {
       }
     });
 
+    // Get all eventBeers to determine when users reached their current beer count
+    const allEventBeers = await this.prisma.eventBeer.findMany({
+      where: {
+        eventId: event.id,
+        userId: { in: eventUserIds },
+        deletedAt: null,
+      },
+      select: {
+        userId: true,
+        consumedAt: true,
+      },
+      orderBy: {
+        consumedAt: 'asc',
+      },
+    });
+
+    // Group beers by userId and calculate timestamp when user reached current count
+    const userBeersMap = new Map<string, Date[]>();
+    allEventBeers.forEach(beer => {
+      if (!userBeersMap.has(beer.userId)) {
+        userBeersMap.set(beer.userId, []);
+      }
+      userBeersMap.get(beer.userId)!.push(beer.consumedAt);
+    });
+
+    // Helper function to get timestamp when user reached their current beer count
+    const getReachedAtTimestamp = (userId: string, beerCount: number): Date => {
+      const beers = userBeersMap.get(userId) || [];
+      if (beerCount === 0 || beers.length === 0) {
+        return new Date(0); // Users with 0 beers get timestamp 0 (sorted last)
+      }
+      // Get the timestamp of the nth beer (where n is the current beerCount)
+      const nthBeerIndex = Math.min(beerCount - 1, beers.length - 1);
+      return beers[nthBeerIndex];
+    };
+
     const allUsers = Array.from(userMap.entries()).map(([userId, user]) => ({
       id: userId,
       username: user.username || '',
       gender: user.gender,
       beerCount: beerCountMap.get(userId) || 0,
-    })).sort((a, b) => b.beerCount - a.beerCount);
+      reachedAt: getReachedAtTimestamp(userId, beerCountMap.get(userId) || 0),
+    })).sort((a, b) => {
+      // Sort by beerCount desc, then by reachedAt asc (earlier = reached that count first)
+      if (b.beerCount !== a.beerCount) {
+        return b.beerCount - a.beerCount;
+      }
+      return a.reachedAt.getTime() - b.reachedAt.getTime();
+    });
+
+    // Calculate shared ranks (dense ranking: users with same beer count share rank, next rank increments by 1)
+    type UserWithReachedAt = typeof allUsers[0];
+    type UserWithRank = UserWithReachedAt & { rank: number };
+    
+    const calculateRanks = (users: UserWithReachedAt[]): UserWithRank[] => {
+      let currentRank = 1;
+      const result: UserWithRank[] = [];
+      
+      for (let i = 0; i < users.length; i++) {
+        const user = users[i];
+        if (i > 0 && users[i - 1].beerCount === user.beerCount) {
+          // Same beer count as previous user - share the rank
+          result.push({ ...user, rank: result[i - 1].rank });
+        } else {
+          // Different beer count or first user - assign new rank
+          result.push({ ...user, rank: currentRank });
+          currentRank += 1;
+        }
+      }
+      
+      return result;
+    };
+
+    // Split by gender first, then calculate ranks separately for each group
+    const males = allUsers.filter((u) => u.gender === 'MALE');
+    const females = allUsers.filter((u) => u.gender === 'FEMALE');
+    
+    const malesWithRanks = calculateRanks(males).map(({ reachedAt, ...user }) => user);
+    const femalesWithRanks = calculateRanks(females).map(({ reachedAt, ...user }) => user);
 
     const result = {
-      males: allUsers.filter((u) => u.gender === 'MALE'),
-      females: allUsers.filter((u) => u.gender === 'FEMALE'),
+      males: malesWithRanks,
+      females: femalesWithRanks,
     };
 
     const totalBeers = result.males.reduce((sum, u) => sum + u.beerCount, 0) + 

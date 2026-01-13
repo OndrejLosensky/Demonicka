@@ -820,19 +820,18 @@ export default function Landing() {
                             </div>
                           ))
                         ) : (
-                          (leaderboard?.males ?? []).slice(0, 5).map((item, idx) => {
-                            const position = idx + 1;
-                            const rankBg = position === 1
+                          (leaderboard?.males ?? []).slice(0, 5).map((item) => {
+                            const rankBg = item.rank === 1
                               ? 'bg-gradient-to-br from-yellow-300 to-yellow-500 text-yellow-900 ring-yellow-400/50'
-                              : position === 2
+                              : item.rank === 2
                               ? 'bg-gradient-to-br from-gray-200 to-gray-400 text-gray-800 ring-gray-300/60'
-                              : position === 3
+                              : item.rank === 3
                               ? 'bg-gradient-to-br from-amber-200 to-amber-400 text-amber-900 ring-amber-300/60'
                               : 'bg-gray-100 text-gray-600 ring-gray-200/60';
                             return (
                               <div key={item.id} className="flex items-center justify-between bg-white dark:bg-background-paper rounded-xl border border-gray-200/80 dark:border-gray-800 px-4 py-2.5 shadow-sm hover:shadow-md transition-shadow">
                                 <div className="flex items-center gap-3">
-                                  <div className={`w-8 h-8 rounded-full ring-1 flex items-center justify-center text-xs font-bold ${rankBg}`}>{position}</div>
+                                  <div className={`w-8 h-8 rounded-full ring-1 flex items-center justify-center text-xs font-bold ${rankBg}`}>{item.rank}</div>
                                   <div className="text-gray-800 font-medium">{item.username}</div>
                                 </div>
                                 <div className="inline-flex items-center gap-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1">
@@ -864,19 +863,18 @@ export default function Landing() {
                             </div>
                           ))
                         ) : (
-                          (leaderboard?.females ?? []).slice(0, 5).map((item, idx) => {
-                            const position = idx + 1;
-                            const rankBg = position === 1
+                          (leaderboard?.females ?? []).slice(0, 5).map((item) => {
+                            const rankBg = item.rank === 1
                               ? 'bg-gradient-to-br from-pink-200 to-pink-400 text-pink-900 ring-pink-300/60'
-                              : position === 2
+                              : item.rank === 2
                               ? 'bg-gradient-to-br from-gray-200 to-gray-400 text-gray-800 ring-gray-300/60'
-                              : position === 3
+                              : item.rank === 3
                               ? 'bg-gradient-to-br from-rose-200 to-rose-400 text-rose-900 ring-rose-300/60'
                               : 'bg-gray-100 text-gray-600 ring-gray-200/60';
                             return (
                               <div key={item.id} className="flex items-center justify-between bg-white dark:bg-background-paper rounded-xl border border-gray-200/80 dark:border-gray-800 px-4 py-2.5 shadow-sm hover:shadow-md transition-shadow">
                                 <div className="flex items-center gap-3">
-                                  <div className={`w-8 h-8 rounded-full ring-1 flex items-center justify-center text-xs font-bold ${rankBg}`}>{position}</div>
+                                  <div className={`w-8 h-8 rounded-full ring-1 flex items-center justify-center text-xs font-bold ${rankBg}`}>{item.rank}</div>
                                   <div className="text-gray-800 font-medium">{item.username}</div>
                                 </div>
                                 <div className="inline-flex items-center gap-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1">

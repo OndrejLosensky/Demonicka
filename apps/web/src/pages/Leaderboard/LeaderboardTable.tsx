@@ -6,11 +6,11 @@ import translations from '../../locales/cs/dashboard.leaderboard.json';
 
 const getTrophyColor = (rank: number): string => {
   switch (rank) {
-    case 0:
-      return '#FFD700'; // Gold
     case 1:
-      return '#C0C0C0'; // Silver
+      return '#FFD700'; // Gold
     case 2:
+      return '#C0C0C0'; // Silver
+    case 3:
       return '#CD7F32'; // Bronze
     default:
       return 'transparent';
@@ -58,81 +58,84 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
         </tr>
       </thead>
       <tbody>
-        {participants.map((participant, index) => (
-          <tr key={participant.id}>
-            <td style={{ padding: '12px 16px', width: '70px' }}>
-              <Box display="flex" alignItems="center" gap={1}>
-                <Typography 
-                  variant={index < 3 ? 'h6' : 'body1'} 
-                  sx={{ 
-                    fontWeight: 900,
-                    fontSize: index < 3 ? '1.2rem' : '1rem',
-                    color: 'text.primary',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                  }}
-                >
-                  {index + 1}.
-                </Typography>
-                {index < 3 && (
-                  <GiTrophy style={{ 
-                    fontSize: '1.2rem',
-                    color: getTrophyColor(index)
-                  }} />
-                )}
-              </Box>
-            </td>
-            <td style={{ padding: '12px 16px' }}>
-              <Box display="flex" alignItems="center" gap={1}>
-                <Typography 
-                  variant={index < 3 ? 'h6' : 'body1'}
-                  sx={{ 
-                    fontWeight: index < 3 ? 900 : 700,
-                    fontSize: index < 3 ? '1.2rem' : '1rem',
-                    color: 'text.primary',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                  }}
-                >
-                  {participant.username}
-                </Typography>
-                {index === 0 && (
-                  <Chip 
-                    label={translations.table.champion}
-                    size="small"
+        {participants.map((participant) => {
+          const isTopThree = participant.rank <= 3;
+          return (
+            <tr key={participant.id}>
+              <td style={{ padding: '12px 16px', width: '70px' }}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Typography 
+                    variant={isTopThree ? 'h6' : 'body1'} 
                     sx={{ 
-                      bgcolor: 'warning.main',
-                      color: 'warning.contrastText',
                       fontWeight: 900,
-                      fontSize: '0.8rem',
-                      px: 0.8,
-                      py: 0.3,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                      fontSize: isTopThree ? '1.2rem' : '1rem',
+                      color: 'text.primary',
+                      textShadow: '0 1px 2px rgba(0,0,0,0.5)',
                     }}
-                  />
-                )}
-              </Box>
-            </td>
-            <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-              <Box display="flex" alignItems="center" justifyContent="flex-end" gap={1}>
-                <Typography 
-                  variant={index < 3 ? 'h6' : 'body1'}
-                  sx={{ 
-                    fontWeight: 900,
-                    fontSize: index < 3 ? '1.2rem' : '1rem',
-                    color: index < 3 ? 'text.primary' : 'text.primary',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                  }}
-                >
-                  {participant.beerCount}
-                </Typography>
-                <FaBeer style={{ 
-                  fontSize: index < 3 ? '1.1rem' : '1rem',
-                  opacity: index < 3 ? 1 : 0.8,
-                  color: index < 3 ? 'primary.main' : 'text.primary',
-                }} />
-              </Box>
-            </td>
-          </tr>
-        ))}
+                  >
+                    {participant.rank}.
+                  </Typography>
+                  {isTopThree && (
+                    <GiTrophy style={{ 
+                      fontSize: '1.2rem',
+                      color: getTrophyColor(participant.rank)
+                    }} />
+                  )}
+                </Box>
+              </td>
+              <td style={{ padding: '12px 16px' }}>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Typography 
+                    variant={isTopThree ? 'h6' : 'body1'}
+                    sx={{ 
+                      fontWeight: isTopThree ? 900 : 700,
+                      fontSize: isTopThree ? '1.2rem' : '1rem',
+                      color: 'text.primary',
+                      textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                    }}
+                  >
+                    {participant.username}
+                  </Typography>
+                  {participant.rank === 1 && (
+                    <Chip 
+                      label={translations.table.champion}
+                      size="small"
+                      sx={{ 
+                        bgcolor: 'warning.main',
+                        color: 'warning.contrastText',
+                        fontWeight: 900,
+                        fontSize: '0.8rem',
+                        px: 0.8,
+                        py: 0.3,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                      }}
+                    />
+                  )}
+                </Box>
+              </td>
+              <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                <Box display="flex" alignItems="center" justifyContent="flex-end" gap={1}>
+                  <Typography 
+                    variant={isTopThree ? 'h6' : 'body1'}
+                    sx={{ 
+                      fontWeight: 900,
+                      fontSize: isTopThree ? '1.2rem' : '1rem',
+                      color: isTopThree ? 'text.primary' : 'text.primary',
+                      textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                    }}
+                  >
+                    {participant.beerCount}
+                  </Typography>
+                  <FaBeer style={{ 
+                    fontSize: isTopThree ? '1.1rem' : '1rem',
+                    opacity: isTopThree ? 1 : 0.8,
+                    color: isTopThree ? 'primary.main' : 'text.primary',
+                  }} />
+                </Box>
+              </td>
+            </tr>
+          );
+        })}
         {(!participants || participants.length === 0) && (
           <tr>
             <td colSpan={3} style={{ textAlign: 'center', padding: '40px 16px' }}>
