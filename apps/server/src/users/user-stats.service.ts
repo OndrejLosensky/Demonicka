@@ -153,7 +153,7 @@ export class UserStatsService {
     // Calculate global ranking
     const allUsers = await this.prisma.user.findMany({
       where: { deletedAt: null },
-      select: ['id', 'beerCount'],
+      select: { id: true, beerCount: true },
       orderBy: { beerCount: 'desc' },
     });
 

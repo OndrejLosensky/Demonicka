@@ -3,12 +3,12 @@ import { AchievementType, AchievementCategory } from '@prisma/client';
 export class AchievementDto {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   type: AchievementType;
   category: AchievementCategory;
   targetValue: number;
   points: number;
-  icon: string;
+  icon: string | null;
   isActive: boolean;
   isRepeatable: boolean;
   maxCompletions: number;

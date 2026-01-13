@@ -54,6 +54,8 @@ export class BarrelsService {
           ...createBarrelDto,
           size: createBarrelDto.size as 15 | 30 | 50,
           isActive: false,
+          remainingBeers: createBarrelDto.size,
+          totalBeers: createBarrelDto.size,
         },
       });
       this.loggingService.logBarrelCreated(savedBarrel.id, savedBarrel.size);

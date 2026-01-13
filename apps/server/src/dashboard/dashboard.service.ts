@@ -17,10 +17,8 @@ export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
   async getPublicStats(eventId?: string): Promise<PublicStatsDto> {
-    let event = null;
-    
     if (eventId) {
-      event = await this.prisma.event.findUnique({
+      const event = await this.prisma.event.findUnique({
         where: { id: eventId },
         include: {
           users: { include: { user: true } },
@@ -31,9 +29,7 @@ export class DashboardService {
       if (!event) {
         throw new Error('Event not found');
       }
-    }
 
-    if (event) {
       // Event-specific stats
       const eventUserIds = event.users.map((eu) => eu.userId);
       const eventBarrelIds = event.barrels.map((eb) => eb.barrelId);
@@ -146,10 +142,8 @@ export class DashboardService {
   }
 
   async getDashboardStats(eventId?: string): Promise<DashboardResponseDto> {
-    let event = null;
-    
     if (eventId) {
-      event = await this.prisma.event.findUnique({
+      const event = await this.prisma.event.findUnique({
         where: { id: eventId },
         include: {
           users: { include: { user: true } },
@@ -160,9 +154,7 @@ export class DashboardService {
       if (!event) {
         throw new Error('Event not found');
       }
-    }
 
-    if (event) {
       // Event-specific stats
       const eventUserIds = event.users.map((eu) => eu.userId);
       const eventBarrelIds = event.barrels.map((eb) => eb.barrelId);

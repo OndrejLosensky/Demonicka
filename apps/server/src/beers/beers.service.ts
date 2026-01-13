@@ -29,22 +29,23 @@ export class BeersService {
       throw new Error('User not found');
     }
 
-    let barrel = null;
+    let barrelIdToUse: string | null = null;
     if (barrelId) {
-      barrel = await this.prisma.barrel.findUnique({
+      const barrel = await this.prisma.barrel.findUnique({
         where: { id: barrelId },
       });
 
       if (!barrel) {
         throw new Error('Barrel not found');
       }
+      barrelIdToUse = barrel.id;
     }
 
     // Create global beer record
     const savedBeer = await this.prisma.beer.create({
       data: {
         userId,
-        barrelId: barrel?.id || null,
+        barrelId: barrelIdToUse,
       },
     });
 

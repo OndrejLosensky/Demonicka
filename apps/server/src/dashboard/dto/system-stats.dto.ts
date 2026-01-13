@@ -1,6 +1,6 @@
 export class SystemUserDto {
   id: string;
-  username: string;
+  username: string | null;
   role: string;
   isRegistrationComplete: boolean;
   isTwoFactorEnabled: boolean;

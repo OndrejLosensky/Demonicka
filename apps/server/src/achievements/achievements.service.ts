@@ -296,12 +296,12 @@ export class AchievementsService {
       achievement: {
         id: userAchievement.achievement.id,
         name: userAchievement.achievement.name,
-        description: userAchievement.achievement.description,
+        description: userAchievement.achievement.description ?? null,
         type: userAchievement.achievement.type,
         category: userAchievement.achievement.category,
         targetValue: userAchievement.achievement.targetValue,
         points: userAchievement.achievement.points,
-        icon: userAchievement.achievement.icon,
+        icon: userAchievement.achievement.icon ?? null,
         isActive: userAchievement.achievement.isActive,
         isRepeatable: userAchievement.achievement.isRepeatable,
         maxCompletions: userAchievement.achievement.maxCompletions,
@@ -314,7 +314,10 @@ export class AchievementsService {
   // Admin methods for managing achievements
   async createAchievement(createDto: CreateAchievementDto): Promise<AchievementDto> {
     const saved = await this.prisma.achievement.create({
-      data: createDto,
+      data: {
+        ...createDto,
+        id: createDto.name.toLowerCase().replace(/\s+/g, '-'), // Generate ID from name
+      },
     });
     return this.mapToAchievementDto(saved);
   }
@@ -346,16 +349,16 @@ export class AchievementsService {
     return achievements.map(a => this.mapToAchievementDto(a));
   }
 
-  private mapToAchievementDto(achievement: Achievement): AchievementDto {
+  private mapToAchievementDto(achievement: any): AchievementDto {
     return {
       id: achievement.id,
       name: achievement.name,
-      description: achievement.description,
+      description: achievement.description ?? null,
       type: achievement.type,
       category: achievement.category,
       targetValue: achievement.targetValue,
       points: achievement.points,
-      icon: achievement.icon,
+      icon: achievement.icon ?? null,
       isActive: achievement.isActive,
       isRepeatable: achievement.isRepeatable,
       maxCompletions: achievement.maxCompletions,

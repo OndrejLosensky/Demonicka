@@ -9,7 +9,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { EventBeersService } from '../services/event-beers.service';
-import { EventBeer } from '../entities/event-beer.entity';
+import { EventBeer } from '@prisma/client';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Versions } from '../../versioning/decorators/version.decorator';
 import { VersionGuard } from '../../versioning/guards/version.guard';
