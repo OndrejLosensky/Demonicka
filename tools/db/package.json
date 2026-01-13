@@ -9,7 +9,10 @@
     "import:postgres": "tsx import-postgres.ts",
     "migrate:data": "tsx migrate-data.ts",
     "check:db": "tsx check-db.ts",
-    "restore:prod": "tsx restore-from-sqlite.ts"
+    "restore:prod": "tsx restore-from-sqlite.ts",
+    "backup": "tsx backup.ts",
+    "backup:prod": "tsx backup.ts prod",
+    "backup:dev": "tsx backup.ts dev"
   },
   "dependencies": {
     "dotenv": "^17.2.3",

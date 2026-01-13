@@ -2,5 +2,8 @@
 .env.prod
 .env.dev
 
+# Backup files
+backups/
+
 # Exported data
 /exported-data
