@@ -78,7 +78,8 @@ const ProfilePageComponent: React.FC = () => {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'error';
+      case 'SUPER_ADMIN': return 'error';
+      case 'OPERATOR': return 'warning';
       case 'USER': return 'primary';
       case 'PARTICIPANT': return 'success';
       default: return 'default';

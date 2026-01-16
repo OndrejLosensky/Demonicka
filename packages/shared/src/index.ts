@@ -1,3 +1,3 @@
-export * from './auth/permissions';
-export * from './auth/roles';
-export * from './auth/types';
+export * from './auth/permissions.js';
+export * from './auth/roles.js';
+export * from './auth/types.js';

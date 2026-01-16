@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { USER_ROLE } from '../types/user';
+import { USER_ROLE } from '@demonicka/shared-types';
 import {
   Avatar,
   Menu,
@@ -76,7 +76,7 @@ export default function Header() {
   const handleProfileClick = () => {
     handleCloseMenu();
     setMobileMenuOpen(false);
-    if (hasRole([USER_ROLE.ADMIN, USER_ROLE.USER])) {
+    if (hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER])) {
       navigate('/profile');
     } else {
       navigate('/');
@@ -96,7 +96,7 @@ export default function Header() {
     
     const items = [];
     
-    if (hasRole([USER_ROLE.ADMIN])) {
+    if (hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR])) {
       items.push(
         { to: '/dashboard', label: translations.navigation.dashboard, icon: null },
         { to: '/events', label: translations.navigation.events, icon: null }
@@ -178,7 +178,7 @@ export default function Header() {
                 {/* Desktop Navigation - Hidden on mobile */}
                 {user && (
                   <div className="hidden md:flex ml-10 items-center space-x-4">
-                    {hasRole([USER_ROLE.ADMIN]) && (
+                    {hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]) && (
                       <>
                         <Link
                           to="/dashboard"
@@ -202,7 +202,7 @@ export default function Header() {
                             >
                               {translations.navigation.participants}
                             </Link>
-                            {hasRole([USER_ROLE.ADMIN]) && (
+                            {hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]) && (
                               <Link
                                 to="/dashboard/barrels"
                                 className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
@@ -218,7 +218,7 @@ export default function Header() {
                         )}
                       </>
                     )}
-                    {activeEvent && hasRole([USER_ROLE.ADMIN]) && (
+                    {activeEvent && hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]) && (
                       <Link
                         to="/leaderboard"
                         className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
@@ -230,7 +230,7 @@ export default function Header() {
                         {translations.navigation.leaderboard}
                       </Link>
                     )}
-                    {hasRole([USER_ROLE.ADMIN]) && (
+                    {hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]) && (
                       <Link
                         to="/events"
                         className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
@@ -446,7 +446,9 @@ export default function Header() {
                           {user.username}
                         </Typography>
                         <Typography variant="caption" className="text-text-secondary">
-                          {hasRole([USER_ROLE.ADMIN]) ? 'Administrátor' : 'Uživatel'}
+                          {user.role === USER_ROLE.SUPER_ADMIN ? 'Super Admin' : 
+                           user.role === USER_ROLE.OPERATOR ? 'Operátor' : 
+                           user.role === USER_ROLE.USER ? 'Uživatel' : 'Účastník'}
                         </Typography>
                       </Box>
                       <Divider sx={{ opacity: 0.6 }} />
@@ -462,7 +464,7 @@ export default function Header() {
                         />
                       </MenuItem>
 
-                      {hasRole([USER_ROLE.ADMIN]) && (
+                      {hasRole([USER_ROLE.SUPER_ADMIN]) && (
                         <>
                           <MenuItem onClick={() => navigate('/dashboard/system')} sx={{ py: 1, px: 2 }}>
                             <ListItemIcon>

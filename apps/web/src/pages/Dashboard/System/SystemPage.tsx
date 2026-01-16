@@ -30,9 +30,12 @@ import { SystemHealthDashboard } from './components/SystemHealthDashboard';
 import { usePageTitle } from '../../../hooks/usePageTitle';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { MetricCard } from '../../../components/ui/MetricCard';
+import { useNavigate } from 'react-router-dom';
+import { Settings as SettingsIcon } from '@mui/icons-material';
 
 const SystemPage: React.FC = () => {
   usePageTitle('Systém');
+  const navigate = useNavigate();
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -133,14 +136,23 @@ const SystemPage: React.FC = () => {
       <PageHeader
         title={translations.title}
         action={
-          <Button 
-            variant="outlined" 
-            startIcon={<RefreshIcon />}
-            onClick={() => loadStats(false)}
-            disabled={isRefreshing}
-          >
-            {translations.refresh}
-          </Button>
+          <Box display="flex" gap={2}>
+            <Button 
+              variant="contained" 
+              startIcon={<SettingsIcon />}
+              onClick={() => navigate('/dashboard/system/roles')}
+            >
+              Role a oprávnění
+            </Button>
+            <Button 
+              variant="outlined" 
+              startIcon={<RefreshIcon />}
+              onClick={() => loadStats(false)}
+              disabled={isRefreshing}
+            >
+              {translations.refresh}
+            </Button>
+          </Box>
         }
       />
       
@@ -190,7 +202,7 @@ const SystemPage: React.FC = () => {
                           <Chip
                             label={translations.userList.roles[user.role as keyof typeof translations.userList.roles] || user.role}
                             size="small"
-                            color={user.role === 'ADMIN' ? 'error' : 'primary'}
+                            color={user.role === 'SUPER_ADMIN' ? 'error' : user.role === 'OPERATOR' ? 'warning' : 'primary'}
                             variant="outlined"
                           />
                         </TableCell>

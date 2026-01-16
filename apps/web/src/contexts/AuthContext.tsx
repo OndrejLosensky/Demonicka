@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { User, UserRole } from '@demonicka/shared-types';
+import { Permission, UserRole as SharedUserRole, getPermissionsForRole } from '@demonicka/shared';
 import { toast } from 'react-hot-toast';
 import { apiClient } from '../utils/apiClient';
 import type { AxiosError } from 'axios';
@@ -14,6 +15,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isLoading: boolean;
   hasRole: (roles: UserRole[]) => boolean;
+  hasPermission: (permissions: Permission[]) => boolean;
   refreshUser: () => Promise<void>;
 }
 
@@ -164,12 +166,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasRole = (roles: UserRole[]) => {
     if (!user) return false;
-    if (user.role === 'ADMIN') return true;
+    // SUPER_ADMIN has access to everything
+    if (user.role === 'SUPER_ADMIN') return true;
     return roles.includes(user.role);
   };
 
+  const hasPermission = (permissions: Permission[]) => {
+    if (!user) return false;
+    // SUPER_ADMIN has all permissions
+    if (user.role === 'SUPER_ADMIN') return true;
+    
+    const userRole = user.role as SharedUserRole;
+    const userPermissions = getPermissionsForRole(userRole);
+    
+    // Check if user has at least one of the required permissions
+    return permissions.some(permission => userPermissions.includes(permission));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, completeRegistration, logout, isLoading, hasRole, refreshUser }}>
+    <AuthContext.Provider value={{ user, login, register, completeRegistration, logout, isLoading, hasRole, hasPermission, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

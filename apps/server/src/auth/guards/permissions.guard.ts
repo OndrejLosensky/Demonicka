@@ -6,15 +6,18 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Permission } from '@demonicka/shared';
-import { UserRole as PrismaUserRole, User } from '@prisma/client';
-import { getPermissionsForRole, roleHasPermission, UserRole as SharedUserRole } from '@demonicka/shared';
+import { User } from '@prisma/client';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { RolesService } from '../../roles/roles.service';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private rolesService: RolesService,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     // Check if route is public
     const isPublic = this.reflector.getAllAndOverride<boolean>(
       IS_PUBLIC_KEY,
@@ -46,8 +49,10 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    // Check if user has any of the required permissions
-    const userPermissions = getPermissionsForRole(userRole as SharedUserRole);
+    // Get permissions from database
+    const userPermissions = await this.rolesService.getPermissionsForRole(
+      userRole,
+    );
     const hasPermission = requiredPermissions.some((permission) =>
       userPermissions.includes(permission),
     );
@@ -64,14 +69,21 @@ export class PermissionsGuard implements CanActivate {
 
 /**
  * Helper function to check if a user has a specific permission
+ * Note: This is now async and requires RolesService injection
+ * For sync usage, use RolesService directly
  */
-export function userHasPermission(user: User, permission: Permission): boolean {
+export async function userHasPermission(
+  rolesService: RolesService,
+  user: User,
+  permission: Permission,
+): Promise<boolean> {
   const userRole = user.role as string;
   if (userRole === 'SUPER_ADMIN') {
     return true;
   }
 
-  return roleHasPermission(userRole as SharedUserRole, permission);
+  const userPermissions = await rolesService.getPermissionsForRole(userRole);
+  return userPermissions.includes(permission);
 }
 
 /**
@@ -98,9 +110,4 @@ export function userCanAccessEvent(
 
   // USER and PARTICIPANT can only access events they're part of
   return event.users?.some((eu) => eu.userId === user.id) ?? false;
-}
-
-// Type guard to check if role is valid after migration
-function isValidRole(role: string): role is SharedUserRole {
-  return ['SUPER_ADMIN', 'OPERATOR', 'USER', 'PARTICIPANT'].includes(role);
 }

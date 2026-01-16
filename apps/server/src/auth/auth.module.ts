@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { AdminAuthController } from './admin-auth.controller';
 import { UsersModule } from '../users/users.module';
+import { RolesModule } from '../roles/roles.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DeviceTokenService } from './device-token.service';
@@ -17,6 +18,7 @@ import { PermissionsGuard } from './guards/permissions.guard';
 @Module({
   imports: [
     UsersModule,
+    RolesModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

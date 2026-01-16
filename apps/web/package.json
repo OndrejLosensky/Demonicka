@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@demonicka/shared": "workspace:*",
     "@demonicka/shared-types": "workspace:*",
     "@demonicka/shared-utils": "workspace:*",
     "@emotion/react": "^11.14.0",

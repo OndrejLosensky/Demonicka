@@ -1,5 +1,5 @@
-import { UserRole } from './roles';
-import { Permission } from './permissions';
+import { UserRole } from './roles.js';
+import { Permission } from './permissions.js';
 
 /**
  * User with permissions resolved

@@ -26,6 +26,7 @@ import { CompleteRegistration } from './pages/CompleteRegistration';
 import { EnterToken } from './pages/Auth/EnterToken';
 import { USER_ROLE } from '@demonicka/shared-types';
 import { SystemPage } from './pages/Dashboard/System';
+import RolesPage from './pages/Dashboard/System/Roles';
 import { Activity } from './pages/Activity';
 import { PersonalStatsView } from './pages/PersonalStats/PersonalStatsView';
 import { AchievementsPage } from './pages/Achievements';
@@ -61,7 +62,7 @@ function App() {
                       <Route
                         path="dashboard"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
                             <Dashboard />
                           </RoleRoute>
                         }
@@ -69,7 +70,7 @@ function App() {
                       <Route
                         path="dashboard/participants"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
                             <Participants />
                           </RoleRoute>
                         }
@@ -77,7 +78,7 @@ function App() {
                       <Route
                         path="dashboard/barrels"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
                             <Barrels />
                           </RoleRoute>
                         }
@@ -85,15 +86,23 @@ function App() {
                       <Route
                         path="dashboard/system"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
                             <SystemPage />
+                          </RoleRoute>
+                        }
+                      />
+                      <Route
+                        path="dashboard/system/roles"
+                        element={
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
+                            <RolesPage />
                           </RoleRoute>
                         }
                       />
                       <Route
                         path="activity"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
                             <Activity />
                           </RoleRoute>
                         }
@@ -101,7 +110,7 @@ function App() {
                       <Route
                         path="events"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
                             <Events />
                           </RoleRoute>
                         }
@@ -109,7 +118,7 @@ function App() {
                       <Route
                         path="events/:id"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
                             <EventDetail />
                           </RoleRoute>
                         }
@@ -117,7 +126,7 @@ function App() {
                       <Route
                         path="events/:id/results"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
                             <EventResults />
                           </RoleRoute>
                         }
@@ -125,7 +134,7 @@ function App() {
                       <Route
                         path="docs"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
                             <Docs />
                           </RoleRoute>
                         }
@@ -133,7 +142,7 @@ function App() {
                       <Route
                         path="profile"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
                             <ProfilePage />
                           </RoleRoute>
                         }
@@ -155,7 +164,7 @@ function App() {
                       <Route
                         path="achievements"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.ADMIN, USER_ROLE.USER]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
                             <AchievementsPage />
                           </RoleRoute>
                         }

@@ -13,6 +13,7 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { BackupModule } from './backup/backup.module';
 import { SystemModule } from './system/system.module';
 import { AchievementsModule } from './achievements/achievements.module';
+import { RolesModule } from './roles/roles.module';
 import { PrismaModule } from './prisma/prisma.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
@@ -38,6 +39,7 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
     BackupModule,
     SystemModule,
     AchievementsModule,
+    RolesModule,
   ],
 })
 export class AppModule implements NestModule {

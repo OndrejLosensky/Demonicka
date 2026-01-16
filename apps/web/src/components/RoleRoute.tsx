@@ -23,8 +23,8 @@ export default function RoleRoute({ children, allowedRoles }: RoleRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  // Admin has access to everything
-  if (user.role === USER_ROLE.ADMIN) {
+  // SUPER_ADMIN has access to everything
+  if (user.role === USER_ROLE.SUPER_ADMIN) {
     return <>{children}</>;
   }
 

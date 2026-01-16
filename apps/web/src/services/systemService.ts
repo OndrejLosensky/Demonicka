@@ -6,7 +6,7 @@ export interface SystemUser {
   role: string;
   isRegistrationComplete: boolean;
   isTwoFactorEnabled: boolean;
-  isAdminLoginEnabled: boolean;
+  canLogin: boolean;
   lastAdminLogin: string | null; // Changed from Date to string since API returns ISO string
 }
 

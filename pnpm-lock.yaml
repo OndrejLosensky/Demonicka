@@ -228,6 +228,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@demonicka/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@demonicka/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types

@@ -2,25 +2,29 @@
   "name": "@demonicka/shared",
   "version": "1.0.0",
   "description": "Shared authentication and authorization logic for Démonická",
-  "type": "commonjs",
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
     },
     "./permissions": {
       "types": "./dist/auth/permissions.d.ts",
-      "default": "./dist/auth/permissions.js"
+      "import": "./dist/auth/permissions.js",
+      "require": "./dist/auth/permissions.js"
     },
     "./roles": {
       "types": "./dist/auth/roles.d.ts",
-      "default": "./dist/auth/roles.js"
+      "import": "./dist/auth/roles.js",
+      "require": "./dist/auth/roles.js"
     },
     "./types": {
       "types": "./dist/auth/types.d.ts",
-      "default": "./dist/auth/types.js"
+      "import": "./dist/auth/types.js",
+      "require": "./dist/auth/types.js"
     }
   },
   "private": true,

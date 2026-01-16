@@ -3,7 +3,7 @@ export interface Participant {
   username: string;
   name: string | null;
   gender: 'MALE' | 'FEMALE';
-  role: 'ADMIN' | 'USER' | 'PARTICIPANT';
+  role: 'SUPER_ADMIN' | 'OPERATOR' | 'USER' | 'PARTICIPANT';
   beerCount: number;  // Global beer count
   eventBeerCount?: number;  // Event-specific beer count
   lastBeerTime: string | null;

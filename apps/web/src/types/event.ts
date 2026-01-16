@@ -1,4 +1,4 @@
-import type { User } from './user';
+import type { User } from '@demonicka/shared-types';
 import type { Barrel } from './barrel';
 
 export interface Event {

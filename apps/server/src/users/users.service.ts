@@ -182,7 +182,7 @@ export class UsersService {
     });
   }
 
-  async completeRegistration(
+    async completeRegistration(
     completeRegistrationDto: CompleteRegistrationDto,
   ): Promise<UserWithoutPassword> {
     const user = await this.findByRegistrationToken(
@@ -214,6 +214,7 @@ export class UsersService {
         isRegistrationComplete: true,
         registrationToken: null, // Clear the token after successful registration
         role: UserRole.USER, // Update role to USER
+        canLogin: true, // Enable login after completing registration
       },
     });
 

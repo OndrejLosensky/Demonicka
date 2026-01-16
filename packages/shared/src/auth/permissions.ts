@@ -70,3 +70,60 @@ export type PermissionType = Permission;
 export function isPermission(value: string): value is Permission {
   return Object.values(Permission).includes(value as Permission);
 }
+
+/**
+ * Permission descriptions for UI display
+ */
+export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
+  // Event permissions
+  [Permission.CREATE_EVENT]: 'Create new events',
+  [Permission.UPDATE_EVENT]: 'Update existing events',
+  [Permission.DELETE_EVENT]: 'Delete events',
+  [Permission.VIEW_ALL_EVENTS]: 'View all events in the system',
+  [Permission.VIEW_OWN_EVENTS]: 'View events user is part of or created',
+  [Permission.MANAGE_EVENT_USERS]: 'Manage users in events',
+  [Permission.MANAGE_EVENT_BARRELS]: 'Manage barrels in events',
+  [Permission.SET_EVENT_ACTIVE]: 'Set event as active',
+  [Permission.END_EVENT]: 'End an event',
+
+  // User management permissions
+  [Permission.MANAGE_USERS]: 'Manage all users',
+  [Permission.CREATE_USER]: 'Create new users',
+  [Permission.UPDATE_USER]: 'Update existing users',
+  [Permission.DELETE_USER]: 'Delete users',
+  [Permission.VIEW_ALL_USERS]: 'View all users in the system',
+
+  // Participant management permissions
+  [Permission.MANAGE_PARTICIPANTS]: 'Manage participants',
+  [Permission.CREATE_PARTICIPANT]: 'Create new participants',
+  [Permission.UPDATE_PARTICIPANT]: 'Update existing participants',
+  [Permission.DELETE_PARTICIPANT]: 'Delete participants',
+
+  // Barrel management permissions
+  [Permission.MANAGE_BARRELS]: 'Manage all barrels',
+  [Permission.CREATE_BARREL]: 'Create new barrels',
+  [Permission.UPDATE_BARREL]: 'Update existing barrels',
+  [Permission.DELETE_BARREL]: 'Delete barrels',
+
+  // Beer permissions
+  [Permission.ADD_BEER]: 'Add beer to events',
+  [Permission.REMOVE_BEER]: 'Remove beer from events',
+  [Permission.VIEW_BEERS]: 'View beer data',
+  [Permission.MANAGE_BEERS]: 'Manage all beer data',
+
+  // Dashboard permissions
+  [Permission.VIEW_DASHBOARD]: 'View dashboard',
+  [Permission.VIEW_SYSTEM_DASHBOARD]: 'View system dashboard',
+
+  // System permissions
+  [Permission.MANAGE_SYSTEM]: 'Manage system settings',
+  [Permission.VIEW_SYSTEM_STATS]: 'View system statistics',
+  [Permission.MANAGE_BACKUPS]: 'Manage system backups',
+
+  // Leaderboard permissions
+  [Permission.VIEW_LEADERBOARD]: 'View leaderboard',
+
+  // Achievement permissions
+  [Permission.MANAGE_ACHIEVEMENTS]: 'Manage achievements',
+  [Permission.VIEW_ACHIEVEMENTS]: 'View achievements',
+};
