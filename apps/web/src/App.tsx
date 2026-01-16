@@ -10,7 +10,7 @@ import Participants from './pages/Dashboard/Participants';
 import Barrels from './pages/Dashboard/Barrels';
 import Leaderboard from './pages/Dashboard/Leaderboard';
 import Landing from './pages/Landing';
-import Header from './components/Header';
+import Header from './components/navigation/Header';
 import ProfilePage from './pages/Dashboard/Profile/index';
 import { Events } from './pages/Dashboard/Events';
 import { EventDetail } from './pages/Dashboard/Events/EventDetail';

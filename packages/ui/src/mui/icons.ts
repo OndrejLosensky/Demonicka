@@ -37,4 +37,5 @@ export {
   Visibility,
   VisibilityOff,
   SportsBar,
+  Notifications,
 } from '@mui/icons-material';
