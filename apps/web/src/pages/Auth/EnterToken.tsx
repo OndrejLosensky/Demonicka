@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { toast } from 'react-hot-toast';
-import { Input } from '../../components/ui/Input';
-import { Button } from '../../components/ui/Button';
+import { Input, Button } from '@demonicka/ui';
 
 export function EnterToken() {
   usePageTitle('Registrační token');

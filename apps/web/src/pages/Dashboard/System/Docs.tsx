@@ -19,7 +19,7 @@ import { apiClient } from '../../../utils/apiClient';
 import '../../../styles/markdown.css';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
 import { usePageTitle } from '../../../hooks/usePageTitle';
-import { PageHeader } from '../../../components/ui/PageHeader';
+import { PageHeader } from '@demonicka/ui';
 
 interface DocFile {
   name: string;

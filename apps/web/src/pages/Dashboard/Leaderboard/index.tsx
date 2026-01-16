@@ -1,13 +1,10 @@
-import { Typography, Grid, Box, IconButton, Tooltip } from '@mui/material';
+import { Typography, Grid, Box, IconButton, Tooltip, Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon, Speed as SpeedIcon, MetricCard, PageHeader } from '@demonicka/ui';
 import { FaBeer } from 'react-icons/fa';
-import { Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon, Speed as SpeedIcon } from '@mui/icons-material';
 import { LeaderboardTable } from './LeaderboardTable';
 import { useLeaderboard } from './useLeaderboard';
-import { MetricCard } from '../../../components/ui/MetricCard';
 import translations from '../../../locales/cs/dashboard.leaderboard.json';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
 import { usePageTitle } from '../../../hooks/usePageTitle';
-import { PageHeader } from '../../../components/ui/PageHeader';
 import { useHeaderVisibility } from '../../../contexts/HeaderVisibilityContext';
 
 const LeaderboardComponent: React.FC = () => {

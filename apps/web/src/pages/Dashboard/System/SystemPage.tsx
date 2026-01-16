@@ -28,8 +28,7 @@ import translations from '../../../locales/cs/system.json';
 import { CleanupSection } from './components/CleanupSection';
 import { SystemHealthDashboard } from './components/SystemHealthDashboard';
 import { usePageTitle } from '../../../hooks/usePageTitle';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { MetricCard } from '../../../components/ui/MetricCard';
+import { PageHeader, MetricCard } from '@demonicka/ui';
 import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon, Flag as FlagIcon } from '@mui/icons-material';
 

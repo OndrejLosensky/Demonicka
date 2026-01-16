@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Box, Typography } from '@mui/material';
-import { SportsBar as BeerIcon } from '@mui/icons-material';
+import { Box, Typography } from '../mui/components.js';
+import { SportsBar as BeerIcon } from '../mui/icons.js';
 
-interface PageLoaderProps {
+export interface PageLoaderProps {
   message?: string;
 }
 
@@ -112,4 +112,4 @@ export const PageLoader: React.FC<PageLoaderProps> = ({
       </motion.div>
     </Box>
   );
-}; 
+};

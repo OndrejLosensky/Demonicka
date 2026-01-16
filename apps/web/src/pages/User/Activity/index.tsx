@@ -15,12 +15,12 @@ import {
   InputLabel,
   Select,
   MenuItem,
-} from '@mui/material';
-import type { SelectChangeEvent } from '@mui/material';
+  PageHeader,
+  type SelectChangeEvent,
+} from '@demonicka/ui';
 import { format } from 'date-fns';
 import { api } from '../../../services/api';
 import { usePageTitle } from '../../../hooks/usePageTitle';
-import { PageHeader } from '../../../components/ui/PageHeader';
 
 interface ActivityLogEntry {
   timestamp: string;

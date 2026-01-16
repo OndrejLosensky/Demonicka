@@ -9,8 +9,6 @@ import {
     Chip,
     Switch,
     FormControlLabel,
-} from '@mui/material';
-import {
     LocalBar as BeerIcon,
     Group as GroupIcon,
     Storage as BarrelIcon,
@@ -18,7 +16,10 @@ import {
     EmojiEvents as TrophyIcon,
     TrendingDown as TrendingDownIcon,
     AccessTime as AccessTimeIcon,
-} from '@mui/icons-material';
+    PageHeader,
+    MetricCard,
+    PageLoader,
+} from '@demonicka/ui';
 import { FaTrophy, FaFire, FaClock } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -35,9 +36,6 @@ import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../types/featureFlags';
 import { EventSelector } from '../../components/EventSelector';
 import { EmptyEventState } from '../../components/EmptyEventState';
-import { PageHeader } from '../../components/ui/PageHeader';
-import { MetricCard } from '../../components/ui/MetricCard';
-import { PageLoader } from '../../components/ui/PageLoader';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { websocketService } from '../../services/websocketService';
 

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Card } from '../ui/Card';
+import { Card } from '@demonicka/ui';
 import { Link } from 'react-router-dom';
 
 interface AuthLayoutProps {

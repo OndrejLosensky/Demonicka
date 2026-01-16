@@ -17,7 +17,8 @@
     "paths": {
       "@demonicka/shared": ["packages/shared/src/index.ts"],
       "@demonicka/shared-types": ["packages/shared-types/src/index.ts"],
-      "@demonicka/shared-utils": ["packages/shared-utils/src/index.ts"]
+      "@demonicka/shared-utils": ["packages/shared-utils/src/index.ts"],
+      "@demonicka/ui": ["packages/ui/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

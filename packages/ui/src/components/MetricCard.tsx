@@ -1,7 +1,7 @@
 import React from 'react';
-import { Card, Box, Typography } from '@mui/material';
+import { Card, Box, Typography } from '../mui/components.js';
 
-interface MetricCardProps {
+export interface MetricCardProps {
   title: string;
   value: React.ReactNode;
   subtitle?: string;
@@ -82,5 +82,3 @@ export const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, 
     </Card>
   );
 };
-
-

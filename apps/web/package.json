@@ -15,6 +15,7 @@
     "@demonicka/shared": "workspace:*",
     "@demonicka/shared-types": "workspace:*",
     "@demonicka/shared-utils": "workspace:*",
+    "@demonicka/ui": "workspace:*",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@headlessui/react": "^2.0.0",

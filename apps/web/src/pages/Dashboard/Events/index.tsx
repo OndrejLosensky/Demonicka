@@ -11,23 +11,21 @@ import {
     Box, 
     Chip, 
     Paper,
-} from '@mui/material';
+    Add as AddIcon, 
+    Person as PersonIcon, 
+    FilterAlt as FilterIcon, 
+    LocalBar as BeerIcon,
+    PageLoader,
+    PageHeader,
+} from '@demonicka/ui';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import type { Event } from '@demonicka/shared-types';
 import { eventService } from '../../../services/eventService';
 import { format } from 'date-fns';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { EmptyEventState } from '../../../components/EmptyEventState';
-import { PageLoader } from '../../../components/ui/PageLoader';
-import { 
-    Add as AddIcon, 
-    Person as PersonIcon, 
-    FilterAlt as FilterIcon, 
-    LocalBar as BeerIcon,
-} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../../../hooks/usePageTitle';
-import { PageHeader } from '../../../components/ui/PageHeader';
 
 export const Events: React.FC = () => {
     usePageTitle('Události');

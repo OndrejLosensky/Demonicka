@@ -1,7 +1,7 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography } from '../mui/components.js';
 
-interface PageHeaderProps {
+export interface PageHeaderProps {
   title: string;
   action?: React.ReactNode;
   left?: React.ReactNode;
@@ -20,5 +20,3 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, action, left }) =
     </Box>
   );
 };
-
-

@@ -1,12 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card } from '../../../components/ui/Card';
+import { Card, Button, Grid, PageHeader, MetricCard } from '@demonicka/ui';
 import { useToast } from '../../../hooks/useToast';
 import { achievementsService } from '../../../services/achievementsService';
 import { usePageTitle } from '../../../hooks/usePageTitle';
 import type { UserAchievementsResponse, UserAchievement } from '@demonicka/shared-types';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { MetricCard } from '../../../components/ui/MetricCard';
-import { Button, Grid } from '@mui/material';
 
 const getCategoryColor = (category: string) => {
   switch (category) {

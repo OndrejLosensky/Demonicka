@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card } from '../../../components/ui/Card';
-import { PageHeader } from '../../../components/ui/PageHeader';
-import { MetricCard } from '../../../components/ui/MetricCard';
+import { Card, PageHeader, MetricCard } from '@demonicka/ui';
 import { personalStatsService } from '../../../services/personalStatsService';
 import { usePageTitle } from '../../../hooks/usePageTitle';
 

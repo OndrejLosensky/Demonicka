@@ -20,7 +20,7 @@ import {
 import { featureFlagsService, type FeatureFlag } from '../../../../services/featureFlagsService';
 import { FeatureFlagKey } from '@demonicka/shared-types';
 import { usePageTitle } from '../../../../hooks/usePageTitle';
-import { PageHeader } from '../../../../components/ui/PageHeader';
+import { PageHeader } from '@demonicka/ui';
 import { toast } from 'react-hot-toast';
 
 const FeatureFlagsPage: React.FC = () => {

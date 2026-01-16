@@ -3,9 +3,7 @@ import { usePageTitle } from '../../hooks/usePageTitle';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthLayout } from '../../components/auth/AuthLayout';
-import { Input } from '../../components/ui/Input';
-import { PasswordInput } from '../../components/ui/PasswordInput';
-import { Button } from '../../components/ui/Button';
+import { Input, PasswordInput, Button } from '@demonicka/ui';
 import translations from '../../locales/cs/auth.json';
 
 export default function Register() {
@@ -20,7 +18,15 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -77,7 +83,7 @@ export default function Register() {
               id="gender"
               name="gender"
               value={formData.gender}
-              onChange={handleChange}
+              onChange={handleSelectChange}
               className="block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 border-gray-300 dark:border-dark-primary text-text-primary dark:text-text-dark-primary bg-background-card dark:bg-background-dark-card"
               required
             >

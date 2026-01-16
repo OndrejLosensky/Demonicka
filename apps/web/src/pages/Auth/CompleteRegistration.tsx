@@ -4,9 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { toast } from 'react-hot-toast';
 import { userService } from '../../services/userService';
-import { Input } from '../../components/ui/Input';
-import { PasswordInput } from '../../components/ui/PasswordInput';
-import { Button } from '../../components/ui/Button';
+import { Input, PasswordInput, Button } from '@demonicka/ui';
 
 export function CompleteRegistration() {
   usePageTitle('Dokončení registrace');
@@ -87,7 +85,7 @@ export function CompleteRegistration() {
             label="Uživatelské jméno"
             required
             value={isLoadingUsername ? 'Načítám...' : username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
             placeholder="Uživatelské jméno"
             disabled={true}
           />
@@ -101,7 +99,7 @@ export function CompleteRegistration() {
             label="Heslo"
             required
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             placeholder="Heslo"
             disabled={isLoading || isLoadingUsername}
           />

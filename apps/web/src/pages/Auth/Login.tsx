@@ -3,9 +3,7 @@ import { usePageTitle } from '../../hooks/usePageTitle';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthLayout } from '../../components/auth/AuthLayout';
-import { Input } from '../../components/ui/Input';
-import { PasswordInput } from '../../components/ui/PasswordInput';
-import { Button } from '../../components/ui/Button';
+import { Input, PasswordInput, Button } from '@demonicka/ui';
 import translations from '../../locales/cs/auth.json';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
 

@@ -26,7 +26,7 @@ import {
 import { rolesService, type RoleWithPermissions, type RolePermission } from '../../../../services/rolesService';
 import { Permission, PERMISSION_DESCRIPTIONS } from '@demonicka/shared';
 import { usePageTitle } from '../../../../hooks/usePageTitle';
-import { PageHeader } from '../../../../components/ui/PageHeader';
+import { PageHeader } from '@demonicka/ui';
 import { toast } from 'react-hot-toast';
 
 const RolesPage: React.FC = () => {

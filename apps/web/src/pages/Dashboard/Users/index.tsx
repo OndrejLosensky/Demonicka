@@ -14,7 +14,7 @@ import { AddUserDialog } from './AddUserDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
-import { PageHeader } from '../../../components/ui/PageHeader';
+import { PageHeader } from '@demonicka/ui';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.users.json';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';

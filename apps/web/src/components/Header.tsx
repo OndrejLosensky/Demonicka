@@ -19,16 +19,16 @@ import {
   List,
   ListItem,
   ListItemButton,
-} from '@mui/material';
-import {
   Logout as LogoutIcon,
   Person as PersonIcon,
   Settings as SettingsIcon,
   History as HistoryIcon,
   AccessTime as AccessTimeIcon,
   Event as EventIcon,
-  Menu as MenuIcon,
-} from '@mui/icons-material';
+  MenuIcon,
+  DarkMode as DarkModeIcon,
+  LightMode as LightModeIcon,
+} from '@demonicka/ui';
 import { FaBook } from 'react-icons/fa';
 import { format } from 'date-fns';
 import translations from '../locales/cs/common.header.json';
@@ -36,8 +36,6 @@ import { useActiveEvent } from '../contexts/ActiveEventContext';
 import { useAppTheme } from '../contexts/ThemeContext';
 import { useHeaderVisibility } from '../contexts/HeaderVisibilityContext';
 import { config } from '../config/index';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
 
 export default function Header() {
   const { user, logout, hasRole } = useAuth();

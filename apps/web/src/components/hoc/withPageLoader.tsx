@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageLoader } from '../ui/PageLoader';
+import { PageLoader } from '@demonicka/ui';
 
 interface WithLoadingProps {
   isLoading?: boolean;

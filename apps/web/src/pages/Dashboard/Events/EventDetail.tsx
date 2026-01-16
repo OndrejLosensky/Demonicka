@@ -18,8 +18,6 @@ import {
     LinearProgress,
     Chip,
     Paper,
-} from '@mui/material';
-import {
     FilterAlt as FilterIcon,
     Add as AddIcon,
     ArrowBack as ArrowBackIcon,
@@ -29,7 +27,8 @@ import {
     Timer as TimeIcon,
     Person as PersonIcon,
     Storage as BarrelIcon,
-} from '@mui/icons-material';
+    MetricCard,
+} from '@demonicka/ui';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { eventService } from '../../../services/eventService';
@@ -39,7 +38,6 @@ import type { Event, User, Barrel } from '@demonicka/shared-types';
 import { toast } from 'react-hot-toast';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { usePageTitle } from '../../../hooks/usePageTitle';
-import { MetricCard } from '../../../components/ui/MetricCard';
 
 export const EventDetail: React.FC = () => {
     usePageTitle('Detail události');

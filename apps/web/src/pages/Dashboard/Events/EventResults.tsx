@@ -27,7 +27,7 @@ import { dashboardService } from '../../../services/dashboardService';
 import type { Event, LeaderboardData, UserLeaderboardData } from '@demonicka/shared-types';
 import { toast } from 'react-hot-toast';
 import { usePageTitle } from '../../../hooks/usePageTitle';
-import { MetricCard } from '../../../components/ui/MetricCard';
+import { MetricCard } from '@demonicka/ui';
 
 export const EventResults: React.FC = () => {
     usePageTitle('Výsledky události');
