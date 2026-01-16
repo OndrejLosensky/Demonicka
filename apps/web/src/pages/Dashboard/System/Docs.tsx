@@ -14,12 +14,12 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { SimpleMarkdownParser } from '../utils/markdownParser';
-import { apiClient } from '../utils/apiClient';
-import '../styles/markdown.css';
-import { withPageLoader } from '../components/hoc/withPageLoader';
-import { usePageTitle } from '../hooks/usePageTitle';
-import { PageHeader } from '../components/ui/PageHeader';
+import { SimpleMarkdownParser } from '../../../utils/markdownParser';
+import { apiClient } from '../../../utils/apiClient';
+import '../../../styles/markdown.css';
+import { withPageLoader } from '../../../components/hoc/withPageLoader';
+import { usePageTitle } from '../../../hooks/usePageTitle';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 interface DocFile {
   name: string;

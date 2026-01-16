@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { usePageTitle } from '../hooks/usePageTitle';
+import { useAuth } from '../../contexts/AuthContext';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { toast } from 'react-hot-toast';
-import { userService } from '../services/userService';
-import { Input } from '../components/ui/Input';
-import { PasswordInput } from '../components/ui/PasswordInput';
-import { Button } from '../components/ui/Button';
+import { userService } from '../../services/userService';
+import { Input } from '../../components/ui/Input';
+import { PasswordInput } from '../../components/ui/PasswordInput';
+import { Button } from '../../components/ui/Button';
 
 export function CompleteRegistration() {
   usePageTitle('Dokončení registrace');

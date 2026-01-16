@@ -1,13 +1,2 @@
-export type BarrelStatus = 'ACTIVE' | 'INACTIVE';
-
-export interface Barrel {
-  id: string;
-  size: number;
-  isActive: boolean;
-  remainingBeers: number;
-  totalBeers: number;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt?: string;
-  orderNumber: number;
-} 
+// Re-export from shared-types for backward compatibility
+export type { Barrel, BarrelStatus } from '@demonicka/shared-types'; 

@@ -31,7 +31,7 @@ import { usePageTitle } from '../../../hooks/usePageTitle';
 import { PageHeader } from '../../../components/ui/PageHeader';
 import { MetricCard } from '../../../components/ui/MetricCard';
 import { useNavigate } from 'react-router-dom';
-import { Settings as SettingsIcon } from '@mui/icons-material';
+import { Settings as SettingsIcon, Flag as FlagIcon } from '@mui/icons-material';
 
 const SystemPage: React.FC = () => {
   usePageTitle('Systém');
@@ -143,6 +143,13 @@ const SystemPage: React.FC = () => {
               onClick={() => navigate('/dashboard/system/roles')}
             >
               Role a oprávnění
+            </Button>
+            <Button 
+              variant="contained" 
+              startIcon={<FlagIcon />}
+              onClick={() => navigate('/dashboard/system/feature-flags')}
+            >
+              Feature Flags
             </Button>
             <Button 
               variant="outlined" 

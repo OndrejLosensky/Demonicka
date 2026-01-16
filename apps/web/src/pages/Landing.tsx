@@ -9,7 +9,7 @@ import { BsArrowUpRight, BsLightning } from 'react-icons/bs';
 import { formatDistanceToNow } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { useActiveEvent } from '../contexts/ActiveEventContext';
-import type { LeaderboardData } from '../pages/Leaderboard/types';
+import type { LeaderboardData } from '../pages/Dashboard/Leaderboard/types';
 import { dashboardService } from '../services/dashboardService';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { websocketService } from '../services/websocketService';

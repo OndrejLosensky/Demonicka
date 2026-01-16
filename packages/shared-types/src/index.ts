@@ -4,3 +4,4 @@ export * from './barrel';
 export * from './dashboard';
 export * from './leaderboard';
 export * from './achievements';
+export * from './featureFlags';

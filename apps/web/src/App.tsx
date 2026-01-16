@@ -8,28 +8,30 @@ import Register from './pages/Auth/Register';
 import { Dashboard } from './pages/Dashboard/Dashboard';
 import Participants from './pages/Dashboard/Participants';
 import Barrels from './pages/Dashboard/Barrels';
-import Leaderboard from './pages/Leaderboard';
+import Leaderboard from './pages/Dashboard/Leaderboard';
 import Landing from './pages/Landing';
 import Header from './components/Header';
-import ProfilePage from './pages/Profile/index';
-import { Events } from './pages/Events';
-import { EventDetail } from './pages/EventDetail';
-import { EventResults } from './pages/EventResults';
-import { Docs } from './pages/Docs';
+import ProfilePage from './pages/Dashboard/Profile/index';
+import { Events } from './pages/Dashboard/Events';
+import { EventDetail } from './pages/Dashboard/Events/EventDetail';
+import { EventResults } from './pages/Dashboard/Events/EventResults';
+import { Docs } from './pages/Dashboard/System/Docs';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ActiveEventProvider } from './contexts/ActiveEventContext';
 import { AppThemeProvider } from './contexts/ThemeContext';
 import { SelectedEventProvider } from './contexts/SelectedEventContext';
 import { HeaderVisibilityProvider } from './contexts/HeaderVisibilityContext';
-import { CompleteRegistration } from './pages/CompleteRegistration';
+import { FeatureFlagsProvider } from './contexts/FeatureFlagsContext';
+import { CompleteRegistration } from './pages/Auth/CompleteRegistration';
 import { EnterToken } from './pages/Auth/EnterToken';
 import { USER_ROLE } from '@demonicka/shared-types';
 import { SystemPage } from './pages/Dashboard/System';
 import RolesPage from './pages/Dashboard/System/Roles';
-import { Activity } from './pages/Activity';
-import { PersonalStatsView } from './pages/PersonalStats/PersonalStatsView';
-import { AchievementsPage } from './pages/Achievements';
+import FeatureFlagsPage from './pages/Dashboard/System/FeatureFlags';
+import { Activity } from './pages/User/Activity';
+import { PersonalStatsView } from './pages/User/PersonalStats/PersonalStatsView';
+import { AchievementsPage } from './pages/User/Achievements';
 
 const queryClient = new QueryClient();
 
@@ -53,9 +55,10 @@ function App() {
         <AppThemeProvider>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <AuthProvider>
-              <ActiveEventProvider>
-                <SelectedEventProvider>
-                  <HeaderVisibilityProvider>
+              <FeatureFlagsProvider>
+                <ActiveEventProvider>
+                  <SelectedEventProvider>
+                    <HeaderVisibilityProvider>
                   <Routes>
                     <Route path="/" element={<Header />}>
                       <Route index element={<Landing />} />
@@ -96,6 +99,14 @@ function App() {
                         element={
                           <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
                             <RolesPage />
+                          </RoleRoute>
+                        }
+                      />
+                      <Route
+                        path="dashboard/system/feature-flags"
+                        element={
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
+                            <FeatureFlagsPage />
                           </RoleRoute>
                         }
                       />
@@ -204,10 +215,11 @@ function App() {
                     />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
-                </HeaderVisibilityProvider>
-              </SelectedEventProvider>
-            </ActiveEventProvider>
-          </AuthProvider>
+                    </HeaderVisibilityProvider>
+                  </SelectedEventProvider>
+                </ActiveEventProvider>
+              </FeatureFlagsProvider>
+            </AuthProvider>
         </LocalizationProvider>
       </AppThemeProvider>
       </QueryClientProvider>

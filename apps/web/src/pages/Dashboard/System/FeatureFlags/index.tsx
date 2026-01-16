@@ -1,0 +1,144 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Box,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Switch,
+  Button,
+  CircularProgress,
+  Tooltip,
+} from '@mui/material';
+import {
+  Refresh as RefreshIcon,
+} from '@mui/icons-material';
+import { featureFlagsService, type FeatureFlag } from '../../../../services/featureFlagsService';
+import { FeatureFlagKey } from '@demonicka/shared-types';
+import { usePageTitle } from '../../../../hooks/usePageTitle';
+import { PageHeader } from '../../../../components/ui/PageHeader';
+import { toast } from 'react-hot-toast';
+
+const FeatureFlagsPage: React.FC = () => {
+  usePageTitle('Feature Flags');
+  const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
+
+  const loadFeatureFlags = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await featureFlagsService.getAllFeatureFlags();
+      setFeatureFlags(data);
+    } catch (error) {
+      console.error('Failed to load feature flags:', error);
+      toast.error('Nepodařilo se načíst feature flags');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadFeatureFlags();
+  }, [loadFeatureFlags]);
+
+  const handleToggle = async (flag: FeatureFlag) => {
+    try {
+      setIsSaving((prev) => ({ ...prev, [flag.id]: true }));
+      await featureFlagsService.updateFeatureFlag(flag.id, !flag.enabled);
+      toast.success('Feature flag byl úspěšně aktualizován');
+      await loadFeatureFlags();
+    } catch (error) {
+      console.error('Failed to update feature flag:', error);
+      toast.error('Nepodařilo se aktualizovat feature flag');
+    } finally {
+      setIsSaving((prev) => ({ ...prev, [flag.id]: false }));
+    }
+  };
+
+  // Get all feature flag keys from enum for display
+  const allFeatureFlagKeys = Object.values(FeatureFlagKey);
+
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ p: 4 }}>
+      <PageHeader
+        title="Feature Flags"
+        action={
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={loadFeatureFlags}
+            disabled={isLoading}
+          >
+            Obnovit
+          </Button>
+        }
+      />
+
+      <Box sx={{ mt: 3 }}>
+        <TableContainer component={Paper} variant="outlined">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Feature Flag</TableCell>
+                <TableCell>Popis</TableCell>
+                <TableCell align="center">Stav</TableCell>
+                <TableCell align="right">Akce</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {allFeatureFlagKeys.map((key) => {
+                const flag = featureFlags.find((f) => f.key === key);
+                if (!flag) return null;
+
+                return (
+                  <TableRow key={flag.id}>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight="medium">
+                        {flag.key}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title={flag.description || ''}>
+                        <Typography variant="body2" color="text.secondary">
+                          {flag.description || 'Bez popisu'}
+                        </Typography>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Switch
+                        checked={flag.enabled}
+                        onChange={() => handleToggle(flag)}
+                        disabled={isSaving[flag.id]}
+                        color="primary"
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      {isSaving[flag.id] && (
+                        <CircularProgress size={20} />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </Box>
+  );
+};
+
+export default FeatureFlagsPage;

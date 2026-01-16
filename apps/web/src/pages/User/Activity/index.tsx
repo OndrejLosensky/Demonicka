@@ -18,9 +18,9 @@ import {
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import { format } from 'date-fns';
-import { api } from '../../services/api';
-import { usePageTitle } from '../../hooks/usePageTitle';
-import { PageHeader } from '../../components/ui/PageHeader';
+import { api } from '../../../services/api';
+import { usePageTitle } from '../../../hooks/usePageTitle';
+import { PageHeader } from '../../../components/ui/PageHeader';
 
 interface ActivityLogEntry {
   timestamp: string;
@@ -112,7 +112,7 @@ export const Activity: React.FC = () => {
       const response = await api.get<ActivityLogsResponse>(`/logs?${params}`);
       
       // Filter logs to only include activity events
-      const filteredLogs = response.data.logs.filter(log => 
+      const filteredLogs = response.data.logs.filter((log: ActivityLogEntry) => 
         log.event && ACTIVITY_EVENTS.includes(log.event as ActivityEventType)
       );
 

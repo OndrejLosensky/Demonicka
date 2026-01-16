@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { config } from '../config/index';
-import type { LeaderboardData } from '../pages/Leaderboard/types';
+import type { LeaderboardData } from '../pages/Dashboard/Leaderboard/types';
 import type { DashboardStats } from '@demonicka/shared-types';
 import type { PublicStats } from '../types/public';
 

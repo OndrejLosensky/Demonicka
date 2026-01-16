@@ -1,5 +1,4 @@
-import { FeatureFlagKey } from '../types/featureFlags';
-import type { FeatureFlags } from '../types/featureFlags';
+import { FeatureFlagKey, type FeatureFlags } from '@demonicka/shared-types';
 
 export const featureFlags: FeatureFlags = {
   [FeatureFlagKey.SHOW_DELETED_USERS]: {

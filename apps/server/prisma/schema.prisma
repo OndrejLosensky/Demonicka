@@ -288,3 +288,12 @@ model RolePermission {
   @@index([roleId])
   @@index([permissionId])
 }
+
+model FeatureFlag {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique // SHOW_DELETED_USERS, etc.
+  enabled     Boolean  @default(false)
+  description String?
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+}

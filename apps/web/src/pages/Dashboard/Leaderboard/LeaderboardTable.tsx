@@ -2,7 +2,7 @@ import { Paper, Typography, Box, Chip } from '@mui/material';
 import { FaBeer } from 'react-icons/fa';
 import { GiTrophy } from 'react-icons/gi';
 import type { LeaderboardTableProps } from './types';
-import translations from '../../locales/cs/dashboard.leaderboard.json';
+import translations from '../../../locales/cs/dashboard.leaderboard.json';
 
 const getTrophyColor = (rank: number): string => {
   switch (rank) {

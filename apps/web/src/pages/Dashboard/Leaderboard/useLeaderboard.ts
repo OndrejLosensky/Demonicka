@@ -1,12 +1,12 @@
-import { websocketService } from '../../services/websocketService';
+import { websocketService } from '../../../services/websocketService';
 import { leaderboardApi } from './api';
-import { dashboardService } from '../../services/dashboardService';
+import { dashboardService } from '../../../services/dashboardService';
 import type { LeaderboardData } from './types';
 import type { DashboardStats } from '@demonicka/shared-types';
-import type { PublicStats } from '../../types/public';
+import type { PublicStats } from '../../../types/public';
 import { useState, useEffect } from 'react';
-import { useActiveEvent } from '../../contexts/ActiveEventContext';
-import { useSelectedEvent } from '../../contexts/SelectedEventContext';
+import { useActiveEvent } from '../../../contexts/ActiveEventContext';
+import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
 
 export const useLeaderboard = () => {
   const [stats, setStats] = useState<LeaderboardData | null>(null);

@@ -1,5 +1,5 @@
 import type { LeaderboardData } from './types';
-import { api } from '../../services/api';
+import { api } from '../../../services/api';
 
 export const leaderboardApi = {
   getLeaderboard: async (eventId: string): Promise<LeaderboardData> => {

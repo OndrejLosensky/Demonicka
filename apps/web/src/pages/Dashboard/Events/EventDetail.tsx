@@ -32,14 +32,14 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
-import { eventService } from '../services/eventService';
-import { barrelService } from '../services/barrelService';
-import { userService } from '../services/userService';
+import { eventService } from '../../../services/eventService';
+import { barrelService } from '../../../services/barrelService';
+import { userService } from '../../../services/userService';
 import type { Event, User, Barrel } from '@demonicka/shared-types';
 import { toast } from 'react-hot-toast';
-import { useActiveEvent } from '../contexts/ActiveEventContext';
-import { usePageTitle } from '../hooks/usePageTitle';
-import { MetricCard } from '../components/ui/MetricCard';
+import { useActiveEvent } from '../../../contexts/ActiveEventContext';
+import { usePageTitle } from '../../../hooks/usePageTitle';
+import { MetricCard } from '../../../components/ui/MetricCard';
 
 export const EventDetail: React.FC = () => {
     usePageTitle('Detail události');
