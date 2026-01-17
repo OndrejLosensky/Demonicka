@@ -57,6 +57,14 @@ export enum Permission {
   // Achievement permissions
   MANAGE_ACHIEVEMENTS = 'MANAGE_ACHIEVEMENTS',
   VIEW_ACHIEVEMENTS = 'VIEW_ACHIEVEMENTS',
+
+  // Beer Pong permissions
+  CREATE_BEER_PONG_EVENT = 'CREATE_BEER_PONG_EVENT',
+  UPDATE_BEER_PONG_EVENT = 'UPDATE_BEER_PONG_EVENT',
+  DELETE_BEER_PONG_EVENT = 'DELETE_BEER_PONG_EVENT',
+  MANAGE_BEER_PONG_TEAMS = 'MANAGE_BEER_PONG_TEAMS',
+  START_BEER_PONG_GAME = 'START_BEER_PONG_GAME',
+  MANAGE_BEER_PONG_GAME = 'MANAGE_BEER_PONG_GAME',
 }
 
 /**
@@ -126,4 +134,12 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   // Achievement permissions
   [Permission.MANAGE_ACHIEVEMENTS]: 'Manage achievements',
   [Permission.VIEW_ACHIEVEMENTS]: 'View achievements',
+
+  // Beer Pong permissions
+  [Permission.CREATE_BEER_PONG_EVENT]: 'Create new beer pong tournaments',
+  [Permission.UPDATE_BEER_PONG_EVENT]: 'Update beer pong tournaments',
+  [Permission.DELETE_BEER_PONG_EVENT]: 'Delete beer pong tournaments',
+  [Permission.MANAGE_BEER_PONG_TEAMS]: 'Manage teams in beer pong tournaments',
+  [Permission.START_BEER_PONG_GAME]: 'Start beer pong games (triggers beer addition)',
+  [Permission.MANAGE_BEER_PONG_GAME]: 'Manage beer pong games (mark winners, undo)',
 };

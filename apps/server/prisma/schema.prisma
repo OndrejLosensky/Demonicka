@@ -47,6 +47,29 @@ enum AchievementCategory {
   LEGENDARY
 }
 
+enum BeerPongEventStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+}
+
+enum BeerPongGameStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum BeerPongRound {
+  QUARTERFINAL
+  SEMIFINAL
+  FINAL
+}
+
+enum CancellationPolicy {
+  KEEP_BEERS
+  REMOVE_BEERS
+}
+
 // Models
 model User {
   id                     String    @id @default(uuid()) @db.Uuid
@@ -72,16 +95,21 @@ model User {
   deletedAt              DateTime? @db.Timestamptz(6)
 
   // Relations
-  beers            Beer[]
-  refreshTokens    RefreshToken[]
-  deviceTokens     DeviceToken[]
-  eventBeers       EventBeer[]
-  userAchievements UserAchievement[]
-  events           EventUsers[]
-  createdUsers     User[]         @relation("UserCreator")
-  createdEvents    Event[]
-  
-  creator          User?          @relation("UserCreator", fields: [createdBy], references: [id])
+  beers                 Beer[]
+  refreshTokens         RefreshToken[]
+  deviceTokens          DeviceToken[]
+  eventBeers            EventBeer[]
+  userAchievements      UserAchievement[]
+  events                EventUsers[]
+  createdUsers          User[]             @relation("UserCreator")
+  createdEvents         Event[]
+  createdBeerPongEvents BeerPongEvent[]    @relation("BeerPongEventCreator")
+  beerPongTeams         BeerPongTeam[]     @relation("BeerPongTeamPlayer1")
+  beerPongTeams2        BeerPongTeam[]     @relation("BeerPongTeamPlayer2")
+  beerPongGameBeers     BeerPongGameBeer[]
+  startedBeerPongGames  BeerPongGame[]
+
+  creator User? @relation("UserCreator", fields: [createdBy], references: [id])
 
   @@index([createdBy])
 }
@@ -167,10 +195,11 @@ model Event {
   deletedAt   DateTime? @db.Timestamptz(6)
 
   // Relations
-  eventBeers EventBeer[]
-  users      EventUsers[]
-  barrels    EventBarrels[]
-  creator    User?      @relation(fields: [createdBy], references: [id])
+  eventBeers     EventBeer[]
+  users          EventUsers[]
+  barrels        EventBarrels[]
+  beerPongEvents BeerPongEvent[]
+  creator        User?           @relation(fields: [createdBy], references: [id])
 
   @@index([createdBy])
 }
@@ -184,9 +213,10 @@ model EventBeer {
   consumedAt DateTime  @default(now()) @db.Timestamptz(6)
   deletedAt  DateTime? @db.Timestamptz(6)
 
-  event  Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  barrel Barrel? @relation(fields: [barrelId], references: [id], onDelete: Cascade)
+  event             Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  barrel            Barrel?            @relation(fields: [barrelId], references: [id], onDelete: Cascade)
+  beerPongGameBeers BeerPongGameBeer[]
 
   @@index([eventId])
   @@index([userId])
@@ -194,7 +224,7 @@ model EventBeer {
 }
 
 model Achievement {
-  id             String              @id
+  id             String              @id @default(uuid()) @db.Uuid
   name           String
   description    String?
   type           AchievementType
@@ -296,4 +326,103 @@ model FeatureFlag {
   description String?
   createdAt   DateTime @default(now()) @db.Timestamptz(6)
   updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+}
+
+model BeerPongEvent {
+  id                 String              @id @default(uuid()) @db.Uuid
+  eventId            String              @db.Uuid
+  name               String
+  description        String?
+  status             BeerPongEventStatus @default(DRAFT)
+  beersPerPlayer     Int                 @default(2)
+  timeWindowMinutes  Int                 @default(5)
+  undoWindowMinutes  Int                 @default(5)
+  cancellationPolicy CancellationPolicy  @default(KEEP_BEERS)
+  startedAt          DateTime?           @db.Timestamptz(6)
+  completedAt        DateTime?           @db.Timestamptz(6)
+  createdBy          String?             @db.Uuid
+  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime            @updatedAt @db.Timestamptz(6)
+  deletedAt          DateTime?           @db.Timestamptz(6)
+
+  // Relations
+  event   Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  teams   BeerPongTeam[]
+  games   BeerPongGame[]
+  creator User?          @relation("BeerPongEventCreator", fields: [createdBy], references: [id])
+
+  @@index([eventId])
+  @@index([createdBy])
+}
+
+model BeerPongTeam {
+  id              String    @id @default(uuid()) @db.Uuid
+  beerPongEventId String    @db.Uuid
+  name            String
+  player1Id       String    @db.Uuid
+  player2Id       String    @db.Uuid
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+  deletedAt       DateTime? @db.Timestamptz(6)
+
+  // Relations
+  beerPongEvent BeerPongEvent  @relation(fields: [beerPongEventId], references: [id], onDelete: Cascade)
+  player1       User           @relation("BeerPongTeamPlayer1", fields: [player1Id], references: [id])
+  player2       User           @relation("BeerPongTeamPlayer2", fields: [player2Id], references: [id])
+  gamesAsTeam1  BeerPongGame[] @relation("BeerPongGameTeam1")
+  gamesAsTeam2  BeerPongGame[] @relation("BeerPongGameTeam2")
+  gamesWon      BeerPongGame[] @relation("BeerPongGameWinner")
+
+  @@unique([beerPongEventId, name])
+  @@index([beerPongEventId])
+  @@index([player1Id])
+  @@index([player2Id])
+}
+
+model BeerPongGame {
+  id              String             @id @default(uuid()) @db.Uuid
+  beerPongEventId String             @db.Uuid
+  round           BeerPongRound
+  team1Id         String             @db.Uuid
+  team2Id         String             @db.Uuid
+  winnerTeamId    String?            @db.Uuid
+  status          BeerPongGameStatus @default(PENDING)
+  startedAt       DateTime?          @db.Timestamptz(6)
+  endedAt         DateTime?          @db.Timestamptz(6)
+  durationSeconds Int?
+  startedBy       String?            @db.Uuid
+  beersAddedAt    DateTime?          @db.Timestamptz(6)
+  createdAt       DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime           @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  beerPongEvent BeerPongEvent      @relation(fields: [beerPongEventId], references: [id], onDelete: Cascade)
+  team1         BeerPongTeam       @relation("BeerPongGameTeam1", fields: [team1Id], references: [id])
+  team2         BeerPongTeam       @relation("BeerPongGameTeam2", fields: [team2Id], references: [id])
+  winnerTeam    BeerPongTeam?      @relation("BeerPongGameWinner", fields: [winnerTeamId], references: [id])
+  gameBeers     BeerPongGameBeer[]
+  startedByUser User?              @relation(fields: [startedBy], references: [id])
+
+  @@index([beerPongEventId])
+  @@index([team1Id])
+  @@index([team2Id])
+  @@index([winnerTeamId])
+  @@index([round])
+}
+
+model BeerPongGameBeer {
+  id             String   @id @default(uuid()) @db.Uuid
+  beerPongGameId String   @db.Uuid
+  userId         String   @db.Uuid
+  eventBeerId    String   @db.Uuid
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  beerPongGame BeerPongGame @relation(fields: [beerPongGameId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id])
+  eventBeer    EventBeer    @relation(fields: [eventBeerId], references: [id])
+
+  @@unique([beerPongGameId, userId, eventBeerId])
+  @@index([beerPongGameId])
+  @@index([userId])
+  @@index([eventBeerId])
 }

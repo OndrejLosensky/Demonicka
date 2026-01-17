@@ -64,6 +64,14 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 
     // Achievements
     Permission.VIEW_ACHIEVEMENTS,
+
+    // Beer Pong permissions
+    Permission.CREATE_BEER_PONG_EVENT,
+    Permission.UPDATE_BEER_PONG_EVENT,
+    Permission.DELETE_BEER_PONG_EVENT,
+    Permission.MANAGE_BEER_PONG_TEAMS,
+    Permission.START_BEER_PONG_GAME,
+    Permission.MANAGE_BEER_PONG_GAME,
   ],
 
   [UserRole.USER]: [
