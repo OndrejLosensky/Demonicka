@@ -5,9 +5,39 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { BeerPongEvent, BeerPongEventStatus } from '@prisma/client';
+import {
+  BeerPongEvent,
+  BeerPongEventStatus,
+  Prisma,
+} from '@prisma/client';
 import { CreateBeerPongEventDto } from './dto/create-beer-pong-event.dto';
 import { UpdateBeerPongEventDto } from './dto/update-beer-pong-event.dto';
+
+type BeerPongEventWithRelations = Prisma.BeerPongEventGetPayload<{
+  include: {
+    event: true;
+    teams: {
+      include: {
+        player1: true;
+        player2: true;
+      };
+    };
+    games: {
+      include: {
+        team1: true;
+        team2: true;
+        winnerTeam: true;
+        gameBeers: {
+          include: {
+            user: true;
+            eventBeer: true;
+          };
+        };
+      };
+    };
+    creator: true;
+  };
+}>;
 
 @Injectable()
 export class BeerPongService {
@@ -78,7 +108,7 @@ export class BeerPongService {
     });
   }
 
-  async findOne(id: string): Promise<BeerPongEvent> {
+  async findOne(id: string): Promise<BeerPongEventWithRelations> {
     const beerPongEvent = await this.prisma.beerPongEvent.findFirst({
       where: {
         id,

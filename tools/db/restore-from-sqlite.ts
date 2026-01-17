@@ -116,7 +116,16 @@ async function clearDatabase(client: PGClient): Promise<void> {
   console.log('🗑️  Clearing all tables in production database...');
   
   // Disable foreign key checks by truncating in reverse dependency order
+  // Order: child tables first (those with foreign keys), then parent tables
   const tablesToTruncate = [
+    // Beer Pong tables (children first)
+    'BeerPongGameBeer',
+    'BeerPongGame',
+    'BeerPongTeam',
+    'BeerPongEvent',
+    // Role/Permission tables
+    'RolePermission',
+    // Existing tables
     'UserAchievement',
     'EventBarrels',
     'EventUsers',
@@ -128,6 +137,10 @@ async function clearDatabase(client: PGClient): Promise<void> {
     'Event',
     'Barrel',
     'User',
+    // Feature flags and roles/permissions (standalone, can be truncated last)
+    'Permission',
+    'Role',
+    'FeatureFlag',
   ];
 
   for (const table of tablesToTruncate) {
@@ -140,14 +153,41 @@ async function clearDatabase(client: PGClient): Promise<void> {
   }
 }
 
+async function getTableColumns(client: PGClient, tableName: string): Promise<string[]> {
+  const result = await client.query(`
+    SELECT column_name 
+    FROM information_schema.columns 
+    WHERE table_name = $1
+    ORDER BY ordinal_position
+  `, [tableName]);
+  return result.rows.map(row => row.column_name);
+}
+
 async function importTable(client: PGClient, sqliteTableName: string, data: any[]): Promise<void> {
   if (data.length === 0) {
+    console.log(`Skipping ${sqliteTableName} (no data)`);
     return;
   }
 
   const pgTableName = TABLE_NAME_MAP[sqliteTableName] || sqliteTableName;
   console.log(`Importing ${sqliteTableName} -> ${pgTableName} (${data.length} rows)...`);
 
+  // Check if table exists
+  const tableCheck = await client.query(`
+    SELECT EXISTS (
+      SELECT FROM information_schema.tables 
+      WHERE table_name = $1
+    )
+  `, [pgTableName.toLowerCase()]);
+
+  if (!tableCheck.rows[0].exists) {
+    console.error(`  ❌ Table "${pgTableName}" does not exist in database!`);
+    return;
+  }
+
+  // Get actual PostgreSQL columns
+  const pgActualColumns = await getTableColumns(client, pgTableName.toLowerCase());
+  
   const columnMap = COLUMN_MAP[sqliteTableName] || {};
   const skipColumns = SKIP_COLUMNS[sqliteTableName] || [];
 
@@ -156,40 +196,76 @@ async function importTable(client: PGClient, sqliteTableName: string, data: any[
     .filter(col => !skipColumns.includes(col))
     .map(col => columnMap[col] || col);
 
-  if (pgColumns.length === 0) {
+  // Check for column mismatches
+  const missingColumns = pgColumns.filter(col => !pgActualColumns.includes(col.toLowerCase()));
+  const extraColumns = pgActualColumns.filter(col => 
+    !pgColumns.map(c => c.toLowerCase()).includes(col) && 
+    col !== 'createdAt' && col !== 'updatedAt' // These have defaults
+  );
+
+  if (missingColumns.length > 0) {
+    console.error(`  ⚠️  Warning: These columns don't exist in PostgreSQL table: ${missingColumns.join(', ')}`);
+  }
+  if (extraColumns.length > 0) {
+    console.warn(`  ⚠️  Warning: These PostgreSQL columns won't be populated (may have defaults): ${extraColumns.join(', ')}`);
+  }
+
+  // Filter out columns that don't exist in PostgreSQL
+  const validColumns = pgColumns.filter(col => pgActualColumns.includes(col.toLowerCase()));
+  
+  if (validColumns.length === 0) {
+    console.error(`  ❌ No valid columns to import!`);
     return;
   }
 
-  const placeholders = pgColumns.map((_, i) => `$${i + 1}`).join(', ');
-  const columnNames = pgColumns.map(col => `"${col}"`).join(', ');
+  const placeholders = validColumns.map((_, i) => `$${i + 1}`).join(', ');
+  const columnNames = validColumns.map(col => `"${col}"`).join(', ');
   const query = `INSERT INTO "${pgTableName}" (${columnNames}) VALUES (${placeholders})`;
 
   let imported = 0;
   let errors = 0;
+  const errorMessages: string[] = [];
 
-  for (const row of data) {
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
     try {
-      const values = sqliteColumns
-        .filter(col => !skipColumns.includes(col))
-        .map(col => {
-          const pgColName = columnMap[col] || col;
-          return convertValue(row[col], pgColName, sqliteTableName);
+      // Map values only for valid columns (in correct order)
+      const values = validColumns.map(col => {
+        // Find the SQLite column name for this PostgreSQL column
+        const sqliteCol = sqliteColumns.find(sCol => {
+          const mappedCol = columnMap[sCol] || sCol;
+          return mappedCol === col;
         });
+        
+        if (!sqliteCol) {
+          return null; // Column doesn't exist in SQLite data
+        }
+        
+        return convertValue(row[sqliteCol], col, sqliteTableName);
+      });
 
       await client.query(query, values);
       imported++;
     } catch (error: any) {
       errors++;
-      if (errors <= 5) {
-        console.error(`  Error importing row:`, error.message);
-        if (errors === 5) {
-          console.error(`  ... (suppressing further errors)`);
-        }
+      if (errors <= 10) {
+        errorMessages.push(`Row ${i + 1}: ${error.message}`);
       }
     }
   }
 
-  console.log(`  ✅ Imported ${imported} rows, ${errors} errors`);
+  if (errors > 0) {
+    console.error(`  ❌ Import failed: ${imported} rows imported, ${errors} rows failed`);
+    if (errorMessages.length > 0) {
+      console.error(`  First ${Math.min(10, errors)} errors:`);
+      errorMessages.forEach(msg => console.error(`    - ${msg}`));
+    }
+    if (errors === data.length) {
+      console.error(`  ⚠️  CRITICAL: ALL rows failed to import! Check column names and data types.`);
+    }
+  } else {
+    console.log(`  ✅ Imported ${imported} rows successfully`);
+  }
 }
 
 async function main() {
@@ -228,6 +304,42 @@ async function main() {
       if (allData[sqliteTableName]) {
         await importTable(client, sqliteTableName, allData[sqliteTableName]);
       }
+    }
+
+    // Verify critical tables have data
+    console.log('\n🔍 Verifying imported data...');
+    const verificationTables = ['User', 'Event'];
+    for (const table of verificationTables) {
+      const result = await client.query(`SELECT COUNT(*) as count FROM "${table}"`);
+      const count = parseInt(result.rows[0].count);
+      if (count === 0) {
+        console.error(`  ❌ WARNING: Table "${table}" is empty after import!`);
+      } else {
+        console.log(`  ✅ Table "${table}" has ${count} rows`);
+      }
+    }
+
+    // Check for orphaned foreign keys
+    const orphanCheck = await client.query(`
+      SELECT COUNT(*) as count 
+      FROM "EventBeer" eb
+      WHERE NOT EXISTS (SELECT 1 FROM "User" u WHERE u.id = eb."userId")
+         OR NOT EXISTS (SELECT 1 FROM "Event" e WHERE e.id = eb."eventId")
+    `);
+    const orphanCount = parseInt(orphanCheck.rows[0].count);
+    if (orphanCount > 0) {
+      console.error(`  ❌ WARNING: Found ${orphanCount} EventBeer rows with missing foreign keys!`);
+    }
+
+    const orphanCheck2 = await client.query(`
+      SELECT COUNT(*) as count 
+      FROM "EventUsers" eu
+      WHERE NOT EXISTS (SELECT 1 FROM "User" u WHERE u.id = eu."userId")
+         OR NOT EXISTS (SELECT 1 FROM "Event" e WHERE e.id = eu."eventId")
+    `);
+    const orphanCount2 = parseInt(orphanCheck2.rows[0].count);
+    if (orphanCount2 > 0) {
+      console.error(`  ❌ WARNING: Found ${orphanCount2} EventUsers rows with missing foreign keys!`);
     }
 
     console.log('\n✅ Production database restored successfully!');

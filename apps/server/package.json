@@ -22,7 +22,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "cleanup:all": "ts-node scripts/cleanupAll.ts",
     "cleanup:data": "ts-node scripts/cleanupData.ts",
-    "promote:admin": "ts-node promote-admin.ts"
+    "promote:superadmin": "ts-node promote-super-admin.ts"
   },
   "dependencies": {
     "@demonicka/shared": "workspace:*",
