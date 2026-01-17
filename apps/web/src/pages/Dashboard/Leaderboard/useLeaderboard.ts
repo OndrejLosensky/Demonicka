@@ -56,7 +56,6 @@ export const useLeaderboard = () => {
     // Subscribe to real-time updates
     const onLeaderboard = (data: LeaderboardData) => setStats(data);
     const onDashboardStats = (data: { dashboard: DashboardStats; public: PublicStats }) => {
-      console.log('Leaderboard: Real-time dashboard stats update received:', data);
       setDashboardStats(data.dashboard);
       setPublicStats(data.public);
     };
@@ -73,11 +72,9 @@ export const useLeaderboard = () => {
   // Join event room for real-time updates
   useEffect(() => {
     if (currentEvent?.id) {
-      console.log('Leaderboard: Joining event room:', currentEvent.id);
       websocketService.joinEvent(currentEvent.id);
       
       return () => {
-        console.log('Leaderboard: Leaving event room:', currentEvent.id);
         websocketService.leaveEvent(currentEvent.id);
       };
     }
@@ -87,10 +84,7 @@ export const useLeaderboard = () => {
   useEffect(() => {
     if (!currentEvent?.id) return;
 
-    console.log('Leaderboard: Setting up 5-minute fallback refresh interval');
     const interval = setInterval(async () => {
-      console.log('Leaderboard: 5-minute fallback refresh triggered');
-      
       try {
         // Refresh both leaderboard and dashboard stats
         const [leaderboardData, dashboardData, publicData] = await Promise.all([
@@ -108,7 +102,6 @@ export const useLeaderboard = () => {
     }, 5 * 60 * 1000); // 5 minutes
 
     return () => {
-      console.log('Leaderboard: Clearing 5-minute fallback refresh interval');
       clearInterval(interval);
     };
   }, [currentEvent?.id]);

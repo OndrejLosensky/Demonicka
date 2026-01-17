@@ -151,15 +151,12 @@ export const Dashboard: React.FC = () => {
         
         // Subscribe to real-time dashboard stats updates
         const statsUpdateHandler = (data: { dashboard: any; public: any }) => {
-            console.log('Dashboard: Real-time dashboard stats update received:', data);
-            console.log('Dashboard: Updating stats from', stats.totalBeers, 'to', data.public.totalBeers);
-            
             // Update dashboard stats immediately
             setDashboardStats(data.dashboard);
             
             // Update the stats object with new data
             setStats(prevStats => {
-                const newStats = {
+                return {
                     ...prevStats,
                     totalBeers: data.public.totalBeers,
                     participantsCount: data.public.totalUsers,
@@ -167,17 +164,13 @@ export const Dashboard: React.FC = () => {
                     averageBeersPerHour: prevStats.averageBeersPerHour, // Keep existing hourly average
                     // Keep other stats that might not be in the update
                 };
-                console.log('Dashboard: Stats updated:', newStats);
-                return newStats;
             });
         };
         
-        console.log('Dashboard: Subscribing to WebSocket events');
         websocketService.subscribe('dashboard:update', refreshHandler);
         websocketService.subscribe('dashboard:stats:update', statsUpdateHandler);
         
         return () => {
-            console.log('Dashboard: Unsubscribing from WebSocket events');
             websocketService.unsubscribe('dashboard:update', refreshHandler);
             websocketService.unsubscribe('dashboard:stats:update', statsUpdateHandler);
         };
@@ -186,11 +179,9 @@ export const Dashboard: React.FC = () => {
     // Join event room for real-time updates
     useEffect(() => {
         if (selectedEvent?.id) {
-            console.log('Joining event room:', selectedEvent.id);
             websocketService.joinEvent(selectedEvent.id);
             
             return () => {
-                console.log('Leaving event room:', selectedEvent.id);
                 websocketService.leaveEvent(selectedEvent.id);
             };
         }
@@ -200,14 +191,11 @@ export const Dashboard: React.FC = () => {
     useEffect(() => {
         if (!selectedEvent?.id) return;
 
-        console.log('Setting up 5-minute fallback refresh interval');
         const interval = setInterval(() => {
-            console.log('5-minute fallback refresh triggered');
             loadData();
         }, 5 * 60 * 1000); // 5 minutes
 
         return () => {
-            console.log('Clearing 5-minute fallback refresh interval');
             clearInterval(interval);
         };
     }, [selectedEvent?.id, loadData]);

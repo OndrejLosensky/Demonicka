@@ -126,7 +126,6 @@ export default function Landing() {
       try {
         setLoading(true);
         const data = await landingApi.getStats(activeEvent?.id);
-        console.log('Fetched stats:', data);
         setStats(data);
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -174,7 +173,6 @@ export default function Landing() {
     };
 
     const onDashboardStatsUpdate = (data: { dashboard: unknown; public: PublicStats }) => {
-      console.log('Real-time dashboard stats update received on Landing:', data);
       setStats(data.public);
     };
 
@@ -192,10 +190,7 @@ export default function Landing() {
   useEffect(() => {
     if (!activeEvent?.id) return;
 
-    console.log('Landing: Setting up 5-minute fallback refresh interval');
     const interval = setInterval(async () => {
-      console.log('Landing: 5-minute fallback refresh triggered');
-      
       try {
         // Refresh both stats and leaderboard
         const [statsData, leaderboardData] = await Promise.all([
@@ -211,7 +206,6 @@ export default function Landing() {
     }, 5 * 60 * 1000); // 5 minutes
 
     return () => {
-      console.log('Landing: Clearing 5-minute fallback refresh interval');
       clearInterval(interval);
     };
   }, [activeEvent?.id]);

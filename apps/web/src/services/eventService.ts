@@ -56,10 +56,8 @@ export const eventService = {
     },
 
     async removeUser(id: string, userId: string): Promise<Event> {
-        console.log('eventService.removeUser called with eventId:', id, 'userId:', userId);
         try {
             const response = await api.delete(`/events/${id}/users/${userId}`);
-            console.log('removeUser response:', response);
             return response.data;
         } catch (error) {
             console.error('removeUser error:', error);

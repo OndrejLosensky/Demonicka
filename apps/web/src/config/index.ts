@@ -1,11 +1,3 @@
-// Debug environment variables
-console.log('Environment Variables:', {
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-  VITE_WS_URL: import.meta.env.VITE_WS_URL,
-  VITE_API_PREFIX: import.meta.env.VITE_API_PREFIX,
-  NODE_ENV: import.meta.env.MODE,
-});
-
 export const config = {
   apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000',
   // Use http(s) for Socket.IO client URL

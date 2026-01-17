@@ -21,22 +21,8 @@ export const SelectedEventProvider: React.FC<SelectedEventProviderProps> = ({ ch
   const manualSelectionRef = useRef(false);
   const updateCountRef = useRef(0);
 
-  // Debug logging for state changes
-  useEffect(() => {
-    console.log('[SelectedEventContext] State Update:', {
-      selectedEventId: selectedEvent?.id,
-      activeEventId: activeEvent?.id,
-      manualSelection: manualSelectionRef.current,
-      updateCount: updateCountRef.current
-    });
-  }, [selectedEvent, activeEvent]);
-
   // Custom setSelectedEvent that tracks manual selections
   const handleSetSelectedEvent = (event: Event | null) => {
-    console.log('[SelectedEventContext] Manual Selection:', {
-      newEventId: event?.id,
-      currentEventId: selectedEvent?.id
-    });
     manualSelectionRef.current = true;
     setSelectedEvent(event);
   };
@@ -44,16 +30,9 @@ export const SelectedEventProvider: React.FC<SelectedEventProviderProps> = ({ ch
   // Combined effect to handle both active event changes and manual selections
   useEffect(() => {
     updateCountRef.current += 1;
-    console.log('[SelectedEventContext] Effect Triggered:', {
-      updateCount: updateCountRef.current,
-      manualSelection: manualSelectionRef.current,
-      selectedEventId: selectedEvent?.id,
-      activeEventId: activeEvent?.id
-    });
 
     // Skip if we have a manual selection and the IDs match
     if (manualSelectionRef.current && selectedEvent?.id === activeEvent?.id) {
-      console.log('[SelectedEventContext] Skipping update - manual selection with matching IDs');
       return;
     }
 
@@ -63,19 +42,11 @@ export const SelectedEventProvider: React.FC<SelectedEventProviderProps> = ({ ch
           selectedEvent.id !== activeEvent.id || 
           (selectedEvent.id === activeEvent.id && activeEvent.isActive);
 
-      console.log('[SelectedEventContext] Update Check:', {
-        shouldUpdate,
-        reason: !selectedEvent ? 'no selected event' :
-               selectedEvent.id !== activeEvent.id ? 'different event ids' :
-               'active event update'
-      });
-
       if (shouldUpdate) {
         manualSelectionRef.current = false;
         setSelectedEvent(activeEvent);
       }
     } else if (!activeEvent && selectedEvent?.isActive) {
-      console.log('[SelectedEventContext] Clearing selection - no active event');
       manualSelectionRef.current = false;
       setSelectedEvent(null);
     }

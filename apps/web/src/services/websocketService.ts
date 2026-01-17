@@ -29,11 +29,11 @@ class WebSocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('WebSocket connected');
+      // WebSocket connected
     });
 
     this.socket.on('disconnect', () => {
-      console.log('WebSocket disconnected');
+      // WebSocket disconnected
     });
 
     this.socket.on('error', (error) => {
@@ -52,7 +52,6 @@ class WebSocketService {
 
     // Listen for dashboard stats updates (new real-time data)
     this.socket.on('dashboard:stats:update', (data: WebSocketEvents['dashboard:stats:update']) => {
-      console.log('WebSocket: dashboard:stats:update received:', data);
       this.notifyEventListeners('dashboard:stats:update', data);
     });
 
@@ -95,7 +94,6 @@ class WebSocketService {
     data: WebSocketEvents[T]
   ) {
     const handlers = this.eventHandlers.get(eventName);
-    console.log(`WebSocket: Notifying ${handlers?.size || 0} listeners for ${eventName}:`, data);
     
     handlers?.forEach(callback => {
       try {

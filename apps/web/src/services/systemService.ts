@@ -21,9 +21,7 @@ export interface SystemStats {
 export const systemService = {
   async getSystemStats(): Promise<SystemStats> {
     try {
-      console.log('Fetching system stats from API...');
       const response = await api.get('/dashboard/system');
-      console.log('System stats API response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching system stats:', error);

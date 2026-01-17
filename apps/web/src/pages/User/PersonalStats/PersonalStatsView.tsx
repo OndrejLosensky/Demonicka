@@ -28,13 +28,10 @@ export const PersonalStatsView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadStats = useCallback(async () => {
-    console.log('loadStats called, userId:', userId);
     try {
       setIsLoading(true);
       setError(null);
-      console.log('Making API call to /dashboard/personal');
       const data = await personalStatsService.getPersonalStats();
-      console.log('API response:', data);
       setStats(data);
     } catch (error) {
       console.error('Failed to load personal stats:', error);
@@ -46,12 +43,8 @@ export const PersonalStatsView: React.FC = () => {
   }, []); // Remove isLoading dependency to prevent infinite loops
 
   useEffect(() => {
-    console.log('useEffect triggered, userId:', userId);
     if (userId) {
-      console.log('Calling loadStats with userId:', userId);
       loadStats();
-    } else {
-      console.log('No userId, not calling loadStats');
     }
   }, [userId, loadStats]);
 

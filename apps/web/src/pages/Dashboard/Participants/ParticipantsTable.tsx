@@ -47,7 +47,6 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   };
 
   const handleDeleteClick = () => {
-    console.log('Delete clicked - opening confirmation dialog');
     if (menuAnchor?.participant) {
       setSelectedParticipant(menuAnchor.participant);
     }
@@ -56,9 +55,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   };
 
   const handleConfirmDelete = () => {
-    console.log('Delete confirmed, participant:', selectedParticipant);
     if (selectedParticipant) {
-      console.log('Calling onDelete with ID:', selectedParticipant.id);
       onDelete(selectedParticipant.id);
     }
     setDeleteDialogOpen(false);

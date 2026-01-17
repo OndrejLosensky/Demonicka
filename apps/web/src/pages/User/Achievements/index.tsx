@@ -39,13 +39,10 @@ export const AchievementsPage: React.FC = () => {
   const toast = useToast();
 
   const loadAchievements = useCallback(async () => {
-    console.log('loadAchievements called');
     try {
       setIsLoading(true);
       setError(null);
-      console.log('Making API call to /achievements/my');
       const data = await achievementsService.getMyAchievements();
-      console.log('API response:', data);
       setAchievements(data);
     } catch (error) {
       console.error('Failed to load achievements:', error);
@@ -57,7 +54,6 @@ export const AchievementsPage: React.FC = () => {
   }, []); // Remove isLoading dependency to prevent infinite loops
 
   useEffect(() => {
-    console.log('Achievements useEffect triggered');
     loadAchievements();
   }, [loadAchievements]);
 

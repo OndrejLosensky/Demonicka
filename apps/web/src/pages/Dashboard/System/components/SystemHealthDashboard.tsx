@@ -49,7 +49,6 @@ export const SystemHealthDashboard: React.FC<SystemHealthDashboardProps> = ({ on
   const loadHealthData = useCallback(async (isRefreshingParam = false) => {
     // Prevent multiple simultaneous calls
     if (isRefreshingParam && isRefreshing) {
-      console.log('SystemHealthDashboard loadHealthData - already refreshing, skipping');
       return;
     }
     
@@ -60,7 +59,6 @@ export const SystemHealthDashboard: React.FC<SystemHealthDashboardProps> = ({ on
         setIsLoading(true);
       }
 
-      console.log('Loading system health data...');
       const [healthData, performanceData, alertsData] = await Promise.all([
         systemHealthService.getSystemHealth(),
         systemHealthService.getPerformanceMetrics(),
@@ -70,7 +68,6 @@ export const SystemHealthDashboard: React.FC<SystemHealthDashboardProps> = ({ on
       setHealth(healthData);
       setPerformance(performanceData);
       setAlerts(alertsData);
-      console.log('System health data loaded successfully');
     } catch (error) {
       console.error('Failed to load system health data:', error);
       toast.error('Nepodařilo se načíst data o zdraví systému');

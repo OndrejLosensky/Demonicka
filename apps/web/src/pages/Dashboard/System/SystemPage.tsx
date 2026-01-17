@@ -45,7 +45,6 @@ const SystemPage: React.FC = () => {
   const loadStats = useCallback(async (isInitial = false) => {
     // Prevent multiple simultaneous calls
     if (isRefreshing && !isInitial) {
-      console.log('SystemPage loadStats - already refreshing, skipping');
       return;
     }
     
@@ -56,9 +55,7 @@ const SystemPage: React.FC = () => {
         setIsRefreshing(true);
       }
       setError(null);
-      console.log('Making API call to /dashboard/system');
       const data = await systemService.getSystemStats();
-      console.log('API response received');
       setStats(data);
       setError(null);
     } catch (error) {
@@ -76,16 +73,13 @@ const SystemPage: React.FC = () => {
   }, []); // Remove toast dependency to prevent infinite loops
 
   useEffect(() => {
-    console.log('SystemPage useEffect - setting up interval');
     loadStats(true);
     
     const interval = setInterval(() => {
-      console.log('SystemPage interval - refreshing stats');
       loadStats(false);
     }, 30000);
 
     return () => {
-      console.log('SystemPage useEffect cleanup - clearing interval');
       clearInterval(interval);
     };
   }, [loadStats]);
