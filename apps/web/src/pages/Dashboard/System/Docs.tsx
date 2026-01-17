@@ -125,6 +125,7 @@ import { useAppTheme } from '../../../contexts/ThemeContext';
 
 const DocsComponent: React.FC = () => {
   usePageTitle('Dokumentace');
+  const { mode } = useAppTheme();
   const [selectedDoc, setSelectedDoc] = useState<DocFile | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string>('getting-started');
   const [markdownContent, setMarkdownContent] = useState<string>('');

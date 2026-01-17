@@ -73,7 +73,7 @@ export function SystemLinks() {
       <SystemLink to="/dashboard/system" icon={<SettingsIcon sx={{ fontSize: 18 }} />}>
         Systém
       </SystemLink>
-      <SystemLink to="/docs" icon={<FaBook className="text-base" />}>
+      <SystemLink to="/dashboard/docs" icon={<FaBook className="text-base" />}>
         Dokumentace
       </SystemLink>
       <SystemLink to="/activity" icon={<HistoryIcon sx={{ fontSize: 18 }} />}>

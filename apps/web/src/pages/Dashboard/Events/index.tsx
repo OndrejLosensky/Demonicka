@@ -19,6 +19,7 @@ import {
     PageHeader,
 } from '@demonicka/ui';
 import { DateTimePicker } from '@mui/x-date-pickers';
+import { AccessTime as TimeIcon } from '@mui/icons-material';
 import type { Event } from '@demonicka/shared-types';
 import { eventService } from '../../../services/eventService';
 import { format } from 'date-fns';
@@ -27,9 +28,12 @@ import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../../../hooks/usePageTitle';
 import { tokens } from '../../../theme/tokens';
+import { getShadow } from '../../../theme/utils';
+import { useAppTheme } from '../../../contexts/ThemeContext';
 
 export const Events: React.FC = () => {
     usePageTitle('Události');
+    const { mode } = useAppTheme();
     const [events, setEvents] = useState<Event[]>([]);
     const [eventBeerCounts, setEventBeerCounts] = useState<Record<string, Record<string, number>>>({});
     const [isLoading, setIsLoading] = useState(true);
@@ -115,10 +119,10 @@ export const Events: React.FC = () => {
                 <Box display="flex" gap={2}>
                   <Button 
                     variant="contained" 
-                    color="error"
+                    color="primary"
                     onClick={() => setOpen(true)}
                     startIcon={<AddIcon />}
-                    sx={{ px: 3, py: 1, borderRadius: 1, boxShadow: 1 }}
+                    sx={{ px: 3, py: 1, borderRadius: tokens.borderRadius.md }}
                   >
                     Vytvořit událost
                   </Button>
@@ -127,7 +131,7 @@ export const Events: React.FC = () => {
                     color="inherit"
                     onClick={() => navigate('/leaderboard')}
                     startIcon={<FilterIcon />}
-                    sx={{ px: 3, py: 1, borderRadius: 1, borderColor: 'divider' }}
+                    sx={{ px: 3, py: 1, borderRadius: tokens.borderRadius.md, borderColor: 'divider' }}
                   >
                     Žebříček
                   </Button>
@@ -144,112 +148,130 @@ export const Events: React.FC = () => {
                         return (
                             <Grid item xs={12} md={6} lg={4} key={event.id}>
                                 <Paper 
-                                    elevation={2}
                                     onClick={() => navigate(`/events/${event.id}`)}
                                     sx={{ 
                                         borderRadius: 1,
                                         overflow: 'hidden',
                                         cursor: 'pointer',
-                                        transition: tokens.transitions.default,
-                                        '&:hover': {
-                                            transform: 'translateY(-4px)',
-                                        },
+                                        position: 'relative',
+                                        transition: 'all 0.2s ease-in-out',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        height: '100%',
+                                        display: 'flex',
+                                        flexDirection: 'column',
                                         bgcolor: 'background.paper',
+                                        background: event.isActive 
+                                            ? 'linear-gradient(135deg, rgba(255,59,48,0.35) 0%, rgba(255,59,48,0.18) 30%, rgba(255,59,48,0.08) 60%, rgba(255,59,48,0.02) 100%)'
+                                            : 'linear-gradient(135deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.06) 30%, rgba(0,0,0,0.02) 60%, transparent 100%)',
+                                        borderLeft: event.isActive ? '3px solid' : '1px solid',
+                                        borderLeftColor: event.isActive ? 'primary.main' : 'divider',
+                                        '&:hover': {
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                        },
                                     }}
                                 >
-                                    {/* Card Header */}
-                                    <Box sx={{ p: 3, bgcolor: 'error.main', color: 'white' }}>
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-                                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                                {event.name}
-                                            </Typography>
-                                            {event.isActive && (
-                                                <Chip
-                                                    label="Aktivní"
-                                                    size="small"
-                                                    sx={{
-                                                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                                        color: 'white',
-                                                        fontWeight: 500,
-                                                        height: 24,
-                                                    }}
-                                                />
-                                            )}
-                                        </Box>
-                                        
-                                        {/* Dates */}
-                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <Box 
-                                                    component="span" 
-                                                    sx={{ 
-                                                        width: 6, 
-                                                        height: 6, 
-                                                        borderRadius: '50%', 
-                                                        bgcolor: '#22C55E',
-                                                    }} 
-                                                />
-                                                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                                                    {format(new Date(event.startDate), 'dd.MM.yyyy HH:mm')}
-                                                </Typography>
-                                            </Box>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <Box 
-                                                    component="span" 
-                                                    sx={{ 
-                                                        width: 6, 
-                                                        height: 6, 
-                                                        borderRadius: '50%', 
-                                                        bgcolor: '#EF4444',
-                                                    }} 
-                                                />
-                                                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                                                    {event.endDate ? format(new Date(event.endDate), 'dd.MM.yyyy HH:mm') : '-'}
-                                                </Typography>
-                                            </Box>
-                                        </Box>
+                                    {/* Stats badges - top right corner */}
+                                    <Box
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 12,
+                                            right: 12,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: 0.75,
+                                            alignItems: 'flex-end',
+                                            zIndex: 1,
+                                        }}
+                                    >
+                                        <Chip
+                                            size="small"
+                                            label={`${event.users?.length || 0} účastníků`}
+                                            sx={{
+                                                height: 20,
+                                                fontSize: '0.7rem',
+                                                fontWeight: 500,
+                                                bgcolor: 'rgba(255,255,255,0.9)',
+                                                color: 'text.primary',
+                                                '& .MuiChip-label': {
+                                                    px: 1,
+                                                },
+                                            }}
+                                        />
+                                        <Chip
+                                            size="small"
+                                            label={`${totalEventBeers} piv`}
+                                            sx={{
+                                                height: 20,
+                                                fontSize: '0.7rem',
+                                                fontWeight: 500,
+                                                bgcolor: 'rgba(255,255,255,0.9)',
+                                                color: 'text.primary',
+                                                '& .MuiChip-label': {
+                                                    px: 1,
+                                                },
+                                            }}
+                                        />
+                                        <Chip
+                                            size="small"
+                                            label={`${event.barrels?.length || 0} sudů`}
+                                            sx={{
+                                                height: 20,
+                                                fontSize: '0.7rem',
+                                                fontWeight: 500,
+                                                bgcolor: 'rgba(255,255,255,0.9)',
+                                                color: 'text.primary',
+                                                '& .MuiChip-label': {
+                                                    px: 1,
+                                                },
+                                            }}
+                                        />
                                     </Box>
 
-                                    {/* Stats */}
-                                    <Box sx={{ 
-                                        p: 3,
-                                        display: 'flex',
-                                        gap: 3,
-                                    }}>
-                                        <Box>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                                <PersonIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Účastníci
-                                                </Typography>
-                                            </Box>
-                                            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                                                {event.users?.length || 0}
-                                            </Typography>
-                                        </Box>
+                                    {/* Active indicator - top left */}
+                                    {event.isActive && (
+                                        <Box
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 12,
+                                                left: 12,
+                                                width: 6,
+                                                height: 6,
+                                                borderRadius: '50%',
+                                                bgcolor: 'success.main',
+                                                zIndex: 1,
+                                            }}
+                                        />
+                                    )}
 
-                                        <Box>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                                <BeerIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Piva
-                                                </Typography>
-                                            </Box>
-                                            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                                                {totalEventBeers}
-                                            </Typography>
-                                        </Box>
+                                    {/* Content */}
+                                    <Box sx={{ p: 3, pt: 4, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                        {/* Title */}
+                                        <Typography 
+                                            variant="h5" 
+                                            sx={{ 
+                                                fontWeight: 700, 
+                                                mb: 2,
+                                                pr: 12,
+                                                lineHeight: 1.3,
+                                                color: 'text.primary',
+                                            }}
+                                        >
+                                            {event.name}
+                                        </Typography>
 
-                                        <Box>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                                <FilterIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Sudy
-                                                </Typography>
-                                            </Box>
-                                            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                                                {event.barrels?.length || 0}
+                                        {/* Dates - minimalistic */}
+                                        <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', fontWeight: 500 }}>
+                                                {format(new Date(event.startDate), 'dd.MM.yyyy HH:mm')}
                                             </Typography>
+                                            {event.endDate && (
+                                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', fontWeight: 400, opacity: 0.8 }}>
+                                                    {format(new Date(event.endDate), 'dd.MM.yyyy HH:mm')}
+                                                </Typography>
+                                            )}
                                         </Box>
                                     </Box>
                                 </Paper>
@@ -296,7 +318,7 @@ export const Events: React.FC = () => {
                     <Button onClick={() => setOpen(false)}>Zrušit</Button>
                     <Button 
                         variant="contained" 
-                        color="error" 
+                        color="primary" 
                         onClick={handleCreateEvent}
                         disabled={!newEvent.name || !newEvent.startDate}
                     >

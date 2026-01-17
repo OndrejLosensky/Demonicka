@@ -27,12 +27,16 @@ import { dashboardService } from '../../../services/dashboardService';
 import type { Event, LeaderboardData, UserLeaderboardData } from '@demonicka/shared-types';
 import { toast } from 'react-hot-toast';
 import { usePageTitle } from '../../../hooks/usePageTitle';
-import { MetricCard } from '@demonicka/ui';
+import { MetricCard, PageHeader } from '@demonicka/ui';
+import { tokens } from '../../../theme/tokens';
+import { getShadow } from '../../../theme/utils';
+import { useAppTheme } from '../../../contexts/ThemeContext';
 
 export const EventResults: React.FC = () => {
     usePageTitle('Výsledky události');
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
+    const { mode } = useAppTheme();
     const [event, setEvent] = useState<Event | null>(null);
     const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -108,12 +112,20 @@ export const EventResults: React.FC = () => {
         }
     };
 
-    const renderLeaderboardSection = (users: UserLeaderboardData[], title: string, bgColor: string) => {
+    const renderLeaderboardSection = (users: UserLeaderboardData[], title: string) => {
         return (
-            <Paper elevation={2} sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                <Box sx={{ p: 3, bgcolor: bgColor, color: 'white' }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <PersonIcon /> {title}
+            <Paper 
+                sx={{ 
+                    borderRadius: tokens.borderRadius.md, 
+                    overflow: 'hidden', 
+                    boxShadow: getShadow('sm', mode),
+                    border: '1px solid',
+                    borderColor: 'divider',
+                }}
+            >
+                <Box sx={{ p: 2.5, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'action.hover' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <PersonIcon fontSize="small" sx={{ color: 'text.secondary' }} /> {title}
                     </Typography>
                 </Box>
                 <Box sx={{ p: 3 }}>
@@ -125,17 +137,17 @@ export const EventResults: React.FC = () => {
                                     p: 2.5,
                                     border: '1px solid',
                                     borderColor: 'divider',
-                                    borderRadius: 2.5,
+                                    borderRadius: tokens.borderRadius.md,
                                     mb: 2,
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: 2.5,
                                     bgcolor: index < 3 ? 'rgba(255, 215, 0, 0.08)' : 'transparent',
-                                    transition: 'all 0.2s ease-in-out',
+                                    transition: tokens.transitions.default,
                                     '&:hover': {
                                         bgcolor: index < 3 ? 'rgba(255, 215, 0, 0.12)' : 'rgba(0,0,0,0.02)',
                                         transform: 'translateX(4px)',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                        boxShadow: getShadow('card', mode),
                                     },
                                     '&:last-child': {
                                         mb: 0,
@@ -154,7 +166,7 @@ export const EventResults: React.FC = () => {
                                     fontWeight: 'bold',
                                     fontSize: index < 3 ? '1.2rem' : '1rem',
                                     flexShrink: 0,
-                                    boxShadow: index < 3 ? '0 2px 8px rgba(255, 193, 7, 0.3)' : '0 1px 4px rgba(0,0,0,0.1)',
+                                    boxShadow: index < 3 ? getShadow('glowSubtle', mode) : getShadow('xs', mode),
                                 }}>
                                     {getMedalIcon(index + 1)}
                                 </Box>
@@ -217,78 +229,48 @@ export const EventResults: React.FC = () => {
     };
 
     return (
-        <Box>
-            {/* Hero Section */}
-            <Box 
-                sx={{ 
-                    bgcolor: 'success.main',
-                    color: 'white',
-                    pt: 8,
-                    pb: 20,
-                    position: 'relative',
-                    overflow: 'hidden',
-                }}
-            >
-                <Box sx={{ maxWidth: 1200, mx: 'auto', px: 4 }}>
-                    {/* Back Button */}
-                    <Button
-                        startIcon={<ArrowBackIcon />}
-                        onClick={() => navigate(`/events/${id}`)}
-                        sx={{ 
-                            color: 'white',
-                            opacity: 0.8,
-                            '&:hover': { opacity: 1 },
-                            mb: 4,
-                            textTransform: 'none',
-                            pl: 0,
-                        }}
-                    >
-                        Zpět na událost
-                    </Button>
-
-                    <Box sx={{ textAlign: 'center', mb: 4 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
-                            <TrophyIcon sx={{ fontSize: 48 }} />
-                            <Typography variant="h2" sx={{ fontWeight: 'bold' }}>
-                                Výsledky události
+        <Box sx={{ p: 3 }}>
+            <PageHeader
+                title={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Button
+                            startIcon={<ArrowBackIcon />}
+                            onClick={() => navigate(`/events/${id}`)}
+                            sx={{ 
+                                color: 'text.secondary',
+                                textTransform: 'none',
+                                minWidth: 'auto',
+                                px: 1,
+                                mr: -1,
+                            }}
+                        >
+                            Zpět
+                        </Button>
+                        <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <TrophyIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+                                <Typography variant="h4" sx={{ fontWeight: 800 }}>
+                                    Výsledky události
+                                </Typography>
+                            </Box>
+                            <Typography variant="h6" sx={{ fontWeight: 600, mt: 0.5, color: 'text.primary' }}>
+                                {event.name}
                             </Typography>
+                            {event.endDate && (
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                    Ukončeno: {format(new Date(event.endDate), 'PPp', { locale: cs })}
+                                </Typography>
+                            )}
                         </Box>
-                        
-                        <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 2 }}>
-                            {event.name}
-                        </Typography>
-
-                        {event.endDate && (
-                            <Typography variant="h6" sx={{ opacity: 0.9 }}>
-                                Ukončeno: {format(new Date(event.endDate), 'PPp', { locale: cs })}
-                            </Typography>
-                        )}
                     </Box>
-                </Box>
-
-                {/* Background Pattern */}
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        right: -100,
-                        bottom: -100,
-                        width: 600,
-                        height: 600,
-                        borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)',
-                        zIndex: 1,
-                        pointerEvents: 'none',
-                    }}
-                />
-            </Box>
+                }
+            />
 
             {/* Content Section */}
             <Box 
                 sx={{ 
                     maxWidth: 1200, 
                     mx: 'auto',
-                    px: 4,
-                    transform: 'translateY(-100px)',
                 }}
             >
                 {/* Final Stats Cards */}
@@ -310,7 +292,7 @@ export const EventResults: React.FC = () => {
                 </Grid>
 
                 {/* Fun Statistics */}
-                <Paper elevation={2} sx={{ borderRadius: 3, mb: 4, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                <Paper elevation={2} sx={{ borderRadius: tokens.borderRadius.md, mb: 4, overflow: 'hidden', boxShadow: getShadow('card', mode) }}>
                     <Box sx={{ p: 3, bgcolor: 'success.light', color: 'white' }}>
                         <Typography variant="h5" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
                             <StarIcon /> Zajímavé statistiky
@@ -322,11 +304,11 @@ export const EventResults: React.FC = () => {
                                 <Box sx={{ 
                                     textAlign: 'center', 
                                     p: 3,
-                                    borderRadius: 2,
+                                    borderRadius: tokens.borderRadius.md,
                                     bgcolor: 'rgba(76, 175, 80, 0.05)',
                                     border: '1px solid',
                                     borderColor: 'success.light',
-                                    transition: 'all 0.2s ease-in-out',
+                                    transition: tokens.transitions.default,
                                     '&:hover': {
                                         bgcolor: 'rgba(76, 175, 80, 0.08)',
                                         transform: 'translateY(-2px)',
@@ -335,7 +317,7 @@ export const EventResults: React.FC = () => {
                                     <Typography variant="h6" color="text.secondary" gutterBottom sx={{ mb: 2, fontWeight: 600 }}>
                                         🏆 Největší pijan
                                     </Typography>
-                                    <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'success.main', mb: 1 }}>
+                                    <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
                                         {topDrinker?.username || 'N/A'}
                                     </Typography>
                                     <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
@@ -347,11 +329,11 @@ export const EventResults: React.FC = () => {
                                 <Box sx={{ 
                                     textAlign: 'center', 
                                     p: 3,
-                                    borderRadius: 2,
+                                    borderRadius: tokens.borderRadius.md,
                                     bgcolor: 'rgba(255, 152, 0, 0.05)',
                                     border: '1px solid',
                                     borderColor: 'warning.light',
-                                    transition: 'all 0.2s ease-in-out',
+                                    transition: tokens.transitions.default,
                                     '&:hover': {
                                         bgcolor: 'rgba(255, 152, 0, 0.08)',
                                         transform: 'translateY(-2px)',
@@ -372,11 +354,11 @@ export const EventResults: React.FC = () => {
                                 <Box sx={{ 
                                     textAlign: 'center', 
                                     p: 3,
-                                    borderRadius: 2,
+                                    borderRadius: tokens.borderRadius.md,
                                     bgcolor: 'rgba(244, 67, 54, 0.05)',
                                     border: '1px solid',
                                     borderColor: 'error.light',
-                                    transition: 'all 0.2s ease-in-out',
+                                    transition: tokens.transitions.default,
                                     '&:hover': {
                                         bgcolor: 'rgba(244, 67, 54, 0.08)',
                                         transform: 'translateY(-2px)',
@@ -401,19 +383,28 @@ export const EventResults: React.FC = () => {
                 <Grid container spacing={3}>
                     {/* Men's Leaderboard */}
                     <Grid item xs={12} md={6}>
-                        {renderLeaderboardSection(leaderboard?.males || [], 'Muži', 'primary.main')}
+                        {renderLeaderboardSection(leaderboard?.males || [], 'Muži')}
                     </Grid>
 
                     {/* Women's Leaderboard */}
                     <Grid item xs={12} md={6}>
-                        {renderLeaderboardSection(leaderboard?.females || [], 'Ženy', 'secondary.main')}
+                        {renderLeaderboardSection(leaderboard?.females || [], 'Ženy')}
                     </Grid>
                 </Grid>
 
                 {/* Event Summary */}
-                <Paper elevation={2} sx={{ borderRadius: 3, mt: 4, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                    <Box sx={{ p: 3, bgcolor: 'grey.100' }}>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                <Paper 
+                    sx={{ 
+                        borderRadius: tokens.borderRadius.md, 
+                        mt: 4, 
+                        overflow: 'hidden', 
+                        boxShadow: getShadow('sm', mode),
+                        border: '1px solid',
+                        borderColor: 'divider',
+                    }}
+                >
+                    <Box sx={{ p: 2.5, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'action.hover' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
                             Shrnutí události
                         </Typography>
                     </Box>
@@ -421,7 +412,7 @@ export const EventResults: React.FC = () => {
                         <Grid container spacing={4}>
                             <Grid item xs={12} md={6}>
                                 <Box sx={{ space: 2 }}>
-                                    <Box sx={{ mb: 3, p: 2.5, borderRadius: 2, bgcolor: 'rgba(25, 118, 210, 0.05)', border: '1px solid', borderColor: 'primary.light' }}>
+                                    <Box sx={{ mb: 3, p: 2.5, borderRadius: tokens.borderRadius.md, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
                                         <Typography variant="body1" paragraph sx={{ mb: 1.5, fontWeight: 600, color: 'primary.main' }}>
                                             <strong>Název:</strong> {event.name}
                                         </Typography>
@@ -443,7 +434,7 @@ export const EventResults: React.FC = () => {
                             </Grid>
                             <Grid item xs={12} md={6}>
                                 <Box sx={{ space: 2 }}>
-                                    <Box sx={{ mb: 3, p: 2.5, borderRadius: 2, bgcolor: 'rgba(76, 175, 80, 0.05)', border: '1px solid', borderColor: 'success.light' }}>
+                                    <Box sx={{ mb: 3, p: 2.5, borderRadius: tokens.borderRadius.md, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
                                         <Typography variant="body1" paragraph sx={{ mb: 1.5, fontWeight: 600, color: 'success.main' }}>
                                             <strong>Celkem piv:</strong> {totalBeers}
                                         </Typography>

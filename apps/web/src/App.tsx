@@ -106,7 +106,7 @@ function App() {
               }
             />
             <Route
-              path="docs"
+              path="dashboard/docs"
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
                   <Docs />

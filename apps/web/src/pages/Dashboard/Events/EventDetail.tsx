@@ -28,6 +28,7 @@ import {
     Person as PersonIcon,
     Storage as BarrelIcon,
     MetricCard,
+    PageHeader,
 } from '@demonicka/ui';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
@@ -40,6 +41,7 @@ import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { usePageTitle } from '../../../hooks/usePageTitle';
 import { tokens } from '../../../theme/tokens';
 import { useAppTheme } from '../../../contexts/ThemeContext';
+import { getShadow } from '../../../theme/utils';
 
 export const EventDetail: React.FC = () => {
     usePageTitle('Detail události');
@@ -211,175 +213,100 @@ export const EventDetail: React.FC = () => {
 
     const totalBeers = Object.values(eventBeerCounts).reduce((sum, count) => sum + count, 0);
     const averageBeersPerUser = event.users?.length ? Math.round(totalBeers / event.users.length) : 0;
+    const { mode } = useAppTheme();
 
     return (
-        <Box>
-            {/* Hero Section */}
-            <Box 
-                sx={{ 
-                    bgcolor: 'error.main',
-                    color: 'white',
-                    pt: 8,
-                    pb: 20,
-                    position: 'relative',
-                    overflow: 'hidden',
-                }}
-            >
-                <Box sx={{ maxWidth: 1200, mx: 'auto', px: 4 }}>
-                    {/* Back Button */}
-                    <Button
-                        startIcon={<ArrowBackIcon />}
-                        onClick={() => navigate('/events')}
-                        sx={{ 
-                            color: 'white',
-                            opacity: 0.8,
-                            '&:hover': { opacity: 1 },
-                            mb: 4,
-                            textTransform: 'none',
-                            pl: 0,
-                        }}
-                    >
-                        Zpět na události
-                    </Button>
-
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2 }}>
+        <Box sx={{ p: 3 }}>
+            <PageHeader
+                title={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Button
+                            startIcon={<ArrowBackIcon />}
+                            onClick={() => navigate('/events')}
+                            sx={{ 
+                                color: 'text.secondary',
+                                textTransform: 'none',
+                                minWidth: 'auto',
+                                px: 1,
+                                mr: -1,
+                            }}
+                        >
+                            Zpět
+                        </Button>
                         <Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Typography variant="h4" sx={{ fontWeight: 800 }}>
                                     {event.name}
                                 </Typography>
                                 {event.isActive && (
                                     <Chip
                                         label="Aktivní"
                                         size="small"
+                                        color="success"
                                         sx={{
-                                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                            color: 'white',
-                                            fontWeight: 500,
+                                            fontWeight: 600,
                                             height: 24,
                                         }}
                                     />
                                 )}
                             </Box>
-
                             {event.description && (
-                                <Typography 
-                                    variant="subtitle1" 
-                                    sx={{ 
-                                        opacity: 0.9,
-                                        mb: 3,
-                                        maxWidth: 800,
-                                    }}
-                                >
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                                     {event.description}
                                 </Typography>
                             )}
-
-                            <Box sx={{ display: 'flex', gap: 4, color: 'rgba(255, 255, 255, 0.9)' }}>
+                            <Box sx={{ display: 'flex', gap: 3, mt: 1 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <TimeIcon fontSize="small" />
-                                    <Typography>
+                                    <TimeIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                                    <Typography variant="body2" color="text.secondary">
                                         {format(new Date(event.startDate), 'PPp', { locale: cs })}
                                     </Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <GroupIcon fontSize="small" />
-                                    <Typography>
+                                    <GroupIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                                    <Typography variant="body2" color="text.secondary">
                                         {event.users?.length || 0} účastníků
                                     </Typography>
                                 </Box>
                             </Box>
                         </Box>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    </Box>
+                }
+                action={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Button
+                            variant={event.isActive ? 'outlined' : 'contained'}
+                            color={event.isActive ? 'error' : 'primary'}
+                            startIcon={event.isActive ? undefined : <AddIcon />}
+                            onClick={event.isActive ? handleDeactivate : handleSetActive}
+                            sx={{
+                                borderRadius: tokens.borderRadius.md,
+                            }}
+                        >
+                            {event.isActive ? 'Deaktivovat' : 'Aktivovat'}
+                        </Button>
+                        {event.isActive && (
                             <Button
                                 variant="contained"
-                                startIcon={event.isActive ? undefined : <AddIcon />}
-                                onClick={event.isActive ? handleDeactivate : handleSetActive}
+                                color="primary"
+                                startIcon={<TrendingUpIcon />}
+                                onClick={handleEvaluateEvent}
                                 sx={{
-                                    bgcolor: 'background.paper',
-                                    color: 'error.main',
-                                    '&:hover': {
-                                        bgcolor: 'rgba(255, 255, 255, 0.9)',
-                                    },
-                                    px: 3,
-                                    py: 1,
                                     borderRadius: tokens.borderRadius.md,
-                                    position: 'relative',
-                                    zIndex: 2,
-                                    minWidth: 'auto',
-                                    boxShadow: 1,
-                                    fontWeight: 500,
                                 }}
                             >
-                                {event.isActive ? 'Deaktivovat událost' : 'Aktivovat událost'}
+                                Vyhodnotit
                             </Button>
-                            
-                            {event.isActive && (
-                                <Button
-                                    variant="contained"
-                                    startIcon={<TrendingUpIcon />}
-                                    onClick={handleEvaluateEvent}
-                                    sx={{
-                                        bgcolor: 'success.main',
-                                        color: 'white',
-                                        '&:hover': {
-                                            bgcolor: 'success.dark',
-                                        },
-                                        px: 3,
-                                        py: 1,
-                                        borderRadius: tokens.borderRadius.md,
-                                        position: 'relative',
-                                        zIndex: 2,
-                                        minWidth: 'auto',
-                                        boxShadow: 1,
-                                        fontWeight: 500,
-                                        ml: 2,
-                                    }}
-                                >
-                                    Vyhodnotit událost
-                                </Button>
-                            )}
-                        </Box>
+                        )}
                     </Box>
-                </Box>
-
-                {/* Background Pattern */}
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        right: -100,
-                        bottom: -100,
-                        width: 600,
-                        height: 600,
-                        borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)',
-                        zIndex: 1,
-                        pointerEvents: 'none',
-                    }}
-                />
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        left: '10%',
-                        top: '20%',
-                        width: 300,
-                        height: 300,
-                        borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%)',
-                        zIndex: 1,
-                        pointerEvents: 'none',
-                    }}
-                />
-            </Box>
+                }
+            />
 
             {/* Content Section */}
             <Box 
                 sx={{ 
                     maxWidth: 1200, 
                     mx: 'auto',
-                    px: 4,
-                    transform: 'translateY(-100px)',
                 }}
             >
                 {/* Stats Cards */}
@@ -403,64 +330,98 @@ export const EventDetail: React.FC = () => {
                     {/* Participants Section */}
                     <Grid item xs={12} md={6}>
                         <Paper 
-                            elevation={2}
                             sx={{ 
-                                borderRadius: 2,
+                                borderRadius: 1,
                                 bgcolor: 'background.paper',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                height: '100%',
                             }}
                         >
                             <Box sx={{ p: 3 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                            Účastníci
-                                        </Typography>
-                                        <Chip 
-                                            label={event.users?.length || 0}
-                                            size="small"
-                                            sx={{ bgcolor: '#F3F4F6' }}
-                                        />
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                        <Box
+                                            sx={{
+                                                width: 32,
+                                                height: 32,
+                                                borderRadius: '50%',
+                                                bgcolor: 'primary.main',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
+                                            <GroupIcon sx={{ fontSize: 18, color: 'white' }} />
+                                        </Box>
+                                        <Box>
+                                            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                                                Účastníci
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                                {event.users?.length || 0} účastníků
+                                            </Typography>
+                                        </Box>
                                     </Box>
                                     <Button
                                         variant="contained"
-                                        color="error"
+                                        color="primary"
+                                        size="small"
                                         startIcon={<AddIcon />}
                                         onClick={() => setOpenUser(true)}
+                                        sx={{ borderRadius: 1 }}
                                     >
-                                        Přidat účastníka
+                                        Přidat
                                     </Button>
                                 </Box>
 
-                                {event.users?.map((user) => (
-                                    <Box
-                                        key={user.id}
-                                        sx={{
-                                            p: 2,
-                                            border: '1px solid',
-                                            borderColor: 'divider',
-                                            borderRadius: tokens.borderRadius.md,
-                                            mb: 2,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 2,
-                                        }}
-                                    >
-                                        <Avatar sx={{ bgcolor: '#EEF2FF' }}>
-                                            <PersonIcon sx={{ color: '#6366F1' }} />
-                                        </Avatar>
-                                        <Box flex={1}>
-                                            <Typography fontWeight="bold">
-                                                {user.username}
-                                            </Typography>
-                                            <Box display="flex" alignItems="center" gap={1}>
-                                                <BeerIcon sx={{ fontSize: '1rem', opacity: 0.5 }} />
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {eventBeerCounts[user.id] || 0} piv
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                    {event.users?.map((user) => (
+                                        <Box
+                                            key={user.id}
+                                            sx={{
+                                                p: 2,
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                borderRadius: 1,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 2,
+                                                transition: tokens.transitions.default,
+                                                '&:hover': {
+                                                    bgcolor: 'action.hover',
+                                                },
+                                            }}
+                                        >
+                                            <Box
+                                                sx={{
+                                                    width: 40,
+                                                    height: 40,
+                                                    borderRadius: '50%',
+                                                    bgcolor: 'primary.main',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    flexShrink: 0,
+                                                }}
+                                            >
+                                                <PersonIcon sx={{ fontSize: 20, color: 'white' }} />
+                                            </Box>
+                                            <Box flex={1} sx={{ minWidth: 0 }}>
+                                                <Typography fontWeight={700} sx={{ mb: 0.5 }}>
+                                                    {user.username}
                                                 </Typography>
+                                                <Box display="flex" alignItems="center" gap={1}>
+                                                    <BeerIcon sx={{ fontSize: 16, color: 'error.main' }} />
+                                                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                                        {eventBeerCounts[user.id] || 0} piv
+                                                    </Typography>
+                                                </Box>
                                             </Box>
                                         </Box>
-                                    </Box>
-                                ))}
+                                    ))}
+                                </Box>
                             </Box>
                         </Paper>
                     </Grid>
@@ -468,71 +429,106 @@ export const EventDetail: React.FC = () => {
                     {/* Barrels Section */}
                     <Grid item xs={12} md={6}>
                         <Paper 
-                            elevation={2}
                             sx={{ 
-                                borderRadius: 2,
+                                borderRadius: 1,
                                 bgcolor: 'background.paper',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                height: '100%',
                             }}
                         >
                             <Box sx={{ p: 3 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                            Sudy
-                                        </Typography>
-                                        <Chip 
-                                            label={event.barrels?.length || 0}
-                                            size="small"
-                                            sx={{ bgcolor: '#F3F4F6' }}
-                                        />
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                        <Box
+                                            sx={{
+                                                width: 32,
+                                                height: 32,
+                                                borderRadius: '50%',
+                                                bgcolor: 'warning.main',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
+                                            <FilterIcon sx={{ fontSize: 18, color: 'white' }} />
+                                        </Box>
+                                        <Box>
+                                            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                                                Sudy
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                                {event.barrels?.length || 0} sudů
+                                            </Typography>
+                                        </Box>
                                     </Box>
                                     <Button
                                         variant="contained"
-                                        color="error"
+                                        color="primary"
+                                        size="small"
                                         startIcon={<AddIcon />}
                                         onClick={() => setOpenBarrel(true)}
+                                        sx={{ borderRadius: 1 }}
                                     >
-                                        Přidat sud
+                                        Přidat
                                     </Button>
                                 </Box>
 
-                                {event.barrels?.map((barrel) => (
-                                    <Box
-                                        key={barrel.id}
-                                        sx={{
-                                            p: 2,
-                                            border: '1px solid',
-                                            borderColor: 'divider',
-                                            borderRadius: tokens.borderRadius.md,
-                                            mb: 2,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 2,
-                                        }}
-                                    >
-                                        <Avatar sx={{ bgcolor: '#FEF3C7' }}>
-                                            <BarrelIcon sx={{ color: '#D97706' }} />
-                                        </Avatar>
-                                        <Box flex={1}>
-                                            <Typography fontWeight="bold">
-                                                {`Sud #${barrel.orderNumber}`}
-                                            </Typography>
-                                            <Box display="flex" alignItems="center" gap={1}>
-                                                <BeerIcon sx={{ fontSize: '1rem', opacity: 0.5 }} />
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {barrel.size}L
-                                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                    {event.barrels?.map((barrel) => (
+                                        <Box
+                                            key={barrel.id}
+                                            sx={{
+                                                p: 2,
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                borderRadius: 1,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 2,
+                                                transition: tokens.transitions.default,
+                                                '&:hover': {
+                                                    bgcolor: 'action.hover',
+                                                },
+                                            }}
+                                        >
+                                            <Box
+                                                sx={{
+                                                    width: 40,
+                                                    height: 40,
+                                                    borderRadius: '50%',
+                                                    bgcolor: 'warning.main',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    flexShrink: 0,
+                                                }}
+                                            >
+                                                <BarrelIcon sx={{ fontSize: 20, color: 'white' }} />
                                             </Box>
+                                            <Box flex={1} sx={{ minWidth: 0 }}>
+                                                <Typography fontWeight={700} sx={{ mb: 0.5 }}>
+                                                    Sud #{barrel.orderNumber}
+                                                </Typography>
+                                                <Box display="flex" alignItems="center" gap={1}>
+                                                    <BeerIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                                        {barrel.size}L
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                            {barrel.isActive && (
+                                                <Chip 
+                                                    label="Aktivní"
+                                                    size="small"
+                                                    color="success"
+                                                    sx={{ flexShrink: 0 }}
+                                                />
+                                            )}
                                         </Box>
-                                        {barrel.isActive && (
-                                            <Chip 
-                                                label="Aktivní"
-                                                size="small"
-                                                color="success"
-                                            />
-                                        )}
-                                    </Box>
-                                ))}
+                                    ))}
+                                </Box>
                             </Box>
                         </Paper>
                     </Grid>
@@ -567,7 +563,7 @@ export const EventDetail: React.FC = () => {
                     <Button onClick={() => setOpenUser(false)}>Zrušit</Button>
                     <Button 
                         variant="contained"
-                        color="error"
+                        color="primary"
                         onClick={handleAddUser}
                         disabled={!selectedUser}
                     >
@@ -603,7 +599,7 @@ export const EventDetail: React.FC = () => {
                     <Button onClick={() => setOpenBarrel(false)}>Zrušit</Button>
                     <Button 
                         variant="contained"
-                        color="error"
+                        color="primary"
                         onClick={handleAddBarrel}
                         disabled={!selectedBarrel}
                     >

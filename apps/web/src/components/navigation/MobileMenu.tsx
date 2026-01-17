@@ -53,7 +53,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
       if (user.role === USER_ROLE.SUPER_ADMIN) {
         items.push(
           { to: '/dashboard/system', label: 'Systém' },
-          { to: '/docs', label: 'Dokumentace' },
+          { to: '/dashboard/docs', label: 'Dokumentace' },
           { to: '/activity', label: 'Aktivita' }
         );
       }
