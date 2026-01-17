@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -25,26 +25,20 @@ import { systemService, type SystemStats } from '../../../services/systemService
 import { userService } from '../../../services/userService';
 import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/system.json';
-import { CleanupSection } from './components/CleanupSection';
-import { SystemHealthDashboard } from './components/SystemHealthDashboard';
-import { usePageTitle } from '../../../hooks/usePageTitle';
-import { PageHeader, MetricCard } from '@demonicka/ui';
-import { useNavigate } from 'react-router-dom';
-import { Settings as SettingsIcon, Flag as FlagIcon } from '@mui/icons-material';
+import { MetricCard } from '@demonicka/ui';
 
-const SystemPage: React.FC = () => {
-  usePageTitle('Systém');
-  const navigate = useNavigate();
+const UsersPage: React.FC = () => {
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generatingTokenFor, setGeneratingTokenFor] = useState<string | null>(null);
   const toast = useToast();
+  const isRefreshingRef = useRef(false);
 
   const loadStats = useCallback(async (isInitial = false) => {
     // Prevent multiple simultaneous calls
-    if (isRefreshing && !isInitial) {
+    if (isRefreshingRef.current && !isInitial) {
       return;
     }
     
@@ -52,6 +46,7 @@ const SystemPage: React.FC = () => {
       if (isInitial) {
         setIsInitialLoading(true);
       } else {
+        isRefreshingRef.current = true;
         setIsRefreshing(true);
       }
       setError(null);
@@ -67,10 +62,11 @@ const SystemPage: React.FC = () => {
       if (isInitial) {
         setIsInitialLoading(false);
       } else {
+        isRefreshingRef.current = false;
         setIsRefreshing(false);
       }
     }
-  }, []); // Remove toast dependency to prevent infinite loops
+  }, []); // Remove dependencies to prevent infinite loops
 
   useEffect(() => {
     loadStats(true);
@@ -125,39 +121,23 @@ const SystemPage: React.FC = () => {
   }
 
   return (
-    <Box p={3}>
-      <PageHeader
-        title={translations.title}
-        action={
-          <Box display="flex" gap={2}>
-            <Button 
-              variant="contained" 
-              startIcon={<SettingsIcon />}
-              onClick={() => navigate('/dashboard/system/roles')}
-            >
-              Role a oprávnění
-            </Button>
-            <Button 
-              variant="contained" 
-              startIcon={<FlagIcon />}
-              onClick={() => navigate('/dashboard/system/feature-flags')}
-            >
-              Funkce
-            </Button>
-            <Button 
-              variant="outlined" 
-              startIcon={<RefreshIcon />}
-              onClick={() => loadStats(false)}
-              disabled={isRefreshing}
-            >
-              {translations.refresh}
-            </Button>
-          </Box>
-        }
-      />
-      
+    <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h6" fontWeight="bold">
+          Uživatelé
+        </Typography>
+        <Button 
+          variant="outlined" 
+          startIcon={<RefreshIcon />}
+          onClick={() => loadStats(false)}
+          disabled={isRefreshing}
+        >
+          {translations.refresh}
+        </Button>
+      </Box>
+
       {stats && (
-        <Box>
+        <>
           <Grid container spacing={3} mb={3}>
             <Grid item xs={12} sm={6} md={3}>
               <MetricCard title={translations.userStatistics.totalUsers} value={stats.totalUsers} />
@@ -246,20 +226,10 @@ const SystemPage: React.FC = () => {
               </TableContainer>
             </CardContent>
           </Card>
-
-          {/* System Health Dashboard */}
-          <Box mt={4}>
-            <SystemHealthDashboard onRefresh={loadStats} />
-          </Box>
-
-          {/* Cleanup Section */}
-          <Box mt={4}>
-            <CleanupSection onRefresh={loadStats} />
-          </Box>
-        </Box>
+        </>
       )}
     </Box>
   );
 };
 
-export { SystemPage }; 
+export { UsersPage };

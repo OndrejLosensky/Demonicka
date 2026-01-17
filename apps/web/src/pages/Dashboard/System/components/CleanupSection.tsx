@@ -8,6 +8,7 @@ import {
   CardContent,
   CardActions,
   Alert,
+  Chip,
 } from '@mui/material';
 import {
   DeleteSweep as DeleteSweepIcon,
@@ -17,6 +18,7 @@ import {
   LocalBar as BarrelIcon,
   CalendarToday as CalendarIcon,
   Warning as WarningIcon,
+  Security as SecurityIcon,
 } from '@mui/icons-material';
 import { CleanupConfirmDialog } from './CleanupConfirmDialog';
 import {
@@ -30,12 +32,14 @@ import {
   type CleanupResult,
 } from '../utils/cleanupUtils';
 import { toast } from 'react-hot-toast';
+import { USER_ROLE } from '@demonicka/shared-types';
 
 interface CleanupSectionProps {
   onRefresh?: () => void;
+  userRole?: string;
 }
 
-export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh }) => {
+export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userRole }) => {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [dialogConfig, setDialogConfig] = useState<{
     open: boolean;
@@ -44,6 +48,9 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh }) => 
     onConfirm: () => Promise<void>;
     severity: 'warning' | 'error';
   } | null>(null);
+
+  const isSuperAdmin = userRole === USER_ROLE.SUPER_ADMIN;
+  const isOperator = userRole === USER_ROLE.OPERATOR;
 
   const handleCleanup = async (
     cleanupFunction: () => Promise<CleanupResult>,
@@ -86,7 +93,7 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh }) => 
     setDialogConfig(null);
   };
 
-  const cleanupOptions = [
+  const allCleanupOptions = [
     {
       id: 'system',
       title: 'Vyčistit systém',
@@ -94,6 +101,7 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh }) => 
       icon: <DeleteSweepIcon />,
       color: 'primary' as const,
       severity: 'warning' as const,
+      requiredRole: null as string | null, // Available to all
       action: () => openDialog(
         'Vyčistit systém',
         'Tato akce smaže staré logy a dočasné soubory starší než 30 dní. Tato operace je bezpečná a neovlivní aktuální data.',
@@ -107,6 +115,7 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh }) => 
       icon: <EventIcon />,
       color: 'warning' as const,
       severity: 'warning' as const,
+      requiredRole: null as string | null, // Available to OPERATOR and SUPER_ADMIN
       action: () => openDialog(
         'Vyčistit aktivní událost',
         'Tato akce smaže všechna data související s aktuální aktivní událostí včetně účastníků, sudů a vypitých piv. Tato operace je nevratná!',
@@ -120,6 +129,7 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh }) => 
       icon: <PeopleIcon />,
       color: 'error' as const,
       severity: 'error' as const,
+      requiredRole: USER_ROLE.SUPER_ADMIN,
       action: () => openDialog(
         'Smazat účastníky',
         'Tato akce smaže všechny účastníky (uživatele s rolí PARTICIPANT). Administrátoři zůstanou zachováni. Tato operace je nevratná!',
@@ -134,6 +144,7 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh }) => 
       icon: <PersonIcon />,
       color: 'error' as const,
       severity: 'error' as const,
+      requiredRole: USER_ROLE.SUPER_ADMIN,
       action: () => openDialog(
         'Smazat všechny uživatele',
         'Tato akce smaže všechny uživatele včetně administrátorů. Budete odhlášeni a budete muset vytvořit nového administrátora. Tato operace je nevratná!',
@@ -148,6 +159,7 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh }) => 
       icon: <BarrelIcon />,
       color: 'error' as const,
       severity: 'error' as const,
+      requiredRole: USER_ROLE.SUPER_ADMIN,
       action: () => openDialog(
         'Smazat sudy',
         'Tato akce smaže všechny sudy v systému. Tato operace je nevratná!',
@@ -162,6 +174,7 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh }) => 
       icon: <CalendarIcon />,
       color: 'error' as const,
       severity: 'error' as const,
+      requiredRole: USER_ROLE.SUPER_ADMIN,
       action: () => openDialog(
         'Smazat události',
         'Tato akce smaže všechny události v systému včetně jejich dat. Tato operace je nevratná!',
@@ -170,6 +183,16 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh }) => 
       ),
     },
   ];
+
+  // Filter cleanup options based on user role
+  const cleanupOptions = allCleanupOptions.filter(option => {
+    if (!option.requiredRole) {
+      // Available to all (OPERATOR and SUPER_ADMIN)
+      return isSuperAdmin || isOperator;
+    }
+    // SUPER_ADMIN only operations
+    return isSuperAdmin;
+  });
 
   return (
     <Box>
@@ -204,6 +227,16 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh }) => 
                   <Typography variant="h6" component="h3">
                     {option.title}
                   </Typography>
+                  {option.requiredRole === USER_ROLE.SUPER_ADMIN && (
+                    <Chip
+                      icon={<SecurityIcon />}
+                      label="SUPER_ADMIN"
+                      size="small"
+                      color="error"
+                      variant="outlined"
+                      sx={{ ml: 'auto' }}
+                    />
+                  )}
                 </Box>
                 <Typography variant="body2" color="text.secondary">
                   {option.description}
@@ -226,36 +259,48 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh }) => 
         ))}
       </Grid>
 
-      <Box mt={3}>
-        <Card sx={{ border: '2px solid #d32f2f' }}>
-          <CardContent>
-            <Typography variant="h6" color="error" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <WarningIcon color="error" />
-              Kompletní vyčištění systému
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Tato operace smaže všechna data v systému včetně uživatelů, událostí, sudů a logů. 
-              Budete odhlášeni a budete muset vytvořit nového administrátora.
-            </Typography>
-            <Button
-              variant="contained"
-              color="error"
-              size="large"
-              fullWidth
-              onClick={() => openDialog(
-                'Kompletní vyčištění systému',
-                'Tato akce smaže VŠECHNA data v systému včetně uživatelů, událostí, sudů a logů. Budete odhlášeni a budete muset vytvořit nového administrátora. Tato operace je nevratná!',
-                () => handleCleanup(completeSystemCleanup, 'Complete system cleanup'),
-                'error'
-              )}
-              disabled={isLoading === 'complete'}
-              startIcon={<DeleteSweepIcon />}
-            >
-              {isLoading === 'complete' ? 'Probíhá...' : 'Kompletní vyčištění systému'}
-            </Button>
-          </CardContent>
-        </Card>
-      </Box>
+      {isSuperAdmin && (
+        <Box mt={3}>
+          <Card sx={{ border: '2px solid #d32f2f' }}>
+            <CardContent>
+              <Box display="flex" alignItems="center" gap={1} mb={1}>
+                <WarningIcon color="error" />
+                <Typography variant="h6" color="error">
+                  Kompletní vyčištění systému
+                </Typography>
+                <Chip
+                  icon={<SecurityIcon />}
+                  label="SUPER_ADMIN"
+                  size="small"
+                  color="error"
+                  variant="outlined"
+                  sx={{ ml: 'auto' }}
+                />
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Tato operace smaže všechna data v systému včetně uživatelů, událostí, sudů a logů. 
+                Budete odhlášeni a budete muset vytvořit nového administrátora.
+              </Typography>
+              <Button
+                variant="contained"
+                color="error"
+                size="large"
+                fullWidth
+                onClick={() => openDialog(
+                  'Kompletní vyčištění systému',
+                  'Tato akce smaže VŠECHNA data v systému včetně uživatelů, událostí, sudů a logů. Budete odhlášeni a budete muset vytvořit nového administrátora. Tato operace je nevratná!',
+                  () => handleCleanup(completeSystemCleanup, 'Complete system cleanup'),
+                  'error'
+                )}
+                disabled={isLoading === 'complete'}
+                startIcon={<DeleteSweepIcon />}
+              >
+                {isLoading === 'complete' ? 'Probíhá...' : 'Kompletní vyčištění systému'}
+              </Button>
+            </CardContent>
+          </Card>
+        </Box>
+      )}
 
       {dialogConfig && (
         <CleanupConfirmDialog

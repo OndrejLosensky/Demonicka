@@ -25,12 +25,9 @@ import {
 } from '@mui/icons-material';
 import { rolesService, type RoleWithPermissions, type RolePermission } from '../../../../services/rolesService';
 import { Permission, PERMISSION_DESCRIPTIONS } from '@demonicka/shared';
-import { usePageTitle } from '../../../../hooks/usePageTitle';
-import { PageHeader } from '@demonicka/ui';
 import { toast } from 'react-hot-toast';
 
 const RolesPage: React.FC = () => {
-  usePageTitle('Role a oprávnění');
   const [roles, setRoles] = useState<RoleWithPermissions[]>([]);
   const [allPermissions, setAllPermissions] = useState<RolePermission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -127,22 +124,22 @@ const RolesPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 4 }}>
-      <PageHeader
-        title="Role a oprávnění"
-        action={
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={loadRoles}
-            disabled={isLoading}
-          >
-            Obnovit
-          </Button>
-        }
-      />
+    <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h6" fontWeight="bold">
+          Role a oprávnění
+        </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<RefreshIcon />}
+          onClick={loadRoles}
+          disabled={isLoading}
+        >
+          Obnovit
+        </Button>
+      </Box>
 
-      <Box sx={{ mt: 3 }}>
+      <Box>
         {roles.map((role) => (
           <Accordion key={role.id} defaultExpanded={role.name === 'OPERATOR'}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>

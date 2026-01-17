@@ -19,12 +19,9 @@ import {
 } from '@mui/icons-material';
 import { featureFlagsService, type FeatureFlag } from '../../../../services/featureFlagsService';
 import { FeatureFlagKey } from '@demonicka/shared-types';
-import { usePageTitle } from '../../../../hooks/usePageTitle';
-import { PageHeader } from '@demonicka/ui';
 import { toast } from 'react-hot-toast';
 
 const FeatureFlagsPage: React.FC = () => {
-  usePageTitle('Feature Flags');
   const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
@@ -72,22 +69,22 @@ const FeatureFlagsPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 4 }}>
-      <PageHeader
-        title="Feature Flags"
-        action={
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={loadFeatureFlags}
-            disabled={isLoading}
-          >
-            Obnovit
-          </Button>
-        }
-      />
+    <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h6" fontWeight="bold">
+          Funkce
+        </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<RefreshIcon />}
+          onClick={loadFeatureFlags}
+          disabled={isLoading}
+        >
+          Obnovit
+        </Button>
+      </Box>
 
-      <Box sx={{ mt: 3 }}>
+      <Box>
         <TableContainer component={Paper} variant="outlined">
           <Table>
             <TableHead>

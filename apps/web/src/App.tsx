@@ -15,9 +15,11 @@ import { Events } from './pages/Dashboard/Events';
 import { EventDetail } from './pages/Dashboard/Events/EventDetail';
 import { EventResults } from './pages/Dashboard/Events/EventResults';
 import { Docs } from './pages/Dashboard/System/Docs';
-import { SystemPage } from './pages/Dashboard/System';
-import RolesPage from './pages/Dashboard/System/Roles';
-import FeatureFlagsPage from './pages/Dashboard/System/FeatureFlags';
+import { SystemLayout } from './pages/Dashboard/System/SystemLayout';
+import { UsersPage } from './pages/Dashboard/System/UsersPage';
+import { StatisticsPage } from './pages/Dashboard/System/StatisticsPage';
+import { OperationsPage } from './pages/Dashboard/System/OperationsPage';
+import { SettingsPage } from './pages/Dashboard/System/SettingsPage';
 import { Activity } from './pages/User/Activity';
 import { PersonalStatsView } from './pages/User/PersonalStats/PersonalStatsView';
 import { AchievementsPage } from './pages/User/Achievements';
@@ -61,26 +63,16 @@ function App() {
               path="dashboard/system"
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
-                  <SystemPage />
+                  <SystemLayout />
                 </RoleRoute>
               }
-            />
-            <Route
-              path="dashboard/system/roles"
-              element={
-                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
-                  <RolesPage />
-                </RoleRoute>
-              }
-            />
-            <Route
-              path="dashboard/system/feature-flags"
-              element={
-                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
-                  <FeatureFlagsPage />
-                </RoleRoute>
-              }
-            />
+            >
+              <Route index element={<Navigate to="users" replace />} />
+              <Route path="users" element={<UsersPage />} />
+              <Route path="statistics" element={<StatisticsPage />} />
+              <Route path="operations" element={<OperationsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
             <Route
               path="activity"
               element={

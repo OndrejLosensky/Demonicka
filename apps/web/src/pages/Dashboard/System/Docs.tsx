@@ -119,6 +119,10 @@ const documentationStructure: DocCategory[] = [
   }
 ];
 
+import { tokens } from '../../../theme/tokens';
+import { getShadow } from '../../../theme/utils';
+import { useAppTheme } from '../../../contexts/ThemeContext';
+
 const DocsComponent: React.FC = () => {
   usePageTitle('Dokumentace');
   const [selectedDoc, setSelectedDoc] = useState<DocFile | null>(null);
@@ -138,18 +142,12 @@ const DocsComponent: React.FC = () => {
     setError(null);
     
     try {
-      console.log('Loading doc path:', docFile.path);
-      
       // Use the API client with proper configuration
       const response = await apiClient.get(`/v1/docs/${docFile.path}`, {
         responseType: 'text'
       });
       
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      
       const content = response.data;
-      console.log('Content received:', content.substring(0, 200) + '...');
       
       if (!content || content.trim() === '') {
         throw new Error('Empty content received');
@@ -212,7 +210,7 @@ const DocsComponent: React.FC = () => {
               borderRadius: 2,
               height: { xs: 'auto', md: 'calc(100vh - 120px)' },
               overflowY: 'auto',
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+              boxShadow: getShadow('md', mode),
               '&::-webkit-scrollbar': {
                 width: '6px'
               },
@@ -221,7 +219,7 @@ const DocsComponent: React.FC = () => {
               },
               '&::-webkit-scrollbar-thumb': {
                 bgcolor: (theme) => theme.palette.grey[300],
-                borderRadius: '3px',
+                borderRadius: tokens.borderRadius.xs,
                 '&:hover': {
                   bgcolor: (theme) => theme.palette.grey[400]
                 }
@@ -251,7 +249,7 @@ const DocsComponent: React.FC = () => {
                   >
                     <ListItemButton
                       sx={{
-                        borderRadius: 1,
+                        borderRadius: tokens.borderRadius.xs,
                         backgroundColor: 'rgba(0, 0, 0, 0.02)',
                         '&:hover': {
                           backgroundColor: 'rgba(0, 0, 0, 0.04)',
@@ -268,7 +266,7 @@ const DocsComponent: React.FC = () => {
                               component="span" 
                               sx={{ 
                                 transform: expandedCategory === category.name ? 'rotate(180deg)' : 'none',
-                                transition: 'transform 0.2s',
+                                transition: tokens.transitions.default,
                                 fontSize: '0.8rem'
                               }}
                             >
@@ -287,7 +285,7 @@ const DocsComponent: React.FC = () => {
                             selected={selectedDoc?.name === doc.name}
                             onClick={() => loadMarkdownFile(doc)}
                             sx={{
-                              borderRadius: 1,
+                              borderRadius: tokens.borderRadius.xs,
                               py: 0.5,
                               '&.Mui-selected': {
                                 backgroundColor: 'primary.main',

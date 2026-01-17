@@ -26,6 +26,7 @@ import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../../../hooks/usePageTitle';
+import { tokens } from '../../../theme/tokens';
 
 export const Events: React.FC = () => {
     usePageTitle('Události');
@@ -117,7 +118,7 @@ export const Events: React.FC = () => {
                     color="error"
                     onClick={() => setOpen(true)}
                     startIcon={<AddIcon />}
-                    sx={{ px: 3, py: 1, borderRadius: 2, boxShadow: 1 }}
+                    sx={{ px: 3, py: 1, borderRadius: 1, boxShadow: 1 }}
                   >
                     Vytvořit událost
                   </Button>
@@ -126,7 +127,7 @@ export const Events: React.FC = () => {
                     color="inherit"
                     onClick={() => navigate('/leaderboard')}
                     startIcon={<FilterIcon />}
-                    sx={{ px: 3, py: 1, borderRadius: 2, borderColor: 'divider' }}
+                    sx={{ px: 3, py: 1, borderRadius: 1, borderColor: 'divider' }}
                   >
                     Žebříček
                   </Button>
@@ -146,10 +147,10 @@ export const Events: React.FC = () => {
                                     elevation={2}
                                     onClick={() => navigate(`/events/${event.id}`)}
                                     sx={{ 
-                                        borderRadius: 2,
+                                        borderRadius: 1,
                                         overflow: 'hidden',
                                         cursor: 'pointer',
-                                        transition: 'transform 0.2s ease-in-out',
+                                        transition: tokens.transitions.default,
                                         '&:hover': {
                                             transform: 'translateY(-4px)',
                                         },

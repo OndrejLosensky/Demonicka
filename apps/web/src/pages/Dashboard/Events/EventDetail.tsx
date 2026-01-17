@@ -38,6 +38,8 @@ import type { Event, User, Barrel } from '@demonicka/shared-types';
 import { toast } from 'react-hot-toast';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { usePageTitle } from '../../../hooks/usePageTitle';
+import { tokens } from '../../../theme/tokens';
+import { useAppTheme } from '../../../contexts/ThemeContext';
 
 export const EventDetail: React.FC = () => {
     usePageTitle('Detail události');
@@ -302,7 +304,7 @@ export const EventDetail: React.FC = () => {
                                     },
                                     px: 3,
                                     py: 1,
-                                    borderRadius: 2,
+                                    borderRadius: tokens.borderRadius.md,
                                     position: 'relative',
                                     zIndex: 2,
                                     minWidth: 'auto',
@@ -326,7 +328,7 @@ export const EventDetail: React.FC = () => {
                                         },
                                         px: 3,
                                         py: 1,
-                                        borderRadius: 2,
+                                        borderRadius: tokens.borderRadius.md,
                                         position: 'relative',
                                         zIndex: 2,
                                         minWidth: 'auto',
@@ -436,7 +438,7 @@ export const EventDetail: React.FC = () => {
                                             p: 2,
                                             border: '1px solid',
                                             borderColor: 'divider',
-                                            borderRadius: 2,
+                                            borderRadius: tokens.borderRadius.md,
                                             mb: 2,
                                             display: 'flex',
                                             alignItems: 'center',
@@ -501,7 +503,7 @@ export const EventDetail: React.FC = () => {
                                             p: 2,
                                             border: '1px solid',
                                             borderColor: 'divider',
-                                            borderRadius: 2,
+                                            borderRadius: tokens.borderRadius.md,
                                             mb: 2,
                                             display: 'flex',
                                             alignItems: 'center',
