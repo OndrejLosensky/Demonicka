@@ -2,6 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, MenuItem, ListItemIcon, ListItemText, Divider, Box, Typography } from '@demonicka/ui';
 import { Logout as LogoutIcon, Person as PersonIcon, TrendingUp as TrendingUpIcon, EmojiEvents as EmojiEventsIcon } from '@demonicka/ui';
 import { useAuth } from '../../contexts/AuthContext';
+import { tokens } from '../../theme/tokens';
+import { getShadow } from '../../theme/utils';
+import { useAppTheme } from '../../contexts/ThemeContext';
 import { USER_ROLE } from '@demonicka/shared-types';
 import translations from '../../locales/cs/common.header.json';
 
@@ -12,6 +15,7 @@ interface UserProfileMenuProps {
 
 export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
   const { user, logout, hasRole } = useAuth();
+  const { mode } = useAppTheme();
   const navigate = useNavigate();
 
   if (!user) return null;
@@ -64,10 +68,10 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
         elevation: 8,
         sx: {
           overflow: 'visible',
-          filter: 'drop-shadow(0px 8px 24px rgba(0,0,0,0.12))',
+          filter: getShadow('dropShadow', mode),
           mt: 1.5,
           minWidth: 200,
-          borderRadius: 2,
+          borderRadius: tokens.borderRadius.md,
           '&:before': {
             content: '""',
             display: 'block',
@@ -79,7 +83,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
             bgcolor: 'background.paper',
             transform: 'translateY(-50%) rotate(45deg)',
             zIndex: 0,
-            boxShadow: '0px -2px 4px rgba(0,0,0,0.06)',
+            boxShadow: getShadow('sm', mode),
           },
         },
       }}

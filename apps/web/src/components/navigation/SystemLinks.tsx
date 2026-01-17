@@ -4,6 +4,7 @@ import { Settings as SettingsIcon, History as HistoryIcon } from '@demonicka/ui'
 import { FaBook } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import { USER_ROLE } from '@demonicka/shared-types';
+import { tokens } from '../../theme/tokens';
 
 export function SystemLinks() {
   const { user } = useAuth();
@@ -38,7 +39,7 @@ export function SystemLinks() {
           color: active ? 'primary.main' : 'text.primary',
           fontWeight: active ? 600 : 500,
           fontSize: '0.875rem',
-          transition: 'all 0.2s ease-in-out',
+          transition: tokens.transitions.default,
           '&:hover': {
             color: 'primary.main',
             '&::after': {
@@ -57,7 +58,7 @@ export function SystemLinks() {
             opacity: active ? 1 : 0,
             transform: active ? 'scaleX(1)' : 'scaleX(0)',
             transformOrigin: 'center',
-            transition: 'all 0.2s ease-in-out',
+            transition: tokens.transitions.default,
           },
         }}
       >

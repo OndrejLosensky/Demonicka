@@ -1,5 +1,7 @@
 import { createTheme } from '@mui/material/styles';
 import type { PaletteMode } from '@mui/material';
+import { tokens } from './theme/tokens';
+import { getShadow, getDividerColor } from './theme/utils';
 
 // Centralized theme builder for consistent spacing, typography and components
 export function createAppTheme(mode: PaletteMode) {
@@ -7,6 +9,9 @@ export function createAppTheme(mode: PaletteMode) {
 
   return createTheme({
     spacing: 8,
+    shape: {
+      borderRadius: tokens.borderRadius.md,
+    },
     palette: {
       mode,
       primary: {
@@ -46,7 +51,7 @@ export function createAppTheme(mode: PaletteMode) {
           '*:focus-visible': {
             outline: `2px solid ${isDark ? '#ff6a64' : '#ff3b30'}`,
             outlineOffset: 2,
-            borderRadius: 6,
+            borderRadius: tokens.borderRadius.xs,
           },
           '::selection': {
             background: isDark ? '#ff6a6433' : '#ff3b3033',
@@ -72,8 +77,8 @@ export function createAppTheme(mode: PaletteMode) {
         defaultProps: { elevation: 0 },
         styleOverrides: {
           root: {
-            borderRadius: 16,
-            border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+            borderRadius: tokens.borderRadius.md,
+            border: `1px solid ${getDividerColor(mode)}`,
             backgroundImage: 'none',
           },
         },
@@ -81,7 +86,7 @@ export function createAppTheme(mode: PaletteMode) {
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 16,
+            borderRadius: tokens.borderRadius.md,
             padding: 16,
           },
         },
@@ -90,15 +95,13 @@ export function createAppTheme(mode: PaletteMode) {
         defaultProps: { disableElevation: true },
         styleOverrides: {
           root: {
-            borderRadius: 12,
+            borderRadius: tokens.borderRadius.md,
             paddingInline: 16,
             paddingBlock: 10,
-            transition: 'all 0.2s ease-in-out',
+            transition: tokens.transitions.default,
             '&:hover': {
               transform: 'translateY(-1px)',
-              boxShadow: isDark
-                ? '0 8px 20px rgba(0,0,0,0.4)'
-                : '0 8px 20px rgba(0,0,0,0.08)',
+              boxShadow: getShadow('lg', mode),
             },
             '&:active': { transform: 'translateY(0)' },
           },
@@ -107,17 +110,17 @@ export function createAppTheme(mode: PaletteMode) {
       MuiIconButton: {
         styleOverrides: {
           root: {
-            borderRadius: 12,
-            transition: 'all 0.2s ease-in-out',
+            borderRadius: tokens.borderRadius.md,
+            transition: tokens.transitions.default,
             '&:hover': {
-              backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+              backgroundColor: isDark ? getDividerColor(mode) : 'rgba(0,0,0,0.04)',
             },
           },
         },
       },
       MuiChip: {
         styleOverrides: {
-          root: { borderRadius: 10, fontWeight: 600 },
+          root: { borderRadius: tokens.borderRadius.sm, fontWeight: 600 },
         },
       },
       MuiLink: {
@@ -125,7 +128,7 @@ export function createAppTheme(mode: PaletteMode) {
           root: {
             cursor: 'pointer',
             textUnderlineOffset: 4,
-            transition: 'color 0.2s ease',
+            transition: tokens.transitions.default,
           },
         },
       },

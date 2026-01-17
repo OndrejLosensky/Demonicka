@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { IconButton, Avatar, Tooltip, Box, Typography } from '@demonicka/ui';
 import { useAuth } from '../../contexts/AuthContext';
+import { tokens } from '../../theme/tokens';
 import { USER_ROLE } from '@demonicka/shared-types';
 import { UserProfileMenu } from './UserProfileMenu';
 import translations from '../../locales/cs/common.header.json';
@@ -47,7 +48,7 @@ export function UserInfo() {
             cursor: 'pointer',
             px: 1,
             py: 0.5,
-            borderRadius: 1,
+            borderRadius: tokens.borderRadius.xs,
             '&:hover': {
               bgcolor: 'action.hover',
             },

@@ -29,6 +29,7 @@ import type { ParticipantTableProps } from './types';
 import { format } from 'date-fns';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import translations from '../../../locales/cs/dashboard.participants.json';
+import { tokens } from '../../../theme/tokens';
 
 export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   participants,
@@ -66,7 +67,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
 
   return (
     <>
-      <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
+      <TableContainer component={Paper} sx={{ borderRadius: tokens.borderRadius.md, overflowX: 'auto' }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>

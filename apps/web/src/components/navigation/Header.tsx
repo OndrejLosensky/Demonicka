@@ -5,6 +5,8 @@ import { useAppTheme } from '../../contexts/ThemeContext';
 import { useHeaderVisibility } from '../../contexts/HeaderVisibilityContext';
 import { TopRow } from './TopRow';
 import { BottomRow } from './BottomRow';
+import { tokens } from '../../theme/tokens';
+import { getShadow, getDividerColor, getBackgroundWithOpacity } from '../../theme/utils';
 
 export default function Header() {
   const { mode } = useAppTheme();
@@ -22,17 +24,19 @@ export default function Header() {
             position: 'fixed',
             width: '100%',
             top: 0,
-            zIndex: 50,
-            backgroundColor: mode === 'dark' ? 'rgba(13, 17, 23, 0.95)' : 'rgba(250, 250, 250, 0.95)',
-            backdropFilter: 'blur(8px)',
-            boxShadow: mode === 'dark' ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            borderBottom: `1px solid ${mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'}`,
-            transition: 'all 0.3s ease',
+            zIndex: tokens.zIndex.header,
+            backgroundColor: getBackgroundWithOpacity(
+              mode === 'dark' ? '#0d1117' : '#fafafa'
+            ),
+            backdropFilter: `blur(${tokens.blur.md})`,
+            boxShadow: getShadow('md', mode),
+            borderBottom: `1px solid ${getDividerColor(mode)}`,
+            transition: tokens.transitions.slow,
           }}
         >
           <Box
             sx={{
-              maxWidth: '1280px',
+              maxWidth: tokens.maxWidth.container,
               mx: 'auto',
               width: '100%',
               px: { xs: 2, sm: 3, md: 4 },
@@ -49,7 +53,7 @@ export default function Header() {
         sx={{
           pt: isHeaderVisible ? { xs: 12, md: 18 } : 0,
           minHeight: '100vh',
-          ...(isLandingPage ? {} : { maxWidth: '1280px', mx: 'auto', px: { xs: 2, sm: 3, md: 4 }, py: 3 }),
+          ...(isLandingPage ? {} : { maxWidth: tokens.maxWidth.container, mx: 'auto', px: { xs: 2, sm: 3, md: 4 }, py: 3 }),
         }}
       >
         <Outlet />

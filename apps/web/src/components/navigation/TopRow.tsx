@@ -9,6 +9,7 @@ import { UserInfo } from './UserInfo';
 import { MobileMenu } from './MobileMenu';
 import { Link } from 'react-router-dom';
 import translations from '../../locales/cs/common.header.json';
+import { tokens } from '../../theme/tokens';
 
 export function TopRow() {
   const { mode, toggleMode } = useAppTheme();
@@ -45,7 +46,7 @@ export function TopRow() {
             sx={{
               width: 36,
               height: 36,
-              transition: 'all 0.2s ease-in-out',
+              transition: tokens.transitions.default,
               '&:hover': {
                 transform: 'translateY(-1px)',
               },
@@ -65,7 +66,7 @@ export function TopRow() {
             sx={{
               width: 36,
               height: 36,
-              transition: 'all 0.2s ease-in-out',
+              transition: tokens.transitions.default,
               '&:hover': {
                 transform: 'translateY(-1px)',
               },
@@ -83,7 +84,7 @@ export function TopRow() {
                 width: 36,
                 height: 36,
                 display: { xs: 'flex', md: 'none' },
-                transition: 'all 0.2s ease-in-out',
+                transition: tokens.transitions.default,
                 '&:hover': {
                   transform: 'translateY(-1px)',
                 },

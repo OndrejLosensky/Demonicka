@@ -67,7 +67,7 @@ export const UserStatsComponent: React.FC<UserStatsProps> = ({ userId }) => {
   }
 
   return (
-    <Box sx={{ maxWidth: '1200px', mx: 'auto', p: { xs: 2, sm: 3, md: 4 } }}>
+    <Box sx={{ maxWidth: '1280px', mx: 'auto', p: { xs: 2, sm: 3, md: 4 } }}>
       <Grid container spacing={3}>
         {/* Overall Stats */}
         <Grid item xs={12}>

@@ -63,7 +63,7 @@ const LeaderboardComponent: React.FC = () => {
                   width: '180px',
                   height: '180px',
                   objectFit: 'contain',
-                  filter: 'drop-shadow(0 0 15px rgba(255,59,48,0.15))'
+                  filter: getShadow('glowSubtle', mode)
                 }}
               />
             </Box>

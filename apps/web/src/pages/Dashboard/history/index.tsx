@@ -51,7 +51,7 @@ export const History = () => {
         </Button>
       </Box>
       
-      <Paper sx={{ mb: 3, borderRadius: 2 }}>
+      <Paper sx={{ mb: 3, borderRadius: tokens.borderRadius.md }}>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}

@@ -38,6 +38,7 @@ import { EventSelector } from '../../components/EventSelector';
 import { EmptyEventState } from '../../components/EmptyEventState';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { websocketService } from '../../services/websocketService';
+import { tokens } from '../../theme/tokens';
 
 export const Dashboard: React.FC = () => {
     usePageTitle('Dashboard');
@@ -281,7 +282,7 @@ export const Dashboard: React.FC = () => {
             <Grid container spacing={3} mb={4}>
                 {/* Hourly Beer Consumption Chart */}
                 <Grid item xs={12} lg={8}>
-                    <Card sx={{ borderRadius: 2, height: 'fit-content' }}>
+                    <Card sx={{ borderRadius: tokens.borderRadius.md, height: 'fit-content' }}>
                         <Box p={3}>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -329,8 +330,8 @@ export const Dashboard: React.FC = () => {
                                                     height: 16,
                                                     width: `${hourlyStats.length > 0 && Math.max(...hourlyStats.map(d => d.count)) > 0 ? (data.count / Math.max(...hourlyStats.map(d => d.count))) * 100 : 0}%`,
                                                     bgcolor: data.hour === peakHour.hour ? 'error.main' : 'primary.main',
-                                                    borderRadius: 1,
-                                                    transition: 'width 0.3s ease',
+                                                    borderRadius: tokens.borderRadius.xs,
+                                                    transition: tokens.transitions.slow,
                                                     minWidth: data.count > 0 ? 4 : 0,
                                                 }}
                                             />
@@ -349,7 +350,7 @@ export const Dashboard: React.FC = () => {
                 <Grid item xs={12} lg={4}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                         {/* Active Barrel Chart */}
-                        <Card sx={{ borderRadius: 2 }}>
+                        <Card sx={{ borderRadius: tokens.borderRadius.md }}>
                             <Box p={3}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                                     <BarrelIcon sx={{ color: 'primary.main' }} />
@@ -362,7 +363,7 @@ export const Dashboard: React.FC = () => {
                         </Card>
 
                         {/* Fun Statistics */}
-                        <Card sx={{ borderRadius: 2 }}>
+                        <Card sx={{ borderRadius: tokens.borderRadius.md }}>
                             <Box p={3}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                                     <FaFire style={{ color: '#ff6b35', fontSize: '1.5rem' }} />
@@ -371,21 +372,21 @@ export const Dashboard: React.FC = () => {
                                     </Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, bgcolor: 'primary.50', borderRadius: 1 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, bgcolor: 'primary.50', borderRadius: tokens.borderRadius.xs }}>
                                         <FaTrophy style={{ color: '#ffd700' }} />
                                         <Box>
                                             <Typography variant="body2" color="text.secondary">Nejrychlejší pivař</Typography>
                                             <Typography variant="body1" fontWeight="bold">{funStats.fastestDrinker}</Typography>
                                         </Box>
                                     </Box>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, bgcolor: 'error.50', borderRadius: 1 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, bgcolor: 'error.50', borderRadius: tokens.borderRadius.xs }}>
                                         <FaClock style={{ color: '#ff6b35' }} />
                                         <Box>
                                             <Typography variant="body2" color="text.secondary">Nejaktivnější hodina</Typography>
                                             <Typography variant="body1" fontWeight="bold">{funStats.mostActiveHour} ({funStats.beersInPeakHour} piv)</Typography>
                                         </Box>
                                     </Box>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, bgcolor: 'warning.50', borderRadius: 1 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, bgcolor: 'warning.50', borderRadius: tokens.borderRadius.xs }}>
                                         <TrendingDownIcon sx={{ color: 'warning.main' }} />
                                         <Box>
                                             <Typography variant="body2" color="text.secondary">Efektivita spotřeby</Typography>
@@ -397,7 +398,7 @@ export const Dashboard: React.FC = () => {
                         </Card>
 
                         {/* Barrel Statistics */}
-                        <Card sx={{ borderRadius: 2 }}>
+                        <Card sx={{ borderRadius: tokens.borderRadius.md }}>
                             <Box p={2}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                                     <BarrelIcon sx={{ color: 'primary.main', fontSize: '1.2rem' }} />
@@ -414,7 +415,7 @@ export const Dashboard: React.FC = () => {
                                                     textAlign: 'center', 
                                                     border: 1, 
                                                     borderColor: 'divider', 
-                                                    borderRadius: 1,
+                                                    borderRadius: tokens.borderRadius.xs,
                                                     bgcolor: 'background.paper'
                                                 }}>
                                                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
@@ -428,7 +429,7 @@ export const Dashboard: React.FC = () => {
                                         ))}
                                     </Grid>
                                 ) : (
-                                    <Box sx={{ p: 1.5, textAlign: 'center', border: '2px dashed', borderColor: 'divider', borderRadius: 1 }}>
+                                    <Box sx={{ p: 1.5, textAlign: 'center', border: '2px dashed', borderColor: 'divider', borderRadius: tokens.borderRadius.xs }}>
                                         <Typography variant="caption" color="text.secondary">Žádné sudy</Typography>
                                     </Box>
                                 )}
@@ -441,7 +442,7 @@ export const Dashboard: React.FC = () => {
             {/* Top Users Section - Full Width */}
             <Grid container spacing={3} mb={4}>
                 <Grid item xs={12}>
-                    <Card sx={{ borderRadius: 2 }}>
+                    <Card sx={{ borderRadius: tokens.borderRadius.md }}>
                         <Box p={3}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                                 <TrophyIcon sx={{ color: 'primary.main' }} />
@@ -456,7 +457,7 @@ export const Dashboard: React.FC = () => {
                                             p: 2, 
                                             border: 1, 
                                             borderColor: 'divider', 
-                                            borderRadius: 2, 
+                                            borderRadius: tokens.borderRadius.md, 
                                             display: 'flex', 
                                             alignItems: 'center', 
                                             gap: 2,

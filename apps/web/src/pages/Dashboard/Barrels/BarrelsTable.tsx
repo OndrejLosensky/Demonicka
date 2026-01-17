@@ -26,6 +26,7 @@ import { FaBeer } from 'react-icons/fa';
 import type { Barrel } from '@demonicka/shared-types';
 import translations from '../../../locales/cs/dashboard.barrels.json';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { tokens } from '../../../theme/tokens';
 
 interface BarrelTableProps {
   barrels: Barrel[];
@@ -70,7 +71,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
 
   return (
     <>
-      <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
+      <TableContainer component={Paper} sx={{ borderRadius: tokens.borderRadius.md, overflowX: 'auto' }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
@@ -122,7 +123,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                         value={(barrel.remainingBeers / barrel.totalBeers) * 100}
                         sx={{
                           height: 8,
-                          borderRadius: 4,
+                          borderRadius: tokens.borderRadius.sm,
                           bgcolor: 'grey.200',
                           '& .MuiLinearProgress-bar': {
                             bgcolor: barrel.remainingBeers === 0 ? 'error.main' : 'success.main',

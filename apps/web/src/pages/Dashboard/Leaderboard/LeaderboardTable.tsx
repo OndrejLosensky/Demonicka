@@ -3,6 +3,9 @@ import { FaBeer } from 'react-icons/fa';
 import { GiTrophy } from 'react-icons/gi';
 import type { LeaderboardTableProps } from './types';
 import translations from '../../../locales/cs/dashboard.leaderboard.json';
+import { tokens } from '../../../theme/tokens';
+import { getShadow } from '../../../theme/utils';
+import { useAppTheme } from '../../../contexts/ThemeContext';
 
 const getTrophyColor = (rank: number): string => {
   switch (rank) {
@@ -17,7 +20,9 @@ const getTrophyColor = (rank: number): string => {
   }
 };
 
-export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableProps) => (
+export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableProps) => {
+  const { mode } = useAppTheme();
+  return (
   <Paper 
     elevation={3}
     sx={{ 
@@ -25,9 +30,9 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
       height: '100%',
       border: '2px solid',
       borderColor: 'divider',
-      borderRadius: 3,
+      borderRadius: tokens.borderRadius.md,
       bgcolor: 'background.paper',
-      boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
+      boxShadow: getShadow('lg', mode),
     }}
   >
     <Box display="flex" alignItems="center" gap={2} mb={3}>
@@ -107,7 +112,7 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
                         fontSize: '0.8rem',
                         px: 0.8,
                         py: 0.3,
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                        boxShadow: getShadow('card', mode),
                       }}
                     />
                   )}
@@ -148,4 +153,5 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
       </tbody>
     </table>
   </Paper>
-); 
+  );
+}; 

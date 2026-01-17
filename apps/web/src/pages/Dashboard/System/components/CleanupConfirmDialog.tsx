@@ -11,6 +11,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Warning as WarningIcon } from '@mui/icons-material';
+import { tokens } from '../../../../theme/tokens';
 
 export interface CleanupConfirmDialogProps {
   open: boolean;
@@ -52,7 +53,7 @@ export const CleanupConfirmDialog: React.FC<CleanupConfirmDialogProps> = ({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 2,
+          borderRadius: tokens.borderRadius.md,
         },
       }}
     >

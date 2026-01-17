@@ -147,7 +147,7 @@ export const Activity: React.FC = () => {
     <Box>
       <PageHeader title="Aktivita" />
 
-      <Paper sx={{ mb: 3, borderRadius: 2, p: 3 }}>
+      <Paper sx={{ mb: 3, borderRadius: tokens.borderRadius.md, p: 3 }}>
         <Box sx={{ mb: 3 }}>
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <InputLabel id="event-select-label">
@@ -169,7 +169,7 @@ export const Activity: React.FC = () => {
           </FormControl>
         </Box>
 
-      <TableContainer component={Paper} sx={{ borderRadius: 2, mb: 2, overflowX: 'auto' }}>
+      <TableContainer component={Paper} sx={{ borderRadius: tokens.borderRadius.md, mb: 2, overflowX: 'auto' }}>
         <Table stickyHeader size="small">
             <TableHead>
               <TableRow>

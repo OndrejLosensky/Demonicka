@@ -12,6 +12,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { USER_ROLE } from '@demonicka/shared-types';
 import translations from '../../locales/cs/common.header.json';
+import { tokens } from '../../theme/tokens';
 
 export function NavigationLinks() {
   const { user, hasRole } = useAuth();
@@ -47,7 +48,7 @@ export function NavigationLinks() {
           color: active ? 'primary.main' : 'text.primary',
           fontWeight: active ? 600 : 500,
           fontSize: '0.875rem',
-          transition: 'all 0.2s ease-in-out',
+          transition: tokens.transitions.default,
           '&:hover': {
             color: 'primary.main',
             '&::after': {
@@ -66,7 +67,7 @@ export function NavigationLinks() {
             opacity: active ? 1 : 0,
             transform: active ? 'scaleX(1)' : 'scaleX(0)',
             transformOrigin: 'center',
-            transition: 'all 0.2s ease-in-out',
+            transition: tokens.transitions.default,
           },
         }}
       >

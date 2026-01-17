@@ -87,7 +87,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
         </FormControl>
       </Box>
 
-      <TableContainer component={Paper} sx={{ borderRadius: 2, mb: 2, overflowX: 'auto' }}>
+      <TableContainer component={Paper} sx={{ borderRadius: tokens.borderRadius.md, mb: 2, overflowX: 'auto' }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>

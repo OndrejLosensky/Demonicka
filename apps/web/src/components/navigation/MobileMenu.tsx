@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { USER_ROLE } from '@demonicka/shared-types';
 import translations from '../../locales/cs/common.header.json';
+import { tokens } from '../../theme/tokens';
 
 interface MobileMenuProps {
   open: boolean;
@@ -98,7 +99,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
               <ListItemButton
                 onClick={() => handleItemClick(item.to)}
                 sx={{
-                  borderRadius: 1,
+                  borderRadius: tokens.borderRadius.xs,
                   mb: 0.5,
                   bgcolor: isActive(item.to) ? 'primary.main' : 'transparent',
                   color: isActive(item.to) ? 'primary.contrastText' : 'text.primary',
@@ -119,7 +120,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
         </List>
 
         {activeEvent && (
-          <Box sx={{ mt: 3, p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
+          <Box sx={{ mt: 3, p: 2, bgcolor: 'background.default', borderRadius: tokens.borderRadius.md }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
               Aktivní událost
             </Typography>
