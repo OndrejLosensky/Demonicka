@@ -27,8 +27,6 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 // import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserStatsService } from './user-stats.service';
 import { RoleGuard } from '../auth/guards/role.guard';
-import { BypassAuth } from '../auth/decorators/bypass-auth.decorator';
-
 /**
  * Users controller handling user profile management.
  * All routes are prefixed with '/users', protected by JWT authentication, and support API versioning.
@@ -44,26 +42,22 @@ export class UsersController {
 
   @Post()
   @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
-  @BypassAuth()
   create(@Body() createUserDto: CreateUserDto, @CurrentUser() user?: User) {
     return this.usersService.create(createUserDto, user?.id);
   }
 
   @Post('participant')
-  @BypassAuth()
   @Public()
   createParticipant(@Body() createParticipantDto: CreateParticipantDto, @CurrentUser() user?: User) {
     return this.usersService.createParticipant(createParticipantDto, user?.id);
   }
 
   @Get()
-  @BypassAuth()
   async findAll() {
     return this.usersService.findAll();
   }
 
   @Get('profile')
-  @BypassAuth()
   @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER)
   getProfile(@GetUser() user: User) {
     return this.usersService.findOne(user.id);
@@ -122,7 +116,6 @@ export class UsersController {
   }
 
   @Post(':id/register-token')
-  @BypassAuth()
   @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
   async generateRegisterToken(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.generateRegisterToken(id);

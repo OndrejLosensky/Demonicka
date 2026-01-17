@@ -18,14 +18,12 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { EventBeersService } from './services/event-beers.service';
-import { BypassAuth } from 'src/auth/decorators/bypass-auth.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Permission } from '@demonicka/shared';
 
 @Controller('events')
-@BypassAuth()
 @Versions('1')
 @UseGuards(JwtAuthGuard, VersionGuard)
 export class EventsController {
@@ -78,7 +76,6 @@ export class EventsController {
   }
 
   @Put(':id/users/:userId')
-  @BypassAuth()
   addUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -87,7 +84,6 @@ export class EventsController {
   }
 
   @Put(':id/active')
-  @BypassAuth()
   setActive(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
     return this.eventsService.setActive(id);
   }
@@ -121,7 +117,6 @@ export class EventsController {
   }
 
   @Get(':id/users')
-  @BypassAuth()
   getEventUsers(
     @Param('id', ParseUUIDPipe) id: string,
     @Query('withDeleted') withDeleted?: boolean,
@@ -130,13 +125,11 @@ export class EventsController {
   }
 
   @Get(':id/barrels')
-  @BypassAuth()
   getEventBarrels(@Param('id', ParseUUIDPipe) id: string): Promise<Barrel[]> {
     return this.eventsService.getEventBarrels(id);
   }
 
   @Put(':id/barrels/:barrelId')
-  @BypassAuth()
   addBarrel(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('barrelId', ParseUUIDPipe) barrelId: string,
@@ -153,7 +146,6 @@ export class EventsController {
   }
 
   @Post(':id/users/:userId/beers')
-  @BypassAuth()
   addEventBeer(
     @Param('id', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -162,7 +154,6 @@ export class EventsController {
   }
 
   @Delete(':id/users/:userId/beers')
-  @BypassAuth()
   removeEventBeer(
     @Param('id', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -171,7 +162,6 @@ export class EventsController {
   }
 
   @Get(':id/users/:userId/beers')
-  @BypassAuth()
   getEventUserBeers(
     @Param('id', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -180,7 +170,6 @@ export class EventsController {
   }
 
   @Get(':id/users/:userId/beers/count')
-  @BypassAuth()
   getEventUserBeerCount(
     @Param('id', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,

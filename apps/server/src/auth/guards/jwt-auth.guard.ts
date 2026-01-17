@@ -2,11 +2,8 @@ import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/com
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-import { BYPASS_AUTH_KEY } from '../decorators/bypass-auth.decorator';
-import { config } from '../../config';
-import { Request } from 'express';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { User, UserRole } from '@prisma/client';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -22,45 +19,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     if (isPublic) {
       return true;
-    }
-
-    const canBypass = this.reflector.getAllAndOverride<boolean>(
-      BYPASS_AUTH_KEY,
-      [context.getHandler(), context.getClass()]
-    );
-
-    if (canBypass && config?.bypassAuth?.enabled) {
-      const request = context.switchToHttp().getRequest<Request>();
-      const bypassToken = request.headers['x-bypass-token'];
-      
-      if (bypassToken === config.bypassAuth?.token) {
-        // Inject super admin user for bypass auth
-        const adminUser: User = {
-          id: '00000000-0000-0000-0000-000000000000',
-          username: 'bypass.admin',
-          role: UserRole.SUPER_ADMIN,
-          isRegistrationComplete: true,
-          gender: 'MALE',
-          password: null,
-          name: null,
-          firstName: null,
-          lastName: null,
-          beerCount: 0,
-          lastBeerTime: null,
-          registrationToken: null,
-          isTwoFactorEnabled: false,
-          twoFactorSecret: null,
-          canLogin: true,
-          createdBy: null,
-          allowedIPs: [],
-          lastAdminLogin: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          deletedAt: null,
-        };
-        request.user = adminUser;
-        return true;
-      }
     }
 
     return super.canActivate(context);

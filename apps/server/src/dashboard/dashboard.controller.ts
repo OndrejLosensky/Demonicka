@@ -7,7 +7,6 @@ import { PublicStatsDto } from './dto/public-stats.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
-import { BypassAuth } from 'src/auth/decorators/bypass-auth.decorator';
 import { SystemStatsDto } from './dto/system-stats.dto';
 import { PersonalStatsDto } from './dto/personal-stats.dto';
 import { RoleGuard } from '../auth/guards/role.guard';
@@ -24,7 +23,6 @@ export class DashboardController {
 
   @Public()
   @Get('public')
-  @BypassAuth()
   @Header('Cache-Control', 'public, max-age=30')
   async getPublicStats(
     @Query('eventId') eventId?: string,
@@ -34,7 +32,6 @@ export class DashboardController {
 
   @Get('overview')
   @UseGuards(JwtAuthGuard)
-  @BypassAuth()
   @Header('Cache-Control', 'public, max-age=30')
   async getDashboardStats(
     @Query('eventId') eventId?: string,
@@ -44,7 +41,6 @@ export class DashboardController {
 
   @Get('leaderboard')
   @Public()
-  @BypassAuth()
   @Header('Cache-Control', 'public, max-age=30')
   async getLeaderboard(
     @Query('eventId') eventId?: string,
@@ -55,7 +51,6 @@ export class DashboardController {
   @Get('system')
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
-  @BypassAuth()
   @Header('Cache-Control', 'no-store')
   async getSystemStats(): Promise<SystemStatsDto> {
     return this.dashboardService.getSystemStats();
@@ -63,7 +58,6 @@ export class DashboardController {
 
   @Get('personal')
   @UseGuards(JwtAuthGuard)
-  @BypassAuth()
   @Header('Cache-Control', 'no-store')
   async getPersonalStats(@CurrentUser() user: User): Promise<PersonalStatsDto> {
     return this.dashboardService.getPersonalStats(user.id);
@@ -71,7 +65,6 @@ export class DashboardController {
 
   @Get('hourly-stats')
   @Public()
-  @BypassAuth()
   @Header('Cache-Control', 'public, max-age=30')
   async getEventHourlyStats(
     @Query('eventId') eventId: string,

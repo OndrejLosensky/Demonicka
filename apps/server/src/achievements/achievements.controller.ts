@@ -21,7 +21,6 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole, User } from '@prisma/client';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
-import { BypassAuth } from '../auth/decorators/bypass-auth.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @Controller('achievements')
@@ -32,7 +31,6 @@ export class AchievementsController {
 
   @Get('my')
   @UseGuards(JwtAuthGuard)
-  @BypassAuth()
   async getMyAchievements(
     @CurrentUser() user: User,
   ): Promise<UserAchievementsResponseDto> {
@@ -41,7 +39,6 @@ export class AchievementsController {
 
   @Get('check')
   @UseGuards(JwtAuthGuard)
-  @BypassAuth()
   async checkAchievements(@CurrentUser() user: User): Promise<void> {
     await this.achievementsService.checkAndUpdateAchievements(user.id);
   }
@@ -50,7 +47,6 @@ export class AchievementsController {
   @Get()
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
-  @BypassAuth()
   async getAllAchievements(): Promise<AchievementDto[]> {
     return this.achievementsService.getAllAchievements();
   }
@@ -58,7 +54,6 @@ export class AchievementsController {
   @Post()
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
-  @BypassAuth()
   async createAchievement(
     @Body() createDto: CreateAchievementDto,
   ): Promise<AchievementDto> {
@@ -68,7 +63,6 @@ export class AchievementsController {
   @Put(':id')
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
-  @BypassAuth()
   async updateAchievement(
     @Param('id') id: string,
     @Body() updateDto: UpdateAchievementDto,
@@ -79,7 +73,6 @@ export class AchievementsController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
-  @BypassAuth()
   async deleteAchievement(@Param('id') id: string): Promise<void> {
     await this.achievementsService.deleteAchievement(id);
   }

@@ -13,15 +13,12 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
-import { BypassAuth } from 'src/auth/decorators/bypass-auth.decorator';
-
 /**
  * Controller for managing beers.
  * All routes are protected by JWT authentication, prefixed with '/users/:userId/beers',
  * and require a valid JWT token.
  */
 @Controller('users/:userId/beers')
-@BypassAuth()
 @Versions('1')
 @UseGuards(JwtAuthGuard, VersionGuard)
 export class BeersController {
