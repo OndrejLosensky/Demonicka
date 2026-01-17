@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Menu, MenuItem, ListItemIcon, ListItemText, Divider, Box, Typography } from '@demonicka/ui';
-import { Logout as LogoutIcon, Person as PersonIcon } from '@demonicka/ui';
+import { Logout as LogoutIcon, Person as PersonIcon, TrendingUp as TrendingUpIcon, EmojiEvents as EmojiEventsIcon } from '@demonicka/ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { USER_ROLE } from '@demonicka/shared-types';
 import translations from '../../locales/cs/common.header.json';
@@ -29,6 +29,16 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
     onClose();
     logout();
     navigate('/login');
+  };
+
+  const handlePersonalStatsClick = () => {
+    onClose();
+    navigate(`/${user.id}/dashboard`);
+  };
+
+  const handleAchievementsClick = () => {
+    onClose();
+    navigate('/achievements');
   };
 
   const getRoleLabel = () => {
@@ -96,6 +106,32 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
           }}
         />
       </MenuItem>
+      {hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]) && (
+        <>
+          <MenuItem onClick={handlePersonalStatsClick} sx={{ py: 1, px: 2 }}>
+            <ListItemIcon>
+              <TrendingUpIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Moje statistiky"
+              primaryTypographyProps={{
+                sx: { fontWeight: 500 },
+              }}
+            />
+          </MenuItem>
+          <MenuItem onClick={handleAchievementsClick} sx={{ py: 1, px: 2 }}>
+            <ListItemIcon>
+              <EmojiEventsIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Úspěchy"
+              primaryTypographyProps={{
+                sx: { fontWeight: 500 },
+              }}
+            />
+          </MenuItem>
+        </>
+      )}
       <Divider sx={{ opacity: 0.6 }} />
       <MenuItem
         onClick={handleLogout}

@@ -167,7 +167,7 @@ function App() {
                       <Route
                         path=":userId/dashboard"
                         element={
-                          <RoleRoute allowedRoles={[USER_ROLE.USER]}>
+                          <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
                             <PersonalStatsView />
                           </RoleRoute>
                         }
