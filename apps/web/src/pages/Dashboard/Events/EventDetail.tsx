@@ -29,13 +29,18 @@ import {
     Storage as BarrelIcon,
     MetricCard,
     PageHeader,
+    Delete as DeleteIcon,
+    IconButton,
+    SportsBar as SportsBarIcon,
+    TextField,
 } from '@demonicka/ui';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { eventService } from '../../../services/eventService';
 import { barrelService } from '../../../services/barrelService';
 import { userService } from '../../../services/userService';
-import type { Event, User, Barrel } from '@demonicka/shared-types';
+import { eventBeerPongTeamService } from '../../../services/beerPongService';
+import type { Event, User, Barrel, EventBeerPongTeam, CreateTeamDto } from '@demonicka/shared-types';
 import { toast } from 'react-hot-toast';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { usePageTitle } from '../../../hooks/usePageTitle';
@@ -51,10 +56,18 @@ export const EventDetail: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [barrels, setBarrels] = useState<Barrel[]>([]);
     const [eventBeerCounts, setEventBeerCounts] = useState<Record<string, number>>({});
+    const [eventTeams, setEventTeams] = useState<EventBeerPongTeam[]>([]);
     const [openUser, setOpenUser] = useState(false);
     const [openBarrel, setOpenBarrel] = useState(false);
+    const [openTeam, setOpenTeam] = useState(false);
     const [selectedUser, setSelectedUser] = useState('');
     const [selectedBarrel, setSelectedBarrel] = useState('');
+    const [deleteTeamId, setDeleteTeamId] = useState<string | null>(null);
+    const [teamForm, setTeamForm] = useState<CreateTeamDto>({
+        name: '',
+        player1Id: '',
+        player2Id: '',
+    });
     const { loadActiveEvent } = useActiveEvent();
 
     const loadEventData = useCallback(async () => {
@@ -69,14 +82,16 @@ export const EventDetail: React.FC = () => {
     }, [id]);
 
     const loadUsers = useCallback(async () => {
+        if (!id) return;
         try {
-            const data = await userService.getAllUsers();
+            // Load only event users, not all users
+            const data = await eventService.getEventUsers(id);
             setUsers(data);
         } catch (error) {
             console.error('Failed to load users:', error);
-            toast.error('Nepodařilo se načíst uživatele');
+            toast.error('Nepodařilo se načíst účastníky události');
         }
-    }, []);
+    }, [id]);
 
     const loadBarrels = useCallback(async () => {
         try {
@@ -88,13 +103,25 @@ export const EventDetail: React.FC = () => {
         }
     }, []);
 
+    const loadEventTeams = useCallback(async () => {
+        if (!id) return;
+        try {
+            const teams = await eventBeerPongTeamService.getByEvent(id);
+            setEventTeams(teams);
+        } catch (error) {
+            console.error('Failed to load event teams:', error);
+            // Don't show error - teams might not exist yet
+        }
+    }, [id]);
+
     useEffect(() => {
         if (id) {
             loadEventData();
             loadUsers();
             loadBarrels();
+            loadEventTeams();
         }
-    }, [id, loadEventData, loadUsers, loadBarrels]);
+    }, [id, loadEventData, loadUsers, loadBarrels, loadEventTeams]);
 
     const loadEventBeerCounts = useCallback(async () => {
         if (!id || !event?.users) return;
@@ -143,6 +170,45 @@ export const EventDetail: React.FC = () => {
             }
         } catch (error) {
             console.error('Failed to add barrel:', error);
+        }
+    };
+
+    const handleCreateTeam = async () => {
+        if (!id) return;
+        try {
+            if (!teamForm.name.trim()) {
+                toast.error('Název týmu je povinný');
+                return;
+            }
+            if (!teamForm.player1Id || !teamForm.player2Id) {
+                toast.error('Oba hráči musí být vybráni');
+                return;
+            }
+            if (teamForm.player1Id === teamForm.player2Id) {
+                toast.error('Hráči musí být rozdílní');
+                return;
+            }
+            await eventBeerPongTeamService.create(id, teamForm);
+            await loadEventTeams();
+            setOpenTeam(false);
+            setTeamForm({ name: '', player1Id: '', player2Id: '' });
+            toast.success('Tým byl vytvořen');
+        } catch (error: any) {
+            console.error('Failed to create team:', error);
+            toast.error(error.response?.data?.message || 'Nepodařilo se vytvořit tým');
+        }
+    };
+
+    const handleDeleteTeam = async () => {
+        if (!id || !deleteTeamId) return;
+        try {
+            await eventBeerPongTeamService.delete(id, deleteTeamId);
+            await loadEventTeams();
+            setDeleteTeamId(null);
+            toast.success('Tým byl smazán');
+        } catch (error: any) {
+            console.error('Failed to delete team:', error);
+            toast.error(error.response?.data?.message || 'Nepodařilo se smazat tým');
         }
     };
 
@@ -328,7 +394,7 @@ export const EventDetail: React.FC = () => {
                 {/* Rest of the content */}
                 <Grid container spacing={3}>
                     {/* Participants Section */}
-                    <Grid item xs={12} md={6}>
+                    <Grid item xs={12} md={6} lg={4}>
                         <Paper 
                             sx={{ 
                                 borderRadius: 1,
@@ -427,7 +493,7 @@ export const EventDetail: React.FC = () => {
                     </Grid>
 
                     {/* Barrels Section */}
-                    <Grid item xs={12} md={6}>
+                    <Grid item xs={12} md={6} lg={4}>
                         <Paper 
                             sx={{ 
                                 borderRadius: 1,
@@ -532,6 +598,126 @@ export const EventDetail: React.FC = () => {
                             </Box>
                         </Paper>
                     </Grid>
+
+                    {/* Beer Pong Teams Section */}
+                    <Grid item xs={12} md={6} lg={4}>
+                        <Paper 
+                            sx={{ 
+                                borderRadius: 1,
+                                bgcolor: 'background.paper',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                height: '100%',
+                            }}
+                        >
+                            <Box sx={{ p: 3 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                        <Box
+                                            sx={{
+                                                width: 32,
+                                                height: 32,
+                                                borderRadius: '50%',
+                                                bgcolor: 'success.main',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
+                                            <SportsBarIcon sx={{ fontSize: 18, color: 'white' }} />
+                                        </Box>
+                                        <Box>
+                                            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                                                Beer Pong Týmy
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                                {eventTeams.length} týmů v poolu
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        size="small"
+                                        startIcon={<AddIcon />}
+                                        onClick={() => {
+                                            setOpenTeam(true);
+                                            setTeamForm({ name: '', player1Id: '', player2Id: '' });
+                                        }}
+                                        sx={{ borderRadius: 1 }}
+                                    >
+                                        Přidat
+                                    </Button>
+                                </Box>
+
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                    {eventTeams.length === 0 ? (
+                                        <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
+                                            <Typography variant="body2">
+                                                Zatím nejsou vytvořeny žádné týmy. Přidejte tým do event poolu pro použití v turnajích.
+                                            </Typography>
+                                        </Box>
+                                    ) : (
+                                        eventTeams.map((team) => (
+                                            <Box
+                                                key={team.id}
+                                                sx={{
+                                                    p: 2,
+                                                    border: '1px solid',
+                                                    borderColor: 'divider',
+                                                    borderRadius: 1,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 2,
+                                                    transition: tokens.transitions.default,
+                                                    '&:hover': {
+                                                        bgcolor: 'action.hover',
+                                                    },
+                                                    position: 'relative',
+                                                }}
+                                            >
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => setDeleteTeamId(team.id)}
+                                                    sx={{
+                                                        position: 'absolute',
+                                                        top: 4,
+                                                        right: 4,
+                                                        color: 'error.main',
+                                                    }}
+                                                >
+                                                    <DeleteIcon fontSize="small" />
+                                                </IconButton>
+                                                <Box
+                                                    sx={{
+                                                        width: 40,
+                                                        height: 40,
+                                                        borderRadius: '50%',
+                                                        bgcolor: 'success.main',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        flexShrink: 0,
+                                                    }}
+                                                >
+                                                    <SportsBarIcon sx={{ fontSize: 20, color: 'white' }} />
+                                                </Box>
+                                                <Box flex={1} sx={{ minWidth: 0, pr: 3 }}>
+                                                    <Typography fontWeight={700} sx={{ mb: 0.5 }}>
+                                                        {team.name}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                                        {team.player1?.username || team.player1?.name || [team.player1?.firstName, team.player1?.lastName].filter(Boolean).join(' ').trim() || 'N/A'} & {team.player2?.username || team.player2?.name || [team.player2?.firstName, team.player2?.lastName].filter(Boolean).join(' ').trim() || 'N/A'}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                        ))
+                                    )}
+                                </Box>
+                            </Box>
+                        </Paper>
+                    </Grid>
                 </Grid>
             </Box>
 
@@ -604,6 +790,93 @@ export const EventDetail: React.FC = () => {
                         disabled={!selectedBarrel}
                     >
                         Přidat
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Create Event Team Dialog */}
+            <Dialog open={openTeam} onClose={() => setOpenTeam(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Vytvořit tým v event poolu</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <TextField
+                            label="Název týmu"
+                            fullWidth
+                            required
+                            value={teamForm.name}
+                            onChange={(e) => setTeamForm((prev) => ({ ...prev, name: e.target.value }))}
+                        />
+                        <FormControl fullWidth required>
+                            <InputLabel>Hráč 1</InputLabel>
+                            <Select
+                                value={teamForm.player1Id}
+                                label="Hráč 1"
+                                onChange={(e) => setTeamForm((prev) => ({ ...prev, player1Id: e.target.value }))}
+                            >
+                                {users
+                                    .filter(user => user.id !== teamForm.player2Id)
+                                    .map((user) => (
+                                        <MenuItem key={user.id} value={user.id}>
+                                            {user.name || user.firstName || user.username || 'Unknown'}
+                                        </MenuItem>
+                                    ))
+                                }
+                                {users.length === 0 && (
+                                    <MenuItem disabled>Žádní účastníci v události</MenuItem>
+                                )}
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth required>
+                            <InputLabel>Hráč 2</InputLabel>
+                            <Select
+                                value={teamForm.player2Id}
+                                label="Hráč 2"
+                                onChange={(e) => setTeamForm((prev) => ({ ...prev, player2Id: e.target.value }))}
+                            >
+                                {users
+                                    .filter(user => user.id !== teamForm.player1Id)
+                                    .map((user) => (
+                                        <MenuItem key={user.id} value={user.id}>
+                                            {user.name || user.firstName || user.username || 'Unknown'}
+                                        </MenuItem>
+                                    ))
+                                }
+                                {users.length === 0 && (
+                                    <MenuItem disabled>Žádní účastníci v události</MenuItem>
+                                )}
+                            </Select>
+                        </FormControl>
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenTeam(false)}>Zrušit</Button>
+                    <Button 
+                        variant="contained"
+                        color="primary"
+                        onClick={handleCreateTeam}
+                        disabled={!teamForm.name.trim() || !teamForm.player1Id || !teamForm.player2Id}
+                    >
+                        Vytvořit
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Delete Team Confirmation Dialog */}
+            <Dialog open={!!deleteTeamId} onClose={() => setDeleteTeamId(null)} maxWidth="xs" fullWidth>
+                <DialogTitle>Smazat tým</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Opravdu chcete smazat tento tým z event poolu? Tato akce je nevratná.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeleteTeamId(null)}>Zrušit</Button>
+                    <Button 
+                        variant="contained"
+                        color="error"
+                        onClick={handleDeleteTeam}
+                    >
+                        Smazat
                     </Button>
                 </DialogActions>
             </Dialog>

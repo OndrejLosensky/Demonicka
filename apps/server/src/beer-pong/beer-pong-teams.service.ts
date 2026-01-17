@@ -7,91 +7,92 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { BeerPongTeam } from '@prisma/client';
 import { CreateTeamDto } from './dto/create-team.dto';
+import { EventBeerPongTeamsService } from '../events/services/event-beer-pong-teams.service';
 
 @Injectable()
 export class BeerPongTeamsService {
   private readonly logger = new Logger(BeerPongTeamsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventBeerPongTeamsService: EventBeerPongTeamsService,
+  ) {}
 
   async create(
     beerPongEventId: string,
     createDto: CreateTeamDto,
   ): Promise<BeerPongTeam> {
     // Verify beer pong event exists and is in DRAFT status
-    const event = await this.prisma.beerPongEvent.findFirst({
+    const beerPongEvent = await this.prisma.beerPongEvent.findFirst({
       where: {
         id: beerPongEventId,
         deletedAt: null,
       },
       include: {
+        event: true,
         teams: {
           where: { deletedAt: null },
         },
       },
     });
 
-    if (!event) {
+    if (!beerPongEvent) {
       throw new NotFoundException(
         `Beer pong event with ID ${beerPongEventId} not found`,
       );
     }
 
-    if (event.status !== 'DRAFT') {
+    if (beerPongEvent.status !== 'DRAFT') {
       throw new BadRequestException(
         'Teams can only be added when tournament is in DRAFT status',
       );
     }
 
     // Check if we already have 8 teams
-    if (event.teams.length >= 8) {
+    if (beerPongEvent.teams.length >= 8) {
       throw new BadRequestException(
         'Tournament already has 8 teams. Cannot add more.',
       );
     }
 
-    // Verify both users exist
-    const [player1, player2] = await Promise.all([
-      this.prisma.user.findUnique({ where: { id: createDto.player1Id } }),
-      this.prisma.user.findUnique({ where: { id: createDto.player2Id } }),
-    ]);
-
-    if (!player1 || !player2) {
-      throw new NotFoundException('One or both players not found');
-    }
-
-    // Verify players are different
-    if (createDto.player1Id === createDto.player2Id) {
-      throw new BadRequestException('Team must have two different players');
-    }
-
     // Check if team name is unique within this tournament
-    const existingTeam = event.teams.find(
+    const existingInTournament = beerPongEvent.teams.find(
       (t) => t.name.toLowerCase() === createDto.name.toLowerCase(),
     );
-    if (existingTeam) {
+    if (existingInTournament) {
       throw new BadRequestException(
         `Team name "${createDto.name}" already exists in this tournament`,
       );
     }
 
     // Check if either player is already in a team in this tournament
-    const playerInTeam = event.teams.find(
+    const playerInTournament = beerPongEvent.teams.find(
       (t) =>
         t.player1Id === createDto.player1Id ||
         t.player2Id === createDto.player1Id ||
         t.player1Id === createDto.player2Id ||
         t.player2Id === createDto.player2Id,
     );
-    if (playerInTeam) {
+    if (playerInTournament) {
       throw new BadRequestException(
         'One or both players are already in a team in this tournament',
       );
     }
 
+    // Create or get EventBeerPongTeam (event-level pool for reuse across tournaments)
+    const eventTeam = await this.eventBeerPongTeamsService.create(
+      beerPongEvent.eventId,
+      {
+        name: createDto.name,
+        player1Id: createDto.player1Id,
+        player2Id: createDto.player2Id,
+      },
+    );
+
     return this.prisma.beerPongTeam.create({
       data: {
         beerPongEventId,
+        eventBeerPongTeamId: eventTeam.id,
         name: createDto.name,
         player1Id: createDto.player1Id,
         player2Id: createDto.player2Id,
@@ -100,6 +101,83 @@ export class BeerPongTeamsService {
         player1: true,
         player2: true,
       },
+    });
+  }
+
+  /**
+   * Add an existing EventBeerPongTeam from the event pool to this tournament (reuse).
+   */
+  async createFromEventTeam(
+    beerPongEventId: string,
+    eventBeerPongTeamId: string,
+  ): Promise<BeerPongTeam> {
+    const beerPongEvent = await this.prisma.beerPongEvent.findFirst({
+      where: { id: beerPongEventId, deletedAt: null },
+      include: {
+        event: true,
+        teams: { where: { deletedAt: null } },
+      },
+    });
+    if (!beerPongEvent) {
+      throw new NotFoundException(
+        `Beer pong event with ID ${beerPongEventId} not found`,
+      );
+    }
+    if (beerPongEvent.status !== 'DRAFT') {
+      throw new BadRequestException(
+        'Teams can only be added when tournament is in DRAFT status',
+      );
+    }
+    if (beerPongEvent.teams.length >= 8) {
+      throw new BadRequestException(
+        'Tournament already has 8 teams. Cannot add more.',
+      );
+    }
+
+    const eventTeam = await this.prisma.eventBeerPongTeam.findFirst({
+      where: {
+        id: eventBeerPongTeamId,
+        eventId: beerPongEvent.eventId,
+        deletedAt: null,
+      },
+      include: { player1: true, player2: true },
+    });
+    if (!eventTeam) {
+      throw new NotFoundException(
+        `Event team with ID ${eventBeerPongTeamId} not found in this event`,
+      );
+    }
+
+    const existingName = beerPongEvent.teams.find(
+      (t) => t.name.toLowerCase() === eventTeam.name.toLowerCase(),
+    );
+    if (existingName) {
+      throw new BadRequestException(
+        `Team name "${eventTeam.name}" already exists in this tournament`,
+      );
+    }
+    const playerInTournament = beerPongEvent.teams.find(
+      (t) =>
+        t.player1Id === eventTeam.player1Id ||
+        t.player2Id === eventTeam.player1Id ||
+        t.player1Id === eventTeam.player2Id ||
+        t.player2Id === eventTeam.player2Id,
+    );
+    if (playerInTournament) {
+      throw new BadRequestException(
+        'One or both players are already in a team in this tournament',
+      );
+    }
+
+    return this.prisma.beerPongTeam.create({
+      data: {
+        beerPongEventId,
+        eventBeerPongTeamId: eventTeam.id,
+        name: eventTeam.name,
+        player1Id: eventTeam.player1Id,
+        player2Id: eventTeam.player2Id,
+      },
+      include: { player1: true, player2: true },
     });
   }
 

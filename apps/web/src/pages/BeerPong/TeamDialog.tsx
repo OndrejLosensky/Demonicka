@@ -13,10 +13,10 @@ import {
   Box,
 } from '@demonicka/ui';
 import { toast } from 'react-hot-toast';
-import { beerPongService } from '../../services/beerPongService';
+import { beerPongService, eventBeerPongTeamService } from '../../services/beerPongService';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { userService } from '../../services/userService';
-import type { CreateTeamDto, BeerPongTeam } from '@demonicka/shared-types';
+import type { CreateTeamDto, BeerPongTeam, EventBeerPongTeam } from '@demonicka/shared-types';
 import type { User } from '@demonicka/shared-types';
 import translations from '../../locales/cs/beerPong.json';
 
@@ -39,6 +39,10 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [eventTeams, setEventTeams] = useState<EventBeerPongTeam[]>([]);
+  const [loadingEventTeams, setLoadingEventTeams] = useState(false);
+  const [activeTab, setActiveTab] = useState(0); // 0 = Create New, 1 = Add from Event
+  const [selectedEventTeamId, setSelectedEventTeamId] = useState<string>('');
   const [formData, setFormData] = useState<CreateTeamDto>({
     name: '',
     player1Id: '',
@@ -49,12 +53,15 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
   useEffect(() => {
     if (open && activeEvent) {
       loadUsers();
+      loadEventTeams();
       setFormData({
         name: '',
         player1Id: '',
         player2Id: '',
       });
+      setSelectedEventTeamId('');
       setNameError('');
+      setActiveTab(0);
     }
   }, [open, activeEvent]);
 
@@ -70,6 +77,21 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
       toast.error(translations.teamDialog.errors.loadUsersFailed);
     } finally {
       setLoadingUsers(false);
+    }
+  };
+
+  const loadEventTeams = async () => {
+    if (!activeEvent) return;
+
+    try {
+      setLoadingEventTeams(true);
+      const teams = await eventBeerPongTeamService.getByEvent(activeEvent.id);
+      setEventTeams(teams);
+    } catch (error: any) {
+      console.error('Failed to load event teams:', error);
+      // Don't show error toast - event teams might not exist yet
+    } finally {
+      setLoadingEventTeams(false);
     }
   };
 
@@ -113,21 +135,43 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+    if (activeTab === 0) {
+      // Create new team
+      if (!validateForm()) {
+        return;
+      }
 
-    try {
-      setIsSubmitting(true);
-      await beerPongService.createTeam(beerPongEventId, formData);
-      toast.success(translations.teamDialog.success);
-      onSuccess();
-      onClose();
-    } catch (error: any) {
-      console.error('Failed to create team:', error);
-      toast.error(error.response?.data?.message || translations.teamDialog.errors.createFailed);
-    } finally {
-      setIsSubmitting(false);
+      try {
+        setIsSubmitting(true);
+        await beerPongService.createTeam(beerPongEventId, formData);
+        toast.success(translations.teamDialog.success);
+        onSuccess();
+        onClose();
+      } catch (error: any) {
+        console.error('Failed to create team:', error);
+        toast.error(error.response?.data?.message || translations.teamDialog.errors.createFailed);
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      // Add from event pool
+      if (!selectedEventTeamId) {
+        toast.error('Prosím vyberte tým z event poolu');
+        return;
+      }
+
+      try {
+        setIsSubmitting(true);
+        await beerPongService.addTeamFromEvent(beerPongEventId, selectedEventTeamId);
+        toast.success(translations.teamDialog.success);
+        onSuccess();
+        onClose();
+      } catch (error: any) {
+        console.error('Failed to add team from event:', error);
+        toast.error(error.response?.data?.message || 'Nepodařilo se přidat tým z event poolu');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -149,13 +193,53 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
     return user.username || user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown';
   };
 
+  // Filter event teams to exclude those already in the tournament
+  const getAvailableEventTeams = () => {
+    const existingTeamNames = new Set(
+      existingTeams.map((t) => t.name.toLowerCase())
+    );
+    const existingPlayerPairs = new Set(
+      existingTeams.map((t) => `${t.player1Id}-${t.player2Id}`)
+    );
+
+    return eventTeams.filter((eventTeam) => {
+      const nameLower = eventTeam.name.toLowerCase();
+      const playerPair = `${eventTeam.player1Id}-${eventTeam.player2Id}`;
+      return (
+        !existingTeamNames.has(nameLower) &&
+        !existingPlayerPairs.has(playerPair)
+      );
+    });
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit}>
         <DialogTitle>{translations.teamDialog.title}</DialogTitle>
         <DialogContent>
-          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <TextField
+          <Box sx={{ mt: 2 }}>
+            <Box sx={{ mb: 3, display: 'flex', gap: 1 }}>
+              <Button
+                variant={activeTab === 0 ? 'contained' : 'outlined'}
+                onClick={() => setActiveTab(0)}
+                size="small"
+                disabled={isSubmitting}
+              >
+                Vytvořit nový
+              </Button>
+              <Button
+                variant={activeTab === 1 ? 'contained' : 'outlined'}
+                onClick={() => setActiveTab(1)}
+                size="small"
+                disabled={isSubmitting}
+              >
+                Přidat z event poolu
+              </Button>
+            </Box>
+
+            {activeTab === 0 ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <TextField
               label={translations.teamDialog.fields.teamName}
               fullWidth
               required
@@ -199,9 +283,43 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
               </Select>
             </FormControl>
 
-            {existingTeams.length >= 8 && (
-              <Box sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
-                {translations.detail.teams.full}
+                {existingTeams.length >= 8 && (
+                  <Box sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
+                    {translations.detail.teams.full}
+                  </Box>
+                )}
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {loadingEventTeams ? (
+                  <Box sx={{ textAlign: 'center', py: 3 }}>
+                    Načítání týmů z event poolu...
+                  </Box>
+                ) : getAvailableEventTeams().length === 0 ? (
+                  <Box sx={{ p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
+                    V event poolu nejsou žádné dostupné týmy. Vytvořte nejprve tým v event poolu nebo použijte kartu "Vytvořit nový".
+                  </Box>
+                ) : (
+                  <FormControl fullWidth required disabled={isSubmitting}>
+                    <InputLabel>Vybrat tým z event poolu</InputLabel>
+                    <Select
+                      value={selectedEventTeamId}
+                      label="Vybrat tým z event poolu"
+                      onChange={(e) => setSelectedEventTeamId(e.target.value)}
+                    >
+                      {getAvailableEventTeams().map((team) => (
+                        <MenuItem key={team.id} value={team.id}>
+                          {team.name} ({team.player1?.name || team.player1?.firstName || 'N/A'} & {team.player2?.name || team.player2?.firstName || 'N/A'})
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+                {existingTeams.length >= 8 && (
+                  <Box sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
+                    {translations.detail.teams.full}
+                  </Box>
+                )}
               </Box>
             )}
           </Box>
@@ -213,9 +331,14 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
           <Button
             type="submit"
             variant="contained"
-            disabled={isSubmitting || existingTeams.length >= 8 || loadingUsers}
+            disabled={
+              isSubmitting ||
+              existingTeams.length >= 8 ||
+              loadingUsers ||
+              (activeTab === 1 && (!selectedEventTeamId || loadingEventTeams))
+            }
           >
-            {translations.teamDialog.buttons.create}
+            {activeTab === 0 ? translations.teamDialog.buttons.create : 'Přidat z poolu'}
           </Button>
         </DialogActions>
       </form>

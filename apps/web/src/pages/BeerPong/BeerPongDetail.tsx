@@ -359,18 +359,9 @@ export function BeerPongDetail() {
                 <Typography variant="body1" color="text.secondary" gutterBottom>
                   {translations.detail.teams.empty}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">
                   {translations.detail.teams.emptySubtitle}
                 </Typography>
-                {canAddTeams && (
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => setTeamDialogOpen(true)}
-                  >
-                    {translations.detail.actions.addTeam}
-                  </Button>
-                )}
               </Box>
             ) : (
               <Grid container spacing={2}>
@@ -573,7 +564,7 @@ export function BeerPongDetail() {
         />
       )}
 
-      {selectedGame && assignPosition && (
+      {selectedGame && assignPosition && tournament && (
         <AssignTeamDialog
           open={assignTeamDialogOpen}
           onClose={() => {
@@ -586,6 +577,7 @@ export function BeerPongDetail() {
           position={assignPosition}
           existingTeams={tournament.teams || []}
           beerPongEventId={id!}
+          eventId={tournament.eventId}
         />
       )}
     </Box>

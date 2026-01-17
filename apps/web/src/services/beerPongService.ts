@@ -5,6 +5,7 @@ import type {
   UpdateBeerPongEventDto,
   CreateTeamDto,
   CompleteGameDto,
+  EventBeerPongTeam,
 } from '@demonicka/shared-types';
 
 // Note: VersionMiddleware defaults to LATEST_VERSION ('1') if x-api-version header is missing
@@ -128,5 +129,46 @@ export const beerPongService = {
       position,
     });
     return response.data;
+  },
+
+  /**
+   * Add an existing event-level team to this tournament (reuse from event pool)
+   */
+  async addTeamFromEvent(
+    beerPongEventId: string,
+    eventBeerPongTeamId: string,
+  ): Promise<any> {
+    const response = await api.post(`/beer-pong/${beerPongEventId}/teams/from-event`, {
+      eventBeerPongTeamId,
+    });
+    return response.data;
+  },
+};
+
+/**
+ * Event-level Beer Pong Teams Service (for managing teams at event level)
+ */
+export const eventBeerPongTeamService = {
+  /**
+   * Get all event-level teams for an event
+   */
+  async getByEvent(eventId: string): Promise<EventBeerPongTeam[]> {
+    const response = await api.get(`/events/${eventId}/beer-pong-teams`);
+    return response.data;
+  },
+
+  /**
+   * Create a new event-level team
+   */
+  async create(eventId: string, data: CreateTeamDto): Promise<EventBeerPongTeam> {
+    const response = await api.post(`/events/${eventId}/beer-pong-teams`, data);
+    return response.data;
+  },
+
+  /**
+   * Delete an event-level team (soft delete)
+   */
+  async delete(eventId: string, teamId: string): Promise<void> {
+    await api.delete(`/events/${eventId}/beer-pong-teams/${teamId}`);
   },
 };

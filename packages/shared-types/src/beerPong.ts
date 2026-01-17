@@ -45,9 +45,36 @@ export interface BeerPongEvent {
   games?: BeerPongGame[];
 }
 
+/** Event-level team pool; reusable across BeerPongEvents (tournaments) in the same event. */
+export interface EventBeerPongTeam {
+  id: string;
+  eventId: string;
+  name: string;
+  player1Id: string;
+  player2Id: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  player1?: {
+    id: string;
+    username?: string;
+    name?: string;
+    firstName?: string;
+    lastName?: string;
+  };
+  player2?: {
+    id: string;
+    username?: string;
+    name?: string;
+    firstName?: string;
+    lastName?: string;
+  };
+}
+
 export interface BeerPongTeam {
   id: string;
   beerPongEventId: string;
+  eventBeerPongTeamId?: string;
   name: string;
   player1Id: string;
   player2Id: string;
@@ -55,12 +82,14 @@ export interface BeerPongTeam {
   deletedAt?: string;
   player1?: {
     id: string;
+    username?: string;
     name?: string;
     firstName?: string;
     lastName?: string;
   };
   player2?: {
     id: string;
+    username?: string;
     name?: string;
     firstName?: string;
     lastName?: string;

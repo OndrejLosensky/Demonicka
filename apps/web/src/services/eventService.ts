@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { Event } from '@demonicka/shared-types';
+import type { Event, User } from '@demonicka/shared-types';
 
 export const eventService = {
     async getAllEvents(): Promise<Event[]> {
@@ -75,7 +75,7 @@ export const eventService = {
         return response.data;
     },
 
-    async getEventUsers(id: string): Promise<Event> {
+    async getEventUsers(id: string): Promise<User[]> {
         const response = await api.get(`/events/${id}/users`);
         return response.data;
     },

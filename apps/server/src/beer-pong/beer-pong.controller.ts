@@ -16,6 +16,7 @@ import { BeerPongGamesService } from './beer-pong-games.service';
 import { CreateBeerPongEventDto } from './dto/create-beer-pong-event.dto';
 import { UpdateBeerPongEventDto } from './dto/update-beer-pong-event.dto';
 import { CreateTeamDto } from './dto/create-team.dto';
+import { AddTeamFromEventDto } from './dto/add-team-from-event.dto';
 import { CompleteGameDto } from './dto/complete-game.dto';
 import { AssignTeamDto } from './dto/assign-team.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -138,6 +139,15 @@ export class BeerPongController {
   }
 
   // Team management endpoints
+  @Post(':id/teams/from-event')
+  @Permissions(Permission.MANAGE_BEER_PONG_TEAMS)
+  async addTeamFromEvent(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: AddTeamFromEventDto,
+  ) {
+    return this.teamsService.createFromEventTeam(id, dto.eventBeerPongTeamId);
+  }
+
   @Post(':id/teams')
   @Permissions(Permission.MANAGE_BEER_PONG_TEAMS)
   async createTeam(

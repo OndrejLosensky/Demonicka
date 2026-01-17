@@ -104,9 +104,11 @@ model User {
   createdUsers          User[]             @relation("UserCreator")
   createdEvents         Event[]
   createdBeerPongEvents BeerPongEvent[]    @relation("BeerPongEventCreator")
-  beerPongTeams         BeerPongTeam[]     @relation("BeerPongTeamPlayer1")
-  beerPongTeams2        BeerPongTeam[]     @relation("BeerPongTeamPlayer2")
-  beerPongGameBeers     BeerPongGameBeer[]
+  beerPongTeams              BeerPongTeam[]         @relation("BeerPongTeamPlayer1")
+  beerPongTeams2             BeerPongTeam[]         @relation("BeerPongTeamPlayer2")
+  eventBeerPongTeamsAsP1     EventBeerPongTeam[]    @relation("EventBeerPongTeamPlayer1")
+  eventBeerPongTeamsAsP2     EventBeerPongTeam[]    @relation("EventBeerPongTeamPlayer2")
+  beerPongGameBeers          BeerPongGameBeer[]
   startedBeerPongGames  BeerPongGame[]
 
   creator User? @relation("UserCreator", fields: [createdBy], references: [id])
@@ -195,13 +197,37 @@ model Event {
   deletedAt   DateTime? @db.Timestamptz(6)
 
   // Relations
-  eventBeers     EventBeer[]
-  users          EventUsers[]
-  barrels        EventBarrels[]
-  beerPongEvents BeerPongEvent[]
-  creator        User?           @relation(fields: [createdBy], references: [id])
+  eventBeers         EventBeer[]
+  users              EventUsers[]
+  barrels            EventBarrels[]
+  beerPongEvents     BeerPongEvent[]
+  eventBeerPongTeams  EventBeerPongTeam[]
+  creator            User?           @relation(fields: [createdBy], references: [id])
 
   @@index([createdBy])
+}
+
+/// Teams registered at Event level; reusable across BeerPongEvents (tournaments) in the same event.
+model EventBeerPongTeam {
+  id        String    @id @default(uuid()) @db.Uuid
+  eventId   String    @db.Uuid
+  name      String
+  player1Id String    @db.Uuid
+  player2Id String    @db.Uuid
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt DateTime? @db.Timestamptz(6)
+
+  // Relations
+  event          Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  player1        User           @relation("EventBeerPongTeamPlayer1", fields: [player1Id], references: [id])
+  player2        User           @relation("EventBeerPongTeamPlayer2", fields: [player2Id], references: [id])
+  beerPongTeams  BeerPongTeam[]
+
+  @@unique([eventId, name])
+  @@index([eventId])
+  @@index([player1Id])
+  @@index([player2Id])
 }
 
 model EventBeer {
@@ -356,24 +382,27 @@ model BeerPongEvent {
 }
 
 model BeerPongTeam {
-  id              String    @id @default(uuid()) @db.Uuid
-  beerPongEventId String    @db.Uuid
-  name            String
-  player1Id       String    @db.Uuid
-  player2Id       String    @db.Uuid
-  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
-  deletedAt       DateTime? @db.Timestamptz(6)
+  id                   String    @id @default(uuid()) @db.Uuid
+  beerPongEventId      String    @db.Uuid
+  eventBeerPongTeamId  String?   @db.Uuid  // Optional: links to event-level team when reusing
+  name                 String
+  player1Id            String    @db.Uuid
+  player2Id            String    @db.Uuid
+  createdAt            DateTime  @default(now()) @db.Timestamptz(6)
+  deletedAt            DateTime? @db.Timestamptz(6)
 
   // Relations
-  beerPongEvent BeerPongEvent  @relation(fields: [beerPongEventId], references: [id], onDelete: Cascade)
-  player1       User           @relation("BeerPongTeamPlayer1", fields: [player1Id], references: [id])
-  player2       User           @relation("BeerPongTeamPlayer2", fields: [player2Id], references: [id])
-  gamesAsTeam1  BeerPongGame[] @relation("BeerPongGameTeam1")
-  gamesAsTeam2  BeerPongGame[] @relation("BeerPongGameTeam2")
-  gamesWon      BeerPongGame[] @relation("BeerPongGameWinner")
+  beerPongEvent      BeerPongEvent      @relation(fields: [beerPongEventId], references: [id], onDelete: Cascade)
+  eventBeerPongTeam  EventBeerPongTeam? @relation(fields: [eventBeerPongTeamId], references: [id], onDelete: SetNull)
+  player1            User                @relation("BeerPongTeamPlayer1", fields: [player1Id], references: [id])
+  player2            User                @relation("BeerPongTeamPlayer2", fields: [player2Id], references: [id])
+  gamesAsTeam1       BeerPongGame[]      @relation("BeerPongGameTeam1")
+  gamesAsTeam2       BeerPongGame[]      @relation("BeerPongGameTeam2")
+  gamesWon           BeerPongGame[]      @relation("BeerPongGameWinner")
 
   @@unique([beerPongEventId, name])
   @@index([beerPongEventId])
+  @@index([eventBeerPongTeamId])
   @@index([player1Id])
   @@index([player2Id])
 }

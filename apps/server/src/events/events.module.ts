@@ -3,6 +3,8 @@ import { EventsService } from './events.service';
 import { EventsController } from './events.controller';
 import { EventBeersService } from './services/event-beers.service';
 import { EventBeersController } from './controllers/event-beers.controller';
+import { EventBeerPongTeamsService } from './services/event-beer-pong-teams.service';
+import { EventBeerPongTeamsController } from './controllers/event-beer-pong-teams.controller';
 import { BeersModule } from '../beers/beers.module';
 import { BarrelsModule } from '../barrels/barrels.module';
 import { LoggingModule } from '../logging/logging.module';
@@ -19,8 +21,8 @@ import { BeerPongModule } from '../beer-pong/beer-pong.module';
         LeaderboardModule,
         forwardRef(() => BeerPongModule),
     ],
-    controllers: [EventsController, EventBeersController],
-    providers: [EventsService, EventBeersService],
-    exports: [EventsService, EventBeersService],
+    controllers: [EventBeerPongTeamsController, EventBeersController, EventsController],
+    providers: [EventsService, EventBeersService, EventBeerPongTeamsService],
+    exports: [EventsService, EventBeersService, EventBeerPongTeamsService],
 })
 export class EventsModule {}
