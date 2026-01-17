@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import type { UserRole } from '@demonicka/shared-types';
 import { USER_ROLE } from '@demonicka/shared-types';
 
@@ -34,4 +34,4 @@ export default function RoleRoute({ children, allowedRoles }: RoleRouteProps) {
   }
 
   return <>{children}</>;
-} 
+}

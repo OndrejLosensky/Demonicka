@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { USER_ROLE } from '@demonicka/shared-types';
 
 interface GuestRouteProps {
