@@ -105,12 +105,8 @@ export class EventsService {
     }
 
     async remove(id: string, user?: User): Promise<void> {
+        // Only SUPER_ADMIN can delete events (permission check is done by guard)
         const event = await this.findOne(id, user); // Verify event exists and check access
-        
-        // Check ownership for OPERATOR (SUPER_ADMIN can delete any event)
-        if (user && user.role === UserRole.OPERATOR && event.createdBy !== user.id) {
-            throw new ForbiddenException('You can only delete events you created');
-        }
 
         await this.prisma.event.update({
             where: { id },

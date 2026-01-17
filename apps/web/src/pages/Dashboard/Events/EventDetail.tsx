@@ -47,6 +47,8 @@ import { usePageTitle } from '../../../hooks/usePageTitle';
 import { tokens } from '../../../theme/tokens';
 import { useAppTheme } from '../../../contexts/ThemeContext';
 import { getShadow } from '../../../theme/utils';
+import { useAuth } from '../../../contexts/AuthContext';
+import { Permission } from '@demonicka/shared';
 
 export const EventDetail: React.FC = () => {
     usePageTitle('Detail události');
@@ -63,12 +65,15 @@ export const EventDetail: React.FC = () => {
     const [selectedUser, setSelectedUser] = useState('');
     const [selectedBarrel, setSelectedBarrel] = useState('');
     const [deleteTeamId, setDeleteTeamId] = useState<string | null>(null);
+    const [deleteEventOpen, setDeleteEventOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [teamForm, setTeamForm] = useState<CreateTeamDto>({
         name: '',
         player1Id: '',
         player2Id: '',
     });
     const { loadActiveEvent } = useActiveEvent();
+    const { hasPermission } = useAuth();
 
     const loadEventData = useCallback(async () => {
         if (!id) return;
@@ -212,6 +217,22 @@ export const EventDetail: React.FC = () => {
         }
     };
 
+    const handleDeleteEvent = async () => {
+        if (!id) return;
+        try {
+            setIsDeleting(true);
+            await eventService.deleteEvent(id);
+            toast.success('Událost byla úspěšně smazána');
+            navigate('/events');
+        } catch (error: any) {
+            console.error('Failed to delete event:', error);
+            toast.error(error.response?.data?.message || 'Nepodařilo se smazat událost');
+        } finally {
+            setIsDeleting(false);
+            setDeleteEventOpen(false);
+        }
+    };
+
     const handleSetActive = async () => {
         if (!id) return;
         
@@ -340,6 +361,19 @@ export const EventDetail: React.FC = () => {
                 }
                 action={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        {hasPermission([Permission.DELETE_EVENT]) && (
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                startIcon={<DeleteIcon />}
+                                onClick={() => setDeleteEventOpen(true)}
+                                sx={{
+                                    borderRadius: tokens.borderRadius.md,
+                                }}
+                            >
+                                Smazat událost
+                            </Button>
+                        )}
                         <Button
                             variant={event.isActive ? 'outlined' : 'contained'}
                             color={event.isActive ? 'error' : 'primary'}
@@ -877,6 +911,29 @@ export const EventDetail: React.FC = () => {
                         onClick={handleDeleteTeam}
                     >
                         Smazat
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Delete Event Confirmation Dialog */}
+            <Dialog open={deleteEventOpen} onClose={() => !isDeleting && setDeleteEventOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle>Smazat událost</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Opravdu chcete smazat událost "{event.name}"? Tato akce je nevratná a smaže všechny související data.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeleteEventOpen(false)} disabled={isDeleting}>
+                        Zrušit
+                    </Button>
+                    <Button 
+                        variant="contained"
+                        color="error"
+                        onClick={handleDeleteEvent}
+                        disabled={isDeleting}
+                    >
+                        {isDeleting ? 'Maže se...' : 'Smazat'}
                     </Button>
                 </DialogActions>
             </Dialog>

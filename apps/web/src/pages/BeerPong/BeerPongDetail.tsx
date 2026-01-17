@@ -34,6 +34,8 @@ import type {
 } from '@demonicka/shared-types';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import translations from '../../locales/cs/beerPong.json';
+import { useAuth } from '../../contexts/AuthContext';
+import { Permission } from '@demonicka/shared';
 
 export function BeerPongDetail() {
   const { id } = useParams<{ id: string }>();
@@ -49,6 +51,8 @@ export function BeerPongDetail() {
   const [assignTeamDialogOpen, setAssignTeamDialogOpen] = useState(false);
   const [assignPosition, setAssignPosition] = useState<'team1' | 'team2' | null>(null);
   const [activeTab, setActiveTab] = useState(0); // 0 = Map, 1 = Teams, 2 = Settings
+  const [deleteTournamentOpen, setDeleteTournamentOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   usePageTitle(tournament ? translations.detail.pageTitle.replace('{{name}}', tournament.name) : translations.pageTitle);
 
@@ -119,6 +123,23 @@ export function BeerPongDetail() {
     } catch (err: any) {
       console.error('Failed to complete tournament:', err);
       toast.error(err.response?.data?.message || translations.detail.errors.completeFailed || 'Failed to complete tournament');
+    }
+  };
+
+  const handleDeleteTournament = async () => {
+    if (!id) return;
+
+    try {
+      setIsDeleting(true);
+      await beerPongService.delete(id);
+      toast.success('Turnaj byl úspěšně smazán');
+      navigate('/dashboard/beer-pong');
+    } catch (err: any) {
+      console.error('Failed to delete tournament:', err);
+      toast.error(err.response?.data?.message || 'Nepodařilo se smazat turnaj');
+    } finally {
+      setIsDeleting(false);
+      setDeleteTournamentOpen(false);
     }
   };
 
@@ -209,12 +230,14 @@ export function BeerPongDetail() {
     );
   }
 
+  const { hasPermission } = useAuth();
   const teamCount = tournament.teams?.length || 0;
   const canStart = teamCount === 8 && tournament.status === 'DRAFT';
   const canAddTeams = tournament.status === 'DRAFT' && teamCount < 8;
   const canDeleteTeams = tournament.status === 'DRAFT';
   const canComplete = tournament.status === 'ACTIVE' && 
     tournament.games?.some(g => g.round === 'FINAL' && g.winnerTeamId);
+  const canDeleteTournament = hasPermission([Permission.DELETE_BEER_PONG_EVENT]) && tournament.status !== 'ACTIVE';
 
   return (
     <Box sx={{ p: 3 }}>
@@ -238,6 +261,16 @@ export function BeerPongDetail() {
           )}
         </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
+          {canDeleteTournament && (
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={() => setDeleteTournamentOpen(true)}
+            >
+              Smazat turnaj
+            </Button>
+          )}
           {canStart && (
             <Button
               variant="contained"
@@ -549,6 +582,33 @@ export function BeerPongDetail() {
           <Button onClick={() => setCompleteTournamentOpen(false)}>{translations.detail.completeDialog?.cancel || 'Zrušit'}</Button>
           <Button onClick={handleCompleteTournament} color="success" variant="contained">
             {translations.detail.completeDialog?.confirm || 'Dokončit'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteTournamentOpen}
+        onClose={() => !isDeleting && setDeleteTournamentOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Smazat turnaj</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Opravdu chcete smazat turnaj "{tournament.name}"? Tato akce je nevratná a smaže všechny související data. Aktivní turnaje nelze smazat.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteTournamentOpen(false)} disabled={isDeleting}>
+            Zrušit
+          </Button>
+          <Button
+            onClick={handleDeleteTournament}
+            color="error"
+            variant="contained"
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Maže se...' : 'Smazat'}
           </Button>
         </DialogActions>
       </Dialog>

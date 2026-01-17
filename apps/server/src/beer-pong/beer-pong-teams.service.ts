@@ -80,14 +80,33 @@ export class BeerPongTeamsService {
     }
 
     // Create or get EventBeerPongTeam (event-level pool for reuse across tournaments)
-    const eventTeam = await this.eventBeerPongTeamsService.create(
-      beerPongEvent.eventId,
-      {
-        name: createDto.name,
+    // First, try to find existing event-level team with same name and players
+    let eventTeam = await this.prisma.eventBeerPongTeam.findFirst({
+      where: {
+        eventId: beerPongEvent.eventId,
+        deletedAt: null,
+        name: { equals: createDto.name, mode: 'insensitive' },
         player1Id: createDto.player1Id,
         player2Id: createDto.player2Id,
       },
-    );
+    });
+
+    // If not found, try to create it (will fail if name exists with different players, or players in different team)
+    if (!eventTeam) {
+      eventTeam = await this.eventBeerPongTeamsService.create(
+        beerPongEvent.eventId,
+        {
+          name: createDto.name,
+          player1Id: createDto.player1Id,
+          player2Id: createDto.player2Id,
+        },
+      );
+    }
+
+    // TypeScript guard: eventTeam should always exist at this point
+    if (!eventTeam) {
+      throw new BadRequestException('Failed to create or find event team');
+    }
 
     return this.prisma.beerPongTeam.create({
       data: {

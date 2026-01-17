@@ -31,7 +31,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     // Event permissions (scoped to own events)
     Permission.CREATE_EVENT,
     Permission.UPDATE_EVENT,
-    Permission.DELETE_EVENT,
     Permission.VIEW_OWN_EVENTS,
     Permission.MANAGE_EVENT_USERS,
     Permission.MANAGE_EVENT_BARRELS,
@@ -68,7 +67,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     // Beer Pong permissions
     Permission.CREATE_BEER_PONG_EVENT,
     Permission.UPDATE_BEER_PONG_EVENT,
-    Permission.DELETE_BEER_PONG_EVENT,
     Permission.MANAGE_BEER_PONG_TEAMS,
     Permission.START_BEER_PONG_GAME,
     Permission.MANAGE_BEER_PONG_GAME,
