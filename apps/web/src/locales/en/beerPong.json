@@ -63,9 +63,15 @@
     "actions": {
       "addTeam": "Add Team",
       "startTournament": "Start Tournament",
+      "completeTournament": "Complete Tournament",
       "deleteTeam": "Delete Team",
       "edit": "Edit",
       "delete": "Delete"
+    },
+    "tabs": {
+      "map": "Map",
+      "teams": "Teams",
+      "settings": "Settings"
     },
     "teams": {
       "title": "Teams",
@@ -81,7 +87,8 @@
       "title": "Bracket",
       "quarterfinal": "Quarterfinal",
       "semifinal": "Semifinal",
-      "final": "Final"
+      "final": "Final",
+      "notStarted": "Tournament has not been started yet"
     },
     "games": {
       "title": "Games",
@@ -98,7 +105,8 @@
       "timeWindow": "Time Window",
       "undoWindow": "Undo Window",
       "cancellationPolicy": "Cancellation Policy",
-      "started": "Started"
+      "started": "Started",
+      "completed": "Completed"
     },
     "startDialog": {
       "title": "Start Tournament",
@@ -112,13 +120,21 @@
       "confirm": "Delete",
       "cancel": "Cancel"
     },
+    "completeDialog": {
+      "title": "Complete Tournament",
+      "message": "Are you sure you want to complete the tournament? This action cannot be undone.",
+      "confirm": "Complete",
+      "cancel": "Cancel"
+    },
     "errors": {
       "loadFailed": "Failed to load tournament",
       "startFailed": "Failed to start tournament",
+      "completeFailed": "Failed to complete tournament",
       "deleteTeamFailed": "Failed to delete team"
     },
     "success": {
       "started": "Tournament started! Bracket initialized.",
+      "completed": "Tournament completed successfully",
       "teamDeleted": "Team deleted successfully"
     }
   },

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "BeerPongGame" ALTER COLUMN "team1Id" DROP NOT NULL;
+ALTER TABLE "BeerPongGame" ALTER COLUMN "team2Id" DROP NOT NULL;

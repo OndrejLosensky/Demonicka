@@ -17,13 +17,14 @@ import {
   Delete as DeleteIcon,
   ArrowBack as ArrowBackIcon,
 } from '@demonicka/ui';
-import { DialogContentText } from '@mui/material';
-import { PlayArrow as PlayArrowIcon } from '@mui/icons-material';
+import { DialogContentText, Tabs, Tab } from '@mui/material';
+import { PlayArrow as PlayArrowIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import { beerPongService } from '../../services/beerPongService';
 import { TeamDialog } from './TeamDialog';
 import { GameDetailModal } from '../../components/BeerPong/GameDetailModal';
 import { BracketSVG } from '../../components/BeerPong/BracketSVG';
+import { AssignTeamDialog } from '../../components/BeerPong/AssignTeamDialog';
 import type {
   BeerPongEvent,
   BeerPongTeam,
@@ -43,7 +44,11 @@ export function BeerPongDetail() {
   const [teamDialogOpen, setTeamDialogOpen] = useState(false);
   const [deleteTeamId, setDeleteTeamId] = useState<string | null>(null);
   const [startTournamentOpen, setStartTournamentOpen] = useState(false);
+  const [completeTournamentOpen, setCompleteTournamentOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<BeerPongGame | null>(null);
+  const [assignTeamDialogOpen, setAssignTeamDialogOpen] = useState(false);
+  const [assignPosition, setAssignPosition] = useState<'team1' | 'team2' | null>(null);
+  const [activeTab, setActiveTab] = useState(0); // 0 = Map, 1 = Teams, 2 = Settings
 
   usePageTitle(tournament ? translations.detail.pageTitle.replace('{{name}}', tournament.name) : translations.pageTitle);
 
@@ -54,14 +59,21 @@ export function BeerPongDetail() {
   }, [id]);
 
   const loadTournament = async () => {
-    if (!id) return;
+    console.log('[BeerPong loadTournament] called, id=', id);
+    if (!id) {
+      console.log('[BeerPong loadTournament] no id, returning');
+      return;
+    }
 
     try {
       setLoading(true);
       setError(null);
+      console.log('[BeerPong loadTournament] calling getById');
       const data = await beerPongService.getById(id);
+      console.log('[BeerPong loadTournament] getById success, data.games?.length=', data?.games?.length ?? 'n/a');
       setTournament(data);
     } catch (err: any) {
+      console.log('[BeerPong loadTournament] getById FAILED:', err?.message, err?.response?.status, err?.response?.data);
       setError(err.message || translations.detail.errors.loadFailed);
     } finally {
       setLoading(false);
@@ -93,6 +105,20 @@ export function BeerPongDetail() {
     } catch (err: any) {
       console.error('Failed to start tournament:', err);
       toast.error(err.response?.data?.message || translations.detail.errors.startFailed);
+    }
+  };
+
+  const handleCompleteTournament = async () => {
+    if (!id) return;
+
+    try {
+      await beerPongService.completeTournament(id);
+      toast.success(translations.detail.success.completed || 'Tournament completed successfully');
+      setCompleteTournamentOpen(false);
+      loadTournament();
+    } catch (err: any) {
+      console.error('Failed to complete tournament:', err);
+      toast.error(err.response?.data?.message || translations.detail.errors.completeFailed || 'Failed to complete tournament');
     }
   };
 
@@ -187,6 +213,8 @@ export function BeerPongDetail() {
   const canStart = teamCount === 8 && tournament.status === 'DRAFT';
   const canAddTeams = tournament.status === 'DRAFT' && teamCount < 8;
   const canDeleteTeams = tournament.status === 'DRAFT';
+  const canComplete = tournament.status === 'ACTIVE' && 
+    tournament.games?.some(g => g.round === 'FINAL' && g.winnerTeamId);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -209,74 +237,98 @@ export function BeerPongDetail() {
             </Typography>
           )}
         </Box>
-        {canStart && (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<PlayArrowIcon />}
-            onClick={() => setStartTournamentOpen(true)}
-          >
-            {translations.detail.actions.startTournament}
-          </Button>
-        )}
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          {canStart && (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<PlayArrowIcon />}
+              onClick={() => setStartTournamentOpen(true)}
+            >
+              {translations.detail.actions.startTournament}
+            </Button>
+          )}
+          {canComplete && (
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<CheckCircleIcon />}
+              onClick={() => setCompleteTournamentOpen(true)}
+            >
+              {translations.detail.actions.completeTournament || 'Dokončit Turnaj'}
+            </Button>
+          )}
+        </Box>
       </Box>
 
-      <Grid container spacing={3}>
-        {/* Tournament Info */}
-        <Grid item xs={12} md={4}>
+      {/* Tabs */}
+      <Paper sx={{ mb: 3 }}>
+        <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
+          <Tab label={translations.detail.tabs.map || 'Mapa'} />
+          <Tab label={translations.detail.tabs.teams || 'Týmy'} />
+          <Tab label={translations.detail.tabs.settings || 'Nastavení'} />
+        </Tabs>
+      </Paper>
+
+      {/* Tab Content */}
+      {activeTab === 0 && (
+        <Box>
+          {/* Map/Bracket Tab */}
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              {translations.detail.stats.title}
+              {translations.detail.bracket.title}
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">
-                  {translations.detail.stats.beersPerPlayer}:
-                </Typography>
-                <Typography variant="body2" fontWeight={600}>
-                  {tournament.beersPerPlayer}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">
-                  {translations.detail.stats.timeWindow}:
-                </Typography>
-                <Typography variant="body2" fontWeight={600}>
-                  {tournament.timeWindowMinutes} min
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">
-                  {translations.detail.stats.undoWindow}:
-                </Typography>
-                <Typography variant="body2" fontWeight={600}>
-                  {tournament.undoWindowMinutes} min
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">
-                  {translations.detail.stats.cancellationPolicy}:
-                </Typography>
-                <Typography variant="body2" fontWeight={600}>
-                  {tournament.cancellationPolicy === 'KEEP_BEERS' ? translations.createDialog.cancellationPolicy.keepBeers : translations.createDialog.cancellationPolicy.removeBeers}
-                </Typography>
-              </Box>
-              {tournament.startedAt && (
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2" color="text.secondary">
-                    {translations.detail.stats.started}:
+            <Box sx={{ mt: 2 }}>
+              {tournament.games && tournament.games.length > 0 ? (
+                <BracketSVG 
+                  games={tournament.games} 
+                  onGameClick={setSelectedGame}
+                  onSlotClick={(game, position) => {
+                    setSelectedGame(game);
+                    setAssignPosition(position);
+                    setAssignTeamDialogOpen(true);
+                  }}
+                  canEdit={tournament.status === 'DRAFT'}
+                />
+              ) : (
+                <Box
+                  sx={{
+                    p: 4,
+                    textAlign: 'center',
+                    border: '1px dashed',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    bgcolor: 'action.hover',
+                  }}
+                >
+                  <Typography variant="body1" color="text.secondary">
+                    {translations.detail.games.noGames}
                   </Typography>
-                  <Typography variant="body2" fontWeight={600}>
-                    {new Date(tournament.startedAt).toLocaleString()}
-                  </Typography>
+                  {tournament.status === 'DRAFT' && (
+                    <Button
+                      variant="outlined"
+                      onClick={async () => {
+                        try {
+                          await loadTournament();
+                        } catch (err) {
+                          console.error('Failed to reload:', err);
+                        }
+                      }}
+                      sx={{ mt: 2 }}
+                    >
+                      Obnovit
+                    </Button>
+                  )}
                 </Box>
               )}
             </Box>
           </Paper>
-        </Grid>
+        </Box>
+      )}
 
-        {/* Team Management */}
-        <Grid item xs={12} md={8}>
+      {activeTab === 1 && (
+        <Box>
+          {/* Teams Tab */}
           <Paper sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h6">
@@ -369,47 +421,77 @@ export function BeerPongDetail() {
               </Box>
             )}
           </Paper>
-        </Grid>
+        </Box>
+      )}
 
-        {/* SVG Bracket Visualization */}
-        {tournament.status !== 'DRAFT' && tournament.games && tournament.games.length > 0 && (
-          <Grid item xs={12}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                {translations.detail.bracket.title}
-              </Typography>
-              <Box sx={{ mt: 2 }}>
-                <BracketSVG games={tournament.games} onGameClick={setSelectedGame} />
-              </Box>
-            </Paper>
-          </Grid>
-        )}
-
-        {/* Fallback games list if no games exist yet */}
-        {tournament.status !== 'DRAFT' && (!tournament.games || tournament.games.length === 0) && (
-          <Grid item xs={12}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                {translations.detail.bracket.title}
-              </Typography>
-              <Box
-                sx={{
-                  p: 4,
-                  textAlign: 'center',
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                  bgcolor: 'action.hover',
-                }}
-              >
-                <Typography variant="body1" color="text.secondary">
-                  {translations.detail.games.noGames}
+      {activeTab === 2 && (
+        <Box>
+          {/* Settings Tab */}
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  {translations.detail.stats.title}
                 </Typography>
-              </Box>
-            </Paper>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {translations.detail.stats.beersPerPlayer}:
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {tournament.beersPerPlayer}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {translations.detail.stats.timeWindow}:
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {tournament.timeWindowMinutes} min
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {translations.detail.stats.undoWindow}:
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {tournament.undoWindowMinutes} min
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {translations.detail.stats.cancellationPolicy}:
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {tournament.cancellationPolicy === 'KEEP_BEERS' ? translations.createDialog.cancellationPolicy.keepBeers : translations.createDialog.cancellationPolicy.removeBeers}
+                    </Typography>
+                  </Box>
+                  {tournament.startedAt && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {translations.detail.stats.started}:
+                      </Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        {new Date(tournament.startedAt).toLocaleString()}
+                      </Typography>
+                    </Box>
+                  )}
+                  {tournament.completedAt && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {translations.detail.stats.completed || 'Dokončeno'}:
+                      </Typography>
+                      <Typography variant="body2" fontWeight={600}>
+                        {new Date(tournament.completedAt).toLocaleString()}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              </Paper>
+            </Grid>
           </Grid>
-        )}
-      </Grid>
+        </Box>
+      )}
 
       {/* Dialogs */}
       <TeamDialog
@@ -460,14 +542,50 @@ export function BeerPongDetail() {
         </DialogActions>
       </Dialog>
 
+      <Dialog
+        open={completeTournamentOpen}
+        onClose={() => setCompleteTournamentOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>{translations.detail.completeDialog?.title || 'Dokončit Turnaj'}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {translations.detail.completeDialog?.message || 'Opravdu chcete dokončit turnaj? Tato akce je nevratná.'}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCompleteTournamentOpen(false)}>{translations.detail.completeDialog?.cancel || 'Zrušit'}</Button>
+          <Button onClick={handleCompleteTournament} color="success" variant="contained">
+            {translations.detail.completeDialog?.confirm || 'Dokončit'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {selectedGame && tournament && (
         <GameDetailModal
-          open={!!selectedGame}
+          open={!!selectedGame && !assignTeamDialogOpen}
           onClose={() => setSelectedGame(null)}
           onSuccess={loadTournament}
           game={selectedGame}
           tournamentBeersPerPlayer={tournament.beersPerPlayer}
           tournamentUndoWindowMinutes={tournament.undoWindowMinutes}
+        />
+      )}
+
+      {selectedGame && assignPosition && (
+        <AssignTeamDialog
+          open={assignTeamDialogOpen}
+          onClose={() => {
+            setAssignTeamDialogOpen(false);
+            setAssignPosition(null);
+            setSelectedGame(null);
+          }}
+          onSuccess={loadTournament}
+          game={selectedGame}
+          position={assignPosition}
+          existingTeams={tournament.teams || []}
+          beerPongEventId={id!}
         />
       )}
     </Box>

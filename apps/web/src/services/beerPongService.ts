@@ -23,7 +23,9 @@ export const beerPongService = {
    * Get a single beer pong tournament with teams and games
    */
   async getById(id: string): Promise<BeerPongEvent> {
+    console.log('[BeerPong getById] requesting /beer-pong/' + id);
     const response = await api.get(`/beer-pong/${id}`);
+    console.log('[BeerPong getById] response status=', response?.status, 'games.length=', response?.data?.games?.length ?? 'n/a');
     return response.data;
   },
 
@@ -55,6 +57,14 @@ export const beerPongService = {
    */
   async startTournament(id: string): Promise<BeerPongEvent> {
     const response = await api.post(`/beer-pong/${id}/start`);
+    return response.data;
+  },
+
+  /**
+   * Complete a tournament (mark as finished)
+   */
+  async completeTournament(id: string): Promise<BeerPongEvent> {
+    const response = await api.post(`/beer-pong/${id}/complete`);
     return response.data;
   },
 
@@ -102,6 +112,21 @@ export const beerPongService = {
    */
   async undoGameStart(gameId: string): Promise<any> {
     const response = await api.post(`/beer-pong/games/${gameId}/undo`);
+    return response.data;
+  },
+
+  /**
+   * Assign a team to a specific game position
+   */
+  async assignTeamToPosition(
+    gameId: string,
+    teamId: string,
+    position: 'team1' | 'team2',
+  ): Promise<any> {
+    const response = await api.put(`/beer-pong/games/${gameId}/assign-team`, {
+      teamId,
+      position,
+    });
     return response.data;
   },
 };

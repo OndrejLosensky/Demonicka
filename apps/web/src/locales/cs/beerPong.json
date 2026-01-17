@@ -63,9 +63,15 @@
     "actions": {
       "addTeam": "Přidat Tým",
       "startTournament": "Spustit Turnaj",
+      "completeTournament": "Dokončit Turnaj",
       "deleteTeam": "Smazat tým",
       "edit": "Upravit",
       "delete": "Smazat"
+    },
+    "tabs": {
+      "map": "Mapa",
+      "teams": "Týmy",
+      "settings": "Nastavení"
     },
     "teams": {
       "title": "Týmy",
@@ -81,7 +87,8 @@
       "title": "Pavouk",
       "quarterfinal": "Čtvrtfinále",
       "semifinal": "Semifinále",
-      "final": "Finále"
+      "final": "Finále",
+      "notStarted": "Turnaj ještě nebyl spuštěn"
     },
     "games": {
       "title": "Zápasy",
@@ -98,7 +105,8 @@
       "timeWindow": "Časové okno",
       "undoWindow": "Okno pro zrušení",
       "cancellationPolicy": "Politika zrušení",
-      "started": "Spuštěno"
+      "started": "Spuštěno",
+      "completed": "Dokončeno"
     },
     "startDialog": {
       "title": "Spustit Turnaj",
@@ -112,13 +120,21 @@
       "confirm": "Smazat",
       "cancel": "Zrušit"
     },
+    "completeDialog": {
+      "title": "Dokončit Turnaj",
+      "message": "Opravdu chcete dokončit turnaj? Tato akce je nevratná.",
+      "confirm": "Dokončit",
+      "cancel": "Zrušit"
+    },
     "errors": {
       "loadFailed": "Nepodařilo se načíst turnaj",
       "startFailed": "Nepodařilo se spustit turnaj",
+      "completeFailed": "Nepodařilo se dokončit turnaj",
       "deleteTeamFailed": "Nepodařilo se smazat tým"
     },
     "success": {
       "started": "Turnaj spuštěn! Pavouk byl inicializován.",
+      "completed": "Turnaj byl úspěšně dokončen",
       "teamDeleted": "Tým byl úspěšně smazán"
     }
   },

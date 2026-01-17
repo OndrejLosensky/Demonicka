@@ -382,8 +382,8 @@ model BeerPongGame {
   id              String             @id @default(uuid()) @db.Uuid
   beerPongEventId String             @db.Uuid
   round           BeerPongRound
-  team1Id         String             @db.Uuid
-  team2Id         String             @db.Uuid
+  team1Id         String?            @db.Uuid
+  team2Id         String?            @db.Uuid
   winnerTeamId    String?            @db.Uuid
   status          BeerPongGameStatus @default(PENDING)
   startedAt       DateTime?          @db.Timestamptz(6)
@@ -396,8 +396,8 @@ model BeerPongGame {
 
   // Relations
   beerPongEvent BeerPongEvent      @relation(fields: [beerPongEventId], references: [id], onDelete: Cascade)
-  team1         BeerPongTeam       @relation("BeerPongGameTeam1", fields: [team1Id], references: [id])
-  team2         BeerPongTeam       @relation("BeerPongGameTeam2", fields: [team2Id], references: [id])
+  team1         BeerPongTeam?      @relation("BeerPongGameTeam1", fields: [team1Id], references: [id])
+  team2         BeerPongTeam?      @relation("BeerPongGameTeam2", fields: [team2Id], references: [id])
   winnerTeam    BeerPongTeam?      @relation("BeerPongGameWinner", fields: [winnerTeamId], references: [id])
   gameBeers     BeerPongGameBeer[]
   startedByUser User?              @relation(fields: [startedBy], references: [id])

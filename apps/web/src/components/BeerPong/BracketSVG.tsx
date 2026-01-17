@@ -1,10 +1,12 @@
 import React, { useMemo } from 'react';
-import { Box, Paper, Typography, Chip } from '@demonicka/ui';
+import { Box, Typography } from '@demonicka/ui';
 import type { BeerPongGame, BeerPongRound, BeerPongGameStatus } from '@demonicka/shared-types';
 
 interface BracketSVGProps {
   games: BeerPongGame[];
   onGameClick: (game: BeerPongGame) => void;
+  onSlotClick?: (game: BeerPongGame, position: 'team1' | 'team2') => void;
+  canEdit?: boolean; // Whether teams can be assigned to empty slots
 }
 
 interface GamePosition {
@@ -16,12 +18,17 @@ interface GamePosition {
 
 const GAME_WIDTH = 200;
 const GAME_HEIGHT = 80;
-const HORIZONTAL_SPACING = 250;
-const VERTICAL_SPACING = 150;
-const SIDE_MARGIN = 100;
-const TOP_MARGIN = 50;
+const ROUND_SPACING = 400; // Space between rounds (left to right) - increased for better spacing
+const SIDE_MARGIN = 50;
+const TOP_MARGIN = 30;
+const BOTTOM_MARGIN = 30;
 
-export const BracketSVG: React.FC<BracketSVGProps> = ({ games, onGameClick }) => {
+export const BracketSVG: React.FC<BracketSVGProps> = ({ 
+  games, 
+  onGameClick, 
+  onSlotClick,
+  canEdit = false,
+}) => {
   // Organize games by round
   const gamesByRound = useMemo(() => {
     const quarters = games.filter((g) => g.round === 'QUARTERFINAL').sort((a, b) => 
@@ -35,35 +42,69 @@ export const BracketSVG: React.FC<BracketSVGProps> = ({ games, onGameClick }) =>
     return { quarters, semis, final };
   }, [games]);
 
-  // Calculate positions for each game
+  // Calculate positions for each game with even vertical distribution
   const gamePositions = useMemo<Map<string, GamePosition>>(() => {
     const positions = new Map<string, GamePosition>();
 
-    // Quarterfinal positions (top row, 4 games)
+    const startY = TOP_MARGIN;
+    const spacingBetweenGames = 120; // Space between consecutive games
+
+    // Quarterfinal positions (left column, evenly distributed)
     gamesByRound.quarters.forEach((game, index) => {
+      // Evenly space games vertically
+      const yPosition = startY + (index * spacingBetweenGames);
       positions.set(game.id, {
-        x: SIDE_MARGIN + index * HORIZONTAL_SPACING,
-        y: TOP_MARGIN,
+        x: SIDE_MARGIN,
+        y: yPosition,
         width: GAME_WIDTH,
         height: GAME_HEIGHT,
       });
     });
 
-    // Semifinal positions (middle row, 2 games)
+    // Semifinal positions (middle column, aligned with their source quarterfinals)
     gamesByRound.semis.forEach((game, index) => {
+      // Each semi should be positioned between the two quarters that feed into it
+      const quarter1Index = index * 2;
+      const quarter2Index = index * 2 + 1;
+      const quarter1Pos = positions.get(gamesByRound.quarters[quarter1Index]?.id);
+      const quarter2Pos = positions.get(gamesByRound.quarters[quarter2Index]?.id);
+      
+      let yPosition = startY;
+      if (quarter1Pos && quarter2Pos) {
+        // Position between the two quarters
+        yPosition = (quarter1Pos.y + quarter2Pos.y + GAME_HEIGHT) / 2 - GAME_HEIGHT / 2;
+      } else if (quarter1Pos) {
+        yPosition = quarter1Pos.y;
+      } else if (quarter2Pos) {
+        yPosition = quarter2Pos.y;
+      }
+
       positions.set(game.id, {
-        x: SIDE_MARGIN + HORIZONTAL_SPACING * 0.5 + index * HORIZONTAL_SPACING * 2,
-        y: TOP_MARGIN + VERTICAL_SPACING,
+        x: SIDE_MARGIN + ROUND_SPACING,
+        y: yPosition,
         width: GAME_WIDTH,
         height: GAME_HEIGHT,
       });
     });
 
-    // Final position (bottom row, 1 game)
+    // Final position (right column, centered between the two semis)
     if (gamesByRound.final) {
+      const semi1Pos = positions.get(gamesByRound.semis[0]?.id);
+      const semi2Pos = positions.get(gamesByRound.semis[1]?.id);
+      
+      let yPosition = startY;
+      if (semi1Pos && semi2Pos) {
+        // Position between the two semis
+        yPosition = (semi1Pos.y + semi2Pos.y + GAME_HEIGHT) / 2 - GAME_HEIGHT / 2;
+      } else if (semi1Pos) {
+        yPosition = semi1Pos.y;
+      } else if (semi2Pos) {
+        yPosition = semi2Pos.y;
+      }
+
       positions.set(gamesByRound.final.id, {
-        x: SIDE_MARGIN + HORIZONTAL_SPACING * 1.5,
-        y: TOP_MARGIN + VERTICAL_SPACING * 2,
+        x: SIDE_MARGIN + ROUND_SPACING * 2,
+        y: yPosition,
         width: GAME_WIDTH,
         height: GAME_HEIGHT,
       });
@@ -74,31 +115,61 @@ export const BracketSVG: React.FC<BracketSVGProps> = ({ games, onGameClick }) =>
 
   // Calculate SVG dimensions
   const svgWidth = useMemo(() => {
-    if (gamesByRound.quarters.length === 0) return 800;
-    return SIDE_MARGIN * 2 + (gamesByRound.quarters.length - 1) * HORIZONTAL_SPACING + GAME_WIDTH;
-  }, [gamesByRound.quarters.length]);
-
-  const svgHeight = useMemo(() => {
-    if (gamesByRound.final) return TOP_MARGIN * 2 + VERTICAL_SPACING * 2 + GAME_HEIGHT;
-    if (gamesByRound.semis.length > 0) return TOP_MARGIN * 2 + VERTICAL_SPACING + GAME_HEIGHT;
-    return TOP_MARGIN * 2 + GAME_HEIGHT;
+    if (gamesByRound.final) return SIDE_MARGIN * 2 + ROUND_SPACING * 2 + GAME_WIDTH;
+    if (gamesByRound.semis.length > 0) return SIDE_MARGIN * 2 + ROUND_SPACING + GAME_WIDTH;
+    return SIDE_MARGIN * 2 + GAME_WIDTH;
   }, [gamesByRound]);
 
-  // Helper to get winner connection positions
-  const getConnectionPath = (fromGameId: string, toGameId: string, isTeam1: boolean): string => {
+  const svgHeight = useMemo(() => {
+    if (gamesByRound.quarters.length === 0) return 200;
+    const spacingBetweenGames = 120;
+    const totalHeight = (gamesByRound.quarters.length - 1) * spacingBetweenGames + GAME_HEIGHT;
+    return TOP_MARGIN + totalHeight + BOTTOM_MARGIN;
+  }, [gamesByRound.quarters.length]);
+
+  // Helper to render bracket-style connection line: straight → corner → down → straight
+  const renderConnectionLine = (
+    fromGameId: string,
+    toGameId: string,
+    fromSlotY: number, // Y position of the slot in source game (team1 or team2 center)
+    fromGame: BeerPongGame, // Source game to check status
+    isWinner: boolean // Whether this slot has the winner
+  ): JSX.Element | null => {
     const fromPos = gamePositions.get(fromGameId);
     const toPos = gamePositions.get(toGameId);
 
-    if (!fromPos || !toPos) return '';
+    if (!fromPos || !toPos) return null;
 
-    const fromX = fromPos.x + (isTeam1 ? 0 : GAME_WIDTH);
-    const fromY = fromPos.y + GAME_HEIGHT / 2;
-    const toX = toPos.x + (toPos.x > fromPos.x ? -20 : GAME_WIDTH + 20);
-    const toY = toPos.y + (toPos.y > fromY ? 20 : GAME_HEIGHT - 20);
+    // Line starts from right side of source game at slot Y position
+    const fromX = fromPos.x + GAME_WIDTH;
+    const fromY = fromSlotY;
+    
+    // Target position: left side of target game, at its center
+    const toX = toPos.x;
+    const toY = toPos.y + GAME_HEIGHT / 2;
 
-    // Create curved path
-    const midX = (fromX + toX) / 2;
-    return `M ${fromX} ${fromY} Q ${midX} ${fromY} ${midX} ${toY} T ${toX} ${toY}`;
+    // Create bracket-style path: horizontal → corner → vertical → horizontal
+    // Center the vertical segment (bend point) between source and target games
+    const midX = (fromX + toX) / 2; // Midpoint between source right edge and target left edge
+    
+    // Create path: M (move to start), H (horizontal line), V (vertical line), H (horizontal line)
+    const pathData = `M ${fromX} ${fromY} H ${midX} V ${toY} H ${toX}`;
+
+    // Only show red if game is COMPLETED and this is the winner route
+    // Grey for all other cases (empty games, DRAFT status, non-winner routes)
+    const isCompletedWinner = fromGame.status === 'COMPLETED' && isWinner;
+    const lineColor = isCompletedWinner ? '#d32f2f' : '#999'; // Red only for completed winners, grey otherwise
+
+    return (
+      <path
+        key={`${fromGameId}-${toGameId}-${fromSlotY}`}
+        d={pathData}
+        fill="none"
+        stroke={lineColor}
+        strokeWidth={2}
+        strokeDasharray="5,5" // Dashed style: 5px dash, 5px gap
+      />
+    );
   };
 
   // Get game status color
@@ -144,22 +215,49 @@ export const BracketSVG: React.FC<BracketSVGProps> = ({ games, onGameClick }) =>
     return null;
   };
 
-  // Determine if winner was team1 or team2 in the source game
-  const isWinnerTeam1 = (game: BeerPongGame): boolean => {
-    return game.winnerTeamId === game.team1Id;
-  };
 
   // Render game box
   const renderGameBox = (game: BeerPongGame, pos: GamePosition) => {
-    const team1Name = game.team1?.name || 'Team 1';
-    const team2Name = game.team2?.name || 'Team 2';
+    const team1Name = game.team1?.name || null;
+    const team2Name = game.team2?.name || null;
+    const isTeam1Empty = !game.team1Id;
+    const isTeam2Empty = !game.team2Id;
     const isWinner1 = game.winnerTeamId === game.team1Id;
     const isWinner2 = game.winnerTeamId === game.team2Id;
     const statusColor = getStatusColor(game.status);
     const textColor = getStatusTextColor(game.status);
+    const isEmpty = isTeam1Empty && isTeam2Empty;
+
+    // Only allow team assignment in QUARTERFINAL round
+    const canAssignTeam = canEdit && game.round === 'QUARTERFINAL';
+    
+    // If game has teams, clicking opens game details. If empty and editable, clicking slot assigns team.
+    const handleTeam1Click = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (canAssignTeam && isTeam1Empty && onSlotClick) {
+        onSlotClick(game, 'team1');
+      } else if (!isTeam1Empty) {
+        onGameClick(game);
+      }
+    };
+
+    const handleTeam2Click = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (canAssignTeam && isTeam2Empty && onSlotClick) {
+        onSlotClick(game, 'team2');
+      } else if (!isTeam2Empty) {
+        onGameClick(game);
+      }
+    };
+
+    const handleGameClick = () => {
+      if (!isEmpty) {
+        onGameClick(game);
+      }
+    };
 
     return (
-      <g key={game.id} onClick={() => onGameClick(game)} style={{ cursor: 'pointer' }}>
+      <g key={game.id}>
         {/* Game background */}
         <rect
           x={pos.x}
@@ -170,24 +268,63 @@ export const BracketSVG: React.FC<BracketSVGProps> = ({ games, onGameClick }) =>
           fill={statusColor}
           stroke="#999"
           strokeWidth={2}
+          onClick={handleGameClick}
+          style={{ cursor: isEmpty ? 'default' : 'pointer' }}
         />
 
-        {/* Team 1 */}
-        <text
-          x={pos.x + 10}
-          y={pos.y + 25}
-          fontSize="12"
-          fontWeight={isWinner1 ? 700 : 400}
-          fill={textColor}
-          style={{ userSelect: 'none' }}
-        >
-          {team1Name}
-        </text>
-        {isWinner1 && (
-          <text x={pos.x + pos.width - 10} y={pos.y + 25} fontSize="12" fill={textColor} textAnchor="end">
-            ✓
-          </text>
-        )}
+        {/* Team 1 slot */}
+        <g onClick={handleTeam1Click} style={{ cursor: canEdit && isTeam1Empty ? 'pointer' : 'default' }}>
+          {isTeam1Empty && canAssignTeam ? (
+            <>
+              <rect
+                x={pos.x + 5}
+                y={pos.y + 5}
+                width={pos.width - 10}
+                height={30}
+                rx={2}
+                fill="rgba(255, 255, 255, 0.2)"
+                stroke="rgba(255, 255, 255, 0.5)"
+                strokeWidth={1}
+                strokeDasharray="4,4"
+              />
+              <text
+                x={pos.x + pos.width / 2}
+                y={pos.y + 25}
+                fontSize="11"
+                fill={textColor}
+                textAnchor="middle"
+                style={{ userSelect: 'none', opacity: 0.7 }}
+              >
+                + Přidat tým
+              </text>
+            </>
+          ) : (
+            <>
+              <text
+                x={pos.x + 10}
+                y={pos.y + 25}
+                fontSize="13"
+                fontWeight={isWinner1 ? 700 : 400}
+                fill={textColor}
+                style={{ userSelect: 'none' }}
+              >
+                {team1Name || '—'}
+              </text>
+              {isWinner1 && team1Name && (
+                <text 
+                  x={pos.x + pos.width - 10} 
+                  y={pos.y + 25} 
+                  fontSize="14" 
+                  fill={textColor} 
+                  textAnchor="end"
+                  fontWeight={700}
+                >
+                  ✓
+                </text>
+              )}
+            </>
+          )}
+        </g>
 
         {/* VS line */}
         <line
@@ -200,84 +337,140 @@ export const BracketSVG: React.FC<BracketSVGProps> = ({ games, onGameClick }) =>
           opacity={0.3}
         />
 
-        {/* Team 2 */}
-        <text
-          x={pos.x + 10}
-          y={pos.y + 60}
-          fontSize="12"
-          fontWeight={isWinner2 ? 700 : 400}
-          fill={textColor}
-          style={{ userSelect: 'none' }}
-        >
-          {team2Name}
-        </text>
-        {isWinner2 && (
-          <text x={pos.x + pos.width - 10} y={pos.y + 60} fontSize="12" fill={textColor} textAnchor="end">
-            ✓
-          </text>
-        )}
-
-        {/* Round label */}
-        <text
-          x={pos.x + pos.width / 2}
-          y={pos.y - 10}
-          fontSize="10"
-          fill="#666"
-          textAnchor="middle"
-          style={{ userSelect: 'none' }}
-        >
-          {game.round}
-        </text>
+        {/* Team 2 slot */}
+        <g onClick={handleTeam2Click} style={{ cursor: canEdit && isTeam2Empty ? 'pointer' : 'default' }}>
+          {isTeam2Empty && canAssignTeam ? (
+            <>
+              <rect
+                x={pos.x + 5}
+                y={pos.y + 45}
+                width={pos.width - 10}
+                height={30}
+                rx={2}
+                fill="rgba(255, 255, 255, 0.2)"
+                stroke="rgba(255, 255, 255, 0.5)"
+                strokeWidth={1}
+                strokeDasharray="4,4"
+              />
+              <text
+                x={pos.x + pos.width / 2}
+                y={pos.y + 65}
+                fontSize="11"
+                fill={textColor}
+                textAnchor="middle"
+                style={{ userSelect: 'none', opacity: 0.7 }}
+              >
+                + Přidat tým
+              </text>
+            </>
+          ) : (
+            <>
+              <text
+                x={pos.x + 10}
+                y={pos.y + 60}
+                fontSize="13"
+                fontWeight={isWinner2 ? 700 : 400}
+                fill={textColor}
+                style={{ userSelect: 'none' }}
+              >
+                {team2Name || '—'}
+              </text>
+              {isWinner2 && team2Name && (
+                <text 
+                  x={pos.x + pos.width - 10} 
+                  y={pos.y + 60} 
+                  fontSize="14" 
+                  fill={textColor} 
+                  textAnchor="end"
+                  fontWeight={700}
+                >
+                  ✓
+                </text>
+              )}
+            </>
+          )}
+        </g>
       </g>
     );
   };
 
-  // Render connection lines (only for completed games with winners)
+  // Render connection lines for all games (grey by default, red only for completed winners)
+  // Render grey lines first, then red lines on top so winners are always visible
   const renderConnections = () => {
-    const paths: JSX.Element[] = [];
+    const greyLines: JSX.Element[] = [];
+    const redLines: JSX.Element[] = [];
 
-    // Quarterfinal -> Semifinal connections
+    // Quarterfinal -> Semifinal connections (both slots connect, winner route is red only if completed)
     gamesByRound.quarters.forEach((quarter) => {
-      if (quarter.winnerTeamId) {
-        const nextGame = findNextGame(quarter);
-        if (nextGame) {
-          const isWinner1 = isWinnerTeam1(quarter);
-          const path = getConnectionPath(quarter.id, nextGame.id, isWinner1);
-          paths.push(
-            <path
-              key={`${quarter.id}-${nextGame.id}`}
-              d={path}
-              fill="none"
-              stroke="#4caf50"
-              strokeWidth={3}
-              strokeDasharray="5,5"
-              opacity={0.6}
-            />,
-          );
+      const nextGame = findNextGame(quarter);
+      if (!nextGame) return;
+
+      const quarterPos = gamePositions.get(quarter.id);
+      if (!quarterPos) return;
+
+      // Team 1 connection (top slot)
+      const team1Y = quarterPos.y + GAME_HEIGHT * 0.25; // Top slot center
+      const isWinner1 = quarter.winnerTeamId === quarter.team1Id;
+      const isCompletedWinner1 = quarter.status === 'COMPLETED' && isWinner1;
+      const line1 = renderConnectionLine(quarter.id, nextGame.id, team1Y, quarter, isWinner1);
+      if (line1) {
+        if (isCompletedWinner1) {
+          redLines.push(line1);
+        } else {
+          greyLines.push(line1);
+        }
+      }
+
+      // Team 2 connection (bottom slot)
+      const team2Y = quarterPos.y + GAME_HEIGHT * 0.75; // Bottom slot center
+      const isWinner2 = quarter.winnerTeamId === quarter.team2Id;
+      const isCompletedWinner2 = quarter.status === 'COMPLETED' && isWinner2;
+      const line2 = renderConnectionLine(quarter.id, nextGame.id, team2Y, quarter, isWinner2);
+      if (line2) {
+        if (isCompletedWinner2) {
+          redLines.push(line2);
+        } else {
+          greyLines.push(line2);
         }
       }
     });
 
-    // Semifinal -> Final connections
+    // Semifinal -> Final connections (both slots connect, winner route is red only if completed)
     gamesByRound.semis.forEach((semi) => {
-      if (semi.winnerTeamId && gamesByRound.final) {
-        const isWinner1 = isWinnerTeam1(semi);
-        const path = getConnectionPath(semi.id, gamesByRound.final.id, isWinner1);
-        paths.push(
-          <path
-            key={`${semi.id}-${gamesByRound.final.id}`}
-            d={path}
-            fill="none"
-            stroke="#4caf50"
-            strokeWidth={3}
-            strokeDasharray="5,5"
-            opacity={0.6}
-          />,
-        );
+      if (!gamesByRound.final) return;
+
+      const semiPos = gamePositions.get(semi.id);
+      if (!semiPos) return;
+
+      // Team 1 connection (top slot)
+      const team1Y = semiPos.y + GAME_HEIGHT * 0.25; // Top slot center
+      const isWinner1 = semi.winnerTeamId === semi.team1Id;
+      const isCompletedWinner1 = semi.status === 'COMPLETED' && isWinner1;
+      const line1 = renderConnectionLine(semi.id, gamesByRound.final.id, team1Y, semi, isWinner1);
+      if (line1) {
+        if (isCompletedWinner1) {
+          redLines.push(line1);
+        } else {
+          greyLines.push(line1);
+        }
+      }
+
+      // Team 2 connection (bottom slot)
+      const team2Y = semiPos.y + GAME_HEIGHT * 0.75; // Bottom slot center
+      const isWinner2 = semi.winnerTeamId === semi.team2Id;
+      const isCompletedWinner2 = semi.status === 'COMPLETED' && isWinner2;
+      const line2 = renderConnectionLine(semi.id, gamesByRound.final.id, team2Y, semi, isWinner2);
+      if (line2) {
+        if (isCompletedWinner2) {
+          redLines.push(line2);
+        } else {
+          greyLines.push(line2);
+        }
       }
     });
 
-    return paths;
+    // Return grey lines first, then red lines (red will render on top)
+    return [...greyLines, ...redLines];
   };
 
   if (games.length === 0) {
@@ -292,7 +485,16 @@ export const BracketSVG: React.FC<BracketSVGProps> = ({ games, onGameClick }) =>
 
   return (
     <Box sx={{ width: '100%', overflowX: 'auto', p: 2 }}>
-      <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
+      <svg 
+        width={svgWidth} 
+        height={svgHeight} 
+        style={{ 
+          minWidth: '100%',
+          display: 'block',
+        }}
+        viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+        preserveAspectRatio="xMidYMid meet"
+      >
         {/* Render connection lines first (behind games) */}
         {renderConnections()}
 

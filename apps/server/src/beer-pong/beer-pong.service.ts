@@ -63,7 +63,7 @@ export class BeerPongService {
       throw new BadRequestException('Cannot create beer pong event for deleted event');
     }
 
-    return this.prisma.beerPongEvent.create({
+    const beerPongEvent = await this.prisma.beerPongEvent.create({
       data: {
         eventId: createDto.eventId,
         name: createDto.name,
@@ -76,6 +76,12 @@ export class BeerPongService {
         createdBy: userId,
       },
     });
+
+    // Initialize empty bracket structure
+    // We'll need to inject BeerPongGamesService, but for now we'll do it in the controller
+    // This will be called from the controller after creation
+
+    return beerPongEvent;
   }
 
   async findAll(eventId?: string): Promise<BeerPongEvent[]> {
