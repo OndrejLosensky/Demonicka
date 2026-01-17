@@ -1,0 +1,192 @@
+{
+  "title": "Beer Pong Tournaments",
+  "pageTitle": "Beer Pong Tournaments",
+  "noActiveEvent": {
+    "title": "Beer Pong Tournaments",
+    "subtitle": "Please select an active event to view beer pong tournaments."
+  },
+  "list": {
+    "title": "Beer Pong Tournaments",
+    "createButton": "Create Tournament",
+    "empty": {
+      "title": "No tournaments yet",
+      "subtitle": "Create your first beer pong tournament to get started. Each tournament needs 8 teams (duos) to begin.",
+      "createButton": "Create Tournament"
+    },
+    "loading": "Loading...",
+    "error": "Failed to load tournaments",
+    "retry": "Retry",
+    "stats": {
+      "teams": "Teams:",
+      "games": "Games:",
+      "beersPerPlayer": "Beers per Player:",
+      "readyToStart": "Ready to Start",
+      "moreTeamsNeeded": "{{count}} more teams needed"
+    }
+  },
+  "createDialog": {
+    "title": "Create Beer Pong Tournament",
+    "fields": {
+      "tournamentName": "Tournament Name",
+      "description": "Description (optional)",
+      "beersPerPlayer": "Beers per Player",
+      "timeWindowMinutes": "Time Window (minutes)",
+      "timeWindowHelper": "Prevents duplicate clicks",
+      "undoWindowMinutes": "Undo Window (minutes)",
+      "undoWindowHelper": "Time to undo game start",
+      "cancellationPolicy": "Cancellation Policy",
+      "creatingForEvent": "Creating tournament for event:"
+    },
+    "cancellationPolicy": {
+      "keepBeers": "Keep Beers",
+      "removeBeers": "Remove Beers"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "create": "Create Tournament"
+    },
+    "errors": {
+      "noActiveEvent": "No active event selected",
+      "nameRequired": "Tournament name is required",
+      "createFailed": "Failed to create tournament"
+    },
+    "success": "Tournament created successfully"
+  },
+  "detail": {
+    "pageTitle": "Beer Pong: {{name}}",
+    "back": "Back",
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "completed": "Completed"
+    },
+    "actions": {
+      "addTeam": "Add Team",
+      "startTournament": "Start Tournament",
+      "deleteTeam": "Delete Team",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "teams": {
+      "title": "Teams",
+      "empty": "No teams yet",
+      "emptySubtitle": "Add teams to start the tournament. Each team needs 2 players.",
+      "player1": "Player 1",
+      "player2": "Player 2",
+      "count": "{{count}}/8 teams",
+      "full": "Tournament is full (8 teams). Remove a team before adding a new one.",
+      "moreTeamsNeeded": "more teams needed to start the tournament"
+    },
+    "bracket": {
+      "title": "Bracket",
+      "quarterfinal": "Quarterfinal",
+      "semifinal": "Semifinal",
+      "final": "Final"
+    },
+    "games": {
+      "title": "Games",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "noGames": "No games yet"
+    },
+    "stats": {
+      "title": "Tournament Settings",
+      "teams": "Teams",
+      "games": "Games",
+      "beersPerPlayer": "Beers per Player",
+      "timeWindow": "Time Window",
+      "undoWindow": "Undo Window",
+      "cancellationPolicy": "Cancellation Policy",
+      "started": "Started"
+    },
+    "startDialog": {
+      "title": "Start Tournament",
+      "message": "Are you sure you want to start the tournament? Once started, the bracket will be created and the tournament will begin.",
+      "confirm": "Start",
+      "cancel": "Cancel"
+    },
+    "deleteTeamDialog": {
+      "title": "Delete Team",
+      "message": "Are you sure you want to delete this team? This action cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "loadFailed": "Failed to load tournament",
+      "startFailed": "Failed to start tournament",
+      "deleteTeamFailed": "Failed to delete team"
+    },
+    "success": {
+      "started": "Tournament started! Bracket initialized.",
+      "teamDeleted": "Team deleted successfully"
+    }
+  },
+  "teamDialog": {
+    "title": "Add Team",
+    "fields": {
+      "teamName": "Team Name",
+      "player1": "Player 1",
+      "player2": "Player 2",
+      "selectPlayer": "Select Player"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "create": "Create Team"
+    },
+    "errors": {
+      "nameRequired": "Team name is required",
+      "nameExists": "Team name already exists",
+      "selectPlayer1": "Please select player 1",
+      "selectPlayer2": "Please select player 2",
+      "playersDifferent": "Players must be different",
+      "loadUsersFailed": "Failed to load users",
+      "createFailed": "Failed to create team"
+    },
+    "success": "Team created successfully"
+  },
+  "gameModal": {
+    "title": "Game Details",
+    "status": {
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    },
+    "round": {
+      "quarterfinal": "Quarterfinal",
+      "semifinal": "Semifinal",
+      "final": "Final"
+    },
+    "info": {
+      "team1": "Team 1",
+      "team2": "Team 2",
+      "winner": "Winner",
+      "startedAt": "Started At",
+      "endedAt": "Ended At",
+      "duration": "Duration",
+      "beersAdded": "Beers Added At",
+      "undoTimeRemaining": "Undo time remaining: {{time}}"
+    },
+    "actions": {
+      "startGame": "Start Game",
+      "completeGame": "Complete Game",
+      "undoStart": "Undo Start",
+      "close": "Close"
+    },
+    "completeGame": {
+      "selectWinner": "Select Winner",
+      "noWinner": "No Winner"
+    },
+    "errors": {
+      "startFailed": "Failed to start game",
+      "completeFailed": "Failed to complete game",
+      "undoFailed": "Failed to undo game start",
+      "selectWinner": "Please select a winner"
+    },
+    "success": {
+      "started": "Game started",
+      "completed": "Game completed",
+      "undo": "Game start undone"
+    }
+  }
+}

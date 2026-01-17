@@ -22,6 +22,7 @@ import { Public } from '../auth/decorators/public.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Permission } from '@demonicka/shared';
+import { BeerPongService } from '../beer-pong/beer-pong.service';
 
 @Controller('events')
 @Versions('1')
@@ -30,6 +31,7 @@ export class EventsController {
   constructor(
     private readonly eventsService: EventsService,
     private readonly eventBeersService: EventBeersService,
+    private readonly beerPongService: BeerPongService,
   ) {}
 
   @Get()
@@ -49,6 +51,123 @@ export class EventsController {
     return this.eventsService.create(createEventDto, user.id);
   }
 
+  @Post('cleanup')
+  cleanup(): Promise<void> {
+    return this.eventsService.cleanup();
+  }
+
+  // CRITICAL: beer-pong route MUST be before all other :id routes
+  @Get(':id/beer-pong')
+  getEventBeerPongTournaments(@Param('id', ParseUUIDPipe) id: string) {
+    return this.beerPongService.findAll(id);
+  }
+
+  // Specific routes must come before the generic :id route
+  @Get(':id/users/:userId/beers/count')
+  getEventUserBeerCount(
+    @Param('id', ParseUUIDPipe) eventId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<number> {
+    return this.eventBeersService.getEventBeerCount(eventId, userId);
+  }
+
+  @Get(':id/users/:userId/beers')
+  getEventUserBeers(
+    @Param('id', ParseUUIDPipe) eventId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<EventBeer[]> {
+    return this.eventBeersService.findByEventAndUser(eventId, userId);
+  }
+
+  @Post(':id/users/:userId/beers')
+  addEventBeer(
+    @Param('id', ParseUUIDPipe) eventId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.eventsService.addBeer(eventId, userId);
+  }
+
+  @Delete(':id/users/:userId/beers')
+  removeEventBeer(
+    @Param('id', ParseUUIDPipe) eventId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.eventBeersService.remove(eventId, userId);
+  }
+
+  @Put(':id/users/:userId')
+  addUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<Event> {
+    return this.eventsService.addUser(id, userId);
+  }
+
+  @Delete(':id/users/:userId')
+  removeUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<Event> {
+    return this.eventsService.removeUser(id, userId);
+  }
+
+
+  @Get(':id/users')
+  getEventUsers(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('withDeleted') withDeleted?: boolean,
+  ): Promise<User[]> {
+    return this.eventsService.getEventUsers(id, withDeleted);
+  }
+
+  @Put(':id/barrels/:barrelId')
+  addBarrel(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('barrelId', ParseUUIDPipe) barrelId: string,
+  ): Promise<Event> {
+    return this.eventsService.addBarrel(id, barrelId);
+  }
+
+  @Delete(':id/barrels/:barrelId')
+  removeBarrel(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('barrelId', ParseUUIDPipe) barrelId: string,
+  ): Promise<Event> {
+    return this.eventsService.removeBarrel(id, barrelId);
+  }
+
+  @Get(':id/barrels')
+  getEventBarrels(@Param('id', ParseUUIDPipe) id: string): Promise<Barrel[]> {
+    return this.eventsService.getEventBarrels(id);
+  }
+
+
+  @Get(':id/beers')
+  getEventBeers(@Param('id', ParseUUIDPipe) id: string): Promise<EventBeer[]> {
+    return this.eventBeersService.findAllForEvent(id);
+  }
+
+  @Delete(':id/beers')
+  removeAllEventBeers(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.eventBeersService.removeAllForEvent(id);
+  }
+
+  @Put(':id/active')
+  setActive(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
+    return this.eventsService.setActive(id);
+  }
+
+  @Delete(':id/active')
+  deactivate(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
+    return this.eventsService.deactivate(id);
+  }
+
+  @Put(':id/end')
+  endEvent(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
+    return this.eventsService.endEvent(id);
+  }
+
+  // Generic :id routes must come after all specific routes
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user?: User): Promise<Event> {
     return this.eventsService.findOne(id, user);
@@ -68,112 +187,5 @@ export class EventsController {
   @Permissions(Permission.DELETE_EVENT)
   remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User): Promise<void> {
     return this.eventsService.remove(id, user);
-  }
-
-  @Post('cleanup')
-  cleanup(): Promise<void> {
-    return this.eventsService.cleanup();
-  }
-
-  @Put(':id/users/:userId')
-  addUser(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('userId', ParseUUIDPipe) userId: string,
-  ): Promise<Event> {
-    return this.eventsService.addUser(id, userId);
-  }
-
-  @Put(':id/active')
-  setActive(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
-    return this.eventsService.setActive(id);
-  }
-
-  @Delete(':id/active')
-  deactivate(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
-    return this.eventsService.deactivate(id);
-  }
-
-  @Put(':id/end')
-  endEvent(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
-    return this.eventsService.endEvent(id);
-  }
-
-  @Delete(':id/users/:userId')
-  removeUser(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('userId', ParseUUIDPipe) userId: string,
-  ): Promise<Event> {
-    return this.eventsService.removeUser(id, userId);
-  }
-
-  @Delete(':id/beers')
-  removeAllEventBeers(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.eventBeersService.removeAllForEvent(id);
-  }
-
-  @Get(':id/beers')
-  getEventBeers(@Param('id', ParseUUIDPipe) id: string): Promise<EventBeer[]> {
-    return this.eventBeersService.findAllForEvent(id);
-  }
-
-  @Get(':id/users')
-  getEventUsers(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Query('withDeleted') withDeleted?: boolean,
-  ): Promise<User[]> {
-    return this.eventsService.getEventUsers(id, withDeleted);
-  }
-
-  @Get(':id/barrels')
-  getEventBarrels(@Param('id', ParseUUIDPipe) id: string): Promise<Barrel[]> {
-    return this.eventsService.getEventBarrels(id);
-  }
-
-  @Put(':id/barrels/:barrelId')
-  addBarrel(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('barrelId', ParseUUIDPipe) barrelId: string,
-  ): Promise<Event> {
-    return this.eventsService.addBarrel(id, barrelId);
-  }
-
-  @Delete(':id/barrels/:barrelId')
-  removeBarrel(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('barrelId', ParseUUIDPipe) barrelId: string,
-  ): Promise<Event> {
-    return this.eventsService.removeBarrel(id, barrelId);
-  }
-
-  @Post(':id/users/:userId/beers')
-  addEventBeer(
-    @Param('id', ParseUUIDPipe) eventId: string,
-    @Param('userId', ParseUUIDPipe) userId: string,
-  ): Promise<void> {
-    return this.eventsService.addBeer(eventId, userId);
-  }
-
-  @Delete(':id/users/:userId/beers')
-  removeEventBeer(
-    @Param('id', ParseUUIDPipe) eventId: string,
-    @Param('userId', ParseUUIDPipe) userId: string,
-  ): Promise<void> {
-    return this.eventBeersService.remove(eventId, userId);
-  }
-
-  @Get(':id/users/:userId/beers')
-  getEventUserBeers(
-    @Param('id', ParseUUIDPipe) eventId: string,
-    @Param('userId', ParseUUIDPipe) userId: string,
-  ): Promise<EventBeer[]> {
-    return this.eventBeersService.findByEventAndUser(eventId, userId);
-  }
-
-  @Get(':id/users/:userId/beers/count')
-  getEventUserBeerCount(
-    @Param('id', ParseUUIDPipe) eventId: string,
-    @Param('userId', ParseUUIDPipe) userId: string,
-  ): Promise<number> {
-    return this.eventBeersService.getEventBeerCount(eventId, userId);
   }
 }

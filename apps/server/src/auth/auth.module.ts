@@ -14,6 +14,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { PermissionsGuard } from './guards/permissions.guard';
+import { Reflector } from '@nestjs/core';
+import { RolesService } from '../roles/roles.service';
 
 @Module({
   imports: [
@@ -45,7 +47,10 @@ import { PermissionsGuard } from './guards/permissions.guard';
     },
     {
       provide: APP_GUARD,
-      useClass: PermissionsGuard,
+      useFactory: (reflector: Reflector, rolesService: RolesService) => {
+        return new PermissionsGuard(reflector, rolesService);
+      },
+      inject: [Reflector, RolesService],
     },
   ],
   exports: [AuthService, DeviceTokenService],

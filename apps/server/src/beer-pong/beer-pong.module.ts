@@ -5,11 +5,13 @@ import { BeerPongTeamsService } from './beer-pong-teams.service';
 import { BeerPongGamesService } from './beer-pong-games.service';
 import { EventsModule } from '../events/events.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { RolesModule } from '../roles/roles.module';
 
 @Module({
   imports: [
     PrismaModule,
     forwardRef(() => EventsModule),
+    RolesModule,
   ],
   controllers: [BeerPongController],
   providers: [

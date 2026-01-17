@@ -8,6 +8,7 @@ import { BarrelsModule } from '../barrels/barrels.module';
 import { LoggingModule } from '../logging/logging.module';
 import { UsersModule } from '../users/users.module';
 import { LeaderboardModule } from '../leaderboard/leaderboard.module';
+import { BeerPongModule } from '../beer-pong/beer-pong.module';
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { LeaderboardModule } from '../leaderboard/leaderboard.module';
         LoggingModule,
         UsersModule,
         LeaderboardModule,
+        forwardRef(() => BeerPongModule),
     ],
     controllers: [EventsController, EventBeersController],
     providers: [EventsService, EventBeersService],

@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
@@ -17,17 +18,13 @@ import { UpdateBeerPongEventDto } from './dto/update-beer-pong-event.dto';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { CompleteGameDto } from './dto/complete-game.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Permission } from '@demonicka/shared';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '@prisma/client';
-import { Versions } from '../versioning/decorators/version.decorator';
-import { VersionGuard } from '../versioning/guards/version.guard';
 
 @Controller('beer-pong')
-@Versions('1')
-@UseGuards(JwtAuthGuard, VersionGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard)
 export class BeerPongController {
   constructor(
     private readonly beerPongService: BeerPongService,
@@ -44,9 +41,9 @@ export class BeerPongController {
     return this.beerPongService.create(createDto, user.id);
   }
 
-  @Get('event/:eventId')
+  @Get()
   @Permissions(Permission.VIEW_DASHBOARD)
-  async findAll(@Param('eventId', ParseUUIDPipe) eventId: string) {
+  async findAll(@Query('eventId') eventId?: string) {
     return this.beerPongService.findAll(eventId);
   }
 

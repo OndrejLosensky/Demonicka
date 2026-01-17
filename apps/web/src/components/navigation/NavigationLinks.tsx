@@ -7,6 +7,7 @@ import {
   EmojiEvents as TrophyIcon,
   Event as EventIcon,
   TrendingUp as TrendingUpIcon,
+  SportsBar as BeerPongIcon,
 } from '@demonicka/ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
@@ -105,9 +106,16 @@ export function NavigationLinks() {
         </NavLink>
       )}
       {hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]) && (
-        <NavLink to="/events" icon={<EventIcon sx={{ fontSize: 18 }} />}>
-          {translations.navigation.events}
-        </NavLink>
+        <>
+          <NavLink to="/events" icon={<EventIcon sx={{ fontSize: 18 }} />}>
+            {translations.navigation.events}
+          </NavLink>
+          {activeEvent && (
+            <NavLink to="/dashboard/beer-pong" icon={<BeerPongIcon sx={{ fontSize: 18 }} />}>
+              Beer Pong
+            </NavLink>
+          )}
+        </>
       )}
       {user?.role === USER_ROLE.USER && (
         <>

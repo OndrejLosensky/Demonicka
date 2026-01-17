@@ -1,5 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Request } from 'express';
 import { VERSION_CONFIGS } from '../constants/version.constants';
 
 interface RequestWithVersion extends Request {
@@ -21,7 +22,6 @@ export class VersionGuard implements CanActivate {
     }
 
     if (versionConfig.deprecated) {
-      // You could also throw a custom exception here
       return false;
     }
 

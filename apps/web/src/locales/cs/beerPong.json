@@ -1,0 +1,192 @@
+{
+  "title": "Beer Pong Turnaje",
+  "pageTitle": "Beer Pong Turnaje",
+  "noActiveEvent": {
+    "title": "Beer Pong Turnaje",
+    "subtitle": "Pro zobrazení beer pong turnajů prosím vyberte aktivní událost."
+  },
+  "list": {
+    "title": "Beer Pong Turnaje",
+    "createButton": "Vytvořit Turnaj",
+    "empty": {
+      "title": "Zatím žádné turnaje",
+      "subtitle": "Vytvořte svůj první beer pong turnaj a začněte. Každý turnaj potřebuje 8 týmů (dvojic) pro začátek.",
+      "createButton": "Vytvořit Turnaj"
+    },
+    "loading": "Načítání...",
+    "error": "Nepodařilo se načíst turnaje",
+    "retry": "Zkusit znovu",
+    "stats": {
+      "teams": "Týmy:",
+      "games": "Zápasy:",
+      "beersPerPlayer": "Piv na hráče:",
+      "readyToStart": "Připraveno ke startu",
+      "moreTeamsNeeded": "{{count}} týmů chybí"
+    }
+  },
+  "createDialog": {
+    "title": "Vytvořit Beer Pong Turnaj",
+    "fields": {
+      "tournamentName": "Název turnaje",
+      "description": "Popis (volitelné)",
+      "beersPerPlayer": "Piv na hráče",
+      "timeWindowMinutes": "Časové okno (minuty)",
+      "timeWindowHelper": "Zabraňuje duplicitním kliknutím",
+      "undoWindowMinutes": "Okno pro zrušení (minuty)",
+      "undoWindowHelper": "Čas na zrušení startu hry",
+      "cancellationPolicy": "Politika zrušení",
+      "creatingForEvent": "Vytváření turnaje pro událost:"
+    },
+    "cancellationPolicy": {
+      "keepBeers": "Ponechat piva",
+      "removeBeers": "Odebrat piva"
+    },
+    "buttons": {
+      "cancel": "Zrušit",
+      "create": "Vytvořit Turnaj"
+    },
+    "errors": {
+      "noActiveEvent": "Není vybrána žádná aktivní událost",
+      "nameRequired": "Název turnaje je povinný",
+      "createFailed": "Nepodařilo se vytvořit turnaj"
+    },
+    "success": "Turnaj byl úspěšně vytvořen"
+  },
+  "detail": {
+    "pageTitle": "Beer Pong: {{name}}",
+    "back": "Zpět",
+    "status": {
+      "draft": "Návrh",
+      "active": "Aktivní",
+      "completed": "Dokončeno"
+    },
+    "actions": {
+      "addTeam": "Přidat Tým",
+      "startTournament": "Spustit Turnaj",
+      "deleteTeam": "Smazat tým",
+      "edit": "Upravit",
+      "delete": "Smazat"
+    },
+    "teams": {
+      "title": "Týmy",
+      "empty": "Zatím žádné týmy",
+      "emptySubtitle": "Přidejte týmy pro spuštění turnaje. Každý tým potřebuje 2 hráče.",
+      "player1": "Hráč 1",
+      "player2": "Hráč 2",
+      "count": "{{count}}/8 týmů",
+      "full": "Turnaj je plný (8 týmů). Před přidáním nového týmu odstraňte existující tým.",
+      "moreTeamsNeeded": "týmů chybí pro spuštění turnaje"
+    },
+    "bracket": {
+      "title": "Pavouk",
+      "quarterfinal": "Čtvrtfinále",
+      "semifinal": "Semifinále",
+      "final": "Finále"
+    },
+    "games": {
+      "title": "Zápasy",
+      "pending": "Čeká",
+      "inProgress": "Probíhá",
+      "completed": "Dokončeno",
+      "noGames": "Zatím žádné zápasy"
+    },
+    "stats": {
+      "title": "Nastavení turnaje",
+      "teams": "Týmy",
+      "games": "Zápasy",
+      "beersPerPlayer": "Piv na hráče",
+      "timeWindow": "Časové okno",
+      "undoWindow": "Okno pro zrušení",
+      "cancellationPolicy": "Politika zrušení",
+      "started": "Spuštěno"
+    },
+    "startDialog": {
+      "title": "Spustit Turnaj",
+      "message": "Opravdu chcete spustit turnaj? Po spuštění bude vytvořen pavouk a turnaj začne.",
+      "confirm": "Spustit",
+      "cancel": "Zrušit"
+    },
+    "deleteTeamDialog": {
+      "title": "Smazat Tým",
+      "message": "Opravdu chcete smazat tento tým? Tato akce je nevratná.",
+      "confirm": "Smazat",
+      "cancel": "Zrušit"
+    },
+    "errors": {
+      "loadFailed": "Nepodařilo se načíst turnaj",
+      "startFailed": "Nepodařilo se spustit turnaj",
+      "deleteTeamFailed": "Nepodařilo se smazat tým"
+    },
+    "success": {
+      "started": "Turnaj spuštěn! Pavouk byl inicializován.",
+      "teamDeleted": "Tým byl úspěšně smazán"
+    }
+  },
+  "teamDialog": {
+    "title": "Přidat Tým",
+    "fields": {
+      "teamName": "Název týmu",
+      "player1": "Hráč 1",
+      "player2": "Hráč 2",
+      "selectPlayer": "Vybrat hráče"
+    },
+    "buttons": {
+      "cancel": "Zrušit",
+      "create": "Vytvořit Tým"
+    },
+    "errors": {
+      "nameRequired": "Název týmu je povinný",
+      "nameExists": "Název týmu již existuje",
+      "selectPlayer1": "Prosím vyberte hráče 1",
+      "selectPlayer2": "Prosím vyberte hráče 2",
+      "playersDifferent": "Hráči musí být různí",
+      "loadUsersFailed": "Nepodařilo se načíst uživatele",
+      "createFailed": "Nepodařilo se vytvořit tým"
+    },
+    "success": "Tým byl úspěšně vytvořen"
+  },
+  "gameModal": {
+    "title": "Detail Zápasu",
+    "status": {
+      "pending": "Čeká",
+      "inProgress": "Probíhá",
+      "completed": "Dokončeno"
+    },
+    "round": {
+      "quarterfinal": "Čtvrtfinále",
+      "semifinal": "Semifinále",
+      "final": "Finále"
+    },
+    "info": {
+      "team1": "Tým 1",
+      "team2": "Tým 2",
+      "winner": "Vítěz",
+      "startedAt": "Začátek",
+      "endedAt": "Konec",
+      "duration": "Délka",
+      "beersAdded": "Piva přidána v",
+      "undoTimeRemaining": "Zbývá času na zrušení: {{time}}"
+    },
+    "actions": {
+      "startGame": "Spustit Hru",
+      "completeGame": "Dokončit Hru",
+      "undoStart": "Zrušit Start",
+      "close": "Zavřít"
+    },
+    "completeGame": {
+      "selectWinner": "Vyberte vítěze",
+      "noWinner": "Žádný vítěz"
+    },
+    "errors": {
+      "startFailed": "Nepodařilo se spustit hru",
+      "completeFailed": "Nepodařilo se dokončit hru",
+      "undoFailed": "Nepodařilo se zrušit start hry",
+      "selectWinner": "Prosím vyberte vítěze"
+    },
+    "success": {
+      "started": "Hra byla spuštěna",
+      "completed": "Hra byla dokončena",
+      "undo": "Start hry byl zrušen"
+    }
+  }
+}

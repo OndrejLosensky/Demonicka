@@ -23,6 +23,8 @@ import { SettingsPage } from './pages/Dashboard/System/SettingsPage';
 import { Activity } from './pages/User/Activity';
 import { PersonalStatsView } from './pages/User/PersonalStats/PersonalStatsView';
 import { AchievementsPage } from './pages/User/Achievements';
+import { BeerPongList } from './pages/BeerPong';
+import { BeerPongDetail } from './pages/BeerPong/BeerPongDetail';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import { CompleteRegistration } from './pages/Auth/CompleteRegistration';
@@ -102,6 +104,22 @@ function App() {
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
                   <EventResults />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="dashboard/beer-pong"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
+                  <BeerPongList />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="dashboard/beer-pong/:id"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
+                  <BeerPongDetail />
                 </RoleRoute>
               }
             />
