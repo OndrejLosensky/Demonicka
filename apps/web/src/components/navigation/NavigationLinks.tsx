@@ -1,5 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Box, Typography } from '@demonicka/ui';
+import { Box } from '@demonicka/ui';
+import {
+  Speed as DashboardIcon,
+  Group as PeopleIcon,
+  Storage as StorageIcon,
+  EmojiEvents as TrophyIcon,
+  Event as EventIcon,
+  TrendingUp as TrendingUpIcon,
+} from '@demonicka/ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { USER_ROLE } from '@demonicka/shared-types';
@@ -14,7 +22,15 @@ export function NavigationLinks() {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const NavLink = ({ to, children }: { to: string; children: React.ReactNode }) => {
+  const NavLink = ({
+    to,
+    icon,
+    children,
+  }: {
+    to: string;
+    icon?: React.ReactNode;
+    children: React.ReactNode;
+  }) => {
     const active = isActive(to);
     return (
       <Box
@@ -22,6 +38,9 @@ export function NavigationLinks() {
         to={to}
         sx={{
           position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
           px: 2,
           py: 1.5,
           textDecoration: 'none',
@@ -51,6 +70,7 @@ export function NavigationLinks() {
           },
         }}
       >
+        {icon}
         {children}
       </Box>
     );
@@ -60,27 +80,42 @@ export function NavigationLinks() {
     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 0.5 }}>
       {hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]) && (
         <>
-          <NavLink to="/dashboard">{translations.navigation.dashboard}</NavLink>
+          <NavLink to="/dashboard" icon={<DashboardIcon sx={{ fontSize: 18 }} />}>
+            {translations.navigation.dashboard}
+          </NavLink>
           {activeEvent && (
             <>
-              <NavLink to="/dashboard/participants">
+              <NavLink
+                to="/dashboard/participants"
+                icon={<PeopleIcon sx={{ fontSize: 18 }} />}
+              >
                 {translations.navigation.participants}
               </NavLink>
-              <NavLink to="/dashboard/barrels">{translations.navigation.barrels}</NavLink>
+              <NavLink to="/dashboard/barrels" icon={<StorageIcon sx={{ fontSize: 18 }} />}>
+                {translations.navigation.barrels}
+              </NavLink>
             </>
           )}
         </>
       )}
       {activeEvent && hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]) && (
-        <NavLink to="/leaderboard">{translations.navigation.leaderboard}</NavLink>
+        <NavLink to="/leaderboard" icon={<TrophyIcon sx={{ fontSize: 18 }} />}>
+          {translations.navigation.leaderboard}
+        </NavLink>
       )}
       {hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]) && (
-        <NavLink to="/events">{translations.navigation.events}</NavLink>
+        <NavLink to="/events" icon={<EventIcon sx={{ fontSize: 18 }} />}>
+          {translations.navigation.events}
+        </NavLink>
       )}
       {user?.role === USER_ROLE.USER && (
         <>
-          <NavLink to={`/${user?.id}/dashboard`}>Moje statistiky</NavLink>
-          <NavLink to="/achievements">Úspěchy</NavLink>
+          <NavLink to={`/${user?.id}/dashboard`} icon={<TrendingUpIcon sx={{ fontSize: 18 }} />}>
+            Moje statistiky
+          </NavLink>
+          <NavLink to="/achievements" icon={<TrophyIcon sx={{ fontSize: 18 }} />}>
+            Úspěchy
+          </NavLink>
         </>
       )}
     </Box>

@@ -28,10 +28,15 @@ export function TopRow() {
         }}
       >
         {/* Left: Logo */}
-        <Logo />
+        <Box sx={{ pl: 3 }}>
+          <Logo />
+        </Box>
 
-        {/* Right: Theme, Notifications, Time/Event, User */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {/* Right: Time/Event, Theme, Notifications, User */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pr: 3 }}>
+          {/* Active Event Display (Time + Event) */}
+          <ActiveEventDisplay />
+
           {/* Theme Toggle */}
           <IconButton
             size="small"
@@ -68,9 +73,6 @@ export function TopRow() {
           >
             <NotificationsIcon fontSize="small" />
           </IconButton>
-
-          {/* Active Event Display (Time + Event) */}
-          <ActiveEventDisplay />
 
           {/* Mobile Menu Button */}
           {user && (
