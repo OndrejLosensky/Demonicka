@@ -1,4 +1,5 @@
-import { Typography, Grid, Box, IconButton, Tooltip, Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon, Speed as SpeedIcon, MetricCard, PageHeader } from '@demonicka/ui';
+import { useState, useEffect } from 'react';
+import { Typography, Grid, Box, IconButton, Tooltip, Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon, Speed as SpeedIcon, MetricCard, PageHeader, Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon } from '@demonicka/ui';
 import { FaBeer } from 'react-icons/fa';
 import { LeaderboardTable } from './LeaderboardTable';
 import { useLeaderboard } from './useLeaderboard';
@@ -11,6 +12,31 @@ const LeaderboardComponent: React.FC = () => {
   usePageTitle('Žebříček');
   const { stats, dashboardStats, publicStats, isLoading } = useLeaderboard();
   const { isHeaderVisible, toggleHeader } = useHeaderVisibility();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Handle fullscreen API
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      console.error('Error toggling fullscreen:', error);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
   
   // Use real-time stats from WebSocket, fallback to calculated values
   const metricStats = {
@@ -36,7 +62,9 @@ const LeaderboardComponent: React.FC = () => {
     <Box 
       sx={{ 
         bgcolor: 'background.default',
-        width: '100%'
+        width: '100%',
+        maxWidth: '1400px',
+        mx: 'auto',
       }}
     >
       <Box 
@@ -63,29 +91,48 @@ const LeaderboardComponent: React.FC = () => {
                   width: '180px',
                   height: '180px',
                   objectFit: 'contain',
-                  filter: getShadow('glowSubtle', mode)
                 }}
               />
             </Box>
           )}
           
           <PageHeader title={translations.title} />
-          <Tooltip title={isHeaderVisible ? "Skrýt hlavičku" : "Zobrazit hlavičku"} arrow>
-            <IconButton
-              onClick={toggleHeader}
-              size="small"
-              sx={{
-                bgcolor: 'background.paper',
-                border: '1px solid',
-                borderColor: 'divider',
-                '&:hover': {
-                  bgcolor: 'action.hover',
-                }
-              }}
-            >
-              {isHeaderVisible ? <FullscreenIcon /> : <FullscreenExitIcon />}
-            </IconButton>
-          </Tooltip>
+          <Box display="flex" gap={1}>
+            <Tooltip title={isHeaderVisible ? "Skrýt hlavičku" : "Zobrazit hlavičku"} arrow>
+              <IconButton
+                onClick={toggleHeader}
+                size="small"
+                sx={{
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                  }
+                }}
+              >
+                {isHeaderVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={isFullscreen ? "Ukončit celou obrazovku" : "Celá obrazovka"} arrow>
+              <IconButton
+                onClick={toggleFullscreen}
+                size="small"
+                sx={{
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                  }
+                }}
+              >
+                {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
 
         {/* Metric Cards */}

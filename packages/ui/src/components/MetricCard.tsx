@@ -13,12 +13,14 @@ export const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, 
   return (
     <Card sx={{ 
       p: 2, 
-      borderRadius: 2, 
+      borderRadius: 1, 
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-start',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+      boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+      border: '1px solid',
+      borderColor: 'divider',
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
         {icon && (
