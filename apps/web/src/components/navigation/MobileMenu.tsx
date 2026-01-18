@@ -29,7 +29,13 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
     return () => clearInterval(timer);
   }, []);
 
-  const isActive = (path: string) => location.pathname === path;
+  const includeSubRoutes = new Set<string>(['/events', '/dashboard/system', '/dashboard/beer-pong']);
+  const isActive = (path: string) => {
+    if (includeSubRoutes.has(path)) {
+      return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    }
+    return location.pathname === path;
+  };
 
   const getNavigationItems = () => {
     if (!user) return [];

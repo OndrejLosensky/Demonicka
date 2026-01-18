@@ -12,7 +12,12 @@ export function SystemLinks() {
 
   if (!user || user.role !== USER_ROLE.SUPER_ADMIN) return null;
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string, options?: { includeSubRoutes?: boolean }) => {
+    if (options?.includeSubRoutes) {
+      return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    }
+    return location.pathname === path;
+  };
 
   const SystemLink = ({
     to,
@@ -23,7 +28,7 @@ export function SystemLinks() {
     icon: React.ReactNode;
     children: React.ReactNode;
   }) => {
-    const active = isActive(to);
+    const active = isActive(to, { includeSubRoutes: to === '/dashboard/system' });
     return (
       <Box
         component={Link}

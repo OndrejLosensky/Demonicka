@@ -22,7 +22,12 @@ export function NavigationLinks() {
 
   if (!user) return null;
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string, options?: { includeSubRoutes?: boolean }) => {
+    if (options?.includeSubRoutes) {
+      return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    }
+    return location.pathname === path;
+  };
 
   const NavLink = ({
     to,
@@ -33,7 +38,9 @@ export function NavigationLinks() {
     icon?: React.ReactNode;
     children: React.ReactNode;
   }) => {
-    const active = isActive(to);
+    const active = isActive(to, {
+      includeSubRoutes: to === '/events' || to === '/dashboard/beer-pong',
+    });
     return (
       <Box
         component={Link}
