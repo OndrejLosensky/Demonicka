@@ -91,5 +91,15 @@ export const eventService = {
 
     async removeBeerFromUser(eventId: string, userId: string): Promise<void> {
         await api.delete(`/events/${eventId}/users/${userId}/beers`);
-    }
+    },
+
+    async downloadEventDetailExcel(eventId: string): Promise<Blob> {
+        const response = await api.get(`/events/${eventId}/export/excel/detail`, {
+            responseType: 'blob',
+            headers: {
+                Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            },
+        });
+        return response.data as Blob;
+    },
 }; 

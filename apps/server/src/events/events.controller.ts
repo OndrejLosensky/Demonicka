@@ -9,6 +9,7 @@ import {
   UseGuards,
   ParseUUIDPipe,
   Query,
+  StreamableFile,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { Barrel, EventBeer, User } from '@prisma/client';
@@ -24,6 +25,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Permission } from '@demonicka/shared';
 import { BeerPongService } from '../beer-pong/beer-pong.service';
+import { EventDetailExportBuilder } from '../exports/event-detail/EventDetailExportBuilder';
 
 @Controller('events')
 @Versions('1')
@@ -33,6 +35,7 @@ export class EventsController {
     private readonly eventsService: EventsService,
     private readonly eventBeersService: EventBeersService,
     private readonly beerPongService: BeerPongService,
+    private readonly eventDetailExportBuilder: EventDetailExportBuilder,
   ) {}
 
   @Get()
@@ -48,7 +51,10 @@ export class EventsController {
 
   @Post()
   @Permissions(Permission.CREATE_EVENT)
-  create(@Body() createEventDto: CreateEventDto, @CurrentUser() user: User): Promise<Event> {
+  create(
+    @Body() createEventDto: CreateEventDto,
+    @CurrentUser() user: User,
+  ): Promise<Event> {
     return this.eventsService.create(createEventDto, user.id);
   }
 
@@ -112,7 +118,6 @@ export class EventsController {
     return this.eventsService.removeUser(id, userId);
   }
 
-
   @Get(':id/users')
   getEventUsers(
     @Param('id', ParseUUIDPipe) id: string,
@@ -142,7 +147,6 @@ export class EventsController {
     return this.eventsService.getEventBarrels(id);
   }
 
-
   @Get(':id/beers')
   getEventBeers(@Param('id', ParseUUIDPipe) id: string): Promise<EventBeer[]> {
     return this.eventBeersService.findAllForEvent(id);
@@ -168,9 +172,23 @@ export class EventsController {
     return this.eventsService.endEvent(id);
   }
 
+  @Get(':id/export/excel/detail')
+  @Permissions(Permission.VIEW_BEERS, Permission.VIEW_LEADERBOARD)
+  async exportEventDetailExcel(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ): Promise<StreamableFile> {
+    // Access check
+    await this.eventsService.findOne(id, user);
+    return this.eventDetailExportBuilder.build(id);
+  }
+
   // Generic :id routes must come after all specific routes
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user?: User): Promise<Event> {
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user?: User,
+  ): Promise<Event> {
     return this.eventsService.findOne(id, user);
   }
 
@@ -186,7 +204,10 @@ export class EventsController {
 
   @Delete(':id')
   @Permissions(Permission.DELETE_EVENT)
-  remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User): Promise<void> {
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ): Promise<void> {
     return this.eventsService.remove(id, user);
   }
 }

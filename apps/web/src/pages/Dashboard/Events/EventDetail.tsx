@@ -32,6 +32,7 @@ import {
     Delete as DeleteIcon,
     IconButton,
     SportsBar as SportsBarIcon,
+    Save as SaveIcon,
     TextField,
 } from '@demonicka/ui';
 import { format } from 'date-fns';
@@ -65,6 +66,7 @@ export const EventDetail: React.FC = () => {
     const [deleteTeamId, setDeleteTeamId] = useState<string | null>(null);
     const [deleteEventOpen, setDeleteEventOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isExportingExcel, setIsExportingExcel] = useState(false);
     const [teamForm, setTeamForm] = useState<CreateTeamDto>({
         name: '',
         player1Id: '',
@@ -280,6 +282,37 @@ export const EventDetail: React.FC = () => {
         }
     };
 
+    const safeFileName = (base: string): string => {
+        const trimmed = base.trim() || 'export';
+        const sanitized = trimmed.replace(/[^a-zA-Z0-9._-]+/g, '_');
+        return sanitized.replace(/^_+|_+$/g, '') || 'export';
+    };
+
+    const handleExportEventDetailExcel = async () => {
+        if (!id || !event) return;
+
+        try {
+            setIsExportingExcel(true);
+            const blob = await eventService.downloadEventDetailExcel(id);
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${safeFileName(`${event.name}_event_detail`)}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+            toast.success('Excel export stažen');
+        } catch (error) {
+            console.error('Failed to export event detail excel:', error);
+            toast.error('Nepodařilo se stáhnout Excel export');
+        } finally {
+            setIsExportingExcel(false);
+        }
+    };
+
     if (!event) {
         return (
             <Container>
@@ -353,6 +386,19 @@ export const EventDetail: React.FC = () => {
                 }
                 action={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        {hasPermission([Permission.VIEW_BEERS, Permission.VIEW_LEADERBOARD]) && (
+                            <Button
+                                variant="outlined"
+                                startIcon={<SaveIcon />}
+                                onClick={handleExportEventDetailExcel}
+                                disabled={isExportingExcel}
+                                sx={{
+                                    borderRadius: tokens.borderRadius.md,
+                                }}
+                            >
+                                {isExportingExcel ? 'Exportuji…' : 'Excel export'}
+                            </Button>
+                        )}
                         {hasPermission([Permission.DELETE_EVENT]) && (
                             <Button
                                 variant="outlined"

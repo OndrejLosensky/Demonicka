@@ -17,6 +17,7 @@ import { RolesModule } from './roles/roles.module';
 import { FeatureFlagsModule } from './feature-flags/feature-flags.module';
 import { BeerPongModule } from './beer-pong/beer-pong.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ExportsModule } from './exports/exports.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
 
@@ -44,6 +45,7 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
     RolesModule,
     FeatureFlagsModule,
     BeerPongModule,
+    ExportsModule,
   ],
 })
 export class AppModule implements NestModule {
