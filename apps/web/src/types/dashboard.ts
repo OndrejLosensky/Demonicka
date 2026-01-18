@@ -4,6 +4,7 @@ export interface UserStats {
   name: string | null;
   beerCount: number;
   lastBeerTime: string | null;
+  profilePictureUrl?: string | null;
 }
 
 export interface BarrelStats {

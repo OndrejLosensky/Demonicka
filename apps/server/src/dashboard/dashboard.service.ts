@@ -188,7 +188,7 @@ export class DashboardService {
       const userIds = eventBeerCounts.map(eb => eb.userId);
       const users = await this.prisma.user.findMany({
         where: { id: { in: userIds } },
-        select: { id: true, username: true },
+        select: { id: true, username: true, profilePictureUrl: true },
       });
 
       const topUsers: UserStatsDto[] = eventBeerCounts.map(eb => {
@@ -197,6 +197,7 @@ export class DashboardService {
           id: eb.userId,
           username: user?.username || '',
           beerCount: eb._count.id,
+          profilePictureUrl: user?.profilePictureUrl || null,
         };
       });
 
@@ -237,7 +238,7 @@ export class DashboardService {
       // Get top users by beer count
       const topUsersData = await this.prisma.user.findMany({
         where: { deletedAt: null },
-        select: { id: true, username: true, beerCount: true },
+        select: { id: true, username: true, beerCount: true, profilePictureUrl: true },
         orderBy: { beerCount: 'desc' },
         take: 10,
       });
@@ -246,6 +247,7 @@ export class DashboardService {
         id: u.id,
         username: u.username || '',
         beerCount: u.beerCount || 0,
+        profilePictureUrl: u.profilePictureUrl || null,
       }));
 
       // Get barrel statistics
@@ -325,7 +327,7 @@ export class DashboardService {
     const userIds = eventBeerCounts.map(eb => eb.userId);
     const users = await this.prisma.user.findMany({
       where: { id: { in: userIds } },
-      select: { id: true, username: true, gender: true },
+      select: { id: true, username: true, gender: true, profilePictureUrl: true },
     });
 
     const userMap = new Map(users.map(u => [u.id, u]));
@@ -385,6 +387,7 @@ export class DashboardService {
       username: user.username || '',
       gender: user.gender,
       beerCount: beerCountMap.get(userId) || 0,
+      profilePictureUrl: (user as any).profilePictureUrl || null,
       reachedAt: getReachedAtTimestamp(userId, beerCountMap.get(userId) || 0),
     })).sort((a, b) => {
       // Sort by beerCount desc, then by reachedAt asc (earlier = reached that count first)

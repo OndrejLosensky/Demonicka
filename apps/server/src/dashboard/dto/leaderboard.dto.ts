@@ -4,6 +4,7 @@ export class UserLeaderboardDto {
   gender: 'MALE' | 'FEMALE';
   beerCount: number;
   rank: number;
+  profilePictureUrl?: string | null;
 }
 
 export class LeaderboardDto {

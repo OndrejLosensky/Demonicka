@@ -20,6 +20,7 @@ import {
     MetricCard,
     PageLoader,
 } from '@demonicka/ui';
+import { UserAvatar } from '../../components/UserAvatar';
 import { FaTrophy, FaFire, FaClock } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -463,7 +464,8 @@ export const Dashboard: React.FC = () => {
                                             gap: 2,
                                             background: index === 0 ? 'primary.50' : 'background.paper'
                                         }}>
-                                            <Avatar 
+                                            <UserAvatar
+                                                user={user}
                                                 sx={{ 
                                                     width: 40, 
                                                     height: 40, 
@@ -471,9 +473,7 @@ export const Dashboard: React.FC = () => {
                                                     fontSize: '0.9rem',
                                                     fontWeight: 'bold'
                                                 }}
-                                            >
-                                                {user.username.charAt(0).toUpperCase()}
-                                            </Avatar>
+                                            />
                                             <Box sx={{ flex: 1 }}>
                                                 <Typography variant="body1" fontWeight="bold">{user.username}</Typography>
                                                 <Typography variant="body2" color="text.secondary">{user.beerCount} piv</Typography>

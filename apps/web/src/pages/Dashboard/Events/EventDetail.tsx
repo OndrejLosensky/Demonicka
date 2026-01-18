@@ -49,6 +49,7 @@ import { useAppTheme } from '../../../contexts/ThemeContext';
 import { getShadow } from '../../../theme/utils';
 import { useAuth } from '../../../contexts/AuthContext';
 import { Permission } from '@demonicka/shared';
+import { UserAvatar } from '../../../components/UserAvatar';
 
 export const EventDetail: React.FC = () => {
     usePageTitle('Detail události');
@@ -513,20 +514,15 @@ export const EventDetail: React.FC = () => {
                                                 },
                                             }}
                                         >
-                                            <Box
+                                            <UserAvatar
+                                                user={user}
                                                 sx={{
                                                     width: 40,
                                                     height: 40,
-                                                    borderRadius: '50%',
-                                                    bgcolor: 'primary.main',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
+                                                    fontSize: '1rem',
                                                     flexShrink: 0,
                                                 }}
-                                            >
-                                                <PersonIcon sx={{ fontSize: 20, color: 'white' }} />
-                                            </Box>
+                                            />
                                             <Box flex={1} sx={{ minWidth: 0 }}>
                                                 <Typography fontWeight={700} sx={{ mb: 0.5 }}>
                                                     {user.username}
