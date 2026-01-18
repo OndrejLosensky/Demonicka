@@ -1,0 +1,59 @@
+{
+  "title": "Beer Pong Výchozí Nastavení",
+  "subtitle": "Konfigurace výchozích hodnot pro nové beer pong turnaje",
+  "save": "Uložit",
+  "infoNote": {
+    "title": "Poznámka:",
+    "text": "Tato nastavení se používají jako výchozí hodnoty při vytváření nových beer pong turnajů. Každý turnaj může mít své vlastní přizpůsobené hodnoty. Nastavení lze změnit na turnaj během vytváření nebo úpravou turnaje."
+  },
+  "fields": {
+    "beersPerPlayer": {
+      "label": "Piv na hráče",
+      "helper": "Počet piv automaticky přidávaných každému hráči při startu hry"
+    },
+    "timeWindowMinutes": {
+      "label": "Časové okno (minuty)",
+      "helper": "Maximální časové okno pro úspěšný start hry po počátečním pokusu"
+    },
+    "undoWindowMinutes": {
+      "label": "Okno pro zrušení (minuty)",
+      "helper": "Časové okno pro zrušení startu hry a odstranění přidaných piv"
+    },
+    "cancellationPolicy": {
+      "label": "Výchozí politika zrušení",
+      "helper": "Co se stane s pivy, když je turnaj zrušen",
+      "keepBeers": "Ponechat piva",
+      "removeBeers": "Odebrat piva"
+    }
+  },
+  "descriptions": {
+    "title": "Popis nastavení",
+    "beersPerPlayer": {
+      "title": "Piv na hráče",
+      "text": "Počet piv automaticky přidávaných každému hráči (4 hráči celkem na hru) při startu hry. Simuluje skutečný scénář, kde hráči dostávají piva před začátkem hry."
+    },
+    "timeWindowMinutes": {
+      "title": "Časové okno (minuty)",
+      "text": "Maximální časové okno (v minutách) povolené pro úspěšný start hry po počátečním pokusu. Zabraňuje race condition a zajišťuje, že hry jsou spuštěny v rozumném časovém rámci. Pokud je překročeno, operace startu hry selže a musí být opakována."
+    },
+    "undoWindowMinutes": {
+      "title": "Okno pro zrušení (minuty)",
+      "text": "Časové okno (v minutách), během kterého mohou operátoři zrušit start hry. Po vypršení tohoto okna nelze hru zrušit a piva zůstávají přidána hráčům. Zabraňuje náhodnému odstranění piv po uplynutí významného času."
+    },
+    "cancellationPolicy": {
+      "title": "Politika zrušení",
+      "text": "Definuje, co se stane s pivy, když je turnaj zrušen:",
+      "keepBeers": "Ponechat piva: Piva přidaná během her zůstávají v počtech hráčů, i když je turnaj zrušen.",
+      "removeBeers": "Odebrat piva: Piva přidaná během her jsou odebrána z počtů hráčů, pokud je turnaj zrušen."
+    }
+  },
+  "warnings": {
+    "important": {
+      "title": "Důležité:",
+      "text": "Změna těchto výchozích hodnot ovlivňuje pouze nové turnaje. Existující turnaje si zachovávají svá původní nastavení. Pro změnu nastavení existujícího turnaje upravte turnaj přímo."
+    }
+  },
+  "toasts": {
+    "saveSuccess": "Nastavení uloženo! (Poznámka: Tyto výchozí hodnoty jsou použity na turnaj při vytváření nových událostí)"
+  }
+}

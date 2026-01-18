@@ -16,6 +16,7 @@ import { Alert } from '@mui/material';
 import { Save as SaveIcon } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import { CancellationPolicy } from '@demonicka/shared-types';
+import translations from '../../../../locales/cs/beerPongSettings.json';
 
 /**
  * Beer Pong Settings Page
@@ -36,7 +37,7 @@ const BeerPongSettingsPage: React.FC = () => {
   const handleSave = () => {
     // TODO: Implement backend API for saving default settings
     // For now, this is just a placeholder showing the structure
-    toast.success('Settings saved! (Note: These defaults are applied per tournament when creating new events)');
+    toast.success(translations.toasts.saveSuccess);
   };
 
   return (
@@ -44,10 +45,10 @@ const BeerPongSettingsPage: React.FC = () => {
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box>
           <Typography variant="h6" fontWeight="bold">
-            Beer Pong Default Settings
+            {translations.title}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Configure default values for new beer pong tournaments
+            {translations.subtitle}
           </Typography>
         </Box>
         <Button
@@ -56,15 +57,13 @@ const BeerPongSettingsPage: React.FC = () => {
           onClick={handleSave}
           sx={{ minWidth: 120 }}
         >
-          Save
+          {translations.save}
         </Button>
       </Box>
 
       <Alert severity="info" sx={{ mb: 3 }}>
         <Typography variant="body2">
-          <strong>Note:</strong> These settings are used as defaults when creating new beer pong tournaments.
-          Each tournament can have its own customized values. Settings can be changed per tournament
-          during creation or by editing the tournament.
+          <strong>{translations.infoNote.title}</strong> {translations.infoNote.text}
         </Typography>
       </Alert>
 
@@ -73,57 +72,57 @@ const BeerPongSettingsPage: React.FC = () => {
           {/* Beers Per Player */}
           <Grid item xs={12} md={6}>
             <TextField
-              label="Beers Per Player"
+              label={translations.fields.beersPerPlayer.label}
               type="number"
               fullWidth
               value={defaultBeersPerPlayer}
               onChange={(e) => setDefaultBeersPerPlayer(Math.max(1, Number(e.target.value)))}
               inputProps={{ min: 1 }}
-              helperText="Number of beers automatically added to each player when a game starts"
+              helperText={translations.fields.beersPerPlayer.helper}
             />
           </Grid>
 
           {/* Time Window Minutes */}
           <Grid item xs={12} md={6}>
             <TextField
-              label="Time Window (minutes)"
+              label={translations.fields.timeWindowMinutes.label}
               type="number"
               fullWidth
               value={defaultTimeWindowMinutes}
               onChange={(e) => setDefaultTimeWindowMinutes(Math.max(0, Number(e.target.value)))}
               inputProps={{ min: 0 }}
-              helperText="Maximum time window to start a game after initial attempt"
+              helperText={translations.fields.timeWindowMinutes.helper}
             />
           </Grid>
 
           {/* Undo Window Minutes */}
           <Grid item xs={12} md={6}>
             <TextField
-              label="Undo Window (minutes)"
+              label={translations.fields.undoWindowMinutes.label}
               type="number"
               fullWidth
               value={defaultUndoWindowMinutes}
               onChange={(e) => setDefaultUndoWindowMinutes(Math.max(0, Number(e.target.value)))}
               inputProps={{ min: 0 }}
-              helperText="Time window to undo game start and remove added beers"
+              helperText={translations.fields.undoWindowMinutes.helper}
             />
           </Grid>
 
           {/* Cancellation Policy */}
           <Grid item xs={12} md={6}>
             <FormControl fullWidth>
-              <InputLabel>Default Cancellation Policy</InputLabel>
+              <InputLabel>{translations.fields.cancellationPolicy.label}</InputLabel>
               <Select
                 value={defaultCancellationPolicy}
-                label="Default Cancellation Policy"
+                label={translations.fields.cancellationPolicy.label}
                 onChange={(e) => setDefaultCancellationPolicy(e.target.value as CancellationPolicy)}
               >
-                <MenuItem value={CancellationPolicy.KEEP_BEERS}>Keep Beers</MenuItem>
-                <MenuItem value={CancellationPolicy.REMOVE_BEERS}>Remove Beers</MenuItem>
+                <MenuItem value={CancellationPolicy.KEEP_BEERS}>{translations.fields.cancellationPolicy.keepBeers}</MenuItem>
+                <MenuItem value={CancellationPolicy.REMOVE_BEERS}>{translations.fields.cancellationPolicy.removeBeers}</MenuItem>
               </Select>
             </FormControl>
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              What happens to beers when a tournament is cancelled
+              {translations.fields.cancellationPolicy.helper}
             </Typography>
           </Grid>
         </Grid>
@@ -133,56 +132,50 @@ const BeerPongSettingsPage: React.FC = () => {
         {/* Documentation Section */}
         <Box>
           <Typography variant="h6" gutterBottom>
-            Setting Descriptions
+            {translations.descriptions.title}
           </Typography>
 
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-              Beers Per Player
+              {translations.descriptions.beersPerPlayer.title}
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
-              The number of beers automatically added to each player (4 players total per game) when a game starts.
-              This simulates the real-world scenario where players receive beers before the game begins.
+              {translations.descriptions.beersPerPlayer.text}
             </Typography>
 
             <Typography variant="subtitle2" fontWeight={600} gutterBottom sx={{ mt: 2 }}>
-              Time Window (minutes)
+              {translations.descriptions.timeWindowMinutes.title}
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
-              The maximum time window (in minutes) allowed to successfully start a game after the initial attempt.
-              This prevents race conditions and ensures games are started within a reasonable time frame.
-              If exceeded, the game start operation will fail and must be retried.
+              {translations.descriptions.timeWindowMinutes.text}
             </Typography>
 
             <Typography variant="subtitle2" fontWeight={600} gutterBottom sx={{ mt: 2 }}>
-              Undo Window (minutes)
+              {translations.descriptions.undoWindowMinutes.title}
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
-              The time window (in minutes) during which operators can undo a game start. After this window expires,
-              the game cannot be undone and beers remain added to players. This prevents accidental beer removal
-              after significant time has passed.
+              {translations.descriptions.undoWindowMinutes.text}
             </Typography>
 
             <Typography variant="subtitle2" fontWeight={600} gutterBottom sx={{ mt: 2 }}>
-              Cancellation Policy
+              {translations.descriptions.cancellationPolicy.title}
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
-              Defines what happens to beers when a tournament is cancelled:
+              {translations.descriptions.cancellationPolicy.text}
             </Typography>
             <Box component="ul" sx={{ ml: 3, mb: 2 }}>
               <li>
-                <strong>Keep Beers:</strong> Beers added during games remain in players' counts even if the tournament is cancelled.
+                <strong>{translations.fields.cancellationPolicy.keepBeers}:</strong> {translations.descriptions.cancellationPolicy.keepBeers}
               </li>
               <li>
-                <strong>Remove Beers:</strong> Beers added during games are removed from players' counts if the tournament is cancelled.
+                <strong>{translations.fields.cancellationPolicy.removeBeers}:</strong> {translations.descriptions.cancellationPolicy.removeBeers}
               </li>
             </Box>
           </Box>
 
           <Alert severity="warning" sx={{ mt: 3 }}>
             <Typography variant="body2">
-              <strong>Important:</strong> Changing these defaults only affects new tournaments. Existing tournaments
-              retain their original settings. To change settings for an existing tournament, edit the tournament directly.
+              <strong>{translations.warnings.important.title}</strong> {translations.warnings.important.text}
             </Typography>
           </Alert>
         </Box>

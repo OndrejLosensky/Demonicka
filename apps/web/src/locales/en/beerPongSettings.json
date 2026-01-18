@@ -1,0 +1,59 @@
+{
+  "title": "Beer Pong Default Settings",
+  "subtitle": "Configure default values for new beer pong tournaments",
+  "save": "Save",
+  "infoNote": {
+    "title": "Note:",
+    "text": "These settings are used as defaults when creating new beer pong tournaments. Each tournament can have its own customized values. Settings can be changed per tournament during creation or by editing the tournament."
+  },
+  "fields": {
+    "beersPerPlayer": {
+      "label": "Beers Per Player",
+      "helper": "Number of beers automatically added to each player when a game starts"
+    },
+    "timeWindowMinutes": {
+      "label": "Time Window (minutes)",
+      "helper": "Maximum time window to start a game after initial attempt"
+    },
+    "undoWindowMinutes": {
+      "label": "Undo Window (minutes)",
+      "helper": "Time window to undo game start and remove added beers"
+    },
+    "cancellationPolicy": {
+      "label": "Default Cancellation Policy",
+      "helper": "What happens to beers when a tournament is cancelled",
+      "keepBeers": "Keep Beers",
+      "removeBeers": "Remove Beers"
+    }
+  },
+  "descriptions": {
+    "title": "Setting Descriptions",
+    "beersPerPlayer": {
+      "title": "Beers Per Player",
+      "text": "The number of beers automatically added to each player (4 players total per game) when a game starts. This simulates the real-world scenario where players receive beers before the game begins."
+    },
+    "timeWindowMinutes": {
+      "title": "Time Window (minutes)",
+      "text": "The maximum time window (in minutes) allowed to successfully start a game after the initial attempt. This prevents race conditions and ensures games are started within a reasonable time frame. If exceeded, the game start operation will fail and must be retried."
+    },
+    "undoWindowMinutes": {
+      "title": "Undo Window (minutes)",
+      "text": "The time window (in minutes) during which operators can undo a game start. After this window expires, the game cannot be undone and beers remain added to players. This prevents accidental beer removal after significant time has passed."
+    },
+    "cancellationPolicy": {
+      "title": "Cancellation Policy",
+      "text": "Defines what happens to beers when a tournament is cancelled:",
+      "keepBeers": "Keep Beers: Beers added during games remain in players' counts even if the tournament is cancelled.",
+      "removeBeers": "Remove Beers: Beers added during games are removed from players' counts if the tournament is cancelled."
+    }
+  },
+  "warnings": {
+    "important": {
+      "title": "Important:",
+      "text": "Changing these defaults only affects new tournaments. Existing tournaments retain their original settings. To change settings for an existing tournament, edit the tournament directly."
+    }
+  },
+  "toasts": {
+    "saveSuccess": "Settings saved! (Note: These defaults are applied per tournament when creating new events)"
+  }
+}
