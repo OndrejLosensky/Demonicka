@@ -1,0 +1,10 @@
+# Artillery report files (keep recent ones for reference)
+report_*.json
+report_*.html
+!report_*.example.json
+
+# Environment files with secrets
+.env.test
+
+# Artillery logs
+artillery-*.log

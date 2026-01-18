@@ -1,0 +1,59 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    # Warm-up phase: gradually increase load
+    - duration: 30
+      arrivalRate: 5
+      name: "Warm up"
+    
+    # Sustained load: steady moderate load
+    - duration: 120
+      arrivalRate: 10
+      name: "Sustained load"
+    
+    # Spike test: moderate burst of traffic (reduced from 50)
+    - duration: 30
+      arrivalRate: 25
+      name: "Spike test"
+    
+    # Cool down: gradually decrease load
+    - duration: 30
+      arrivalRate: 5
+      name: "Cool down"
+  
+  # processor: "./processor.js"
+  
+  variables:
+    # These will be set via environment variables or command line
+    # ARTILLERY_EVENT_ID=your-event-id
+    # ARTILLERY_USER_ID=your-user-id
+    # ARTILLERY_USERNAME=your-username
+    # ARTILLERY_PASSWORD=your-password
+
+scenarios:
+  # First scenario: authenticate to get JWT token
+  - name: "Authenticate and add beer"
+    weight: 100
+    flow:
+      # Step 1: Login to get JWT token
+      - post:
+          url: "/api/auth/login"
+          headers:
+            x-api-version: "1"
+            Content-Type: "application/json"
+          json:
+            username: "{{ $processEnvironment.ARTILLERY_USERNAME }}"
+            password: "{{ $processEnvironment.ARTILLERY_PASSWORD }}"
+          capture:
+            - json: "$.access_token"
+              as: "jwtToken"
+      
+      # Step 2: Add beer using the JWT token
+      - post:
+          url: "/api/events/{{ $processEnvironment.ARTILLERY_EVENT_ID }}/beers/users/{{ $processEnvironment.ARTILLERY_USER_ID }}"
+          headers:
+            Authorization: "Bearer {{ jwtToken }}"
+            x-api-version: "1"
+            Content-Type: "application/json"
+          json: {}
+          think: 2
