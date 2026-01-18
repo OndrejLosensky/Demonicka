@@ -14,6 +14,8 @@ import {
   Tooltip,
   Badge,
 } from '@mui/material';
+import { ProfilePictureUploadDialog } from '../../../components/ProfilePictureUploadDialog';
+import { UserAvatar } from '../../../components/UserAvatar';
 import {
   Person as PersonIcon,
   Badge as BadgeIcon,
@@ -41,6 +43,7 @@ const ProfilePageComponent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<User | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,6 +71,12 @@ const ProfilePageComponent: React.FC = () => {
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  const handleUploadSuccess = async () => {
+    // Refresh profile data after successful upload
+    const data = await profileApi.getProfile();
+    setProfileData(data);
   };
 
   if (!user || isLoading) {
@@ -110,16 +119,25 @@ const ProfilePageComponent: React.FC = () => {
                   </Avatar>
                 }
               >
-                <Avatar
+                <IconButton
+                  onClick={() => setUploadDialogOpen(true)}
                   sx={{
-                    width: 100,
-                    height: 100,
-                    bgcolor: 'primary.main',
-                    fontSize: '2.5rem',
+                    p: 0,
+                    '&:hover': {
+                      opacity: 0.8,
+                    },
                   }}
                 >
-                  {displayData.username[0].toUpperCase()}
-                </Avatar>
+                  <UserAvatar
+                    user={displayData}
+                    sx={{
+                      width: 100,
+                      height: 100,
+                      fontSize: '2.5rem',
+                      cursor: 'pointer',
+                    }}
+                  />
+                </IconButton>
               </Badge>
               <Box>
                 <Typography variant="h4" className="font-bold text-text-primary">
@@ -255,6 +273,14 @@ const ProfilePageComponent: React.FC = () => {
           </List>
         </Paper>
       </Box>
+
+      <ProfilePictureUploadDialog
+        open={uploadDialogOpen}
+        onClose={() => setUploadDialogOpen(false)}
+        onSuccess={handleUploadSuccess}
+        currentImageUrl={displayData.profilePictureUrl}
+        userName={displayData.username}
+      />
     </motion.div>
   );
 };

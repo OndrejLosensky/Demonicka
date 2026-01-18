@@ -90,6 +90,7 @@ model User {
   createdBy              String?   @db.Uuid
   allowedIPs             String[]  @default([])
   lastAdminLogin         DateTime? @db.Timestamptz(6)
+  profilePictureUrl      String?
   createdAt              DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt              DateTime  @updatedAt @db.Timestamptz(6)
   deletedAt              DateTime? @db.Timestamptz(6)

@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { IconButton, Avatar, Tooltip, Box, Typography } from '@demonicka/ui';
+import { IconButton, Tooltip, Box, Typography } from '@demonicka/ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { tokens } from '../../theme/tokens';
 import { USER_ROLE } from '@demonicka/shared-types';
 import { UserProfileMenu } from './UserProfileMenu';
+import { UserAvatar } from '../UserAvatar';
 import translations from '../../locales/cs/common.header.json';
 
 export function UserInfo() {
@@ -55,17 +56,15 @@ export function UserInfo() {
           }}
           onClick={handleOpenMenu}
         >
-          <Avatar
+          <UserAvatar
+            user={user}
             sx={{
               width: 32,
               height: 32,
-              bgcolor: 'primary.main',
               fontWeight: 600,
               fontSize: '0.875rem',
             }}
-          >
-            {user.username.charAt(0).toUpperCase()}
-          </Avatar>
+          />
           <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column', alignItems: 'flex-start' }}>
             <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: 1.2 }}>
               {user.username}

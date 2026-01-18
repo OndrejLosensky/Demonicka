@@ -13,9 +13,11 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
 
   // Enable cookie parser
@@ -63,6 +65,11 @@ async function bootstrap() {
 
   // Set global prefix for all routes
   app.setGlobalPrefix('api');
+
+  // Serve static files for profile pictures
+  app.useStaticAssets(join(process.cwd(), 'uploads', 'profile-pictures'), {
+    prefix: '/api/uploads/profile-pictures',
+  });
 
 
   // Use global validation pipe

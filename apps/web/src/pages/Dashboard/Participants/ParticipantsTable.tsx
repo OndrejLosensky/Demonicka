@@ -30,6 +30,7 @@ import { format } from 'date-fns';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import translations from '../../../locales/cs/dashboard.participants.json';
 import { tokens } from '../../../theme/tokens';
+import { UserAvatar } from '../../../components/UserAvatar';
 
 export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   participants,
@@ -90,15 +91,25 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                 }}
               >
                 <TableCell>
-                  <Typography sx={{ fontWeight: 500 }}>{participant.username}</Typography>
-                  {showDeleted && participant.deletedAt && (
-                    <Chip
-                      label={translations.table.status.deleted}
-                      color="error"
-                      size="small"
-                      sx={{ ml: 1 }}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <UserAvatar
+                      user={participant}
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        fontSize: '0.875rem',
+                      }}
                     />
-                  )}
+                    <Typography sx={{ fontWeight: 500 }}>{participant.username}</Typography>
+                    {showDeleted && participant.deletedAt && (
+                      <Chip
+                        label={translations.table.status.deleted}
+                        color="error"
+                        size="small"
+                        sx={{ ml: 1 }}
+                      />
+                    )}
+                  </Box>
                 </TableCell>
                 <TableCell align="center">
                   <Box sx={{ 

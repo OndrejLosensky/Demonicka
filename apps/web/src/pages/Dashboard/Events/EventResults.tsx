@@ -31,6 +31,7 @@ import { MetricCard, PageHeader } from '@demonicka/ui';
 import { tokens } from '../../../theme/tokens';
 import { getShadow } from '../../../theme/utils';
 import { useAppTheme } from '../../../contexts/ThemeContext';
+import { UserAvatar } from '../../../components/UserAvatar';
 
 export const EventResults: React.FC = () => {
     usePageTitle('Výsledky události');
@@ -170,6 +171,15 @@ export const EventResults: React.FC = () => {
                                 }}>
                                     {getMedalIcon(index + 1)}
                                 </Box>
+                                <UserAvatar
+                                  user={user}
+                                  sx={{
+                                    width: 44,
+                                    height: 44,
+                                    fontSize: '1.2rem',
+                                    flexShrink: 0,
+                                  }}
+                                />
                                 <Box flex={1} sx={{ minWidth: 0 }}>
                                     <Typography 
                                         fontWeight="bold" 

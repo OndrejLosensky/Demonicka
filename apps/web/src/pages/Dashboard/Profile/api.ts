@@ -6,4 +6,14 @@ export const profileApi = {
     const response = await api.get('/users/me');
     return response.data;
   },
+  uploadProfilePicture: async (file: File): Promise<{ profilePictureUrl: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/users/me/profile-picture', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };

@@ -17,6 +17,7 @@ import {
 } from '@demonicka/ui';
 import { toast } from 'react-hot-toast';
 import { beerPongService } from '../../services/beerPongService';
+import { UserAvatar } from '../UserAvatar';
 import type {
   BeerPongGame,
   BeerPongGameStatus,
@@ -213,9 +214,13 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                 <Typography variant="subtitle1" fontWeight={600}>
                   {team1Name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {team1Player1} & {team1Player2}
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                  {game.team1?.player1 && <UserAvatar user={game.team1.player1} sx={{ width: 20, height: 20, fontSize: '0.625rem' }} />}
+                  {game.team1?.player2 && <UserAvatar user={game.team1.player2} sx={{ width: 20, height: 20, fontSize: '0.625rem' }} />}
+                  <Typography variant="body2" color="text.secondary">
+                    {team1Player1} & {team1Player2}
+                  </Typography>
+                </Box>
               </Box>
               {game.winnerTeamId === game.team1Id && (
                 <Chip label={translations.gameModal.info.winner} color="success" size="small" />
@@ -235,9 +240,13 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                 <Typography variant="subtitle1" fontWeight={600}>
                   {team2Name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {team2Player1} & {team2Player2}
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                  {game.team2?.player1 && <UserAvatar user={game.team2.player1} sx={{ width: 20, height: 20, fontSize: '0.625rem' }} />}
+                  {game.team2?.player2 && <UserAvatar user={game.team2.player2} sx={{ width: 20, height: 20, fontSize: '0.625rem' }} />}
+                  <Typography variant="body2" color="text.secondary">
+                    {team2Player1} & {team2Player2}
+                  </Typography>
+                </Box>
               </Box>
               {game.winnerTeamId === game.team2Id && (
                 <Chip label={translations.gameModal.info.winner} color="success" size="small" />

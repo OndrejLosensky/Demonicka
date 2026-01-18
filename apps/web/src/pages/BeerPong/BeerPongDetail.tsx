@@ -25,6 +25,7 @@ import { TeamDialog } from './TeamDialog';
 import { GameDetailModal } from '../../components/BeerPong/GameDetailModal';
 import { BracketSVG } from '../../components/BeerPong/BracketSVG';
 import { AssignTeamDialog } from '../../components/BeerPong/AssignTeamDialog';
+import { UserAvatar } from '../../components/UserAvatar';
 import type {
   BeerPongEvent,
   BeerPongTeam,
@@ -425,12 +426,18 @@ export function BeerPongDetail() {
                       <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1, pr: 4 }}>
                         {team.name}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {translations.detail.teams.player1}: {team.player1?.username || team.player1?.name || 'N/A'}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {translations.detail.teams.player2}: {team.player2?.username || team.player2?.name || 'N/A'}
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        {team.player1 && <UserAvatar user={team.player1} sx={{ width: 24, height: 24, fontSize: '0.75rem' }} />}
+                        <Typography variant="body2" color="text.secondary">
+                          {translations.detail.teams.player1}: {team.player1?.username || team.player1?.name || 'N/A'}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {team.player2 && <UserAvatar user={team.player2} sx={{ width: 24, height: 24, fontSize: '0.75rem' }} />}
+                        <Typography variant="body2" color="text.secondary">
+                          {translations.detail.teams.player2}: {team.player2?.username || team.player2?.name || 'N/A'}
+                        </Typography>
+                      </Box>
                     </Paper>
                   </Grid>
                 ))}

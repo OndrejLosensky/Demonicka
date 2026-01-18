@@ -4,6 +4,7 @@ import { GiTrophy } from 'react-icons/gi';
 import type { LeaderboardTableProps } from './types';
 import translations from '../../../locales/cs/dashboard.leaderboard.json';
 import type { UserLeaderboard } from './types';
+import { UserAvatar } from '../../../components/UserAvatar';
 
 const getTrophyColor = (rank: number): string => {
   switch (rank) {
@@ -201,6 +202,14 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
 
                       {/* Name Column */}
                       <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <UserAvatar
+                          user={participant}
+                          sx={{
+                            width: isTopThree ? 36 : 32,
+                            height: isTopThree ? 36 : 32,
+                            fontSize: isTopThree ? '1rem' : '0.875rem',
+                          }}
+                        />
                         <Typography 
                           variant={isTopThree ? 'h6' : 'body1'}
                           sx={{ 

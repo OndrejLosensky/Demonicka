@@ -21,6 +21,7 @@ export interface User {
     isRegistrationComplete: boolean;
     canLogin: boolean;
     createdBy: string | null;
+    profilePictureUrl: string | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
