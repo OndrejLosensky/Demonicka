@@ -55,7 +55,8 @@ export const EventDetail: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const [event, setEvent] = useState<Event | null>(null);
-    const [users, setUsers] = useState<User[]>([]);
+    const [users, setUsers] = useState<User[]>([]); // Event users
+    const [allUsers, setAllUsers] = useState<User[]>([]); // All available users for adding to event
     const [barrels, setBarrels] = useState<Barrel[]>([]);
     const [eventBeerCounts, setEventBeerCounts] = useState<Record<string, number>>({});
     const [eventTeams, setEventTeams] = useState<EventBeerPongTeam[]>([]);
@@ -98,6 +99,17 @@ export const EventDetail: React.FC = () => {
         }
     }, [id]);
 
+    const loadAllUsers = useCallback(async () => {
+        try {
+            // Load all users for the "Add User" dialog
+            const data = await userService.getAllUsers(false); // Exclude deleted users
+            setAllUsers(data);
+        } catch (error) {
+            console.error('Failed to load all users:', error);
+            // Don't show error toast - this is just for the dialog
+        }
+    }, []);
+
     const loadBarrels = useCallback(async () => {
         try {
             const barrels = await barrelService.getAll();
@@ -126,7 +138,9 @@ export const EventDetail: React.FC = () => {
             loadBarrels();
             loadEventTeams();
         }
-    }, [id, loadEventData, loadUsers, loadBarrels, loadEventTeams]);
+        // Load all users for the "Add User" dialog
+        loadAllUsers();
+    }, [id, loadEventData, loadUsers, loadBarrels, loadEventTeams, loadAllUsers]);
 
     const loadEventBeerCounts = useCallback(async () => {
         if (!id || !users.length) return;
@@ -772,11 +786,13 @@ export const EventDetail: React.FC = () => {
                                 onChange={(e) => setSelectedUser(e.target.value)}
                                 label="Vyberte účastníka"
                             >
-                                {users.map(user => (
-                                    <MenuItem key={user.id} value={user.id}>
-                                        {user.username}
-                                    </MenuItem>
-                                ))}
+                                {allUsers
+                                    .filter(user => !users.find(eventUser => eventUser.id === user.id))
+                                    .map(user => (
+                                        <MenuItem key={user.id} value={user.id}>
+                                            {user.username}
+                                        </MenuItem>
+                                    ))}
                             </Select>
                         </FormControl>
                     </Box>
