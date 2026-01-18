@@ -43,12 +43,15 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
 
     try {
       setIsSubmitting(true);
-      // Get all barrels to find the next available order number
-      const allBarrels = await barrelService.getAll(true); // include deleted
+      // Get event-specific barrels to find the next available order number for this event
+      // This ensures sequential numbering within the event (e.g., #1, #2, #3) rather than globally
+      const eventBarrels = activeEvent 
+        ? await barrelService.getByEvent(activeEvent.id)
+        : await barrelService.getAll(true); // fallback to all if no active event
       
-      // Find the next available order number by looking for gaps
+      // Find the next available order number by looking for gaps in event barrels
       let orderNumber = 1;
-      const usedNumbers = new Set(allBarrels.map(barrel => barrel.orderNumber));
+      const usedNumbers = new Set(eventBarrels.map(barrel => barrel.orderNumber));
       
       while (usedNumbers.has(orderNumber)) {
         orderNumber++;

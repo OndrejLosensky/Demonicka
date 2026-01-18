@@ -37,7 +37,6 @@ import {
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { eventService } from '../../../services/eventService';
-import { barrelService } from '../../../services/barrelService';
 import { userService } from '../../../services/userService';
 import { eventBeerPongTeamService } from '../../../services/beerPongService';
 import type { Event, User, Barrel, EventBeerPongTeam, CreateTeamDto } from '@demonicka/shared-types';
@@ -58,14 +57,11 @@ export const EventDetail: React.FC = () => {
     const [event, setEvent] = useState<Event | null>(null);
     const [users, setUsers] = useState<User[]>([]); // Event users
     const [allUsers, setAllUsers] = useState<User[]>([]); // All available users for adding to event
-    const [barrels, setBarrels] = useState<Barrel[]>([]);
     const [eventBeerCounts, setEventBeerCounts] = useState<Record<string, number>>({});
     const [eventTeams, setEventTeams] = useState<EventBeerPongTeam[]>([]);
     const [openUser, setOpenUser] = useState(false);
-    const [openBarrel, setOpenBarrel] = useState(false);
     const [openTeam, setOpenTeam] = useState(false);
     const [selectedUser, setSelectedUser] = useState('');
-    const [selectedBarrel, setSelectedBarrel] = useState('');
     const [deleteTeamId, setDeleteTeamId] = useState<string | null>(null);
     const [deleteEventOpen, setDeleteEventOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -111,16 +107,6 @@ export const EventDetail: React.FC = () => {
         }
     }, []);
 
-    const loadBarrels = useCallback(async () => {
-        try {
-            const barrels = await barrelService.getAll();
-            setBarrels(barrels);
-        } catch (error) {
-            console.error('Failed to load barrels:', error);
-            toast.error('Nepodařilo se načíst sudy');
-        }
-    }, []);
-
     const loadEventTeams = useCallback(async () => {
         if (!id) return;
         try {
@@ -136,12 +122,11 @@ export const EventDetail: React.FC = () => {
         if (id) {
             loadEventData();
             loadUsers();
-            loadBarrels();
             loadEventTeams();
         }
         // Load all users for the "Add User" dialog
         loadAllUsers();
-    }, [id, loadEventData, loadUsers, loadBarrels, loadEventTeams, loadAllUsers]);
+    }, [id, loadEventData, loadUsers, loadEventTeams, loadAllUsers]);
 
     const loadEventBeerCounts = useCallback(async () => {
         if (!id || !users.length) return;
@@ -182,19 +167,6 @@ export const EventDetail: React.FC = () => {
             }
         } catch (error) {
             console.error('Failed to add user:', error);
-        }
-    };
-
-    const handleAddBarrel = async () => {
-        try {
-            if (id && selectedBarrel) {
-                await eventService.addBarrel(id, selectedBarrel);
-                await loadEventData();
-                setOpenBarrel(false);
-                setSelectedBarrel('');
-            }
-        } catch (error) {
-            console.error('Failed to add barrel:', error);
         }
     };
 
@@ -319,7 +291,7 @@ export const EventDetail: React.FC = () => {
     }
 
     const totalBeers = Object.values(eventBeerCounts).reduce((sum, count) => sum + count, 0);
-    const averageBeersPerUser = users.length ? Math.round(totalBeers / users.length) : 0;
+    const averageBeersPerUser = users.length ? Number((totalBeers / users.length).toFixed(1)) : 0;
     const { mode } = useAppTheme();
 
     return (
@@ -578,20 +550,13 @@ export const EventDetail: React.FC = () => {
                                             </Typography>
                                         </Box>
                                     </Box>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        size="small"
-                                        startIcon={<AddIcon />}
-                                        onClick={() => setOpenBarrel(true)}
-                                        sx={{ borderRadius: 1 }}
-                                    >
-                                        Přidat
-                                    </Button>
                                 </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                                    {event.barrels?.map((barrel) => (
+                                    {event.barrels
+                                        ?.slice()
+                                        .sort((a, b) => (a.orderNumber || 0) - (b.orderNumber || 0))
+                                        .map((barrel) => (
                                         <Box
                                             key={barrel.id}
                                             sx={{
@@ -624,12 +589,12 @@ export const EventDetail: React.FC = () => {
                                             </Box>
                                             <Box flex={1} sx={{ minWidth: 0 }}>
                                                 <Typography fontWeight={700} sx={{ mb: 0.5 }}>
-                                                    Sud #{barrel.orderNumber}
+                                                    Sud #{barrel.orderNumber ?? '?'}
                                                 </Typography>
                                                 <Box display="flex" alignItems="center" gap={1}>
                                                     <BeerIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                                                     <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                                                        {barrel.size}L
+                                                        {barrel.size ?? 0}L
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -800,42 +765,6 @@ export const EventDetail: React.FC = () => {
                         color="primary"
                         onClick={handleAddUser}
                         disabled={!selectedUser}
-                    >
-                        Přidat
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            <Dialog open={openBarrel} onClose={() => setOpenBarrel(false)} maxWidth="xs" fullWidth>
-                <DialogTitle>Přidat sud</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ mt: 2 }}>
-                        <FormControl fullWidth>
-                            <InputLabel>Vyberte sud</InputLabel>
-                            <Select
-                                value={selectedBarrel}
-                                onChange={(e) => setSelectedBarrel(e.target.value)}
-                                label="Vyberte sud"
-                            >
-                                {barrels
-                                    .filter(barrel => !event.barrels?.find(b => b.id === barrel.id))
-                                    .map(barrel => (
-                                        <MenuItem key={barrel.id} value={barrel.id}>
-                                            {`Sud #${barrel.orderNumber} (${barrel.size}L)`}
-                                        </MenuItem>
-                                    ))
-                                }
-                            </Select>
-                        </FormControl>
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenBarrel(false)}>Zrušit</Button>
-                    <Button 
-                        variant="contained"
-                        color="primary"
-                        onClick={handleAddBarrel}
-                        disabled={!selectedBarrel}
                     >
                         Přidat
                     </Button>

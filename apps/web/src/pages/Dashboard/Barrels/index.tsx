@@ -50,20 +50,13 @@ const BarrelsPage: React.FC = () => {
     handleDelete,
     handleToggleActive,
     fetchBarrels,
-  } = useBarrels(showDeleted);
+  } = useBarrels(showDeleted, activeEvent?.id);
   const toast = useToast();
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
   // Get active barrel
   const activeBarrel = barrels.find(barrel => barrel.isActive);
-
-  // Force refresh when active event changes - use a simpler approach
-  useEffect(() => {
-    if (activeEvent?.id) {
-      fetchBarrels();
-    }
-  }, [activeEvent?.id]); // Remove fetchBarrels and activeEvent?.updatedAt to prevent infinite loop
 
   const confirmCleanup = async () => {
     if (window.confirm(translations.dialogs.cleanupAll.message)) {

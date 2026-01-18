@@ -67,7 +67,8 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
     setSelectedBarrel(null);
   };
 
-  const allBarrels = showDeleted ? [...barrels, ...deletedBarrels] : barrels;
+  const allBarrels = (showDeleted ? [...barrels, ...deletedBarrels] : barrels)
+    .sort((a, b) => (a.orderNumber || 0) - (b.orderNumber || 0));
 
   return (
     <>

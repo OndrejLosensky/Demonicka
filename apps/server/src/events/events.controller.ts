@@ -11,7 +11,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
-import { Event, Barrel, EventBeer, User } from '@prisma/client';
+import { Barrel, EventBeer, User } from '@prisma/client';
+import type { Event } from '@demonicka/shared-types';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';

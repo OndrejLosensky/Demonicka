@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Event, User, Barrel, UserRole } from '@prisma/client';
+import { Event as PrismaEvent, User, Barrel, UserRole } from '@prisma/client';
+import type { Event } from '@demonicka/shared-types';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventBeersService } from './services/event-beers.service';
@@ -20,12 +21,30 @@ export class EventsService {
     ) {}
 
     async create(createEventDto: CreateEventDto, userId: string): Promise<Event> {
-        return this.prisma.event.create({
+        const created = await this.prisma.event.create({
             data: {
                 ...createEventDto,
                 createdBy: userId,
             },
+            include: {
+                users: { include: { user: true } },
+                barrels: { include: { barrel: true } },
+            },
         });
+        
+        // Transform EventBarrels[] to Barrel[] and EventUsers[] to User[] for consistent API response
+        // NestJS will automatically serialize Date objects to ISO strings in JSON responses
+        return {
+            ...created,
+            description: created.description ?? undefined,
+            startDate: created.startDate.toISOString(),
+            endDate: created.endDate?.toISOString() ?? undefined,
+            createdAt: created.createdAt.toISOString(),
+            updatedAt: created.updatedAt.toISOString(),
+            deletedAt: created.deletedAt?.toISOString() ?? undefined,
+            users: created.users.map(eu => eu.user),
+            barrels: created.barrels.map(eb => eb.barrel),
+        } as unknown as Event;
     }
 
     async findAll(user?: User): Promise<Event[]> {
@@ -60,13 +79,27 @@ export class EventsService {
             }
         }
 
-        return this.prisma.event.findMany({
+        const events = await this.prisma.event.findMany({
             where,
             include: {
                 users: { include: { user: true } },
                 barrels: { include: { barrel: true } },
             },
         });
+        
+        // Transform EventBarrels[] to Barrel[] and EventUsers[] to User[] for consistent API response
+        // NestJS will automatically serialize Date objects to ISO strings in JSON responses
+        return events.map(event => ({
+            ...event,
+            description: event.description ?? undefined,
+            startDate: event.startDate.toISOString(),
+            endDate: event.endDate?.toISOString() ?? undefined,
+            createdAt: event.createdAt.toISOString(),
+            updatedAt: event.updatedAt.toISOString(),
+            deletedAt: event.deletedAt?.toISOString() ?? undefined,
+            users: event.users.map(eu => eu.user),
+            barrels: event.barrels.map(eb => eb.barrel),
+        })) as unknown as Event[];
     }
 
     async findOne(id: string, user?: User): Promise<Event> {
@@ -87,7 +120,19 @@ export class EventsService {
             throw new ForbiddenException('You do not have access to this event');
         }
 
-        return event;
+        // Transform EventBarrels[] to Barrel[] and EventUsers[] to User[] for consistent API response
+        // NestJS will automatically serialize Date objects to ISO strings in JSON responses
+        return {
+            ...event,
+            description: event.description ?? undefined,
+            startDate: event.startDate.toISOString(),
+            endDate: event.endDate?.toISOString() ?? undefined,
+            createdAt: event.createdAt.toISOString(),
+            updatedAt: event.updatedAt.toISOString(),
+            deletedAt: event.deletedAt?.toISOString() ?? undefined,
+            users: event.users.map(eu => eu.user),
+            barrels: event.barrels.map(eb => eb.barrel),
+        } as unknown as Event;
     }
 
     async update(id: string, updateEventDto: UpdateEventDto, user?: User): Promise<Event> {
@@ -98,10 +143,12 @@ export class EventsService {
             throw new ForbiddenException('You can only update events you created');
         }
 
-        return this.prisma.event.update({
+        await this.prisma.event.update({
             where: { id },
             data: updateEventDto,
         });
+        
+        return this.findOne(id, user);
     }
 
     async remove(id: string, user?: User): Promise<void> {
@@ -129,40 +176,61 @@ export class EventsService {
         }
 
         // Then activate the specified event
-        await this.findOne(id); // Verify event exists
-        return this.prisma.event.update({
+        await this.prisma.event.update({
             where: { id },
             data: { isActive: true },
         });
+        
+        return this.findOne(id);
     }
 
     async endEvent(id: string): Promise<Event> {
-        await this.findOne(id);
-        return this.prisma.event.update({
+        await this.prisma.event.update({
             where: { id },
             data: {
                 isActive: false,
                 endDate: new Date(),
             },
         });
+        
+        return this.findOne(id);
     }
 
     async deactivate(id: string): Promise<Event> {
-        await this.findOne(id);
-        return this.prisma.event.update({
+        await this.prisma.event.update({
             where: { id },
             data: { isActive: false },
         });
+        
+        return this.findOne(id);
     }
 
     async getActiveEvent(): Promise<Event | null> {
-        return this.prisma.event.findFirst({
+        const event = await this.prisma.event.findFirst({
             where: { isActive: true, deletedAt: null },
             include: {
                 users: { include: { user: true } },
                 barrels: { include: { barrel: true } },
             },
         });
+        
+        if (!event) {
+            return null;
+        }
+        
+        // Transform EventBarrels[] to Barrel[] and EventUsers[] to User[] for consistent API response
+        // NestJS will automatically serialize Date objects to ISO strings in JSON responses
+        return {
+            ...event,
+            description: event.description ?? undefined,
+            startDate: event.startDate.toISOString(),
+            endDate: event.endDate?.toISOString() ?? undefined,
+            createdAt: event.createdAt.toISOString(),
+            updatedAt: event.updatedAt.toISOString(),
+            deletedAt: event.deletedAt?.toISOString() ?? undefined,
+            users: event.users.map(eu => eu.user),
+            barrels: event.barrels.map(eb => eb.barrel),
+        } as unknown as Event;
     }
 
     async getEventUsers(id: string, withDeleted?: boolean): Promise<(User & { eventBeerCount: number })[]> {
@@ -265,9 +333,31 @@ export class EventsService {
     async findUserEvents(userId: string): Promise<Event[]> {
         const eventUsers = await this.prisma.eventUsers.findMany({
             where: { userId },
-            include: { event: true },
+            include: { 
+                event: {
+                    include: {
+                        users: { include: { user: true } },
+                        barrels: { include: { barrel: true } },
+                    },
+                },
+            },
         });
-        return eventUsers.map(eu => eu.event).filter(e => !e.deletedAt);
+        // Transform EventBarrels[] to Barrel[] and EventUsers[] to User[] for consistent API response
+        // NestJS will automatically serialize Date objects to ISO strings in JSON responses
+        return eventUsers
+            .map(eu => eu.event)
+            .filter(e => !e.deletedAt)
+            .map(event => ({
+                ...event,
+                description: event.description ?? undefined,
+                startDate: event.startDate.toISOString(),
+                endDate: event.endDate?.toISOString() ?? undefined,
+                createdAt: event.createdAt.toISOString(),
+                updatedAt: event.updatedAt.toISOString(),
+                deletedAt: event.deletedAt?.toISOString() ?? undefined,
+                users: event.users.map(eu => eu.user),
+                barrels: event.barrels.map(eb => eb.barrel),
+            })) as unknown as Event[];
     }
 
     async addBeer(eventId: string, userId: string): Promise<void> {

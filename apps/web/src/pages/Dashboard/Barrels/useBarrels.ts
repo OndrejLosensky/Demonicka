@@ -7,7 +7,7 @@ import toastTranslations from '../../../locales/cs/toasts.json';
 const LOW_BEER_THRESHOLD = 10;
 const ALMOST_EMPTY_THRESHOLD = 5;
 
-export const useBarrels = (includeDeleted = false) => {
+export const useBarrels = (includeDeleted = false, eventId?: string) => {
   const [barrels, setBarrels] = useState<Barrel[]>([]);
   const [deletedBarrels, setDeletedBarrels] = useState<Barrel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,7 +36,10 @@ export const useBarrels = (includeDeleted = false) => {
   const fetchBarrels = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await barrelService.getAll(includeDeleted);
+      // If eventId is provided, fetch event-specific barrels, otherwise fetch all barrels
+      const data = eventId 
+        ? await barrelService.getByEvent(eventId)
+        : await barrelService.getAll(includeDeleted);
       
       if (includeDeleted) {
         const active = data.filter(b => !b.deletedAt);
@@ -60,7 +63,7 @@ export const useBarrels = (includeDeleted = false) => {
     } finally {
       setIsLoading(false);
     }
-  }, [includeDeleted, checkBarrelWarnings, toast]);
+  }, [includeDeleted, eventId, checkBarrelWarnings, toast]);
 
   const handleDelete = useCallback(async (id: string) => {
     const barrel = barrelsRef.current.find(b => b.id === id);
@@ -97,10 +100,11 @@ export const useBarrels = (includeDeleted = false) => {
     }
   }, [fetchBarrels, toast]);
 
-  // Only fetch on mount and when includeDeleted changes
+  // Fetch when includeDeleted or eventId changes
   useEffect(() => {
     fetchBarrels();
-  }, [includeDeleted]); // Remove fetchBarrels from dependencies to prevent infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [includeDeleted, eventId]); // fetchBarrels is stable via useCallback with these deps
 
   return {
     barrels,
