@@ -129,26 +129,31 @@ export const EventDetail: React.FC = () => {
     }, [id, loadEventData, loadUsers, loadBarrels, loadEventTeams]);
 
     const loadEventBeerCounts = useCallback(async () => {
-        if (!id || !event?.users) return;
+        if (!id || !users.length) return;
         const counts: Record<string, number> = {};
         await Promise.all(
-            event.users.map(async (user) => {
+            users.map(async (user) => {
                 try {
-                    const count = await eventService.getUserEventBeerCount(id, user.id);
-                    counts[user.id] = count;
+                    // Use eventBeerCount from user if available, otherwise fetch it
+                    if (user.eventBeerCount !== undefined) {
+                        counts[user.id] = user.eventBeerCount;
+                    } else {
+                        const count = await eventService.getUserEventBeerCount(id, user.id);
+                        counts[user.id] = count;
+                    }
                 } catch (error) {
                     console.error(`Failed to load beer count for user ${user.id}:`, error);
                 }
             })
         );
         setEventBeerCounts(counts);
-    }, [id, event?.users]);
+    }, [id, users]);
 
     useEffect(() => {
-        if (id && event?.users) {
+        if (id && users.length) {
             loadEventBeerCounts();
         }
-    }, [id, event?.users, loadEventBeerCounts]);
+    }, [id, users, loadEventBeerCounts]);
 
     // removed duplicate function definitions after converting to useCallback
 
@@ -299,7 +304,7 @@ export const EventDetail: React.FC = () => {
     }
 
     const totalBeers = Object.values(eventBeerCounts).reduce((sum, count) => sum + count, 0);
-    const averageBeersPerUser = event.users?.length ? Math.round(totalBeers / event.users.length) : 0;
+    const averageBeersPerUser = users.length ? Math.round(totalBeers / users.length) : 0;
     const { mode } = useAppTheme();
 
     return (
@@ -352,7 +357,7 @@ export const EventDetail: React.FC = () => {
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <GroupIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                                     <Typography variant="body2" color="text.secondary">
-                                        {event.users?.length || 0} účastníků
+                                        {users.length || 0} účastníků
                                     </Typography>
                                 </Box>
                             </Box>
@@ -415,7 +420,7 @@ export const EventDetail: React.FC = () => {
                         <MetricCard title="Celkem piv" value={totalBeers} icon={<BeerIcon />} color="primary" />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
-                        <MetricCard title="Účastníci" value={event.users?.length || 0} icon={<GroupIcon />} color="error" />
+                        <MetricCard title="Účastníci" value={users.length || 0} icon={<GroupIcon />} color="error" />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
                         <MetricCard title="Průměr na osobu" value={averageBeersPerUser} icon={<TrendingUpIcon />} color="success" />
@@ -460,7 +465,7 @@ export const EventDetail: React.FC = () => {
                                                 Účastníci
                                             </Typography>
                                             <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
-                                                {event.users?.length || 0} účastníků
+                                                {users.length || 0} účastníků
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -477,7 +482,7 @@ export const EventDetail: React.FC = () => {
                                 </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                                    {event.users?.map((user) => (
+                                    {users.map((user) => (
                                         <Box
                                             key={user.id}
                                             sx={{
@@ -515,7 +520,7 @@ export const EventDetail: React.FC = () => {
                                                 <Box display="flex" alignItems="center" gap={1}>
                                                     <BeerIcon sx={{ fontSize: 16, color: 'error.main' }} />
                                                     <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                                                        {eventBeerCounts[user.id] || 0} piv
+                                                        {eventBeerCounts[user.id] ?? user.eventBeerCount ?? 0} piv
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -767,14 +772,11 @@ export const EventDetail: React.FC = () => {
                                 onChange={(e) => setSelectedUser(e.target.value)}
                                 label="Vyberte účastníka"
                             >
-                                {users
-                                    .filter(user => !event.users?.find(u => u.id === user.id))
-                                    .map(user => (
-                                        <MenuItem key={user.id} value={user.id}>
-                                            {user.username}
-                                        </MenuItem>
-                                    ))
-                                }
+                                {users.map(user => (
+                                    <MenuItem key={user.id} value={user.id}>
+                                        {user.username}
+                                    </MenuItem>
+                                ))}
                             </Select>
                         </FormControl>
                     </Box>
