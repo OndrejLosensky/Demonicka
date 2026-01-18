@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -173,14 +173,14 @@ export const AssignTeamDialog: React.FC<AssignTeamDialogProps> = ({
 
   const getAvailableTeams = () => existingTeams;
 
-  const getAvailableEventTeams = () => {
+  const getAvailableEventTeams = useMemo(() => {
     const existingNames = new Set(existingTeams.map(t => t.name.toLowerCase()));
     const existingPairs = new Set(existingTeams.map(t => `${t.player1Id}-${t.player2Id}`));
     return eventTeams.filter(et =>
       !existingNames.has(et.name.toLowerCase()) &&
       !existingPairs.has(`${et.player1Id}-${et.player2Id}`)
     );
-  };
+  }, [eventTeams, existingTeams]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -230,7 +230,7 @@ export const AssignTeamDialog: React.FC<AssignTeamDialogProps> = ({
                 </Button>
                 {loadingEventTeams ? (
                   <Box sx={{ py: 2, textAlign: 'center' }}>Načítání týmů z event poolu...</Box>
-                ) : getAvailableEventTeams().length === 0 ? (
+                ) : getAvailableEventTeams.length === 0 ? (
                   <Box sx={{ p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
                     V event poolu nejsou žádné dostupné týmy.
                   </Box>
@@ -242,7 +242,7 @@ export const AssignTeamDialog: React.FC<AssignTeamDialogProps> = ({
                       label="Vybrat tým z event poolu"
                       onChange={(e) => setSelectedEventTeamId(e.target.value)}
                     >
-                      {getAvailableEventTeams().map((team) => (
+                      {getAvailableEventTeams.map((team) => (
                         <MenuItem key={team.id} value={team.id}>
                           {team.name} ({formatPlayerName(team.player1)} & {formatPlayerName(team.player2)})
                         </MenuItem>

@@ -309,7 +309,7 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
                     >
                       {getAvailableEventTeams().map((team) => (
                         <MenuItem key={team.id} value={team.id}>
-                          {team.name} ({team.player1?.name || team.player1?.firstName || 'N/A'} & {team.player2?.name || team.player2?.firstName || 'N/A'})
+                          {team.name} ({team.player1?.username || team.player1?.name || [team.player1?.firstName, team.player1?.lastName].filter(Boolean).join(' ').trim() || 'N/A'} & {team.player2?.username || team.player2?.name || [team.player2?.firstName, team.player2?.lastName].filter(Boolean).join(' ').trim() || 'N/A'})
                         </MenuItem>
                       ))}
                     </Select>
