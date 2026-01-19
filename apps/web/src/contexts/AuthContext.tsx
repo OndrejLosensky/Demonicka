@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { apiClient } from '../utils/apiClient';
 import type { AxiosError } from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAppTheme } from './ThemeContext';
 
 interface AuthContextType {
   user: User | null;
@@ -30,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const { mode, setMode } = useAppTheme();
 
   // Helper to fetch user from /me
   const fetchUser = async () => {
@@ -42,7 +44,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const response = await apiClient.get('/auth/me');
       if (response.data) {
-        setUser(response.data);
+        const u = response.data as User;
+        setUser(u);
+        if (
+          (u as any).preferredTheme &&
+          ((u as any).preferredTheme === 'light' || (u as any).preferredTheme === 'dark') &&
+          (u as any).preferredTheme !== mode
+        ) {
+          setMode((u as any).preferredTheme, { persistToServer: false });
+        }
         return true;
       }
       return false;
@@ -81,7 +91,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
       });
       localStorage.setItem('access_token', response.data.access_token);
-      setUser(response.data.user);
+      const u = response.data.user as User;
+      setUser(u);
+      if (
+        (u as any).preferredTheme &&
+        ((u as any).preferredTheme === 'light' || (u as any).preferredTheme === 'dark') &&
+        (u as any).preferredTheme !== mode
+      ) {
+        setMode((u as any).preferredTheme, { persistToServer: false });
+      }
       setIsLoading(false); // Explicitly clear loading state after setting user
       
       // Redirect based on user role
@@ -132,7 +150,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
       });
       localStorage.setItem('access_token', response.data.access_token);
-      setUser(response.data.user);
+      const u = response.data.user as User;
+      setUser(u);
+      if (
+        (u as any).preferredTheme &&
+        ((u as any).preferredTheme === 'light' || (u as any).preferredTheme === 'dark') &&
+        (u as any).preferredTheme !== mode
+      ) {
+        setMode((u as any).preferredTheme, { persistToServer: false });
+      }
       
       // Redirect based on user role
       if (response.data.user.role === 'USER') {

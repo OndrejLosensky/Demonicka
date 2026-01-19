@@ -8,6 +8,7 @@ import { User, UserRole } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
 import * as bcrypt from 'bcrypt';
 
 import { CompleteRegistrationDto } from './dto/complete-registration.dto';
@@ -158,6 +159,19 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id },
       data: updateUserDto,
+    });
+  }
+
+  async updateSettings(
+    id: string,
+    dto: UpdateUserSettingsDto,
+  ): Promise<User> {
+    await this.findOne(id); // Verify user exists
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        preferredTheme: dto.preferredTheme ?? null,
+      },
     });
   }
 

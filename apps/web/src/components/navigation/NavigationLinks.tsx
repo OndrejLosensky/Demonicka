@@ -9,6 +9,7 @@ import {
   Event as EventIcon,
   TrendingUp as TrendingUpIcon,
   SportsBar as BeerPongIcon,
+  Settings as SettingsIcon,
 } from '@demonicka/ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
@@ -258,7 +259,7 @@ export function NavigationLinks() {
 
   if (!user) return null;
 
-  const userDashboardBase = `/u/${encodeURIComponent(user.username)}/dashboard`;
+  const userBase = `/u/${encodeURIComponent(user.username)}`;
 
   return (
     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 0.5 }}>
@@ -305,13 +306,19 @@ export function NavigationLinks() {
       )}
       {user?.role === USER_ROLE.USER && (
         <>
-          <NavLink to={userDashboardBase} icon={<TrendingUpIcon sx={{ fontSize: 18 }} />}>
+          <NavLink to={`${userBase}/dashboard`} icon={<TrendingUpIcon sx={{ fontSize: 18 }} />}>
             Moje statistiky
           </NavLink>
-          <NavLink to={`${userDashboardBase}/events`} icon={<EventIcon sx={{ fontSize: 18 }} />}>
+          <NavLink to={`${userBase}/dashboard/events`} icon={<EventIcon sx={{ fontSize: 18 }} />}>
             Události
           </NavLink>
-          <NavLink to="/achievements" icon={<TrophyIcon sx={{ fontSize: 18 }} />}>
+          <NavLink
+            to={`${userBase}/settings`}
+            icon={<SettingsIcon sx={{ fontSize: 18 }} />}
+          >
+            Nastavení
+          </NavLink>
+          <NavLink to={`${userBase}/achievements`} icon={<TrophyIcon sx={{ fontSize: 18 }} />}>
             Úspěchy
           </NavLink>
         </>

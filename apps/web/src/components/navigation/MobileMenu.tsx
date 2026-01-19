@@ -71,11 +71,13 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
     }
 
     if (user?.role === USER_ROLE.USER) {
-      const base = `/u/${encodeURIComponent(user.username)}/dashboard`;
+      const userBase = `/u/${encodeURIComponent(user.username)}`;
+      const base = `${userBase}/dashboard`;
       items.push(
         { to: base, label: 'Moje statistiky' },
         { to: `${base}/events`, label: 'Události' },
-        { to: '/achievements', label: 'Úspěchy' }
+        { to: `${userBase}/settings`, label: 'Nastavení' },
+        { to: `${userBase}/achievements`, label: 'Úspěchy' }
       );
     }
 

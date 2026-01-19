@@ -22,6 +22,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateParticipantDto } from './dto/create-participant.dto';
+import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
@@ -125,6 +126,31 @@ export class UsersController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER)
   updateProfile(@GetUser() user: User, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(user.id, updateUserDto);
+  }
+
+  @Get('me/settings')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER)
+  async getMySettings(@GetUser() user: User) {
+    const me = (await this.usersService.findOne(user.id)) as User & {
+      preferredTheme?: string | null;
+    };
+    return { preferredTheme: me.preferredTheme ?? null };
+  }
+
+  @Patch('me/settings')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER)
+  async updateMySettings(
+    @GetUser() user: User,
+    @Body() dto: UpdateUserSettingsDto,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    const updated = (await this.usersService.updateSettings(
+      user.id,
+      dto,
+    )) as User & {
+      preferredTheme?: string | null;
+    };
+    return { preferredTheme: updated.preferredTheme ?? null };
   }
 
   @Post('me/profile-picture')

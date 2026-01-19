@@ -22,6 +22,7 @@ export interface User {
     canLogin: boolean;
     createdBy: string | null;
     profilePictureUrl: string | null;
+    preferredTheme?: 'light' | 'dark' | null;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;

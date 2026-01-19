@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Menu, MenuItem, ListItemIcon, ListItemText, Divider, Box, Typography } from '@demonicka/ui';
-import { Logout as LogoutIcon, Person as PersonIcon, TrendingUp as TrendingUpIcon, EmojiEvents as EmojiEventsIcon } from '@demonicka/ui';
+import { Logout as LogoutIcon, Person as PersonIcon, TrendingUp as TrendingUpIcon, EmojiEvents as EmojiEventsIcon, Settings as SettingsIcon } from '@demonicka/ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { tokens } from '../../theme/tokens';
 import { getShadow } from '../../theme/utils';
@@ -20,6 +20,8 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
 
   if (!user) return null;
 
+  const userBase = `/u/${encodeURIComponent(user.username)}`;
+
   const handleProfileClick = () => {
     onClose();
     if (hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER])) {
@@ -37,12 +39,17 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
 
   const handlePersonalStatsClick = () => {
     onClose();
-    navigate(`/u/${encodeURIComponent(user.username)}/dashboard`);
+    navigate(`${userBase}/dashboard`);
   };
 
   const handleAchievementsClick = () => {
     onClose();
-    navigate('/achievements');
+    navigate(`${userBase}/achievements`);
+  };
+
+  const handleSettingsClick = () => {
+    onClose();
+    navigate(`${userBase}/settings`);
   };
 
   const getRoleLabel = () => {
@@ -118,6 +125,17 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
             </ListItemIcon>
             <ListItemText
               primary="Moje statistiky"
+              primaryTypographyProps={{
+                sx: { fontWeight: 500 },
+              }}
+            />
+          </MenuItem>
+          <MenuItem onClick={handleSettingsClick} sx={{ py: 1, px: 2 }}>
+            <ListItemIcon>
+              <SettingsIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary="Nastavení"
               primaryTypographyProps={{
                 sx: { fontWeight: 500 },
               }}

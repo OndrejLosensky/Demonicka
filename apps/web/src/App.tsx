@@ -31,6 +31,8 @@ import { UserDashboardEventBeerPong } from './pages/User/Dashboard/UserDashboard
 import { LegacyUserDashboardRedirect } from './pages/User/Dashboard/LegacyUserDashboardRedirect';
 import { BeerPongList } from './pages/BeerPong';
 import { BeerPongDetail } from './pages/BeerPong/BeerPongDetail';
+import { UserSettingsPage } from './pages/User/Settings/UserSettingsPage';
+import { LegacyUserSettingsRedirect } from './pages/User/Settings/LegacyUserSettingsRedirect';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import { CompleteRegistration } from './pages/Auth/CompleteRegistration';
@@ -146,6 +148,22 @@ function App() {
               }
             />
             <Route
+              path="u/:username/settings"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
+                  <UserSettingsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="u/:userId/settings"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
+                  <LegacyUserSettingsRedirect />
+                </RoleRoute>
+              }
+            />
+            <Route
               path="leaderboard"
               element={<Leaderboard />}
             />
@@ -173,7 +191,7 @@ function App() {
               }
             />
             <Route
-              path="achievements"
+              path="u/:username/achievements"
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
                   <AchievementsPage />

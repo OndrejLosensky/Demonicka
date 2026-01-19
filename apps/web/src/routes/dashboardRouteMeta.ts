@@ -36,6 +36,20 @@ export const dashboardRouteMeta: RouteObject[] = [
         } satisfies DashboardChromeHandle,
         children: [
           {
+            path: 'settings',
+            handle: {
+              crumb: 'Nastavení',
+              title: 'Nastavení',
+            } satisfies DashboardChromeHandle,
+          },
+          {
+            path: 'achievements',
+            handle: {
+              crumb: 'Úspěchy',
+              title: 'Úspěchy',
+            } satisfies DashboardChromeHandle,
+          },
+          {
             path: 'dashboard',
             handle: {
               crumb: 'Moje statistiky',
@@ -173,13 +187,6 @@ export const dashboardRouteMeta: RouteObject[] = [
       crumb: translations.navigation.leaderboard,
       title: translations.navigation.leaderboard,
       hideChrome: true,
-    } satisfies DashboardChromeHandle,
-  },
-  {
-    path: 'achievements',
-    handle: {
-      crumb: 'Úspěchy',
-      title: 'Úspěchy',
     } satisfies DashboardChromeHandle,
   },
   {
