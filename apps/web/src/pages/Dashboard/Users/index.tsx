@@ -14,10 +14,10 @@ import { AddUserDialog } from './AddUserDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
-import { PageHeader } from '@demonicka/ui';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.users.json';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
+import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
 const UsersPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
@@ -60,41 +60,44 @@ const UsersPage: React.FC = () => {
     return null; // withPageLoader will handle loading state
   }
 
-  return (
-    <Box p={3}>
-      <PageHeader title={translations.title} left={showEventHistory ? <EventSelector /> : null} action={
-        <Box>
-          {showDeletedFeature && (
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={showDeleted}
-                  onChange={(e) => setShowDeleted(e.target.checked)}
-                />
-              }
-              label={translations.actions.showDeleted}
-            />
-          )}
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => setDialogOpen(true)}
-            sx={{ mr: 1 }}
-          >
-            {translations.actions.addUser}
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<DeleteIcon />}
-            onClick={confirmCleanup}
-          >
-            {translations.actions.cleanupAll}
-          </Button>
-        </Box>
-      } />
+  useDashboardHeaderSlots({
+    left: showEventHistory && activeEvent ? <EventSelector /> : undefined,
+    action: (
+      <Box>
+        {showDeletedFeature && (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showDeleted}
+                onChange={(e) => setShowDeleted(e.target.checked)}
+              />
+            }
+            label={translations.actions.showDeleted}
+          />
+        )}
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={() => setDialogOpen(true)}
+          sx={{ mr: 1 }}
+        >
+          {translations.actions.addUser}
+        </Button>
+        <Button
+          variant="contained"
+          color="error"
+          startIcon={<DeleteIcon />}
+          onClick={confirmCleanup}
+        >
+          {translations.actions.cleanupAll}
+        </Button>
+      </Box>
+    ),
+  });
 
+  return (
+    <Box>
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <Typography variant="h6" gutterBottom>

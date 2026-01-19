@@ -18,8 +18,6 @@ import { SimpleMarkdownParser } from '../../../utils/markdownParser';
 import { apiClient } from '../../../utils/apiClient';
 import '../../../styles/markdown.css';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
-import { usePageTitle } from '../../../hooks/usePageTitle';
-import { PageHeader } from '@demonicka/ui';
 
 interface DocFile {
   name: string;
@@ -124,7 +122,6 @@ import { getShadow } from '../../../theme/utils';
 import { useAppTheme } from '../../../contexts/ThemeContext';
 
 const DocsComponent: React.FC = () => {
-  usePageTitle('Dokumentace');
   const { mode } = useAppTheme();
   const [selectedDoc, setSelectedDoc] = useState<DocFile | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string>('getting-started');
@@ -197,8 +194,7 @@ const DocsComponent: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <PageHeader title="Dokumentace" />
+    <Container maxWidth="xl" sx={{ py: 0 }}>
       <Grid container spacing={4}>
         {/* Sidebar */}
         <Grid item xs={12} md={3}>

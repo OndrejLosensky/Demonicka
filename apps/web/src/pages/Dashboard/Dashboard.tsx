@@ -16,7 +16,6 @@ import {
     EmojiEvents as TrophyIcon,
     TrendingDown as TrendingDownIcon,
     AccessTime as AccessTimeIcon,
-    PageHeader,
     MetricCard,
     PageLoader,
 } from '@demonicka/ui';
@@ -37,12 +36,11 @@ import { useFeatureFlag } from '../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../types/featureFlags';
 import { EventSelector } from '../../components/EventSelector';
 import { EmptyEventState } from '../../components/EmptyEventState';
-import { usePageTitle } from '../../hooks/usePageTitle';
 import { websocketService } from '../../services/websocketService';
 import { tokens } from '../../theme/tokens';
+import { useDashboardHeaderSlots } from '../../contexts/DashboardChromeContext';
 
 export const Dashboard: React.FC = () => {
-    usePageTitle('Dashboard');
     const { selectedEvent } = useSelectedEvent();
     const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
     const [isLoading, setIsLoading] = useState(true);
@@ -69,6 +67,10 @@ export const Dashboard: React.FC = () => {
     });
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [useCustomDate, setUseCustomDate] = useState(false);
+
+    useDashboardHeaderSlots({
+        left: showEventHistory ? <EventSelector /> : undefined,
+    });
 
     const loadData = useCallback(async () => {
         try {
@@ -239,10 +241,7 @@ export const Dashboard: React.FC = () => {
     };
 
     return (
-        <Box p={3}>
-            {/* Header Section */}
-            <PageHeader title={translations.title} left={showEventHistory ? <EventSelector /> : null} />
-
+        <Box>
             {/* Main Statistics Cards */}
             <Grid container spacing={3} mb={4}>
                 <Grid item xs={12} sm={6} md={3}>

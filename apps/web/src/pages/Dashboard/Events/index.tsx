@@ -16,7 +16,6 @@ import {
     FilterAlt as FilterIcon, 
     LocalBar as BeerIcon,
     PageLoader,
-    PageHeader,
 } from '@demonicka/ui';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { AccessTime as TimeIcon } from '@mui/icons-material';
@@ -26,13 +25,12 @@ import { format } from 'date-fns';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useNavigate } from 'react-router-dom';
-import { usePageTitle } from '../../../hooks/usePageTitle';
 import { tokens } from '../../../theme/tokens';
 import { getShadow } from '../../../theme/utils';
 import { useAppTheme } from '../../../contexts/ThemeContext';
+import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
 export const Events: React.FC = () => {
-    usePageTitle('Události');
     const { mode } = useAppTheme();
     const [events, setEvents] = useState<Event[]>([]);
     const [eventBeerCounts, setEventBeerCounts] = useState<Record<string, Record<string, number>>>({});
@@ -107,38 +105,37 @@ export const Events: React.FC = () => {
         }
     };
 
+    useDashboardHeaderSlots({
+      action: (
+        <Box display="flex" gap={2}>
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={() => setOpen(true)}
+            startIcon={<AddIcon />}
+            sx={{ px: 3, py: 1, borderRadius: tokens.borderRadius.md }}
+          >
+            Vytvořit událost
+          </Button>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={() => navigate('/leaderboard')}
+            startIcon={<FilterIcon />}
+            sx={{ px: 3, py: 1, borderRadius: tokens.borderRadius.md, borderColor: 'divider' }}
+          >
+            Žebříček
+          </Button>
+        </Box>
+      ),
+    });
+
     if (isLoading) {
         return <PageLoader message="Načítání událostí..." />;
     }
 
     return (
-        <Box sx={{ p: 4 }}>
-            <PageHeader
-              title="Události"
-              action={
-                <Box display="flex" gap={2}>
-                  <Button 
-                    variant="contained" 
-                    color="primary"
-                    onClick={() => setOpen(true)}
-                    startIcon={<AddIcon />}
-                    sx={{ px: 3, py: 1, borderRadius: tokens.borderRadius.md }}
-                  >
-                    Vytvořit událost
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="inherit"
-                    onClick={() => navigate('/leaderboard')}
-                    startIcon={<FilterIcon />}
-                    sx={{ px: 3, py: 1, borderRadius: tokens.borderRadius.md, borderColor: 'divider' }}
-                  >
-                    Žebříček
-                  </Button>
-                </Box>
-              }
-            />
-
+        <Box sx={{ p: 0 }}>
             {/* Events Grid or Empty State */}
             {events.length > 0 ? (
                 <Grid container spacing={3}>

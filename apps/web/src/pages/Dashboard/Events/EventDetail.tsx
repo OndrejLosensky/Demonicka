@@ -6,7 +6,6 @@ import {
     Box,
     Typography,
     Button,
-    Avatar,
     Dialog,
     DialogTitle,
     DialogContent,
@@ -25,10 +24,8 @@ import {
     LocalBar as BeerIcon,
     Group as GroupIcon,
     Timer as TimeIcon,
-    Person as PersonIcon,
     Storage as BarrelIcon,
     MetricCard,
-    PageHeader,
     Delete as DeleteIcon,
     IconButton,
     SportsBar as SportsBarIcon,
@@ -43,16 +40,14 @@ import { eventBeerPongTeamService } from '../../../services/beerPongService';
 import type { Event, User, Barrel, EventBeerPongTeam, CreateTeamDto } from '@demonicka/shared-types';
 import { toast } from 'react-hot-toast';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
-import { usePageTitle } from '../../../hooks/usePageTitle';
 import { tokens } from '../../../theme/tokens';
 import { useAppTheme } from '../../../contexts/ThemeContext';
-import { getShadow } from '../../../theme/utils';
 import { useAuth } from '../../../contexts/AuthContext';
 import { Permission } from '@demonicka/shared';
 import { UserAvatar } from '../../../components/UserAvatar';
+import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
 export const EventDetail: React.FC = () => {
-    usePageTitle('Detail události');
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const [event, setEvent] = useState<Event | null>(null);
@@ -325,121 +320,90 @@ export const EventDetail: React.FC = () => {
 
     const totalBeers = Object.values(eventBeerCounts).reduce((sum, count) => sum + count, 0);
     const averageBeersPerUser = users.length ? Number((totalBeers / users.length).toFixed(1)) : 0;
-    const { mode } = useAppTheme();
+    useAppTheme();
+
+    useDashboardHeaderSlots({
+        left: event?.isActive ? (
+            <Chip
+                label="Aktivní"
+                size="small"
+                color="success"
+                sx={{
+                    fontWeight: 600,
+                    height: 24,
+                }}
+            />
+        ) : undefined,
+        action: event ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Button
+                    startIcon={<ArrowBackIcon />}
+                    onClick={() => navigate('/events')}
+                    sx={{ 
+                        color: 'text.secondary',
+                        textTransform: 'none',
+                        minWidth: 'auto',
+                        px: 1,
+                    }}
+                >
+                    Zpět
+                </Button>
+                {hasPermission([Permission.VIEW_BEERS, Permission.VIEW_LEADERBOARD]) && (
+                    <Button
+                        variant="outlined"
+                        startIcon={<SaveIcon />}
+                        onClick={handleExportEventDetailExcel}
+                        disabled={isExportingExcel}
+                        sx={{
+                            borderRadius: tokens.borderRadius.md,
+                        }}
+                    >
+                        {isExportingExcel ? 'Exportuji…' : 'Excel export'}
+                    </Button>
+                )}
+                {hasPermission([Permission.DELETE_EVENT]) && (
+                    <Button
+                        variant="outlined"
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => setDeleteEventOpen(true)}
+                        sx={{
+                            borderRadius: tokens.borderRadius.md,
+                        }}
+                    >
+                        Smazat událost
+                    </Button>
+                )}
+                <Button
+                    variant={event.isActive ? 'outlined' : 'contained'}
+                    color={event.isActive ? 'error' : 'primary'}
+                    startIcon={event.isActive ? undefined : <AddIcon />}
+                    onClick={event.isActive ? handleDeactivate : handleSetActive}
+                    sx={{
+                        borderRadius: tokens.borderRadius.md,
+                    }}
+                >
+                    {event.isActive ? 'Deaktivovat' : 'Aktivovat'}
+                </Button>
+                {event.isActive && (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<TrendingUpIcon />}
+                        onClick={handleEvaluateEvent}
+                        sx={{
+                            borderRadius: tokens.borderRadius.md,
+                        }}
+                    >
+                        Vyhodnotit
+                    </Button>
+                )}
+            </Box>
+        ) : undefined,
+    });
 
     return (
-        <Box sx={{ p: 3 }}>
-            <PageHeader
-                title={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Button
-                            startIcon={<ArrowBackIcon />}
-                            onClick={() => navigate('/events')}
-                            sx={{ 
-                                color: 'text.secondary',
-                                textTransform: 'none',
-                                minWidth: 'auto',
-                                px: 1,
-                                mr: -1,
-                            }}
-                        >
-                            Zpět
-                        </Button>
-                        <Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                                    {event.name}
-                                </Typography>
-                                {event.isActive && (
-                                    <Chip
-                                        label="Aktivní"
-                                        size="small"
-                                        color="success"
-                                        sx={{
-                                            fontWeight: 600,
-                                            height: 24,
-                                        }}
-                                    />
-                                )}
-                            </Box>
-                            {event.description && (
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                    {event.description}
-                                </Typography>
-                            )}
-                            <Box sx={{ display: 'flex', gap: 3, mt: 1 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <TimeIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-                                    <Typography variant="body2" color="text.secondary">
-                                        {format(new Date(event.startDate), 'PPp', { locale: cs })}
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <GroupIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-                                    <Typography variant="body2" color="text.secondary">
-                                        {users.length || 0} účastníků
-                                    </Typography>
-                                </Box>
-                            </Box>
-                        </Box>
-                    </Box>
-                }
-                action={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        {hasPermission([Permission.VIEW_BEERS, Permission.VIEW_LEADERBOARD]) && (
-                            <Button
-                                variant="outlined"
-                                startIcon={<SaveIcon />}
-                                onClick={handleExportEventDetailExcel}
-                                disabled={isExportingExcel}
-                                sx={{
-                                    borderRadius: tokens.borderRadius.md,
-                                }}
-                            >
-                                {isExportingExcel ? 'Exportuji…' : 'Excel export'}
-                            </Button>
-                        )}
-                        {hasPermission([Permission.DELETE_EVENT]) && (
-                            <Button
-                                variant="outlined"
-                                color="error"
-                                startIcon={<DeleteIcon />}
-                                onClick={() => setDeleteEventOpen(true)}
-                                sx={{
-                                    borderRadius: tokens.borderRadius.md,
-                                }}
-                            >
-                                Smazat událost
-                            </Button>
-                        )}
-                        <Button
-                            variant={event.isActive ? 'outlined' : 'contained'}
-                            color={event.isActive ? 'error' : 'primary'}
-                            startIcon={event.isActive ? undefined : <AddIcon />}
-                            onClick={event.isActive ? handleDeactivate : handleSetActive}
-                            sx={{
-                                borderRadius: tokens.borderRadius.md,
-                            }}
-                        >
-                            {event.isActive ? 'Deaktivovat' : 'Aktivovat'}
-                        </Button>
-                        {event.isActive && (
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                startIcon={<TrendingUpIcon />}
-                                onClick={handleEvaluateEvent}
-                                sx={{
-                                    borderRadius: tokens.borderRadius.md,
-                                }}
-                            >
-                                Vyhodnotit
-                            </Button>
-                        )}
-                    </Box>
-                }
-            />
-
+        <Box sx={{ p: 0 }}>
             {/* Content Section */}
             <Box 
                 sx={{ 
@@ -447,6 +411,27 @@ export const EventDetail: React.FC = () => {
                     mx: 'auto',
                 }}
             >
+                <Box sx={{ mb: 2 }}>
+                    {event.description && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                            {event.description}
+                        </Typography>
+                    )}
+                    <Box sx={{ display: 'flex', gap: 3, mt: 1, flexWrap: 'wrap' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <TimeIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                            <Typography variant="body2" color="text.secondary">
+                                {format(new Date(event.startDate), 'PPp', { locale: cs })}
+                            </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <GroupIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                            <Typography variant="body2" color="text.secondary">
+                                {users.length || 0} účastníků
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Box>
                 {/* Stats Cards */}
                 <Grid container spacing={3} mb={4}>
                     <Grid item xs={12} sm={6} md={3}>

@@ -5,11 +5,9 @@ import { LeaderboardTable } from './LeaderboardTable';
 import { useLeaderboard } from './useLeaderboard';
 import translations from '../../../locales/cs/dashboard.leaderboard.json';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
-import { usePageTitle } from '../../../hooks/usePageTitle';
 import { useHeaderVisibility } from '../../../contexts/HeaderVisibilityContext';
 
 const LeaderboardComponent: React.FC = () => {
-  usePageTitle('Žebříček');
   const { stats, dashboardStats, publicStats, isLoading } = useLeaderboard();
   const { isHeaderVisible, toggleHeader } = useHeaderVisibility();
   const [isFullscreen, setIsFullscreen] = useState(false);

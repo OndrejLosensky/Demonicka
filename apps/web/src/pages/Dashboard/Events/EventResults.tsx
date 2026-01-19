@@ -16,7 +16,6 @@ import {
     Group as GroupIcon,
     Timer as TimerIcon,
     Person as PersonIcon,
-    EmojiEvents as TrophyIcon,
     Speed as SpeedIcon,
     Star as StarIcon,
 } from '@mui/icons-material';
@@ -26,15 +25,14 @@ import { eventService } from '../../../services/eventService';
 import { dashboardService } from '../../../services/dashboardService';
 import type { Event, LeaderboardData, UserLeaderboardData } from '@demonicka/shared-types';
 import { toast } from 'react-hot-toast';
-import { usePageTitle } from '../../../hooks/usePageTitle';
-import { MetricCard, PageHeader } from '@demonicka/ui';
+import { MetricCard } from '@demonicka/ui';
 import { tokens } from '../../../theme/tokens';
 import { getShadow } from '../../../theme/utils';
 import { useAppTheme } from '../../../contexts/ThemeContext';
 import { UserAvatar } from '../../../components/UserAvatar';
+import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
 export const EventResults: React.FC = () => {
-    usePageTitle('Výsledky události');
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const { mode } = useAppTheme();
@@ -238,44 +236,25 @@ export const EventResults: React.FC = () => {
         );
     };
 
-    return (
-        <Box sx={{ p: 3 }}>
-            <PageHeader
-                title={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Button
-                            startIcon={<ArrowBackIcon />}
-                            onClick={() => navigate(`/events/${id}`)}
-                            sx={{ 
-                                color: 'text.secondary',
-                                textTransform: 'none',
-                                minWidth: 'auto',
-                                px: 1,
-                                mr: -1,
-                            }}
-                        >
-                            Zpět
-                        </Button>
-                        <Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <TrophyIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-                                <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                                    Výsledky události
-                                </Typography>
-                            </Box>
-                            <Typography variant="h6" sx={{ fontWeight: 600, mt: 0.5, color: 'text.primary' }}>
-                                {event.name}
-                            </Typography>
-                            {event.endDate && (
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                    Ukončeno: {format(new Date(event.endDate), 'PPp', { locale: cs })}
-                                </Typography>
-                            )}
-                        </Box>
-                    </Box>
-                }
-            />
+    useDashboardHeaderSlots({
+        action: (
+            <Button
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate(`/events/${id}`)}
+                sx={{ 
+                    color: 'text.secondary',
+                    textTransform: 'none',
+                    minWidth: 'auto',
+                    px: 1,
+                }}
+            >
+                Zpět
+            </Button>
+        ),
+    });
 
+    return (
+        <Box sx={{ p: 0 }}>
             {/* Content Section */}
             <Box 
                 sx={{ 
@@ -283,6 +262,16 @@ export const EventResults: React.FC = () => {
                     mx: 'auto',
                 }}
             >
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                        {event.name}
+                    </Typography>
+                    {event.endDate && (
+                        <Typography variant="body2" color="text.secondary">
+                            Ukončeno: {format(new Date(event.endDate), 'PPp', { locale: cs })}
+                        </Typography>
+                    )}
+                </Box>
                 {/* Final Stats Cards */}
                 <Grid container spacing={3} mb={4}>
                     <Grid item xs={12} sm={6} md={3}>

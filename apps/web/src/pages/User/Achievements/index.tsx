@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card, Button, Grid, PageHeader, MetricCard } from '@demonicka/ui';
+import { Card, Button, Grid, MetricCard } from '@demonicka/ui';
 import { useToast } from '../../../hooks/useToast';
 import { achievementsService } from '../../../services/achievementsService';
-import { usePageTitle } from '../../../hooks/usePageTitle';
 import type { UserAchievementsResponse, UserAchievement } from '@demonicka/shared-types';
+import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -32,7 +32,6 @@ const getProgressColor = (progress: number, target: number) => {
 };
 
 export const AchievementsPage: React.FC = () => {
-  usePageTitle('Úspěchy');
   const [achievements, setAchievements] = useState<UserAchievementsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +66,14 @@ export const AchievementsPage: React.FC = () => {
       toast.error('Failed to check achievements');
     }
   };
+
+  useDashboardHeaderSlots({
+    action: achievements ? (
+      <Button variant="contained" color="primary" onClick={checkAchievements}>
+        Zkontrolovat úspěchy
+      </Button>
+    ) : undefined,
+  });
 
   if (isLoading) {
     return (
@@ -109,15 +116,6 @@ export const AchievementsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 p-4">
-      <PageHeader
-        title="Moje úspěchy"
-        action={
-          <Button variant="contained" color="primary" onClick={checkAchievements}>
-            Zkontrolovat úspěchy
-          </Button>
-        }
-      />
-
       {/* Summary Stats */}
       <Grid container spacing={3}>
         <Grid item xs={12} sm={6} md={3}>

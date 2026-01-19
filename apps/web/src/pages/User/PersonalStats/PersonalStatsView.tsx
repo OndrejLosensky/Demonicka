@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, PageHeader, MetricCard } from '@demonicka/ui';
+import { Card, MetricCard } from '@demonicka/ui';
 import { personalStatsService } from '../../../services/personalStatsService';
-import { usePageTitle } from '../../../hooks/usePageTitle';
 
 interface PersonalStats {
   totalBeers: number;
@@ -21,7 +20,6 @@ interface PersonalStats {
 }
 
 export const PersonalStatsView: React.FC = () => {
-  usePageTitle('Moje statistiky');
   const { userId } = useParams<{ userId: string }>();
   const [stats, setStats] = useState<PersonalStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,8 +78,6 @@ export const PersonalStatsView: React.FC = () => {
 
   return (
     <div className="space-y-6 p-4">
-      <PageHeader title="Moje statistiky" />
-
       {/* Overall Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <MetricCard title="Celkem piv" value={stats.totalBeers} />

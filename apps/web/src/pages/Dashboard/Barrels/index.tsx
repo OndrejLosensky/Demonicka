@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -32,11 +32,10 @@ import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/dashboard.barrels.json';
 import toastTranslations from '../../../locales/cs/toasts.json';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
-import { usePageTitle } from '../../../hooks/usePageTitle';
 import { tokens } from '../../../theme/tokens';
+import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
 const BarrelsPage: React.FC = () => {
-  usePageTitle('Sudy');
   const [showDeleted, setShowDeleted] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'split'>('split');
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_BARRELS);
@@ -71,6 +70,56 @@ const BarrelsPage: React.FC = () => {
     }
   };
 
+  useDashboardHeaderSlots({
+    left: showEventHistory && activeEvent ? <EventSelector /> : undefined,
+    action: activeEvent ? (
+      <Box display="flex" alignItems="center" gap={2}>
+        <ToggleButtonGroup
+          value={viewMode}
+          exclusive
+          onChange={(_, newMode) => newMode && setViewMode(newMode)}
+          size="small"
+        >
+          <ToggleButton value="list">
+            <ViewListIcon />
+          </ToggleButton>
+          <ToggleButton value="split">
+            <ViewModuleIcon />
+          </ToggleButton>
+        </ToggleButtonGroup>
+        {showDeletedFeature && (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showDeleted}
+                onChange={(e) => setShowDeleted(e.target.checked)}
+              />
+            }
+            label={translations.actions.showDeleted}
+          />
+        )}
+        <Button
+          variant="contained"
+          color="error"
+          startIcon={<AddIcon />}
+          onClick={() => setDialogOpen(true)}
+        >
+          {translations.actions.addBarrel}
+        </Button>
+        {showCleanupFeature && (
+          <Button
+            variant="contained"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={confirmCleanup}
+          >
+            {translations.actions.cleanupAll}
+          </Button>
+        )}
+      </Box>
+    ) : undefined,
+  });
+
   if (!activeEvent) {
     return (
       <Container>
@@ -83,58 +132,7 @@ const BarrelsPage: React.FC = () => {
   }
 
   return (
-    <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box display="flex" alignItems="center" gap={2}>
-          <Typography variant="h4">{translations.title}</Typography>
-          {showEventHistory && <EventSelector />}
-        </Box>
-        <Box display="flex" alignItems="center" gap={2}>
-          <ToggleButtonGroup
-            value={viewMode}
-            exclusive
-            onChange={(_, newMode) => newMode && setViewMode(newMode)}
-            size="small"
-          >
-            <ToggleButton value="list">
-              <ViewListIcon />
-            </ToggleButton>
-            <ToggleButton value="split">
-              <ViewModuleIcon />
-            </ToggleButton>
-          </ToggleButtonGroup>
-          {showDeletedFeature && (
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={showDeleted}
-                  onChange={(e) => setShowDeleted(e.target.checked)}
-                />
-              }
-              label={translations.actions.showDeleted}
-            />
-          )}
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<AddIcon />}
-            onClick={() => setDialogOpen(true)}
-          >
-            {translations.actions.addBarrel}
-          </Button>
-          {showCleanupFeature && (
-            <Button
-              variant="contained"
-              color="error"
-              startIcon={<DeleteIcon />}
-              onClick={confirmCleanup}
-            >
-              {translations.actions.cleanupAll}
-            </Button>
-          )}
-        </Box>
-      </Box>
-
+    <Box>
       {isLoading ? (
         <CircularProgress />
       ) : viewMode === 'list' ? (

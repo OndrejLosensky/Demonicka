@@ -33,14 +33,15 @@ import type {
   BeerPongGame,
   BeerPongRound,
 } from '@demonicka/shared-types';
-import { usePageTitle } from '../../hooks/usePageTitle';
 import translations from '../../locales/cs/beerPong.json';
 import { useAuth } from '../../contexts/AuthContext';
 import { Permission } from '@demonicka/shared';
+import { useDashboardHeaderSlots } from '../../contexts/DashboardChromeContext';
 
 export function BeerPongDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
   const [tournament, setTournament] = useState<BeerPongEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,8 +55,6 @@ export function BeerPongDetail() {
   const [activeTab, setActiveTab] = useState(0); // 0 = Map, 1 = Teams, 2 = Settings
   const [deleteTournamentOpen, setDeleteTournamentOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  usePageTitle(tournament ? translations.detail.pageTitle.replace('{{name}}', tournament.name) : translations.pageTitle);
 
   useEffect(() => {
     if (id) {
@@ -209,6 +208,67 @@ export function BeerPongDetail() {
     }
   };
 
+  const teamCount = tournament?.teams?.length || 0;
+  const canStart = Boolean(tournament && teamCount === 8 && tournament.status === 'DRAFT');
+  const canAddTeams = Boolean(tournament && tournament.status === 'DRAFT' && teamCount < 8);
+  const canDeleteTeams = Boolean(tournament && tournament.status === 'DRAFT');
+  const canComplete = Boolean(
+    tournament &&
+      tournament.status === 'ACTIVE' &&
+      tournament.games?.some((g) => g.round === 'FINAL' && g.winnerTeamId),
+  );
+  const canDeleteTournament = Boolean(
+    tournament &&
+      hasPermission([Permission.DELETE_BEER_PONG_EVENT]) &&
+      tournament.status !== 'ACTIVE',
+  );
+
+  useDashboardHeaderSlots({
+    left: tournament ? (
+      <Chip
+        label={getStatusLabel(tournament.status)}
+        color={getStatusColor(tournament.status)}
+      />
+    ) : undefined,
+    action: (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <IconButton onClick={() => navigate('/dashboard/beer-pong')}>
+          <ArrowBackIcon />
+        </IconButton>
+        {canDeleteTournament && (
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={() => setDeleteTournamentOpen(true)}
+          >
+            Smazat turnaj
+          </Button>
+        )}
+        {canStart && (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<PlayArrowIcon />}
+            onClick={() => setStartTournamentOpen(true)}
+          >
+            {translations.detail.actions.startTournament}
+          </Button>
+        )}
+        {canComplete && (
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<CheckCircleIcon />}
+            onClick={() => setCompleteTournamentOpen(true)}
+          >
+            {translations.detail.actions.completeTournament || 'Dokončit Turnaj'}
+          </Button>
+        )}
+      </Box>
+    ),
+  });
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -231,69 +291,13 @@ export function BeerPongDetail() {
     );
   }
 
-  const { hasPermission } = useAuth();
-  const teamCount = tournament.teams?.length || 0;
-  const canStart = teamCount === 8 && tournament.status === 'DRAFT';
-  const canAddTeams = tournament.status === 'DRAFT' && teamCount < 8;
-  const canDeleteTeams = tournament.status === 'DRAFT';
-  const canComplete = tournament.status === 'ACTIVE' && 
-    tournament.games?.some(g => g.round === 'FINAL' && g.winnerTeamId);
-  const canDeleteTournament = hasPermission([Permission.DELETE_BEER_PONG_EVENT]) && tournament.status !== 'ACTIVE';
-
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <IconButton onClick={() => navigate('/dashboard/beer-pong')}>
-          <ArrowBackIcon />
-        </IconButton>
-        <Box sx={{ flex: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-            <Typography variant="h4">{tournament.name}</Typography>
-            <Chip
-              label={getStatusLabel(tournament.status)}
-              color={getStatusColor(tournament.status)}
-            />
-          </Box>
-          {tournament.description && (
-            <Typography variant="body2" color="text.secondary">
-              {tournament.description}
-            </Typography>
-          )}
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          {canDeleteTournament && (
-            <Button
-              variant="outlined"
-              color="error"
-              startIcon={<DeleteIcon />}
-              onClick={() => setDeleteTournamentOpen(true)}
-            >
-              Smazat turnaj
-            </Button>
-          )}
-          {canStart && (
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<PlayArrowIcon />}
-              onClick={() => setStartTournamentOpen(true)}
-            >
-              {translations.detail.actions.startTournament}
-            </Button>
-          )}
-          {canComplete && (
-            <Button
-              variant="contained"
-              color="success"
-              startIcon={<CheckCircleIcon />}
-              onClick={() => setCompleteTournamentOpen(true)}
-            >
-              {translations.detail.actions.completeTournament || 'Dokončit Turnaj'}
-            </Button>
-          )}
-        </Box>
-      </Box>
+    <Box sx={{ p: 0 }}>
+      {tournament.description && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {tournament.description}
+        </Typography>
+      )}
 
       {/* Tabs */}
       <Paper sx={{ mb: 3 }}>

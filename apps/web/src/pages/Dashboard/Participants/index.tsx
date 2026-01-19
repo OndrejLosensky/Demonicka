@@ -24,15 +24,13 @@ import { AddParticipantDialog } from './AddParticipantDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
-import { PageHeader } from '@demonicka/ui';
 import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.participants.json';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
-import { usePageTitle } from '../../../hooks/usePageTitle';
+import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
 const ParticipantsPage: React.FC = () => {
-  usePageTitle('Účastníci');
   const [showDeleted, setShowDeleted] = useState(false);
   const [viewMode, setViewMode] = useState<'combined' | 'split'>('combined');
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_PARTICIPANTS);
@@ -63,6 +61,46 @@ const ParticipantsPage: React.FC = () => {
     fetchParticipants();
   }, [activeEvent?.id, activeEvent?.updatedAt, fetchParticipants]);
 
+  useDashboardHeaderSlots({
+    left: showEventHistory && activeEvent ? <EventSelector /> : undefined,
+    action: activeEvent ? (
+      <Box display="flex" alignItems="center" gap={2}>
+        <ToggleButtonGroup
+          value={viewMode}
+          exclusive
+          onChange={(_, newMode) => newMode && setViewMode(newMode)}
+          size="small"
+        >
+          <ToggleButton value="combined">
+            <ViewListIcon />
+          </ToggleButton>
+          <ToggleButton value="split">
+            <ViewModuleIcon />
+          </ToggleButton>
+        </ToggleButtonGroup>
+        {showDeletedFeature && (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showDeleted}
+                onChange={(e) => setShowDeleted(e.target.checked)}
+              />
+            }
+            label={translations.actions.showDeleted}
+          />
+        )}
+        <Button
+          variant="contained"
+          color="error"
+          startIcon={<AddIcon />}
+          onClick={() => setDialogOpen(true)}
+        >
+          {translations.actions.addParticipant}
+        </Button>
+      </Box>
+    ) : undefined,
+  });
+
   if (!activeEvent) {
     return (
       <Container>
@@ -75,44 +113,7 @@ const ParticipantsPage: React.FC = () => {
   }
 
   return (
-    <Box p={3}>
-      <PageHeader title={translations.title} left={showEventHistory ? <EventSelector /> : null} action={
-        <Box display="flex" alignItems="center" gap={2}>
-          <ToggleButtonGroup
-            value={viewMode}
-            exclusive
-            onChange={(_, newMode) => newMode && setViewMode(newMode)}
-            size="small"
-          >
-            <ToggleButton value="combined">
-              <ViewListIcon />
-            </ToggleButton>
-            <ToggleButton value="split">
-              <ViewModuleIcon />
-            </ToggleButton>
-          </ToggleButtonGroup>
-          {showDeletedFeature && (
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={showDeleted}
-                  onChange={(e) => setShowDeleted(e.target.checked)}
-                />
-              }
-              label={translations.actions.showDeleted}
-            />
-          )}
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<AddIcon />}
-            onClick={() => setDialogOpen(true)}
-          >
-            {translations.actions.addParticipant}
-          </Button>
-        </Box>
-      } />
-
+    <Box>
       {isLoading ? (
         <CircularProgress />
       ) : viewMode === 'combined' ? (

@@ -35,10 +35,8 @@ import { profileApi } from './api';
 import type { User } from '@demonicka/shared-types';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
 import translations from '../../../locales/cs/profile.json';
-import { usePageTitle } from '../../../hooks/usePageTitle';
 
 const ProfilePageComponent: React.FC = () => {
-  usePageTitle('Profil');
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<User | null>(null);

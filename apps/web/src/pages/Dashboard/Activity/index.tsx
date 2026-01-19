@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Box, PageHeader, Paper } from '@demonicka/ui';
+import { Box, Paper } from '@demonicka/ui';
 import { useActivityLogs } from '../../../hooks/useActivityLogs';
-import { usePageTitle } from '../../../hooks/usePageTitle';
 import { toast } from 'react-hot-toast';
 import type { ActivityLogEntry } from './activity.types';
 import { ActivityFilters } from './ActivityFilters';
@@ -9,7 +8,6 @@ import { ActivityTable } from './ActivityTable';
 import { ActivityLogDetailDialog } from './ActivityLogDetailDialog';
 
 export const Activity: React.FC = () => {
-  usePageTitle('Aktivita');
   const {
     logs,
     total,
@@ -55,8 +53,6 @@ export const Activity: React.FC = () => {
 
   return (
     <Box>
-      <PageHeader title="Aktivita" />
-
       <Paper sx={{ mb: 3, borderRadius: 1, p: 2.5 }}>
         <ActivityFilters
           value={selectedEvent}

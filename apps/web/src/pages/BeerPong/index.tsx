@@ -14,11 +14,10 @@ import { beerPongService } from '../../services/beerPongService';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { CreateTournamentDialog } from './CreateTournamentDialog';
 import type { BeerPongEvent, BeerPongEventStatus } from '@demonicka/shared-types';
-import { usePageTitle } from '../../hooks/usePageTitle';
 import translations from '../../locales/cs/beerPong.json';
+import { useDashboardHeaderSlots } from '../../contexts/DashboardChromeContext';
 
 export function BeerPongList() {
-  usePageTitle(translations.pageTitle);
   const navigate = useNavigate();
   const { activeEvent } = useActiveEvent();
   const [tournaments, setTournaments] = useState<BeerPongEvent[]>([]);
@@ -88,6 +87,18 @@ export function BeerPongList() {
     }
   };
 
+  useDashboardHeaderSlots({
+    action: (
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        onClick={handleCreateTournament}
+      >
+        {translations.list.createButton}
+      </Button>
+    ),
+  });
+
   if (!activeEvent) {
     return (
       <Box sx={{ p: 3 }}>
@@ -124,18 +135,7 @@ export function BeerPongList() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">{translations.list.title}</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleCreateTournament}
-        >
-          {translations.list.createButton}
-        </Button>
-      </Box>
-
+    <Box sx={{ p: 0 }}>
       {tournaments.length === 0 ? (
         <Paper
           sx={{

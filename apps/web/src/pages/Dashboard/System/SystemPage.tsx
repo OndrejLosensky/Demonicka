@@ -27,13 +27,12 @@ import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/system.json';
 import { CleanupSection } from './components/CleanupSection';
 import { SystemHealthDashboard } from './components/SystemHealthDashboard';
-import { usePageTitle } from '../../../hooks/usePageTitle';
-import { PageHeader, MetricCard } from '@demonicka/ui';
+import { MetricCard } from '@demonicka/ui';
 import { useNavigate } from 'react-router-dom';
 import { Settings as SettingsIcon, Flag as FlagIcon } from '@mui/icons-material';
+import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
 const SystemPage: React.FC = () => {
-  usePageTitle('Systém');
   const navigate = useNavigate();
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -124,38 +123,37 @@ const SystemPage: React.FC = () => {
     );
   }
 
+  useDashboardHeaderSlots({
+    action: (
+      <Box display="flex" gap={2}>
+        <Button 
+          variant="contained" 
+          startIcon={<SettingsIcon />}
+          onClick={() => navigate('/dashboard/system/roles')}
+        >
+          Role a oprávnění
+        </Button>
+        <Button 
+          variant="contained" 
+          startIcon={<FlagIcon />}
+          onClick={() => navigate('/dashboard/system/feature-flags')}
+        >
+          Funkce
+        </Button>
+        <Button 
+          variant="outlined" 
+          startIcon={<RefreshIcon />}
+          onClick={() => loadStats(false)}
+          disabled={isRefreshing}
+        >
+          {translations.refresh}
+        </Button>
+      </Box>
+    ),
+  });
+
   return (
-    <Box p={3}>
-      <PageHeader
-        title={translations.title}
-        action={
-          <Box display="flex" gap={2}>
-            <Button 
-              variant="contained" 
-              startIcon={<SettingsIcon />}
-              onClick={() => navigate('/dashboard/system/roles')}
-            >
-              Role a oprávnění
-            </Button>
-            <Button 
-              variant="contained" 
-              startIcon={<FlagIcon />}
-              onClick={() => navigate('/dashboard/system/feature-flags')}
-            >
-              Funkce
-            </Button>
-            <Button 
-              variant="outlined" 
-              startIcon={<RefreshIcon />}
-              onClick={() => loadStats(false)}
-              disabled={isRefreshing}
-            >
-              {translations.refresh}
-            </Button>
-          </Box>
-        }
-      />
-      
+    <Box>
       {stats && (
         <Box>
           <Grid container spacing={3} mb={3}>

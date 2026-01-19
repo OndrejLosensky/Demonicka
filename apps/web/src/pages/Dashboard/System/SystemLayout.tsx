@@ -7,11 +7,8 @@ import {
   Settings as SettingsIcon,
   Build as BuildIcon,
 } from '@mui/icons-material';
-import { usePageTitle } from '../../../hooks/usePageTitle';
-import { tokens } from '../../../theme/tokens';
 
 const SystemLayout: React.FC = () => {
-  usePageTitle('Systém');
   const location = useLocation();
   const navigate = useNavigate();
 
