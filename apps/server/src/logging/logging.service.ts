@@ -114,7 +114,7 @@ export class LoggingService {
     offset = 0,
     startDate?: Date,
     endDate?: Date,
-    eventType?: string,
+    eventType?: string | string[],
   ): Promise<{ logs: LogEntry[]; total: number }> {
     try {
       // Read all log files in the logs directory
@@ -158,7 +158,13 @@ export class LoggingService {
       }
 
       if (eventType) {
-        allLogs = allLogs.filter((log) => log.event === eventType);
+        const eventTypes = (Array.isArray(eventType) ? eventType : [eventType])
+          .filter(Boolean)
+          .map((e) => String(e));
+        allLogs = allLogs.filter((log) => {
+          if (!log.event) return false;
+          return eventTypes.includes(String(log.event));
+        });
       }
 
       const total = allLogs.length;

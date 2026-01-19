@@ -9,16 +9,47 @@ if (!globalThis.crypto) {
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { AppLogger } from './logging/app-logger.service';
+import { LoggingService } from './logging/logging.service';
+import { requestIdMiddleware } from './logging/request-id.middleware';
+import { httpLoggingMiddleware } from './logging/http-logging.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
+  const loggingService = app.get(LoggingService);
+
+  // Hardening: capture unexpected process-level failures
+  process.on('unhandledRejection', (reason: unknown) => {
+    loggingService.error('UnhandledRejection', {
+      event: 'PROCESS_UNHANDLED_REJECTION',
+      reason:
+        reason instanceof Error
+          ? { message: reason.message, stack: reason.stack }
+          : String(reason),
+    });
+  });
+
+  process.on('uncaughtException', (err: Error) => {
+    loggingService.error('UncaughtException', {
+      event: 'PROCESS_UNCAUGHT_EXCEPTION',
+      message: err.message,
+      stack: err.stack,
+    });
+  });
+
+  // Route all Nest framework logs through our Winston-backed logger
+  app.useLogger(app.get(AppLogger));
+
+  // Request id + HTTP access logs
+  app.use(requestIdMiddleware);
+  app.use(httpLoggingMiddleware(loggingService));
 
   // Enable cookie parser
   app.use(cookieParser());
@@ -90,7 +121,9 @@ async function bootstrap() {
   // Listen on port 3000 or the port specified in the environment
   await app.listen(process.env.PORT ?? 3000);
 
-  console.log(`Application is running on: ${await app.getUrl()}`);
+  const url = await app.getUrl();
+  loggingService.info('Application started', { url });
+  Logger.log(`Application is running on: ${url}`, 'Bootstrap');
 }
 
 void bootstrap();

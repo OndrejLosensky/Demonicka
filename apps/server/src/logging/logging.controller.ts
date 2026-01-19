@@ -5,9 +5,13 @@ import {
   ParseIntPipe,
   Post,
   Body,
+  UseGuards,
 } from '@nestjs/common';
 import { LoggingService } from './logging.service';
 import { DatePipe } from './date.pipe';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '@prisma/client';
 
 interface CleanupLogsDto {
   olderThan?: Date;
@@ -16,6 +20,8 @@ interface CleanupLogsDto {
 }
 
 @Controller('logs')
+@UseGuards(JwtAuthGuard)
+@Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
 export class LoggingController {
   constructor(private readonly loggingService: LoggingService) {}
 
@@ -34,7 +40,7 @@ export class LoggingController {
     @Query('offset', ParseIntPipe) offset = 0,
     @Query('startDate', DatePipe) startDate?: Date,
     @Query('endDate', DatePipe) endDate?: Date,
-    @Query('eventType') eventType?: string,
+    @Query('eventType') eventType?: string | string[],
   ) {
     return this.loggingService.getLogs(
       level,

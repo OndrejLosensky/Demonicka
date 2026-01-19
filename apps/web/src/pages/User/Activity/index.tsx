@@ -21,6 +21,7 @@ import {
 import { format } from 'date-fns';
 import { api } from '../../../services/api';
 import { usePageTitle } from '../../../hooks/usePageTitle';
+import { tokens } from '../../../theme/tokens';
 
 interface ActivityLogEntry {
   timestamp: string;
@@ -104,19 +105,16 @@ export const Activity: React.FC = () => {
         offset: (page * rowsPerPage).toString(),
       });
 
-      // Add event type filter if selected
+      // Ask server to filter by activity event types so paging totals match
       if (selectedEvent) {
         params.append('eventType', selectedEvent);
+      } else {
+        ACTIVITY_EVENTS.forEach((e) => params.append('eventType', e));
       }
 
       const response = await api.get<ActivityLogsResponse>(`/logs?${params}`);
-      
-      // Filter logs to only include activity events
-      const filteredLogs = response.data.logs.filter((log: ActivityLogEntry) => 
-        log.event && ACTIVITY_EVENTS.includes(log.event as ActivityEventType)
-      );
 
-      setLogs(filteredLogs);
+      setLogs(response.data.logs);
       setTotal(response.data.total);
     } catch (error) {
       console.error('Failed to fetch activity logs:', error);
