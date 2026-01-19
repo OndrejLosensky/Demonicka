@@ -38,7 +38,6 @@ import { eventService } from '../../../services/eventService';
 import { userService } from '../../../services/userService';
 import { eventBeerPongTeamService } from '../../../services/beerPongService';
 import type { Event, User, Barrel, EventBeerPongTeam, CreateTeamDto } from '@demonicka/shared-types';
-import { toast } from 'react-hot-toast';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { tokens } from '../../../theme/tokens';
 import { useAppTheme } from '../../../contexts/ThemeContext';
@@ -46,6 +45,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { Permission } from '@demonicka/shared';
 import { UserAvatar } from '../../../components/UserAvatar';
 import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
+import { notify } from '../../../notifications/notify';
 
 export const EventDetail: React.FC = () => {
     const navigate = useNavigate();
@@ -77,7 +77,7 @@ export const EventDetail: React.FC = () => {
             setEvent(data);
         } catch (error) {
             console.error('Failed to load event:', error);
-            toast.error('Nepodařilo se načíst událost');
+            notify.error('Nepodařilo se načíst událost', { id: `event:load:${id}` });
         }
     }, [id]);
 
@@ -89,7 +89,7 @@ export const EventDetail: React.FC = () => {
             setUsers(data);
         } catch (error) {
             console.error('Failed to load users:', error);
-            toast.error('Nepodařilo se načíst účastníky události');
+            notify.error('Nepodařilo se načíst účastníky události', { id: `event:users:load:${id}` });
         }
     }, [id]);
 
@@ -157,7 +157,18 @@ export const EventDetail: React.FC = () => {
     const handleAddUser = async () => {
         try {
             if (id && selectedUser) {
-                await eventService.addUser(id, selectedUser);
+                const toastId = `event:user:add:${id}:${selectedUser}`;
+                await notify.action(
+                  {
+                    id: toastId,
+                    success: 'Účastník byl přidán',
+                    error: (err) => {
+                      const msg = notify.fromError(err);
+                      return msg === 'Něco se pokazilo' ? 'Nepodařilo se přidat účastníka' : msg;
+                    },
+                  },
+                  () => eventService.addUser(id, selectedUser),
+                );
                 await loadEventData();
                 setOpenUser(false);
                 setSelectedUser('');
@@ -171,25 +182,25 @@ export const EventDetail: React.FC = () => {
         if (!id) return;
         try {
             if (!teamForm.name.trim()) {
-                toast.error('Název týmu je povinný');
+                notify.error('Název týmu je povinný', { id: 'team:validation:name' });
                 return;
             }
             if (!teamForm.player1Id || !teamForm.player2Id) {
-                toast.error('Oba hráči musí být vybráni');
+                notify.error('Oba hráči musí být vybráni', { id: 'team:validation:players' });
                 return;
             }
             if (teamForm.player1Id === teamForm.player2Id) {
-                toast.error('Hráči musí být rozdílní');
+                notify.error('Hráči musí být rozdílní', { id: 'team:validation:distinct' });
                 return;
             }
             await eventBeerPongTeamService.create(id, teamForm);
             await loadEventTeams();
             setOpenTeam(false);
             setTeamForm({ name: '', player1Id: '', player2Id: '' });
-            toast.success('Tým byl vytvořen');
+            notify.success('Tým byl vytvořen', { id: `team:create:${id}` });
         } catch (error: any) {
             console.error('Failed to create team:', error);
-            toast.error(error.response?.data?.message || 'Nepodařilo se vytvořit tým');
+            notify.error(notify.fromError(error) || 'Nepodařilo se vytvořit tým', { id: `team:create:${id}` });
         }
     };
 
@@ -199,10 +210,12 @@ export const EventDetail: React.FC = () => {
             await eventBeerPongTeamService.delete(id, deleteTeamId);
             await loadEventTeams();
             setDeleteTeamId(null);
-            toast.success('Tým byl smazán');
+            notify.success('Tým byl smazán', { id: `team:delete:${id}:${deleteTeamId}` });
         } catch (error: any) {
             console.error('Failed to delete team:', error);
-            toast.error(error.response?.data?.message || 'Nepodařilo se smazat tým');
+            notify.error(notify.fromError(error) || 'Nepodařilo se smazat tým', {
+              id: `team:delete:${id}:${deleteTeamId}`,
+            });
         }
     };
 
@@ -210,12 +223,20 @@ export const EventDetail: React.FC = () => {
         if (!id) return;
         try {
             setIsDeleting(true);
-            await eventService.deleteEvent(id);
-            toast.success('Událost byla úspěšně smazána');
+            await notify.action(
+              {
+                id: `event:delete:${id}`,
+                success: 'Událost byla úspěšně smazána',
+                error: (err) => {
+                  const msg = notify.fromError(err);
+                  return msg === 'Něco se pokazilo' ? 'Nepodařilo se smazat událost' : msg;
+                },
+              },
+              () => eventService.deleteEvent(id),
+            );
             navigate('/dashboard/events');
         } catch (error: any) {
             console.error('Failed to delete event:', error);
-            toast.error(error.response?.data?.message || 'Nepodařilo se smazat událost');
         } finally {
             setIsDeleting(false);
             setDeleteEventOpen(false);
@@ -226,15 +247,23 @@ export const EventDetail: React.FC = () => {
         if (!id) return;
         
         try {
-            await eventService.setActive(id);
-            toast.success('Událost byla úspěšně aktivována');
+            await notify.action(
+              {
+                id: `event:activate:${id}`,
+                success: 'Událost byla úspěšně aktivována',
+                error: (err) => {
+                  const msg = notify.fromError(err);
+                  return msg === 'Něco se pokazilo' ? 'Nepodařilo se aktivovat událost' : msg;
+                },
+              },
+              () => eventService.setActive(id),
+            );
             await Promise.all([
                 loadEventData(),
                 loadActiveEvent()
             ]);
         } catch (error) {
             console.error('Failed to set event as active:', error);
-            toast.error('Nepodařilo se aktivovat událost');
         }
     };
 
@@ -242,15 +271,23 @@ export const EventDetail: React.FC = () => {
         if (!id) return;
         
         try {
-            await eventService.deactivate(id);
-            toast.success('Událost byla úspěšně deaktivována');
+            await notify.action(
+              {
+                id: `event:deactivate:${id}`,
+                success: 'Událost byla úspěšně deaktivována',
+                error: (err) => {
+                  const msg = notify.fromError(err);
+                  return msg === 'Něco se pokazilo' ? 'Nepodařilo se deaktivovat událost' : msg;
+                },
+              },
+              () => eventService.deactivate(id),
+            );
             await Promise.all([
                 loadEventData(),
                 loadActiveEvent()
             ]);
         } catch (error) {
             console.error('Failed to deactivate event:', error);
-            toast.error('Nepodařilo se deaktivovat událost');
         }
     };
 
@@ -259,12 +296,20 @@ export const EventDetail: React.FC = () => {
         
         try {
             // End the event first
-            await eventService.endEvent(id);
+            await notify.action(
+              {
+                id: `event:finish:${id}`,
+                success: 'Událost byla úspěšně ukončena a vyhodnocena',
+                error: (err) => {
+                  const msg = notify.fromError(err);
+                  return msg === 'Něco se pokazilo' ? 'Nepodařilo se vyhodnotit událost' : msg;
+                },
+              },
+              () => eventService.endEvent(id),
+            );
             
             // Navigate to results page
             navigate(`/dashboard/events/${id}/results`);
-            
-            toast.success('Událost byla úspěšně ukončena a vyhodnocena');
             
             // Reload data
             await Promise.all([
@@ -273,7 +318,6 @@ export const EventDetail: React.FC = () => {
             ]);
         } catch (error) {
             console.error('Failed to evaluate event:', error);
-            toast.error('Nepodařilo se vyhodnotit událost');
         }
     };
 
@@ -288,21 +332,30 @@ export const EventDetail: React.FC = () => {
 
         try {
             setIsExportingExcel(true);
-            const blob = await eventService.downloadEventDetailExcel(id);
+            await notify.action(
+              {
+                id: `event:export:${id}`,
+                success: 'Excel export stažen',
+                error: (err) => {
+                  const msg = notify.fromError(err);
+                  return msg === 'Něco se pokazilo' ? 'Nepodařilo se stáhnout Excel export' : msg;
+                },
+              },
+              async () => {
+                const blob = await eventService.downloadEventDetailExcel(id);
 
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${safeFileName(`${event.name}_event_detail`)}.xlsx`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-
-            toast.success('Excel export stažen');
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${safeFileName(`${event.name}_event_detail`)}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+              },
+            );
         } catch (error) {
             console.error('Failed to export event detail excel:', error);
-            toast.error('Nepodařilo se stáhnout Excel export');
         } finally {
             setIsExportingExcel(false);
         }

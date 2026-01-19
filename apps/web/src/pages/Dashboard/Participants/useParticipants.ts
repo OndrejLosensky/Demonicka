@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { participantsApi } from './api';
 import type { Participant } from './types';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
-import { useToast } from '../../../hooks/useToast';
+import { notify } from '../../../notifications/notify';
 import translations from '../../../locales/cs/dashboard.participants.json';
 import toastTranslations from '../../../locales/cs/toasts.json';
 
@@ -20,7 +20,6 @@ export const useParticipants = (includeDeleted = false) => {
   const [deletedParticipants, setDeletedParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { activeEvent } = useActiveEvent();
-  const toast = useToast();
   
   // Use refs to maintain stable references to mutable data
   const participantsRef = useRef<Participant[]>([]);
@@ -68,33 +67,43 @@ export const useParticipants = (includeDeleted = false) => {
       }
     } catch (error) {
       console.error('Failed to fetch participants:', error);
-      toast.error(toastTranslations.error.fetch.replace('{{item}}', 'účastníky'));
+      notify.error(toastTranslations.error.fetch.replace('{{item}}', 'účastníky'), {
+        id: `participants:fetch:${activeEvent?.id ?? 'all'}:${includeDeleted ? 'deleted' : 'active'}`,
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [includeDeleted, activeEvent?.id]); // Remove toast from dependencies
+  }, [includeDeleted, activeEvent?.id]);
 
   const handleDelete = useCallback(async (id: string) => {
     try {
       await participantsApi.delete(id);
-      toast.success(toastTranslations.success.deleted.replace('{{item}}', 'Účastníka'));
+      notify.success(toastTranslations.success.deleted.replace('{{item}}', 'Účastníka'), {
+        id: `participant:delete:${id}`,
+      });
       await fetchParticipants();
     } catch (error) {
       console.error('Failed to delete participant:', error);
-      toast.error(toastTranslations.error.delete.replace('{{item}}', 'účastníka'));
+      notify.error(toastTranslations.error.delete.replace('{{item}}', 'účastníka'), {
+        id: `participant:delete:${id}`,
+      });
     }
-  }, [fetchParticipants, toast]); // Remove participants from dependencies
+  }, [fetchParticipants]);
 
   const handleRestore = useCallback(async (id: string) => {
     try {
       await participantsApi.restore(id);
-      toast.success(toastTranslations.success.restored.replace('{{item}}', 'Účastník'));
+      notify.success(toastTranslations.success.restored.replace('{{item}}', 'Účastník'), {
+        id: `participant:restore:${id}`,
+      });
       await fetchParticipants();
     } catch (error) {
       console.error('Failed to restore participant:', error);
-      toast.error(toastTranslations.error.restore.replace('{{item}}', 'účastníka'));
+      notify.error(toastTranslations.error.restore.replace('{{item}}', 'účastníka'), {
+        id: `participant:restore:${id}`,
+      });
     }
-  }, [fetchParticipants, toast]);
+  }, [fetchParticipants]);
 
   const handleAddBeer = useCallback(async (id: string) => {
     const participant = participantsRef.current.find(p => p.id === id);
@@ -113,13 +122,21 @@ export const useParticipants = (includeDeleted = false) => {
 
     try {
       await participantsApi.addBeer(id, activeEvent?.id);
-      toast.success(toastTranslations.success.beerAdded.replace('{{user}}', participant?.name || participant?.username || id));
+      const toastId = `beer:add:${activeEvent?.id ?? 'none'}:${id}`;
+      notify.success(
+        toastTranslations.success.beerAdded.replace(
+          '{{user}}',
+          participant?.name || participant?.username || id,
+        ),
+        { id: toastId },
+      );
       // Refresh in background to sync with server (e.g., lastBeerTime)
       fetchParticipants().catch(error => {
         console.error('Failed to sync participants after adding beer:', error);
       });
     } catch (error) {
       console.error('Failed to add beer:', error);
+      const toastId = `beer:add:${activeEvent?.id ?? 'none'}:${id}`;
       // Revert optimistic update on error
       setParticipants(prevParticipants => {
         const reverted = prevParticipants.map(p => 
@@ -130,9 +147,9 @@ export const useParticipants = (includeDeleted = false) => {
         participantsRef.current = reverted;
         return reverted;
       });
-      toast.error(translations.errors.addBeerFailed);
+      notify.error(translations.errors.addBeerFailed, { id: toastId });
     }
-  }, [activeEvent?.id, fetchParticipants, toast]); // Remove toast and participants from dependencies
+  }, [activeEvent?.id, fetchParticipants]);
 
   const handleRemoveBeer = useCallback(async (id: string) => {
     const participant = participantsRef.current.find(p => p.id === id);
@@ -154,13 +171,21 @@ export const useParticipants = (includeDeleted = false) => {
 
     try {
       await participantsApi.removeBeer(id, activeEvent?.id);
-      toast.success(toastTranslations.success.beerRemoved.replace('{{user}}', participant?.name || participant?.username || id));
+      const toastId = `beer:remove:${activeEvent?.id ?? 'none'}:${id}`;
+      notify.success(
+        toastTranslations.success.beerRemoved.replace(
+          '{{user}}',
+          participant?.name || participant?.username || id,
+        ),
+        { id: toastId },
+      );
       // Refresh in background to sync with server
       fetchParticipants().catch(error => {
         console.error('Failed to sync participants after removing beer:', error);
       });
     } catch (error) {
       console.error('Failed to remove beer:', error);
+      const toastId = `beer:remove:${activeEvent?.id ?? 'none'}:${id}`;
       // Revert optimistic update on error
       setParticipants(prevParticipants => {
         const reverted = prevParticipants.map(p => 
@@ -171,20 +196,24 @@ export const useParticipants = (includeDeleted = false) => {
         participantsRef.current = reverted;
         return reverted;
       });
-      toast.error(translations.errors.removeBeerFailed);
+      notify.error(translations.errors.removeBeerFailed, { id: toastId });
     }
-  }, [activeEvent?.id, fetchParticipants, toast]); // Remove toast and participants from dependencies
+  }, [activeEvent?.id, fetchParticipants]);
 
   const handleCleanup = useCallback(async () => {
     try {
       await participantsApi.cleanup();
-      toast.success(toastTranslations.success.deleted.replace('{{item}}', 'Smazaní účastníci'));
+      notify.success(toastTranslations.success.deleted.replace('{{item}}', 'Smazaní účastníci'), {
+        id: 'participants:cleanup',
+      });
       await fetchParticipants();
     } catch (error) {
       console.error('Failed to cleanup participants:', error);
-      toast.error(toastTranslations.error.delete.replace('{{item}}', 'smazané účastníky'));
+      notify.error(toastTranslations.error.delete.replace('{{item}}', 'smazané účastníky'), {
+        id: 'participants:cleanup',
+      });
     }
-  }, [fetchParticipants]); // Remove toast from dependencies
+  }, [fetchParticipants]);
 
   useEffect(() => {
     fetchParticipants();

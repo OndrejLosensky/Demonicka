@@ -12,12 +12,12 @@ import {
   MenuItem,
   Box,
 } from '@mui/material';
-import { toast } from 'react-hot-toast';
 import { participantsApi } from './api';
 import { eventService } from '../../../services/eventService';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
 import translations from '../../../locales/cs/dashboard.participants.json';
+import { notify } from '../../../notifications/notify';
 
 interface AddParticipantDialogProps {
   open: boolean;
@@ -72,24 +72,41 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
 
     try {
       setIsSubmitting(true);
-      const user = await participantsApi.create({ username: username.trim(), gender });
-      
-      // If there's an active event, automatically add the user to it
-      if (activeEvent) {
-        await eventService.addUser(activeEvent.id, user.id);
-        await loadActiveEvent(); // Refresh the active event data
-        
-        // Force refresh of selected event to ensure users list updates
-        const updatedActiveEvent = await eventService.getEvent(activeEvent.id);
-        setSelectedEvent(updatedActiveEvent);
-      }
-      
-      toast.success(translations.dialogs.add.success);
+
+      const normalizedUsername = username.trim();
+      const toastId = `participant:add:${normalizedUsername.toLowerCase()}`;
+
+      await notify.action(
+        {
+          id: toastId,
+          success: translations.dialogs.add.success,
+          error: (err) => {
+            const msg = notify.fromError(err);
+            return msg === 'Něco se pokazilo' ? translations.dialogs.add.error : msg;
+          },
+        },
+        async () => {
+          const user = await participantsApi.create({
+            username: normalizedUsername,
+            gender,
+          });
+
+          // If there's an active event, automatically add the user to it
+          if (activeEvent) {
+            await eventService.addUser(activeEvent.id, user.id);
+            await loadActiveEvent(); // Refresh the active event data
+
+            // Force refresh of selected event to ensure users list updates
+            const updatedActiveEvent = await eventService.getEvent(activeEvent.id);
+            setSelectedEvent(updatedActiveEvent);
+          }
+        },
+      );
+
       onSuccess(); // This will refresh the users list
       onClose();
     } catch (error) {
       console.error('Failed to add user:', error);
-      toast.error(translations.dialogs.add.error);
     } finally {
       setIsSubmitting(false);
     }

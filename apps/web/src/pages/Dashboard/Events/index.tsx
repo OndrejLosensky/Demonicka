@@ -29,6 +29,7 @@ import { tokens } from '../../../theme/tokens';
 import { getShadow } from '../../../theme/utils';
 import { useAppTheme } from '../../../contexts/ThemeContext';
 import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
+import { notify } from '../../../notifications/notify';
 
 export const Events: React.FC = () => {
     const { mode } = useAppTheme();
@@ -91,12 +92,23 @@ export const Events: React.FC = () => {
 
     const handleCreateEvent = async () => {
         try {
-            await eventService.createEvent({
-                name: newEvent.name,
-                description: newEvent.description,
-                startDate: newEvent.startDate.toISOString(),
-                ...(newEvent.endDate && { endDate: newEvent.endDate.toISOString() }),
-            });
+            await notify.action(
+              {
+                id: `event:create:${newEvent.name.trim().toLowerCase() || 'new'}`,
+                success: 'Událost byla vytvořena',
+                error: (err) => {
+                  const msg = notify.fromError(err);
+                  return msg === 'Něco se pokazilo' ? 'Nepodařilo se vytvořit událost' : msg;
+                },
+              },
+              () =>
+                eventService.createEvent({
+                  name: newEvent.name,
+                  description: newEvent.description,
+                  startDate: newEvent.startDate.toISOString(),
+                  ...(newEvent.endDate && { endDate: newEvent.endDate.toISOString() }),
+                }),
+            );
             setOpen(false);
             await Promise.all([loadEvents(), loadActiveEvent()]);
             setNewEvent({ name: '', description: '', startDate: new Date(), endDate: null });

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { barrelService } from '../../../services/barrelService';
 import type { Barrel } from '@demonicka/shared-types';
-import { useToast } from '../../../hooks/useToast';
+import { notify } from '../../../notifications/notify';
 import toastTranslations from '../../../locales/cs/toasts.json';
 
 const LOW_BEER_THRESHOLD = 10;
@@ -11,7 +11,6 @@ export const useBarrels = (includeDeleted = false, eventId?: string) => {
   const [barrels, setBarrels] = useState<Barrel[]>([]);
   const [deletedBarrels, setDeletedBarrels] = useState<Barrel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const toast = useToast();
   
   // Use refs to maintain stable references to mutable data
   const barrelsRef = useRef<Barrel[]>([]);
@@ -21,17 +20,19 @@ export const useBarrels = (includeDeleted = false, eventId?: string) => {
     if (!barrel.isActive) return;
     
     if (barrel.remainingBeers <= ALMOST_EMPTY_THRESHOLD) {
-      toast.warning(
-        toastTranslations.warning.almostEmpty.replace('{{barrel}}', `#${barrel.orderNumber}`)
+      notify.warning(
+        toastTranslations.warning.almostEmpty.replace('{{barrel}}', `#${barrel.orderNumber}`),
+        { id: `barrel:warning:${barrel.id}:almostEmpty` },
       );
     } else if (barrel.remainingBeers <= LOW_BEER_THRESHOLD) {
-      toast.warning(
+      notify.warning(
         toastTranslations.warning.lowBeers
           .replace('{{barrel}}', `#${barrel.orderNumber}`)
-          .replace('{{count}}', barrel.remainingBeers.toString())
+          .replace('{{count}}', barrel.remainingBeers.toString()),
+        { id: `barrel:warning:${barrel.id}:lowBeers` },
       );
     }
-  }, [toast]);
+  }, []);
 
   const fetchBarrels = useCallback(async () => {
     try {
@@ -59,46 +60,62 @@ export const useBarrels = (includeDeleted = false, eventId?: string) => {
       }
     } catch (error) {
       console.error('Failed to fetch barrels:', error);
-      toast.error(toastTranslations.error.fetch.replace('{{item}}', 'sudy'));
+      notify.error(toastTranslations.error.fetch.replace('{{item}}', 'sudy'), {
+        id: `barrels:fetch:${eventId ?? 'all'}:${includeDeleted ? 'deleted' : 'active'}`,
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [includeDeleted, eventId, checkBarrelWarnings, toast]);
+  }, [includeDeleted, eventId, checkBarrelWarnings]);
 
   const handleDelete = useCallback(async (id: string) => {
     const barrel = barrelsRef.current.find(b => b.id === id);
     try {
       await barrelService.delete(id);
-      toast.success(toastTranslations.success.deleted.replace('{{item}}', `Sud #${barrel?.orderNumber || id}`));
+      notify.success(
+        toastTranslations.success.deleted.replace('{{item}}', `Sud #${barrel?.orderNumber || id}`),
+        { id: `barrel:delete:${id}` },
+      );
       await fetchBarrels();
     } catch (error) {
       console.error('Failed to delete barrel:', error);
-      toast.error(toastTranslations.error.delete.replace('{{item}}', 'sud'));
+      notify.error(toastTranslations.error.delete.replace('{{item}}', 'sud'), {
+        id: `barrel:delete:${id}`,
+      });
     }
-  }, [fetchBarrels, toast]);
+  }, [fetchBarrels]);
 
   const handleToggleActive = useCallback(async (id: string) => {
     const barrel = barrelsRef.current.find(b => b.id === id);
     try {
       await barrelService.activate(id);
-      toast.success(toastTranslations.success.updated.replace('{{item}}', `Sud #${barrel?.orderNumber || id}`));
+      notify.success(
+        toastTranslations.success.updated.replace('{{item}}', `Sud #${barrel?.orderNumber || id}`),
+        { id: `barrel:activate:${id}` },
+      );
       await fetchBarrels();
     } catch (error) {
       console.error('Failed to update barrel status:', error);
-      toast.error(toastTranslations.error.update.replace('{{item}}', 'sud'));
+      notify.error(toastTranslations.error.update.replace('{{item}}', 'sud'), {
+        id: `barrel:activate:${id}`,
+      });
     }
-  }, [fetchBarrels, toast]);
+  }, [fetchBarrels]);
 
   const handleCleanup = useCallback(async () => {
     try {
       await barrelService.cleanup();
-      toast.success(toastTranslations.success.deleted.replace('{{item}}', 'Smazané sudy'));
+      notify.success(toastTranslations.success.deleted.replace('{{item}}', 'Smazané sudy'), {
+        id: 'barrels:cleanup',
+      });
       await fetchBarrels();
     } catch (error) {
       console.error('Failed to cleanup barrels:', error);
-      toast.error(toastTranslations.error.delete.replace('{{item}}', 'smazané sudy'));
+      notify.error(toastTranslations.error.delete.replace('{{item}}', 'smazané sudy'), {
+        id: 'barrels:cleanup',
+      });
     }
-  }, [fetchBarrels, toast]);
+  }, [fetchBarrels]);
 
   // Fetch when includeDeleted or eventId changes
   useEffect(() => {

@@ -10,11 +10,11 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { toast } from 'react-hot-toast';
 import { barrelService } from '../../../services/barrelService';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { eventService } from '../../../services/eventService';
 import translations from '../../../locales/cs/dashboard.barrels.json';
+import { notify } from '../../../notifications/notify';
 
 interface AddBarrelDialogProps {
   open: boolean;
@@ -43,35 +43,48 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
 
     try {
       setIsSubmitting(true);
+      const toastId = `barrel:add:${activeEvent?.id ?? 'none'}`;
+
       // Get event-specific barrels to find the next available order number for this event
       // This ensures sequential numbering within the event (e.g., #1, #2, #3) rather than globally
-      const eventBarrels = activeEvent 
-        ? await barrelService.getByEvent(activeEvent.id)
-        : await barrelService.getAll(true); // fallback to all if no active event
-      
-      // Find the next available order number by looking for gaps in event barrels
-      let orderNumber = 1;
-      const usedNumbers = new Set(eventBarrels.map(barrel => barrel.orderNumber));
-      
-      while (usedNumbers.has(orderNumber)) {
-        orderNumber++;
-      }
-      const barrel = await barrelService.create({ size, orderNumber });
+      await notify.action(
+        {
+          id: toastId,
+          success: translations.dialogs.add.success,
+          error: (err) => {
+            const msg = notify.fromError(err);
+            return msg === 'Něco se pokazilo' ? translations.dialogs.add.error : msg;
+          },
+        },
+        async () => {
+          const eventBarrels = activeEvent
+            ? await barrelService.getByEvent(activeEvent.id)
+            : await barrelService.getAll(true); // fallback to all if no active event
 
-      // If there's an active event, automatically add the barrel to it
-      if (activeEvent) {
-        await eventService.addBarrel(activeEvent.id, barrel.id);
-      }
+          // Find the next available order number by looking for gaps in event barrels
+          let orderNumber = 1;
+          const usedNumbers = new Set(eventBarrels.map((barrel) => barrel.orderNumber));
 
-      // Always activate new barrels
-      await barrelService.activate(barrel.id);
+          while (usedNumbers.has(orderNumber)) {
+            orderNumber++;
+          }
 
-      toast.success(translations.dialogs.add.success);
+          const barrel = await barrelService.create({ size, orderNumber });
+
+          // If there's an active event, automatically add the barrel to it
+          if (activeEvent) {
+            await eventService.addBarrel(activeEvent.id, barrel.id);
+          }
+
+          // Always activate new barrels
+          await barrelService.activate(barrel.id);
+        },
+      );
+
       onSuccess();
       onClose();
     } catch (error) {
       console.error('Failed to add barrel:', error);
-      toast.error(translations.dialogs.add.error);
     } finally {
       setIsSubmitting(false);
     }
