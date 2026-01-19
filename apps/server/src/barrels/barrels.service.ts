@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Barrel } from '@prisma/client';
 import { CreateBarrelDto } from './dto/create-barrel.dto';
@@ -59,10 +63,10 @@ export class BarrelsService {
         },
       });
       this.loggingService.logBarrelCreated(savedBarrel.id, savedBarrel.size);
-      
+
       // Emit live updates for dashboard
       await this.leaderboardGateway.emitDashboardUpdate();
-      
+
       return savedBarrel;
     } catch (error: unknown) {
       this.loggingService.error('Failed to create barrel', {
@@ -81,10 +85,10 @@ export class BarrelsService {
         data: updateBarrelDto,
       });
       this.loggingService.logBarrelUpdated(id, updateBarrelDto);
-      
+
       // Emit live updates for dashboard
       await this.leaderboardGateway.emitDashboardUpdate();
-      
+
       return savedBarrel;
     } catch (error: unknown) {
       this.loggingService.error('Failed to update barrel', {
@@ -99,7 +103,7 @@ export class BarrelsService {
   async setActive(id: string): Promise<Barrel> {
     try {
       const barrel = await this.findOne(id);
-      
+
       if (barrel.remainingBeers <= 0) {
         throw new BadRequestException('Nelze aktivovat prázdný sud');
       }
@@ -119,10 +123,10 @@ export class BarrelsService {
         data: { isActive: true },
       });
       this.loggingService.logBarrelStatusChanged(id, true);
-      
+
       // Emit live updates for dashboard
       await this.leaderboardGateway.emitDashboardUpdate();
-      
+
       return savedBarrel;
     } catch (error: unknown) {
       this.loggingService.error('Failed to set barrel active status', {
@@ -138,7 +142,8 @@ export class BarrelsService {
       await this.findOne(id);
       await this.prisma.barrel.update({
         where: { id },
-        data: { deletedAt: new Date() },
+        // If a barrel is deleted, it must not remain active (would create “ghost active” state)
+        data: { deletedAt: new Date(), isActive: false },
       });
       this.loggingService.logBarrelDeleted(id);
     } catch (error: unknown) {
@@ -157,7 +162,8 @@ export class BarrelsService {
       for (const barrel of barrels) {
         await this.prisma.barrel.update({
           where: { id: barrel.id },
-          data: { deletedAt: new Date() },
+          // Cleanup also soft-deletes, so ensure no barrel stays active
+          data: { deletedAt: new Date(), isActive: false },
         });
       }
       this.loggingService.logCleanup('BARRELS', { barrelsDeleted: count });

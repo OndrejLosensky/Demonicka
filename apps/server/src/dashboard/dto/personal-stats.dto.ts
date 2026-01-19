@@ -16,4 +16,4 @@ export interface EventStatsDto {
 export interface PersonalStatsDto {
   totalBeers: number;
   eventStats: EventStatsDto[];
-} 
+}

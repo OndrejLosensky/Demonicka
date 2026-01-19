@@ -5,7 +5,8 @@ export class LoginDto {
   @IsNotEmpty({ message: 'Uživatelské jméno je povinné' })
   @MinLength(3, { message: 'Uživatelské jméno musí mít alespoň 3 znaky' })
   @Matches(/^[\p{L}\p{M}0-9_-]+$/u, {
-    message: 'Uživatelské jméno může obsahovat písmena (včetně diakritiky), čísla, podtržítka a pomlčky',
+    message:
+      'Uživatelské jméno může obsahovat písmena (včetně diakritiky), čísla, podtržítka a pomlčky',
   })
   username: string;
 

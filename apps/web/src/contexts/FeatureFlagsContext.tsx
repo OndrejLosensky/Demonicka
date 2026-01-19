@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { FeatureFlagKey } from '@demonicka/shared-types';
 import { featureFlagsService } from '../services/featureFlagsService';
-import { isFeatureEnabled as getHardcodedFeature } from '../config/featureFlags';
 
 interface FeatureFlagsContextType {
   isFeatureEnabled: (key: FeatureFlagKey) => boolean;
@@ -12,7 +11,7 @@ interface FeatureFlagsContextType {
 const FeatureFlagsContext = createContext<FeatureFlagsContextType | undefined>(undefined);
 
 export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
-  const [flags, setFlags] = useState<Record<string, boolean>>({});
+  const [flags, setFlags] = useState<Record<string, boolean> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadFlags = async () => {
@@ -25,13 +24,9 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
       });
       setFlags(flagsMap);
     } catch (error) {
-      console.error('Failed to load feature flags from API, using hardcoded values:', error);
-      // Fallback to hardcoded values
-      const hardcodedFlags: Record<string, boolean> = {};
-      Object.values(FeatureFlagKey).forEach((key) => {
-        hardcodedFlags[key] = getHardcodedFeature(key);
-      });
-      setFlags(hardcodedFlags);
+      console.error('Failed to load feature flags from API:', error);
+      // No hardcoded fallback: keep features disabled if flags cannot be loaded.
+      setFlags(null);
     } finally {
       setIsLoading(false);
     }
@@ -42,11 +37,8 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const isFeatureEnabled = (key: FeatureFlagKey): boolean => {
-    // If flags are loaded from API, use them; otherwise fallback to hardcoded
-    if (Object.keys(flags).length > 0) {
-      return flags[key] ?? false;
-    }
-    return getHardcodedFeature(key);
+    // Only enable when we have a loaded flags map; otherwise keep disabled.
+    return flags?.[key] ?? false;
   };
 
   return (

@@ -3,9 +3,9 @@ import type { Barrel } from '@demonicka/shared-types';
 import type { CreateBarrelDto } from '../types/dto';
 
 class BarrelService {
-  async getAll(includeDeleted = false): Promise<Barrel[]> {
+  async getAll(withDeleted = false): Promise<Barrel[]> {
     const response = await api.get('/barrels', {
-      params: { includeDeleted },
+      params: { withDeleted },
     });
     return response.data;
   }
@@ -20,8 +20,10 @@ class BarrelService {
     return response.data;
   }
 
-  async getByEvent(eventId: string): Promise<Barrel[]> {
-    const response = await api.get(`/events/${eventId}/barrels`);
+  async getByEvent(eventId: string, withDeleted = false): Promise<Barrel[]> {
+    const response = await api.get(`/events/${eventId}/barrels`, {
+      params: { withDeleted },
+    });
     return response.data;
   }
 

@@ -5,9 +5,19 @@ import * as path from 'path';
 
 @Injectable()
 export class ProfilePictureService {
-  private readonly uploadDir = path.join(process.cwd(), 'uploads', 'profile-pictures');
+  private readonly uploadDir = path.join(
+    process.cwd(),
+    'uploads',
+    'profile-pictures',
+  );
   private readonly maxFileSize = 5 * 1024 * 1024; // 5MB
-  private readonly allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+  private readonly allowedMimeTypes = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+  ];
   private readonly maxDimensions = { width: 2048, height: 2048 };
   private readonly outputDimensions = { width: 400, height: 400 };
   private readonly outputQuality = 85;
@@ -27,7 +37,9 @@ export class ProfilePictureService {
   private validateFile(file: Express.Multer.File): void {
     // Check file size
     if (file.size > this.maxFileSize) {
-      throw new BadRequestException('Soubor je příliš velký. Maximální velikost je 5MB.');
+      throw new BadRequestException(
+        'Soubor je příliš velký. Maximální velikost je 5MB.',
+      );
     }
 
     // Check MIME type
@@ -38,7 +50,10 @@ export class ProfilePictureService {
     }
   }
 
-  async processAndSaveImage(file: Express.Multer.File, userId: string): Promise<string> {
+  async processAndSaveImage(
+    file: Express.Multer.File,
+    userId: string,
+  ): Promise<string> {
     this.validateFile(file);
 
     const outputFileName = `${userId}.webp`;
@@ -57,7 +72,9 @@ export class ProfilePictureService {
       // Return relative URL path
       return `/api/uploads/profile-pictures/${outputFileName}`;
     } catch (error) {
-      throw new BadRequestException('Chyba při zpracování obrázku. Zkuste to znovu.');
+      throw new BadRequestException(
+        'Chyba při zpracování obrázku. Zkuste to znovu.',
+      );
     }
   }
 

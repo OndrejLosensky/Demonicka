@@ -4,4 +4,4 @@ export class LeaderboardEntryDto {
   name: string | null;
   beerCount: number;
   lastBeerTime: Date | null;
-} 
+}

@@ -17,9 +17,12 @@ export interface ParticipantTableProps {
   participants: Participant[];
   deletedParticipants: Participant[];
   showDeleted: boolean;
+  showUserHistory?: boolean;
   onAddBeer: (participantId: string) => Promise<void>;
   onRemoveBeer: (participantId: string) => Promise<void>;
   onDelete: (participantId: string) => Promise<void>;
+  onRestore: (participantId: string) => Promise<void>;
+  onShowHistory?: (participantId: string, username: string) => void;
 }
 
 export interface AddParticipantDialogProps {

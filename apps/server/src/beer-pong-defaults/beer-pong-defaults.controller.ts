@@ -22,8 +22,10 @@ export class BeerPongDefaultsController {
   }
 
   @Put()
-  async update(@Body() dto: UpdateBeerPongDefaultsDto, @CurrentUser() user: User) {
+  async update(
+    @Body() dto: UpdateBeerPongDefaultsDto,
+    @CurrentUser() user: User,
+  ) {
     return this.defaults.update(dto, user.id);
   }
 }
-

@@ -18,15 +18,7 @@ import { LoggingModule } from '../logging/logging.module';
     LoggingModule,
   ],
   controllers: [BeerPongController],
-  providers: [
-    BeerPongService,
-    BeerPongTeamsService,
-    BeerPongGamesService,
-  ],
-  exports: [
-    BeerPongService,
-    BeerPongTeamsService,
-    BeerPongGamesService,
-  ],
+  providers: [BeerPongService, BeerPongTeamsService, BeerPongGamesService],
+  exports: [BeerPongService, BeerPongTeamsService, BeerPongGamesService],
 })
 export class BeerPongModule {}

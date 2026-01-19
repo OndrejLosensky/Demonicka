@@ -21,6 +21,8 @@ import {
   Delete as DeleteIcon,
   Add as AddIcon,
   Remove as RemoveIcon,
+  RestoreFromTrash as RestoreIcon,
+  History as HistoryIcon,
   Male as MaleIcon,
   Female as FemaleIcon,
 } from '@mui/icons-material';
@@ -36,9 +38,12 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   participants,
   deletedParticipants,
   showDeleted,
+  showUserHistory,
   onAddBeer,
   onRemoveBeer,
   onDelete,
+  onRestore,
+  onShowHistory,
 }) => {
   const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; participant: { id: string; username: string } }>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -145,8 +150,40 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                   )}
                 </TableCell>
                 <TableCell align="right">
-                  {!participant.deletedAt && (
+                  {participant.deletedAt ? (
+                    showDeleted ? (
+                      <Tooltip title={translations.table.actions.restore ?? 'Obnovit'}>
+                        <IconButton
+                          size="small"
+                          onClick={() => onRestore(participant.id)}
+                          sx={{
+                            border: 1,
+                            borderColor: 'success.main',
+                            '&:hover': { bgcolor: 'success.light' },
+                          }}
+                        >
+                          <RestoreIcon fontSize="small" sx={{ color: 'success.main' }} />
+                        </IconButton>
+                      </Tooltip>
+                    ) : null
+                  ) : (
                     <>
+                      {showUserHistory && onShowHistory && (
+                        <Tooltip title="Historie">
+                          <IconButton
+                            size="small"
+                            onClick={() => onShowHistory(participant.id, participant.username)}
+                            sx={{
+                              mr: { xs: 0.5, sm: 1 },
+                              border: 1,
+                              borderColor: 'divider',
+                              '&:hover': { bgcolor: 'action.hover' },
+                            }}
+                          >
+                            <HistoryIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                       <Tooltip title={translations.table.actions.removeBeer}>
                         <span>
                           <IconButton

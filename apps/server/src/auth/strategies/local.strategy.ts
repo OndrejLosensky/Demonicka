@@ -18,9 +18,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     username: string,
     password: string,
   ): Promise<Omit<User, 'password'>> {
-    this.logger.debug(
-      `Attempting to validate user with username: ${username}`,
-    );
+    this.logger.debug(`Attempting to validate user with username: ${username}`);
 
     const user = await this.authService.validateUser(username, password);
     if (!user) {

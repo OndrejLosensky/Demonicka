@@ -10,6 +10,8 @@ import {
   ParseUUIDPipe,
   Query,
   StreamableFile,
+  DefaultValuePipe,
+  ParseBoolPipe,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { Barrel, EventBeer, User } from '@prisma/client';
@@ -128,7 +130,8 @@ export class EventsController {
   @Get(':id/users')
   getEventUsers(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('withDeleted') withDeleted?: boolean,
+    @Query('withDeleted', new DefaultValuePipe(false), ParseBoolPipe)
+    withDeleted: boolean,
   ): Promise<User[]> {
     return this.eventsService.getEventUsers(id, withDeleted);
   }
@@ -151,8 +154,12 @@ export class EventsController {
   }
 
   @Get(':id/barrels')
-  getEventBarrels(@Param('id', ParseUUIDPipe) id: string): Promise<Barrel[]> {
-    return this.eventsService.getEventBarrels(id);
+  getEventBarrels(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('withDeleted', new DefaultValuePipe(false), ParseBoolPipe)
+    withDeleted: boolean,
+  ): Promise<Barrel[]> {
+    return this.eventsService.getEventBarrels(id, withDeleted);
   }
 
   @Get(':id/beers')

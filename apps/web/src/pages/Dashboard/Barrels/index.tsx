@@ -39,7 +39,10 @@ const BarrelsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'split'>('split');
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_BARRELS);
-  const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
+  const canToggleStatus = useFeatureFlag(FeatureFlagKey.BARREL_STATUS_TOGGLE);
+  const showEventHistory =
+    useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY) ||
+    useFeatureFlag(FeatureFlagKey.SHOW_BARRELS_HISTORY);
   const { activeEvent } = useActiveEvent();
   const showCleanupFeature = useFeatureFlag(FeatureFlagKey.CLEANUP_FUNCTIONALITY);
   const {
@@ -71,8 +74,8 @@ const BarrelsPage: React.FC = () => {
   };
 
   const headerLeft = useMemo(
-    () => (showEventHistory && activeEvent ? <EventSelector /> : undefined),
-    [showEventHistory, activeEvent?.id],
+    () => (showEventHistory ? <EventSelector variant="compact" /> : undefined),
+    [showEventHistory],
   );
 
   const headerAction = useMemo(
@@ -160,6 +163,7 @@ const BarrelsPage: React.FC = () => {
           showDeleted={showDeleted}
           onDelete={handleDelete}
           onActivate={handleToggleActive}
+          canToggleStatus={canToggleStatus}
         />
       ) : (
         <Grid container spacing={3}>
@@ -180,6 +184,7 @@ const BarrelsPage: React.FC = () => {
               showDeleted={showDeleted}
               onDelete={handleDelete}
               onActivate={handleToggleActive}
+              canToggleStatus={canToggleStatus}
             />
           </Grid>
         </Grid>

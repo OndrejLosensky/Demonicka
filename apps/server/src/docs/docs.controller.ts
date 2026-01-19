@@ -38,16 +38,16 @@ export class DocsController {
 
       // Remove leading slash if present
       filePath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
-      
+
       // Simple sanitization - only allow alphanumeric, dots, hyphens, underscores, and forward slashes
       const sanitizedPath = filePath
         .replace(/[^a-zA-Z0-9-_.\/]/g, '') // Allow forward slashes
         .replace(/\/+/g, '/') // Normalize multiple slashes to single slash
         .replace(/^\/+|\/+$/g, ''); // Remove leading/trailing slashes
-      
+
       const fullPath = path.join(this.docsPath, sanitizedPath);
       console.log('Full file path:', fullPath);
-      
+
       // Check if file exists
       if (!fs.existsSync(fullPath)) {
         console.error('File not found:', fullPath);
@@ -82,4 +82,4 @@ export class DocsController {
     });
     return arrayOfFiles;
   }
-} 
+}

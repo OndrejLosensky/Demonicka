@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsUUID, IsInt, IsEnum, Min } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsUUID,
+  IsInt,
+  IsEnum,
+  Min,
+} from 'class-validator';
 import { CancellationPolicy } from '@prisma/client';
 
 export class CreateBeerPongEventDto {

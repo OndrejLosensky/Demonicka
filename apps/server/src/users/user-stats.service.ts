@@ -35,7 +35,7 @@ export class UserStatsService {
 
     const now = new Date();
     const beers = user.beers || [];
-    const events = user.events.map(eu => eu.event) || [];
+    const events = user.events.map((eu) => eu.event) || [];
 
     // Calculate beer counts for different time periods
     const beersLastHour = beers.filter(
@@ -59,7 +59,8 @@ export class UserStatsService {
       (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
     );
 
-    const firstBeerDate = sortedBeers.length > 0 ? sortedBeers[0].createdAt : null;
+    const firstBeerDate =
+      sortedBeers.length > 0 ? sortedBeers[0].createdAt : null;
     const lastBeerDate =
       sortedBeers.length > 0
         ? sortedBeers[sortedBeers.length - 1].createdAt
@@ -124,7 +125,9 @@ export class UserStatsService {
           orderBy: { _count: { id: 'desc' } },
         });
 
-        const rank = allEventBeers.findIndex(eb => eb.userId === userId) + 1 || eventUserCount;
+        const rank =
+          allEventBeers.findIndex((eb) => eb.userId === userId) + 1 ||
+          eventUserCount;
 
         return {
           eventId: event.id,
@@ -185,10 +188,12 @@ export class UserStatsService {
       mostBeersInDay,
 
       // Distribution
-      hourlyDistribution: Object.entries(hourlyDistribution).map(([hour, count]) => ({
-        hour: parseInt(hour),
-        count,
-      })),
+      hourlyDistribution: Object.entries(hourlyDistribution).map(
+        ([hour, count]) => ({
+          hour: parseInt(hour),
+          count,
+        }),
+      ),
       dailyStats: Object.entries(dailyStats).map(([date, count]) => ({
         date,
         count,
@@ -249,7 +254,9 @@ export class UserStatsService {
         orderBy: { _count: { id: 'desc' } },
       });
 
-      const rank = allEventBeers.findIndex(eb => eb.userId === userId) + 1 || event.users.length;
+      const rank =
+        allEventBeers.findIndex((eb) => eb.userId === userId) + 1 ||
+        event.users.length;
 
       eventStats.push({
         eventId: event.id,

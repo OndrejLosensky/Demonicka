@@ -7,6 +7,9 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
+  DefaultValuePipe,
+  ParseBoolPipe,
 } from '@nestjs/common';
 import { BarrelsService } from './barrels.service';
 import { CreateBarrelDto } from './dto/create-barrel.dto';
@@ -46,8 +49,11 @@ export class BarrelsController {
   }
 
   @Get()
-  findAll(): Promise<Barrel[]> {
-    return this.barrelsService.findAll();
+  findAll(
+    @Query('withDeleted', new DefaultValuePipe(false), ParseBoolPipe)
+    withDeleted: boolean,
+  ): Promise<Barrel[]> {
+    return this.barrelsService.findAll(withDeleted);
   }
 
   @Post()

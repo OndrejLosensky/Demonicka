@@ -32,8 +32,10 @@ export class BackupService {
 
       // Note: For PostgreSQL, backups should be done via pg_dump
       // This is a placeholder - actual backup should use pg_dump or similar
-      this.logger.log('Backup scheduled (PostgreSQL backups should use pg_dump)');
-      
+      this.logger.log(
+        'Backup scheduled (PostgreSQL backups should use pg_dump)',
+      );
+
       // Clean up old backups (older than 6 hours)
       this.cleanupOldBackups();
     } catch (error) {
@@ -47,7 +49,7 @@ export class BackupService {
   async cleanupOrphanedEventBeers(): Promise<void> {
     try {
       this.logger.log('Starting cleanup of orphaned event beers...');
-      
+
       // Get all active events
       const activeEvents = await this.prisma.event.findMany({
         where: { isActive: true, deletedAt: null },
@@ -82,7 +84,7 @@ export class BackupService {
           // Soft delete the orphaned beers
           await this.prisma.eventBeer.updateMany({
             where: {
-              id: { in: orphanedBeers.map(b => b.id) },
+              id: { in: orphanedBeers.map((b) => b.id) },
             },
             data: { deletedAt: new Date() },
           });

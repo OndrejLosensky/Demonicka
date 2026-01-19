@@ -56,7 +56,7 @@ export const userService = {
   },
 
   async restoreUser(id: string) {
-    const response = await api.patch(`/users/${id}/restore`);
+    const response = await api.post(`/users/${id}/restore`);
     return response.data;
   },
 

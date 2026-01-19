@@ -97,7 +97,6 @@ export class BeerPongService {
       },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     this.loggingService.audit(
       'BEER_PONG_EVENT_CREATED',
       'Beer pong event created',
@@ -251,7 +250,6 @@ export class BeerPongService {
     });
 
     if (actorUserId) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       this.loggingService.audit('BEER_PONG_STARTED', 'Beer pong started', {
         beerPongEventId: id,
         actorUserId,

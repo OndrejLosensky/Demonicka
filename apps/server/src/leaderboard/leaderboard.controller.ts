@@ -17,9 +17,7 @@ export class LeaderboardController {
 
   @Get()
   @Public()
-  getLeaderboard(
-    @Query('eventId') eventId?: string,
-  ): Promise<LeaderboardDto> {
+  getLeaderboard(@Query('eventId') eventId?: string): Promise<LeaderboardDto> {
     return this.leaderboardService.getLeaderboard(eventId);
   }
 
@@ -30,4 +28,4 @@ export class LeaderboardController {
     await this.leaderboardGateway.emitFullUpdate(eventId);
     return { message: 'WebSocket update triggered successfully' };
   }
-} 
+}

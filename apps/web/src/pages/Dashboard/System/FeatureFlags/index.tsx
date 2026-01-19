@@ -20,11 +20,13 @@ import {
 import { featureFlagsService, type FeatureFlag } from '../../../../services/featureFlagsService';
 import { FeatureFlagKey } from '@demonicka/shared-types';
 import { toast } from 'react-hot-toast';
+import { useFeatureFlags } from '../../../../contexts/FeatureFlagsContext';
 
 const FeatureFlagsPage: React.FC = () => {
   const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
+  const { refreshFlags } = useFeatureFlags();
 
   const loadFeatureFlags = useCallback(async () => {
     try {
@@ -48,7 +50,7 @@ const FeatureFlagsPage: React.FC = () => {
       setIsSaving((prev) => ({ ...prev, [flag.id]: true }));
       await featureFlagsService.updateFeatureFlag(flag.id, !flag.enabled);
       toast.success('Feature flag byl úspěšně aktualizován');
-      await loadFeatureFlags();
+      await Promise.all([loadFeatureFlags(), refreshFlags()]);
     } catch (error) {
       console.error('Failed to update feature flag:', error);
       toast.error('Nepodařilo se aktualizovat feature flag');
@@ -89,7 +91,7 @@ const FeatureFlagsPage: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Feature Flag</TableCell>
+                <TableCell>Funkce</TableCell>
                 <TableCell>Popis</TableCell>
                 <TableCell align="center">Stav</TableCell>
                 <TableCell align="right">Akce</TableCell>

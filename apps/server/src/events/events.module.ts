@@ -14,17 +14,21 @@ import { BeerPongModule } from '../beer-pong/beer-pong.module';
 import { ExportsModule } from '../exports/exports.module';
 
 @Module({
-    imports: [
-        forwardRef(() => BeersModule),
-        BarrelsModule,
-        LoggingModule,
-        UsersModule,
-        LeaderboardModule,
-        forwardRef(() => BeerPongModule),
-        ExportsModule,
-    ],
-    controllers: [EventBeerPongTeamsController, EventBeersController, EventsController],
-    providers: [EventsService, EventBeersService, EventBeerPongTeamsService],
-    exports: [EventsService, EventBeersService, EventBeerPongTeamsService],
+  imports: [
+    forwardRef(() => BeersModule),
+    BarrelsModule,
+    LoggingModule,
+    UsersModule,
+    LeaderboardModule,
+    forwardRef(() => BeerPongModule),
+    ExportsModule,
+  ],
+  controllers: [
+    EventBeerPongTeamsController,
+    EventBeersController,
+    EventsController,
+  ],
+  providers: [EventsService, EventBeersService, EventBeerPongTeamsService],
+  exports: [EventsService, EventBeersService, EventBeerPongTeamsService],
 })
 export class EventsModule {}

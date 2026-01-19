@@ -11,8 +11,10 @@ import {
   UploadedFile,
   BadRequestException,
   // ForbiddenException,
-  // Query,
+  Query,
   ParseUUIDPipe,
+  DefaultValuePipe,
+  ParseBoolPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
@@ -64,8 +66,11 @@ export class UsersController {
   }
 
   @Get()
-  async findAll() {
-    return this.usersService.findAll();
+  async findAll(
+    @Query('withDeleted', new DefaultValuePipe(false), ParseBoolPipe)
+    withDeleted: boolean,
+  ) {
+    return this.usersService.findAll(withDeleted);
   }
 
   @Get('profile')

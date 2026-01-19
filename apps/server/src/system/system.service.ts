@@ -20,7 +20,7 @@ export class SystemService {
 
     // Get database stats
     const dbStats = await this.getDatabaseStats();
-    
+
     // Get storage stats
     const storageStats = await this.getStorageStats();
 
@@ -138,7 +138,8 @@ export class SystemService {
 
     // Check database size
     const dbStats = await this.getDatabaseStats();
-    if (dbStats.size > 100 * 1024 * 1024) { // 100MB
+    if (dbStats.size > 100 * 1024 * 1024) {
+      // 100MB
       alerts.push({
         id: 'database-size-warning',
         type: 'warning' as const,
@@ -178,11 +179,13 @@ export class SystemService {
       }> = [];
 
       for (const table of tables) {
-        const countResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+        const countResult = await this.prisma.$queryRaw<
+          Array<{ count: bigint }>
+        >`
           SELECT COUNT(*) as count FROM ${this.prisma.$queryRawUnsafe(`"${table.tablename}"`)}
         `;
         const rowCount = Number(countResult[0]?.count || 0);
-        
+
         tableStats.push({
           name: table.tablename,
           rowCount,
@@ -192,10 +195,12 @@ export class SystemService {
 
       // Determine database status
       let status: 'healthy' | 'warning' | 'error' = 'healthy';
-      if (size > 100 * 1024 * 1024) { // 100MB
+      if (size > 100 * 1024 * 1024) {
+        // 100MB
         status = 'warning';
       }
-      if (size > 500 * 1024 * 1024) { // 500MB
+      if (size > 500 * 1024 * 1024) {
+        // 500MB
         status = 'error';
       }
 
@@ -222,7 +227,7 @@ export class SystemService {
     try {
       const logDir = 'logs';
       const logFiles = await fs.readdir(logDir);
-      
+
       let totalLogs = 0;
       let logsToday = 0;
       let errorCount = 0;
@@ -241,11 +246,11 @@ export class SystemService {
 
           // Read file to count logs
           const content = await fs.readFile(filePath, 'utf-8');
-          const lines = content.split('\n').filter(line => line.trim());
+          const lines = content.split('\n').filter((line) => line.trim());
           totalLogs += lines.length;
 
           // Count today's logs
-          const todayLines = lines.filter(line => {
+          const todayLines = lines.filter((line) => {
             try {
               const logData = JSON.parse(line);
               return new Date(logData.timestamp).toDateString() === today;
@@ -256,7 +261,7 @@ export class SystemService {
           logsToday += todayLines.length;
 
           // Count errors and warnings
-          lines.forEach(line => {
+          lines.forEach((line) => {
             try {
               const logData = JSON.parse(line);
               if (logData.level === 'error') errorCount++;
@@ -267,7 +272,7 @@ export class SystemService {
           });
 
           // Track oldest and newest logs
-          lines.forEach(line => {
+          lines.forEach((line) => {
             try {
               const logData = JSON.parse(line);
               const timestamp = new Date(logData.timestamp);
@@ -311,7 +316,7 @@ export class SystemService {
     try {
       const logDir = 'logs';
       const backupDir = 'data/backups';
-      
+
       let logsSize = 0;
       let backupsSize = 0;
 
@@ -340,12 +345,14 @@ export class SystemService {
       }
 
       const totalSize = logsSize + backupsSize;
-      
+
       let status: 'healthy' | 'warning' | 'error' = 'healthy';
-      if (totalSize > 500 * 1024 * 1024) { // 500MB
+      if (totalSize > 500 * 1024 * 1024) {
+        // 500MB
         status = 'warning';
       }
-      if (totalSize > 1 * 1024 * 1024 * 1024) { // 1GB
+      if (totalSize > 1 * 1024 * 1024 * 1024) {
+        // 1GB
         status = 'error';
       }
 
@@ -373,15 +380,20 @@ export class SystemService {
     storage: 'healthy' | 'warning' | 'error';
   }): 'healthy' | 'warning' | 'error' {
     const { memory, database, api, storage } = componentStatuses;
-    
+
     if (database === 'error' || api === 'error' || storage === 'error') {
       return 'error';
     }
-    
-    if (database === 'warning' || api === 'warning' || storage === 'warning' || memory > 0.8) {
+
+    if (
+      database === 'warning' ||
+      api === 'warning' ||
+      storage === 'warning' ||
+      memory > 0.8
+    ) {
       return 'warning';
     }
-    
+
     return 'healthy';
   }
 }

@@ -53,7 +53,9 @@ export class AdminAuthController {
 
     // Check if user is an operator or super admin
     if (user.role !== UserRole.OPERATOR && user.role !== UserRole.SUPER_ADMIN) {
-      throw new UnauthorizedException('Only operator or super admin users can access this endpoint');
+      throw new UnauthorizedException(
+        'Only operator or super admin users can access this endpoint',
+      );
     }
 
     // Check if user can login
@@ -73,20 +75,27 @@ export class AdminAuthController {
     }
 
     // Generate tokens
-    const { access_token, refresh_token } = await this.authService.login(userWithoutPassword);
+    const { access_token, refresh_token } =
+      await this.authService.login(userWithoutPassword);
 
     // Register or update device token
-    await this.deviceTokenService.createOrUpdateToken(user, adminLoginDto.deviceToken, {
-      deviceType: adminLoginDto.deviceType,
-      deviceName: adminLoginDto.deviceName,
-      deviceModel: adminLoginDto.deviceModel,
-      osVersion: adminLoginDto.osVersion,
-      isAdminDevice: true,
-    });
+    await this.deviceTokenService.createOrUpdateToken(
+      user,
+      adminLoginDto.deviceToken,
+      {
+        deviceType: adminLoginDto.deviceType,
+        deviceName: adminLoginDto.deviceName,
+        deviceModel: adminLoginDto.deviceModel,
+        osVersion: adminLoginDto.osVersion,
+        isAdminDevice: true,
+      },
+    );
 
     // Update last admin login time
     user.lastAdminLogin = new Date();
-    await this.usersService.update(user.id, { lastAdminLogin: user.lastAdminLogin });
+    await this.usersService.update(user.id, {
+      lastAdminLogin: user.lastAdminLogin,
+    });
 
     return {
       access_token,
@@ -148,4 +157,4 @@ export class AdminAuthController {
 
     return { message: 'Biometric status updated successfully' };
   }
-} 
+}

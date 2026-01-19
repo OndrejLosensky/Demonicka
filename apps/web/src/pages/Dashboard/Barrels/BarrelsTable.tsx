@@ -34,6 +34,7 @@ interface BarrelTableProps {
   showDeleted: boolean;
   onDelete: (id: string) => Promise<void>;
   onActivate: (id: string) => Promise<void>;
+  canToggleStatus?: boolean;
 }
 
 export const BarrelsTable: React.FC<BarrelTableProps> = ({
@@ -42,6 +43,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
   showDeleted,
   onDelete,
   onActivate,
+  canToggleStatus = true,
 }) => {
   const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; barrel: { id: string; size: number } }>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -159,7 +161,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                 <TableCell align="right">
                   {!barrel.deletedAt && (
                     <>
-                      {!barrel.isActive && barrel.remainingBeers > 0 && (
+                      {canToggleStatus && !barrel.isActive && barrel.remainingBeers > 0 && (
                         <Tooltip title={translations.table.actions.activate}>
                           <IconButton
                             size="small"

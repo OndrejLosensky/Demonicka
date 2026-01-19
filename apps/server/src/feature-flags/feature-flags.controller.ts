@@ -20,7 +20,6 @@ import type { User } from '@prisma/client';
 @Controller('system/feature-flags')
 @Versions('1')
 @UseGuards(VersionGuard, JwtAuthGuard)
-@Permissions(Permission.MANAGE_SYSTEM) // Only SUPER_ADMIN can manage feature flags
 export class FeatureFlagsController {
   constructor(private readonly featureFlagsService: FeatureFlagsService) {}
 
@@ -30,11 +29,13 @@ export class FeatureFlagsController {
   }
 
   @Get(':id')
+  @Permissions(Permission.MANAGE_SYSTEM) // Only SUPER_ADMIN can manage feature flags
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.featureFlagsService.findOne(id);
   }
 
   @Put(':id')
+  @Permissions(Permission.MANAGE_SYSTEM) // Only SUPER_ADMIN can manage feature flags
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateFeatureFlagDto: UpdateFeatureFlagDto,

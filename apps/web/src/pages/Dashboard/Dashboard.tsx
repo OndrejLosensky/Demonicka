@@ -5,7 +5,6 @@ import {
     Box,
     Grid,
     Card,
-    Avatar,
     Chip,
     Switch,
     FormControlLabel,
@@ -69,7 +68,7 @@ export const Dashboard: React.FC = () => {
     const [useCustomDate, setUseCustomDate] = useState(false);
 
     const headerLeft = useMemo(
-        () => (showEventHistory ? <EventSelector /> : undefined),
+        () => (showEventHistory ? <EventSelector variant="compact" /> : undefined),
         [showEventHistory],
     );
     useDashboardHeaderSlots({ left: headerLeft });
@@ -466,7 +465,11 @@ export const Dashboard: React.FC = () => {
                                             background: index === 0 ? 'primary.50' : 'background.paper'
                                         }}>
                                             <UserAvatar
-                                                user={user}
+                                                user={{
+                                                    username: user.username,
+                                                    profilePictureUrl: user.profilePictureUrl,
+                                                    name: user.username,
+                                                }}
                                                 sx={{ 
                                                     width: 40, 
                                                     height: 40, 

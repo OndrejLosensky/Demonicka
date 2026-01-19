@@ -10,4 +10,3 @@ import { LoggingModule } from '../logging/logging.module';
   exports: [BeerPongDefaultsService],
 })
 export class BeerPongDefaultsModule {}
-

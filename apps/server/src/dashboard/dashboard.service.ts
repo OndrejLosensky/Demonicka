@@ -1,10 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { DashboardResponseDto, UserStatsDto, BarrelStatsDto } from './dto/dashboard.dto';
+import {
+  DashboardResponseDto,
+  UserStatsDto,
+  BarrelStatsDto,
+} from './dto/dashboard.dto';
 import { LeaderboardDto, UserLeaderboardDto } from './dto/leaderboard.dto';
 import { PublicStatsDto } from './dto/public-stats.dto';
 import { SystemStatsDto } from './dto/system-stats.dto';
-import { PersonalStatsDto, EventStatsDto, HourlyStatsDto } from './dto/personal-stats.dto';
+import {
+  PersonalStatsDto,
+  EventStatsDto,
+  HourlyStatsDto,
+} from './dto/personal-stats.dto';
 import { UserRole } from '@prisma/client';
 
 @Injectable()
@@ -25,7 +33,7 @@ export class DashboardService {
           barrels: { include: { barrel: true } },
         },
       });
-      
+
       if (!event) {
         throw new Error('Event not found');
       }
@@ -56,14 +64,14 @@ export class DashboardService {
         take: 6,
       });
 
-      const userIds = eventBeerCounts.map(eb => eb.userId);
+      const userIds = eventBeerCounts.map((eb) => eb.userId);
       const users = await this.prisma.user.findMany({
         where: { id: { in: userIds } },
         select: { id: true, username: true },
       });
 
-      const topUsers = eventBeerCounts.map(eb => {
-        const user = users.find(u => u.id === eb.userId);
+      const topUsers = eventBeerCounts.map((eb) => {
+        const user = users.find((u) => u.id === eb.userId);
         return {
           username: user?.username || '',
           beerCount: eb._count.id,
@@ -80,14 +88,19 @@ export class DashboardService {
       });
 
       const barrelStatsMap = new Map<number, number>();
-      barrels.forEach(barrel => {
-        barrelStatsMap.set(barrel.size, (barrelStatsMap.get(barrel.size) || 0) + 1);
+      barrels.forEach((barrel) => {
+        barrelStatsMap.set(
+          barrel.size,
+          (barrelStatsMap.get(barrel.size) || 0) + 1,
+        );
       });
 
-      const formattedBarrelStats = Array.from(barrelStatsMap.entries()).map(([size, count]) => ({
-        size,
-        count,
-      }));
+      const formattedBarrelStats = Array.from(barrelStatsMap.entries()).map(
+        ([size, count]) => ({
+          size,
+          count,
+        }),
+      );
 
       return {
         totalBeers,
@@ -98,9 +111,15 @@ export class DashboardService {
       };
     } else {
       // Global stats
-      const totalUsers = await this.prisma.user.count({ where: { deletedAt: null } });
-      const totalBeers = await this.prisma.beer.count({ where: { deletedAt: null } });
-      const totalBarrels = await this.prisma.barrel.count({ where: { deletedAt: null } });
+      const totalUsers = await this.prisma.user.count({
+        where: { deletedAt: null },
+      });
+      const totalBeers = await this.prisma.beer.count({
+        where: { deletedAt: null },
+      });
+      const totalBarrels = await this.prisma.barrel.count({
+        where: { deletedAt: null },
+      });
 
       // Get top users by beer count
       const topUsersData = await this.prisma.user.findMany({
@@ -110,7 +129,7 @@ export class DashboardService {
         take: 6,
       });
 
-      const topUsers = topUsersData.map(u => ({
+      const topUsers = topUsersData.map((u) => ({
         username: u.username || '',
         beerCount: u.beerCount || 0,
       }));
@@ -122,14 +141,19 @@ export class DashboardService {
       });
 
       const barrelStatsMap = new Map<number, number>();
-      barrels.forEach(barrel => {
-        barrelStatsMap.set(barrel.size, (barrelStatsMap.get(barrel.size) || 0) + 1);
+      barrels.forEach((barrel) => {
+        barrelStatsMap.set(
+          barrel.size,
+          (barrelStatsMap.get(barrel.size) || 0) + 1,
+        );
       });
 
-      const formattedBarrelStats = Array.from(barrelStatsMap.entries()).map(([size, count]) => ({
-        size,
-        count,
-      }));
+      const formattedBarrelStats = Array.from(barrelStatsMap.entries()).map(
+        ([size, count]) => ({
+          size,
+          count,
+        }),
+      );
 
       return {
         totalBeers,
@@ -150,7 +174,7 @@ export class DashboardService {
           barrels: { include: { barrel: true } },
         },
       });
-      
+
       if (!event) {
         throw new Error('Event not found');
       }
@@ -185,14 +209,14 @@ export class DashboardService {
         take: 10,
       });
 
-      const userIds = eventBeerCounts.map(eb => eb.userId);
+      const userIds = eventBeerCounts.map((eb) => eb.userId);
       const users = await this.prisma.user.findMany({
         where: { id: { in: userIds } },
         select: { id: true, username: true, profilePictureUrl: true },
       });
 
-      const topUsers: UserStatsDto[] = eventBeerCounts.map(eb => {
-        const user = users.find(u => u.id === eb.userId);
+      const topUsers: UserStatsDto[] = eventBeerCounts.map((eb) => {
+        const user = users.find((u) => u.id === eb.userId);
         return {
           id: eb.userId,
           username: user?.username || '',
@@ -211,11 +235,16 @@ export class DashboardService {
       });
 
       const barrelStatsMap = new Map<number, number>();
-      barrels.forEach(barrel => {
-        barrelStatsMap.set(barrel.size, (barrelStatsMap.get(barrel.size) || 0) + 1);
+      barrels.forEach((barrel) => {
+        barrelStatsMap.set(
+          barrel.size,
+          (barrelStatsMap.get(barrel.size) || 0) + 1,
+        );
       });
 
-      const formattedBarrelStats: BarrelStatsDto[] = Array.from(barrelStatsMap.entries()).map(([size, count]) => ({
+      const formattedBarrelStats: BarrelStatsDto[] = Array.from(
+        barrelStatsMap.entries(),
+      ).map(([size, count]) => ({
         size,
         count,
       }));
@@ -230,20 +259,31 @@ export class DashboardService {
       };
     } else {
       // Global stats
-      const totalUsers = await this.prisma.user.count({ where: { deletedAt: null } });
-      const totalBeers = await this.prisma.beer.count({ where: { deletedAt: null } });
-      const totalBarrels = await this.prisma.barrel.count({ where: { deletedAt: null } });
+      const totalUsers = await this.prisma.user.count({
+        where: { deletedAt: null },
+      });
+      const totalBeers = await this.prisma.beer.count({
+        where: { deletedAt: null },
+      });
+      const totalBarrels = await this.prisma.barrel.count({
+        where: { deletedAt: null },
+      });
       const averageBeersPerUser = totalUsers ? totalBeers / totalUsers : 0;
 
       // Get top users by beer count
       const topUsersData = await this.prisma.user.findMany({
         where: { deletedAt: null },
-        select: { id: true, username: true, beerCount: true, profilePictureUrl: true },
+        select: {
+          id: true,
+          username: true,
+          beerCount: true,
+          profilePictureUrl: true,
+        },
         orderBy: { beerCount: 'desc' },
         take: 10,
       });
 
-      const topUsers: UserStatsDto[] = topUsersData.map(u => ({
+      const topUsers: UserStatsDto[] = topUsersData.map((u) => ({
         id: u.id,
         username: u.username || '',
         beerCount: u.beerCount || 0,
@@ -257,11 +297,16 @@ export class DashboardService {
       });
 
       const barrelStatsMap = new Map<number, number>();
-      barrels.forEach(barrel => {
-        barrelStatsMap.set(barrel.size, (barrelStatsMap.get(barrel.size) || 0) + 1);
+      barrels.forEach((barrel) => {
+        barrelStatsMap.set(
+          barrel.size,
+          (barrelStatsMap.get(barrel.size) || 0) + 1,
+        );
       });
 
-      const formattedBarrelStats: BarrelStatsDto[] = Array.from(barrelStatsMap.entries()).map(([size, count]) => ({
+      const formattedBarrelStats: BarrelStatsDto[] = Array.from(
+        barrelStatsMap.entries(),
+      ).map(([size, count]) => ({
         size,
         count,
       }));
@@ -291,16 +336,18 @@ export class DashboardService {
         users: { include: { user: true } },
       },
     });
-    
+
     if (!event) {
       throw new Error('Event not found');
     }
 
-    this.logger.log(`Event found: ${event.name} with ${event.users.length} users`);
+    this.logger.log(
+      `Event found: ${event.name} with ${event.users.length} users`,
+    );
 
     // Event-specific leaderboard only
     const eventUserIds = event.users.map((eu) => eu.userId);
-    
+
     // Get total event beers
     const totalEventBeers = await this.prisma.eventBeer.count({
       where: {
@@ -309,9 +356,11 @@ export class DashboardService {
         deletedAt: null,
       },
     });
-    
-    this.logger.log(`Total event beers from event_beers table for event ${event.id}: ${totalEventBeers}`);
-    
+
+    this.logger.log(
+      `Total event beers from event_beers table for event ${event.id}: ${totalEventBeers}`,
+    );
+
     // Get user rankings with their individual beer counts
     const eventBeerCounts = await this.prisma.eventBeer.groupBy({
       by: ['userId'],
@@ -324,22 +373,29 @@ export class DashboardService {
       orderBy: { _count: { id: 'desc' } },
     });
 
-    const userIds = eventBeerCounts.map(eb => eb.userId);
+    const userIds = eventBeerCounts.map((eb) => eb.userId);
     const users = await this.prisma.user.findMany({
       where: { id: { in: userIds } },
-      select: { id: true, username: true, gender: true, profilePictureUrl: true },
+      select: {
+        id: true,
+        username: true,
+        gender: true,
+        profilePictureUrl: true,
+      },
     });
 
-    const userMap = new Map(users.map(u => [u.id, u]));
-    const beerCountMap = new Map(eventBeerCounts.map(eb => [eb.userId, eb._count.id]));
+    const userMap = new Map(users.map((u) => [u.id, u]));
+    const beerCountMap = new Map(
+      eventBeerCounts.map((eb) => [eb.userId, eb._count.id]),
+    );
 
     // Include users with 0 beers
-    eventUserIds.forEach(userId => {
+    eventUserIds.forEach((userId) => {
       if (!beerCountMap.has(userId)) {
         beerCountMap.set(userId, 0);
       }
       if (!userMap.has(userId)) {
-        const eventUser = event.users.find(eu => eu.userId === userId);
+        const eventUser = event.users.find((eu) => eu.userId === userId);
         if (eventUser) {
           userMap.set(userId, eventUser.user);
         }
@@ -364,7 +420,7 @@ export class DashboardService {
 
     // Group beers by userId and calculate timestamp when user reached current count
     const userBeersMap = new Map<string, Date[]>();
-    allEventBeers.forEach(beer => {
+    allEventBeers.forEach((beer) => {
       if (!userBeersMap.has(beer.userId)) {
         userBeersMap.set(beer.userId, []);
       }
@@ -382,29 +438,31 @@ export class DashboardService {
       return beers[nthBeerIndex];
     };
 
-    const allUsers = Array.from(userMap.entries()).map(([userId, user]) => ({
-      id: userId,
-      username: user.username || '',
-      gender: user.gender,
-      beerCount: beerCountMap.get(userId) || 0,
-      profilePictureUrl: (user as any).profilePictureUrl || null,
-      reachedAt: getReachedAtTimestamp(userId, beerCountMap.get(userId) || 0),
-    })).sort((a, b) => {
-      // Sort by beerCount desc, then by reachedAt asc (earlier = reached that count first)
-      if (b.beerCount !== a.beerCount) {
-        return b.beerCount - a.beerCount;
-      }
-      return a.reachedAt.getTime() - b.reachedAt.getTime();
-    });
+    const allUsers = Array.from(userMap.entries())
+      .map(([userId, user]) => ({
+        id: userId,
+        username: user.username || '',
+        gender: user.gender,
+        beerCount: beerCountMap.get(userId) || 0,
+        profilePictureUrl: (user as any).profilePictureUrl || null,
+        reachedAt: getReachedAtTimestamp(userId, beerCountMap.get(userId) || 0),
+      }))
+      .sort((a, b) => {
+        // Sort by beerCount desc, then by reachedAt asc (earlier = reached that count first)
+        if (b.beerCount !== a.beerCount) {
+          return b.beerCount - a.beerCount;
+        }
+        return a.reachedAt.getTime() - b.reachedAt.getTime();
+      });
 
     // Calculate shared ranks (dense ranking: users with same beer count share rank, next rank increments by 1)
-    type UserWithReachedAt = typeof allUsers[0];
+    type UserWithReachedAt = (typeof allUsers)[0];
     type UserWithRank = UserWithReachedAt & { rank: number };
-    
+
     const calculateRanks = (users: UserWithReachedAt[]): UserWithRank[] => {
       let currentRank = 1;
       const result: UserWithRank[] = [];
-      
+
       for (let i = 0; i < users.length; i++) {
         const user = users[i];
         if (i > 0 && users[i - 1].beerCount === user.beerCount) {
@@ -416,47 +474,58 @@ export class DashboardService {
           currentRank += 1;
         }
       }
-      
+
       return result;
     };
 
     // Split by gender first, then calculate ranks separately for each group
     const males = allUsers.filter((u) => u.gender === 'MALE');
     const females = allUsers.filter((u) => u.gender === 'FEMALE');
-    
-    const malesWithRanks = calculateRanks(males).map(({ reachedAt, ...user }) => user);
-    const femalesWithRanks = calculateRanks(females).map(({ reachedAt, ...user }) => user);
+
+    const malesWithRanks = calculateRanks(males).map(
+      ({ reachedAt, ...user }) => user,
+    );
+    const femalesWithRanks = calculateRanks(females).map(
+      ({ reachedAt, ...user }) => user,
+    );
 
     const result = {
       males: malesWithRanks,
       females: femalesWithRanks,
     };
 
-    const totalBeers = result.males.reduce((sum, u) => sum + u.beerCount, 0) + 
-                      result.females.reduce((sum, u) => sum + u.beerCount, 0);
-    
-    this.logger.log(`Leaderboard result: ${result.males.length} males, ${result.females.length} females, total beers: ${totalBeers}`);
-    this.logger.log(`Verification: Direct count from event_beers table: ${totalEventBeers}, Sum from user counts: ${totalBeers}`);
-    
+    const totalBeers =
+      result.males.reduce((sum, u) => sum + u.beerCount, 0) +
+      result.females.reduce((sum, u) => sum + u.beerCount, 0);
+
+    this.logger.log(
+      `Leaderboard result: ${result.males.length} males, ${result.females.length} females, total beers: ${totalBeers}`,
+    );
+    this.logger.log(
+      `Verification: Direct count from event_beers table: ${totalEventBeers}, Sum from user counts: ${totalBeers}`,
+    );
+
     // Verify our counts match
     if (totalBeers !== totalEventBeers) {
-      this.logger.warn(`COUNT MISMATCH! Direct count: ${totalEventBeers}, User sum: ${totalBeers}`);
+      this.logger.warn(
+        `COUNT MISMATCH! Direct count: ${totalEventBeers}, User sum: ${totalBeers}`,
+      );
     }
-    
+
     return result;
   }
 
   async getSystemStats(): Promise<SystemStatsDto> {
     const now = Date.now();
-    
+
     // Return cached data if it's still fresh
-    if (this.cachedStats && (now - this.lastFetch) < this.CACHE_TTL) {
+    if (this.cachedStats && now - this.lastFetch < this.CACHE_TTL) {
       this.logger.log('Returning cached system stats');
       return this.cachedStats;
     }
 
     this.logger.log('Cache miss - fetching fresh system stats');
-    
+
     try {
       const users = await this.prisma.user.findMany({
         where: { deletedAt: null },
@@ -474,7 +543,7 @@ export class DashboardService {
       this.logger.log(`Found ${users.length} users`);
 
       const stats = {
-        users: users.map(user => ({
+        users: users.map((user) => ({
           id: user.id,
           username: user.username,
           role: user.role,
@@ -484,9 +553,14 @@ export class DashboardService {
           lastAdminLogin: user.lastAdminLogin,
         })),
         totalUsers: users.length,
-        totalOperatorUsers: users.filter(u => u.role === UserRole.OPERATOR || u.role === UserRole.SUPER_ADMIN).length,
-        totalCompletedRegistrations: users.filter(u => u.isRegistrationComplete).length,
-        total2FAEnabled: users.filter(u => u.isTwoFactorEnabled).length,
+        totalOperatorUsers: users.filter(
+          (u) =>
+            u.role === UserRole.OPERATOR || u.role === UserRole.SUPER_ADMIN,
+        ).length,
+        totalCompletedRegistrations: users.filter(
+          (u) => u.isRegistrationComplete,
+        ).length,
+        total2FAEnabled: users.filter((u) => u.isTwoFactorEnabled).length,
       };
 
       // Update cache
@@ -504,12 +578,12 @@ export class DashboardService {
   async getPersonalStats(userId: string): Promise<PersonalStatsDto> {
     try {
       this.logger.log(`Fetching personal stats for user: ${userId}`);
-      
+
       // Get total beers for the user
       const totalBeers = await this.prisma.beer.count({
         where: { userId, deletedAt: null },
       });
-      
+
       this.logger.log(`Total beers for user: ${totalBeers}`);
 
       // Get all events the user participated in
@@ -518,7 +592,7 @@ export class DashboardService {
         include: { event: true },
       });
 
-      const events = userEvents.map(eu => eu.event);
+      const events = userEvents.map((eu) => eu.event);
       this.logger.log(`User events count: ${events.length}`);
 
       const eventStats: EventStatsDto[] = [];
@@ -535,12 +609,15 @@ export class DashboardService {
         });
 
         // Calculate contribution percentage
-        const contribution = totalEventBeers > 0 ? (userBeers / totalEventBeers) * 100 : 0;
+        const contribution =
+          totalEventBeers > 0 ? (userBeers / totalEventBeers) * 100 : 0;
 
         // Get hourly stats for this event (using PostgreSQL date functions)
         const timezoneOffset = process.env.TIMEZONE_OFFSET || '+02:00';
-        
-        const hourlyStatsRaw = await this.prisma.$queryRaw<Array<{ hour: number; count: bigint }>>`
+
+        const hourlyStatsRaw = await this.prisma.$queryRaw<
+          Array<{ hour: number; count: bigint }>
+        >`
           SELECT 
             EXTRACT(HOUR FROM ("consumedAt" AT TIME ZONE ${timezoneOffset}))::int as hour,
             COUNT(*)::bigint as count
@@ -552,14 +629,20 @@ export class DashboardService {
           ORDER BY hour ASC
         `;
 
-        const formattedHourlyStats: HourlyStatsDto[] = hourlyStatsRaw.map(stat => ({
-          hour: Number(stat.hour),
-          count: Number(stat.count),
-        }));
+        const formattedHourlyStats: HourlyStatsDto[] = hourlyStatsRaw.map(
+          (stat) => ({
+            hour: Number(stat.hour),
+            count: Number(stat.count),
+          }),
+        );
 
         // Calculate average per hour
-        const totalHours = formattedHourlyStats.length > 0 ? 
-          Math.max(...formattedHourlyStats.map(h => h.hour)) - Math.min(...formattedHourlyStats.map(h => h.hour)) + 1 : 1;
+        const totalHours =
+          formattedHourlyStats.length > 0
+            ? Math.max(...formattedHourlyStats.map((h) => h.hour)) -
+              Math.min(...formattedHourlyStats.map((h) => h.hour)) +
+              1
+            : 1;
         const averagePerHour = totalHours > 0 ? userBeers / totalHours : 0;
 
         eventStats.push({
@@ -583,21 +666,32 @@ export class DashboardService {
     }
   }
 
-  async getEventHourlyStats(eventId: string, date?: string): Promise<HourlyStatsDto[]> {
+  async getEventHourlyStats(
+    eventId: string,
+    date?: string,
+  ): Promise<HourlyStatsDto[]> {
     try {
-      this.logger.log(`Fetching hourly stats for event: ${eventId}, date: ${date || 'current day'}`);
-      
+      this.logger.log(
+        `Fetching hourly stats for event: ${eventId}, date: ${date || 'current day'}`,
+      );
+
       // Get timezone offset from environment or default to UTC+2
       const timezoneOffset = process.env.TIMEZONE_OFFSET || '+02:00';
-      
+
       let hourlyStatsRaw: Array<{ hour: number; count: bigint }>;
 
       if (date) {
         const targetDate = new Date(date);
-        const startOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+        const startOfDay = new Date(
+          targetDate.getFullYear(),
+          targetDate.getMonth(),
+          targetDate.getDate(),
+        );
         const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
-        
-        hourlyStatsRaw = await this.prisma.$queryRaw<Array<{ hour: number; count: bigint }>>`
+
+        hourlyStatsRaw = await this.prisma.$queryRaw<
+          Array<{ hour: number; count: bigint }>
+        >`
           SELECT 
             EXTRACT(HOUR FROM ("consumedAt" AT TIME ZONE ${timezoneOffset}))::int as hour,
             COUNT(*)::bigint as count
@@ -610,7 +704,9 @@ export class DashboardService {
           ORDER BY hour ASC
         `;
       } else {
-        hourlyStatsRaw = await this.prisma.$queryRaw<Array<{ hour: number; count: bigint }>>`
+        hourlyStatsRaw = await this.prisma.$queryRaw<
+          Array<{ hour: number; count: bigint }>
+        >`
           SELECT 
             EXTRACT(HOUR FROM ("consumedAt" AT TIME ZONE ${timezoneOffset}))::int as hour,
             COUNT(*)::bigint as count
@@ -622,22 +718,28 @@ export class DashboardService {
         `;
       }
 
-      const formattedHourlyStats: HourlyStatsDto[] = hourlyStatsRaw.map(stat => ({
-        hour: Number(stat.hour),
-        count: Number(stat.count),
-      }));
+      const formattedHourlyStats: HourlyStatsDto[] = hourlyStatsRaw.map(
+        (stat) => ({
+          hour: Number(stat.hour),
+          count: Number(stat.count),
+        }),
+      );
 
       // Fill in missing hours with 0 count
       const allHours = Array.from({ length: 24 }, (_, i) => i);
-      const existingHours = formattedHourlyStats.map(h => h.hour);
-      
-      const missingHours = allHours.filter(hour => !existingHours.includes(hour));
+      const existingHours = formattedHourlyStats.map((h) => h.hour);
+
+      const missingHours = allHours.filter(
+        (hour) => !existingHours.includes(hour),
+      );
       const completeHourlyStats = [
         ...formattedHourlyStats,
-        ...missingHours.map(hour => ({ hour, count: 0 })),
+        ...missingHours.map((hour) => ({ hour, count: 0 })),
       ].sort((a, b) => a.hour - b.hour);
 
-      this.logger.log(`Hourly stats fetched: ${completeHourlyStats.length} hours with timezone offset ${timezoneOffset}`);
+      this.logger.log(
+        `Hourly stats fetched: ${completeHourlyStats.length} hours with timezone offset ${timezoneOffset}`,
+      );
       return completeHourlyStats;
     } catch (error) {
       this.logger.error('Failed to fetch hourly stats', error);

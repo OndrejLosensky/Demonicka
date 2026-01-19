@@ -21,4 +21,3 @@ export class UpdateBeerPongDefaultsDto {
   @IsEnum(CancellationPolicy)
   cancellationPolicy?: CancellationPolicy;
 }
-

@@ -124,14 +124,17 @@ export class LoggingService {
     endDate?: Date,
     eventType?: string | string[],
     search?: string,
-  ): Promise<{ logs: (LogEntry & { user?: LogUserRef; actor?: LogUserRef })[]; total: number }> {
+  ): Promise<{
+    logs: (LogEntry & { user?: LogUserRef; actor?: LogUserRef })[];
+    total: number;
+  }> {
     try {
       // Read all log files in the logs directory
       const files = await fs.readdir(this.logDir);
-      const logFiles = files.filter(file => file.endsWith('-combined.log'));
-      
+      const logFiles = files.filter((file) => file.endsWith('-combined.log'));
+
       let allLogs: LogEntry[] = [];
-      
+
       // Read each log file and combine the logs
       for (const file of logFiles) {
         try {
@@ -147,10 +150,11 @@ export class LoggingService {
           // Continue with other files
         }
       }
-      
+
       // Sort all logs by timestamp (newest first)
-      allLogs.sort((a, b) => 
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      allLogs.sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       );
 
       // Apply filters
@@ -207,7 +211,10 @@ export class LoggingService {
       const ids = new Set<string>();
       for (const log of page) {
         if (typeof log.userId === 'string' && log.userId) ids.add(log.userId);
-        if (typeof (log as any).actorUserId === 'string' && (log as any).actorUserId) {
+        if (
+          typeof (log as any).actorUserId === 'string' &&
+          (log as any).actorUserId
+        ) {
           ids.add(String((log as any).actorUserId));
         }
       }

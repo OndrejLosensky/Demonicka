@@ -33,4 +33,4 @@ export class AdminLoginDto {
   @IsString()
   @IsOptional()
   twoFactorCode?: string;
-} 
+}

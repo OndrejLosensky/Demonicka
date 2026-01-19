@@ -26,6 +26,17 @@ export const participantsApi = {
     return response.data;
   },
 
+  getEventBeers: async (eventId: string, userId: string) => {
+    const response = await api.get(`/events/${eventId}/users/${userId}/beers`);
+    return response.data as Array<{
+      id: string;
+      consumedAt: string;
+      spilled: boolean;
+      barrelId: string | null;
+      deletedAt: string | null;
+    }>;
+  },
+
   create: async (data: CreateParticipantDto): Promise<Participant> => {
     const response = await api.post('/users/participant', data);
     return response.data;
@@ -33,6 +44,10 @@ export const participantsApi = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/users/${id}`);
+  },
+
+  restore: async (id: string): Promise<void> => {
+    await api.post(`/users/${id}/restore`);
   },
 
   addBeer: async (id: string, eventId?: string): Promise<void> => {

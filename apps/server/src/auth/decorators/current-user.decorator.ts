@@ -6,7 +6,10 @@ interface RequestWithUser extends Request {
 }
 
 export const CurrentUser = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): Omit<User, 'password'> | undefined => {
+  (
+    data: unknown,
+    ctx: ExecutionContext,
+  ): Omit<User, 'password'> | undefined => {
     const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     if (!request.user) {
       return undefined;

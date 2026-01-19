@@ -14,4 +14,4 @@ export class SystemStatsDto {
   totalOperatorUsers: number;
   totalCompletedRegistrations: number;
   total2FAEnabled: number;
-} 
+}

@@ -36,8 +36,13 @@ export class BeerPongGamesService {
    * Initialize empty bracket structure (all games with null teams)
    * Called when tournament is created
    */
-  async initializeEmptyBracket(beerPongEventId: string): Promise<BeerPongGame[]> {
-    console.log('[BeerPong initializeEmptyBracket] called, beerPongEventId=', beerPongEventId);
+  async initializeEmptyBracket(
+    beerPongEventId: string,
+  ): Promise<BeerPongGame[]> {
+    console.log(
+      '[BeerPong initializeEmptyBracket] called, beerPongEventId=',
+      beerPongEventId,
+    );
     const event = await this.prisma.beerPongEvent.findFirst({
       where: {
         id: beerPongEventId,
@@ -55,11 +60,18 @@ export class BeerPongGamesService {
       );
     }
 
-    console.log('[BeerPong initializeEmptyBracket] event found, existing games.length=', event.games.length);
+    console.log(
+      '[BeerPong initializeEmptyBracket] event found, existing games.length=',
+      event.games.length,
+    );
 
     if (event.games.length > 0) {
-      console.log('[BeerPong initializeEmptyBracket] already has games, throwing');
-      this.logger.log(`Bracket already initialized for event ${beerPongEventId} with ${event.games.length} games`);
+      console.log(
+        '[BeerPong initializeEmptyBracket] already has games, throwing',
+      );
+      this.logger.log(
+        `Bracket already initialized for event ${beerPongEventId} with ${event.games.length} games`,
+      );
       throw new BadRequestException('Bracket has already been initialized');
     }
 
@@ -110,8 +122,14 @@ export class BeerPongGamesService {
       });
       games.push(final);
 
-      console.log('[BeerPong initializeEmptyBracket] created', games.length, 'games successfully');
-      this.logger.log(`Successfully created ${games.length} empty games for bracket`);
+      console.log(
+        '[BeerPong initializeEmptyBracket] created',
+        games.length,
+        'games successfully',
+      );
+      this.logger.log(
+        `Successfully created ${games.length} empty games for bracket`,
+      );
       return games;
     } catch (error: any) {
       const errInfo = {
@@ -120,9 +138,15 @@ export class BeerPongGamesService {
         meta: error?.meta,
         name: error?.name,
       };
-      console.error('[BeerPong initializeEmptyBracket] ERROR:', JSON.stringify(errInfo));
+      console.error(
+        '[BeerPong initializeEmptyBracket] ERROR:',
+        JSON.stringify(errInfo),
+      );
       console.error('[BeerPong initializeEmptyBracket] stack:', error?.stack);
-      this.logger.error(`Failed to create bracket games: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create bracket games: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -160,18 +184,26 @@ export class BeerPongGamesService {
     // If bracket already exists but is empty, assign teams
     if (event.games.length > 0) {
       // Check if bracket is empty (all quarterfinal games have null teams)
-      const quarterfinals = event.games.filter(g => g.round === 'QUARTERFINAL');
-      const hasEmptyQuarterfinals = quarterfinals.some(g => !g.team1Id || !g.team2Id);
-      
+      const quarterfinals = event.games.filter(
+        (g) => g.round === 'QUARTERFINAL',
+      );
+      const hasEmptyQuarterfinals = quarterfinals.some(
+        (g) => !g.team1Id || !g.team2Id,
+      );
+
       if (hasEmptyQuarterfinals) {
         // Assign teams to empty games
         return this.assignTeamsToBracket(beerPongEventId);
       }
-      
+
       // If all quarterfinals have teams, bracket is already initialized
-      const allQuarterfinalsHaveTeams = quarterfinals.every(g => g.team1Id && g.team2Id);
+      const allQuarterfinalsHaveTeams = quarterfinals.every(
+        (g) => g.team1Id && g.team2Id,
+      );
       if (allQuarterfinalsHaveTeams) {
-        throw new BadRequestException('Bracket has already been initialized with teams');
+        throw new BadRequestException(
+          'Bracket has already been initialized with teams',
+        );
       }
     }
 
@@ -183,7 +215,7 @@ export class BeerPongGamesService {
 
     // Create empty bracket first
     await this.initializeEmptyBracket(beerPongEventId);
-    
+
     // Then assign teams
     return this.assignTeamsToBracket(beerPongEventId);
   }
@@ -278,7 +310,7 @@ export class BeerPongGamesService {
     }
 
     // Verify team exists and belongs to this tournament
-    const team = game.beerPongEvent.teams.find(t => t.id === teamId);
+    const team = game.beerPongEvent.teams.find((t) => t.id === teamId);
     if (!team) {
       throw new NotFoundException(
         `Team with ID ${teamId} not found in this tournament`,
@@ -297,10 +329,7 @@ export class BeerPongGamesService {
       where: {
         beerPongEventId: game.beerPongEventId,
         round: game.round,
-        OR: [
-          { team1Id: teamId },
-          { team2Id: teamId },
-        ],
+        OR: [{ team1Id: teamId }, { team2Id: teamId }],
       },
     });
 
@@ -370,8 +399,7 @@ export class BeerPongGamesService {
 
     // Check time window if startedAt exists
     if (game.startedAt) {
-      const timeWindowMs =
-        game.beerPongEvent.timeWindowMinutes * 60 * 1000;
+      const timeWindowMs = game.beerPongEvent.timeWindowMinutes * 60 * 1000;
       const timeSinceStart = Date.now() - game.startedAt.getTime();
 
       if (timeSinceStart > timeWindowMs) {
@@ -595,21 +623,16 @@ export class BeerPongGamesService {
     const createdGames: BeerPongGame[] = [];
 
     // Check if all quarterfinal games are completed
-    const quarterfinals = event.games.filter(
-      (g) => g.round === 'QUARTERFINAL',
-    );
+    const quarterfinals = event.games.filter((g) => g.round === 'QUARTERFINAL');
     const completedQuarterfinals = quarterfinals.filter(
       (g) => g.status === 'COMPLETED' && g.winnerTeamId,
     );
 
     // Assign teams to semifinals if all quarterfinals are done
-    if (
-      quarterfinals.length === 4 &&
-      completedQuarterfinals.length === 4
-    ) {
-      const semifinals = event.games.filter((g) => g.round === 'SEMIFINAL').sort((a, b) => 
-        a.createdAt.getTime() - b.createdAt.getTime()
-      );
+    if (quarterfinals.length === 4 && completedQuarterfinals.length === 4) {
+      const semifinals = event.games
+        .filter((g) => g.round === 'SEMIFINAL')
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
       const winners = completedQuarterfinals.map((g) => g.winnerTeamId!);
 
       if (semifinals.length === 0) {

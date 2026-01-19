@@ -4,7 +4,7 @@ import { DashboardService } from '../../dashboard/dashboard.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ExcelRenderer } from '../excel/ExcelRenderer';
 import { EventDetailDataLoader } from './EventDetailDataLoader';
- 
+
 @Injectable()
 export class EventDetailExportBuilder {
   constructor(
@@ -12,12 +12,12 @@ export class EventDetailExportBuilder {
     private readonly dashboardService: DashboardService,
     private readonly prisma: PrismaService,
   ) {}
- 
+
   async build(eventId: string): Promise<StreamableFile> {
     const data = await this.loader.load(eventId);
     const { event, users, barrels, beerLog, beerPongTeams, beerPongEvents } =
       data;
- 
+
     const [dashboardStats, leaderboard, spilledCount] = await Promise.all([
       this.dashboardService.getDashboardStats(eventId),
       this.dashboardService.getLeaderboard(eventId),
@@ -25,9 +25,9 @@ export class EventDetailExportBuilder {
         where: { eventId, spilled: true, deletedAt: null },
       }),
     ]);
- 
+
     const renderer = new ExcelRenderer();
- 
+
     // 1) Event
     renderer.addTableSheet({
       name: 'Event',
@@ -50,7 +50,7 @@ export class EventDetailExportBuilder {
       freezeHeader: false,
       autoFilter: false,
     });
- 
+
     // 2) Users
     renderer.addTableSheet({
       name: 'Users',
@@ -97,7 +97,7 @@ export class EventDetailExportBuilder {
       ],
       rows: users,
     });
- 
+
     // 3) Barrels
     renderer.addTableSheet({
       name: 'Barrels',
@@ -138,7 +138,7 @@ export class EventDetailExportBuilder {
       ],
       rows: barrels,
     });
- 
+
     // 4) Beer log (paged for row limit safety)
     renderer.addPagedTableSheets({
       namePrefix: 'Beer_log',
@@ -191,7 +191,7 @@ export class EventDetailExportBuilder {
       ],
       rows: beerLog,
     });
- 
+
     // 5) Beer pong teams
     renderer.addTableSheet({
       name: 'BeerPong_teams',
@@ -232,7 +232,7 @@ export class EventDetailExportBuilder {
       ],
       rows: beerPongTeams,
     });
- 
+
     // 6) Beer pong events
     renderer.addTableSheet({
       name: 'BeerPong_events',
@@ -293,21 +293,24 @@ export class EventDetailExportBuilder {
       ],
       rows: beerPongEvents,
     });
- 
+
     // 7) Aggregates
     const aggregatesSheet = renderer.addSheet('Aggregates');
     aggregatesSheet.getRow(1).values = ['Event statistics'];
     aggregatesSheet.getRow(1).font = { bold: true, size: 14 };
- 
+
     const statsRows: Array<[string, string | number]> = [
       ['Total beers', dashboardStats.totalBeers],
       ['Total users', dashboardStats.totalUsers],
       ['Total barrels', dashboardStats.totalBarrels],
-      ['Average beers / user', Number(dashboardStats.averageBeersPerUser.toFixed(2))],
+      [
+        'Average beers / user',
+        Number(dashboardStats.averageBeersPerUser.toFixed(2)),
+      ],
       ['Spilled beers (not deleted)', spilledCount],
       ['Beer log rows (incl. deleted)', beerLog.length],
     ];
- 
+
     aggregatesSheet.addRow([]);
     aggregatesSheet.addRow(['Metric', 'Value']).font = { bold: true };
     for (const [metric, value] of statsRows) {
@@ -315,11 +318,15 @@ export class EventDetailExportBuilder {
     }
     aggregatesSheet.getColumn(1).width = 30;
     aggregatesSheet.getColumn(2).width = 20;
- 
+
     aggregatesSheet.addRow([]);
-    aggregatesSheet.addRow(['Leaderboard (gender)', 'rank', 'username', 'beerCount']).font =
-      { bold: true };
- 
+    aggregatesSheet.addRow([
+      'Leaderboard (gender)',
+      'rank',
+      'username',
+      'beerCount',
+    ]).font = { bold: true };
+
     const leaderboardRows = [
       ...leaderboard.males.map((u) => ({
         gender: 'MALE',
@@ -338,13 +345,13 @@ export class EventDetailExportBuilder {
       if (a.rank !== b.rank) return a.rank - b.rank;
       return b.beerCount - a.beerCount;
     });
- 
+
     for (const r of leaderboardRows) {
       aggregatesSheet.addRow([r.gender, r.rank, r.username, r.beerCount]);
     }
- 
+
     aggregatesSheet.views = [{ state: 'frozen', ySplit: 3 }];
- 
+
     const filenameBase = renderer.safeFileName(`${event.name}_event_detail`);
     const filename = `${filenameBase}.xlsx`;
     return renderer.toStreamableFile(filename);

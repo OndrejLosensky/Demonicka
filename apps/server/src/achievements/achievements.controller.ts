@@ -76,4 +76,4 @@ export class AchievementsController {
   async deleteAchievement(@Param('id') id: string): Promise<void> {
     await this.achievementsService.deleteAchievement(id);
   }
-} 
+}

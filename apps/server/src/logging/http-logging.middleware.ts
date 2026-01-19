@@ -34,8 +34,9 @@ export function httpLoggingMiddleware(
       const statusCode = res.statusCode;
       const method = req.method;
       const ip =
-        (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ||
-        req.ip;
+        (req.headers['x-forwarded-for'] as string | undefined)
+          ?.split(',')[0]
+          ?.trim() || req.ip;
 
       const user = (req as any).user;
       const userId = user?.id as string | undefined;
@@ -66,4 +67,3 @@ export function httpLoggingMiddleware(
     next();
   };
 }
-

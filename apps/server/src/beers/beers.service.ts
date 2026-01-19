@@ -20,7 +20,11 @@ export class BeersService {
     private readonly achievementsService: AchievementsService,
   ) {}
 
-  async create(userId: string, barrelId?: string, skipEventBeer = false): Promise<Beer> {
+  async create(
+    userId: string,
+    barrelId?: string,
+    skipEventBeer = false,
+  ): Promise<Beer> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -90,7 +94,7 @@ export class BeersService {
       this.logger.error('Failed to check achievements:', error);
       // Don't throw the error as the beer was already created successfully
     }
-    
+
     return savedBeer;
   }
 

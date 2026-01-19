@@ -19,10 +19,10 @@ export class PermissionsGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Check if route is public
-    const isPublic = this.reflector.getAllAndOverride<boolean>(
-      IS_PUBLIC_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     if (isPublic) {
       return true;
@@ -50,9 +50,8 @@ export class PermissionsGuard implements CanActivate {
     }
 
     // Get permissions from database
-    const userPermissions = await this.rolesService.getPermissionsForRole(
-      userRole,
-    );
+    const userPermissions =
+      await this.rolesService.getPermissionsForRole(userRole);
     const hasPermission = requiredPermissions.some((permission) =>
       userPermissions.includes(permission),
     );

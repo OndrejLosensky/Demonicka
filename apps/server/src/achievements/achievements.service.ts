@@ -16,7 +16,9 @@ export class AchievementsService {
 
   constructor(private prisma: PrismaService) {}
 
-  async getUserAchievements(userId: string): Promise<UserAchievementsResponseDto> {
+  async getUserAchievements(
+    userId: string,
+  ): Promise<UserAchievementsResponseDto> {
     // Ensure user achievements are initialized and up-to-date on first load
     await this.checkAndUpdateAchievements(userId);
 
@@ -27,14 +29,18 @@ export class AchievementsService {
     });
 
     const totalPoints = userAchievements
-      .filter(ua => ua.isCompleted)
-      .reduce((sum, ua) => sum + (ua.achievement.points * ua.completionCount), 0);
+      .filter((ua) => ua.isCompleted)
+      .reduce((sum, ua) => sum + ua.achievement.points * ua.completionCount, 0);
 
-    const completedCount = userAchievements.filter(ua => ua.isCompleted).length;
+    const completedCount = userAchievements.filter(
+      (ua) => ua.isCompleted,
+    ).length;
     const totalCount = userAchievements.length;
 
     return {
-      achievements: userAchievements.map(ua => this.mapToUserAchievementDto(ua)),
+      achievements: userAchievements.map((ua) =>
+        this.mapToUserAchievementDto(ua),
+      ),
       totalPoints,
       completedCount,
       totalCount,
@@ -54,7 +60,10 @@ export class AchievementsService {
     }
   }
 
-  private async checkAchievement(userId: string, achievement: Achievement): Promise<void> {
+  private async checkAchievement(
+    userId: string,
+    achievement: Achievement,
+  ): Promise<void> {
     // Get or create user achievement record
     let userAchievement = await this.prisma.userAchievement.findUnique({
       where: {
@@ -86,7 +95,7 @@ export class AchievementsService {
 
     // Calculate current progress based on achievement type
     const currentProgress = await this.calculateProgress(userId, achievement);
-    
+
     const updateData: any = {
       lastProgressUpdate: new Date(),
     };
@@ -96,12 +105,14 @@ export class AchievementsService {
       if (!userAchievement.isCompleted) {
         updateData.isCompleted = true;
         updateData.completedAt = new Date();
-        this.logger.log(`Achievement ${achievement.name} completed by user ${userId}`);
+        this.logger.log(
+          `Achievement ${achievement.name} completed by user ${userId}`,
+        );
       }
-      
+
       updateData.completionCount = userAchievement.completionCount + 1;
       updateData.progress = achievement.targetValue;
-      
+
       // If repeatable, reset for next completion
       if (achievement.isRepeatable) {
         updateData.isCompleted = false;
@@ -117,29 +128,32 @@ export class AchievementsService {
     });
   }
 
-  private async calculateProgress(userId: string, achievement: Achievement): Promise<number> {
+  private async calculateProgress(
+    userId: string,
+    achievement: Achievement,
+  ): Promise<number> {
     switch (achievement.type) {
       case AchievementType.TOTAL_BEERS:
         return await this.calculateTotalBeers(userId);
-      
+
       case AchievementType.BEERS_IN_EVENT:
         return await this.calculateBeersInEvent(userId);
-      
+
       case AchievementType.BEERS_IN_HOUR:
         return await this.calculateBeersInHour(userId);
-      
+
       case AchievementType.EVENTS_PARTICIPATED:
         return await this.calculateEventsParticipated(userId);
-      
+
       case AchievementType.EVENT_WIN:
         return await this.calculateEventWins(userId);
-      
+
       case AchievementType.FIRST_BEER:
         return await this.calculateFirstBeer(userId);
-      
+
       case AchievementType.CONSECUTIVE_DAYS:
         return await this.calculateConsecutiveDays(userId);
-      
+
       default:
         return 0;
     }
@@ -173,7 +187,7 @@ export class AchievementsService {
   private async calculateBeersInHour(userId: string): Promise<number> {
     // Get beers from the last hour
     const oneHourAgo = subHours(new Date(), 1);
-    
+
     const recentBeers = await this.prisma.eventBeer.findMany({
       where: {
         userId,
@@ -187,8 +201,8 @@ export class AchievementsService {
 
     // Group beers by hour and find the hour with most beers
     const hourlyCounts = new Map<number, number>();
-    
-    recentBeers.forEach(beer => {
+
+    recentBeers.forEach((beer) => {
       const hour = new Date(beer.consumedAt).getHours();
       hourlyCounts.set(hour, (hourlyCounts.get(hour) || 0) + 1);
     });
@@ -255,7 +269,7 @@ export class AchievementsService {
 
     // Extract unique dates
     const dates = new Set<string>();
-    eventBeers.forEach(eb => {
+    eventBeers.forEach((eb) => {
       const date = new Date(eb.consumedAt).toISOString().split('T')[0];
       dates.add(date);
     });
@@ -267,9 +281,11 @@ export class AchievementsService {
     for (let i = 1; i < sortedDates.length; i++) {
       const prevDate = new Date(sortedDates[i - 1]);
       const currDate = new Date(sortedDates[i]);
-      
-      const diffDays = Math.floor((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
-      
+
+      const diffDays = Math.floor(
+        (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
+
       if (diffDays === 1) {
         currentConsecutive++;
         maxConsecutive = Math.max(maxConsecutive, currentConsecutive);
@@ -281,7 +297,9 @@ export class AchievementsService {
     return maxConsecutive;
   }
 
-  private mapToUserAchievementDto(userAchievement: UserAchievement & { achievement: Achievement }): UserAchievementDto {
+  private mapToUserAchievementDto(
+    userAchievement: UserAchievement & { achievement: Achievement },
+  ): UserAchievementDto {
     return {
       id: userAchievement.id,
       userId: userAchievement.userId,
@@ -312,7 +330,9 @@ export class AchievementsService {
   }
 
   // Admin methods for managing achievements
-  async createAchievement(createDto: CreateAchievementDto): Promise<AchievementDto> {
+  async createAchievement(
+    createDto: CreateAchievementDto,
+  ): Promise<AchievementDto> {
     const saved = await this.prisma.achievement.create({
       data: {
         ...createDto,
@@ -322,12 +342,17 @@ export class AchievementsService {
     return this.mapToAchievementDto(saved);
   }
 
-  async updateAchievement(id: string, updateDto: UpdateAchievementDto): Promise<AchievementDto> {
+  async updateAchievement(
+    id: string,
+    updateDto: UpdateAchievementDto,
+  ): Promise<AchievementDto> {
     await this.prisma.achievement.update({
       where: { id },
       data: updateDto,
     });
-    const achievement = await this.prisma.achievement.findUnique({ where: { id } });
+    const achievement = await this.prisma.achievement.findUnique({
+      where: { id },
+    });
     if (!achievement) {
       throw new Error(`Achievement with id ${id} not found`);
     }
@@ -346,7 +371,7 @@ export class AchievementsService {
       where: { deletedAt: null },
       orderBy: [{ category: 'asc' }, { targetValue: 'asc' }],
     });
-    return achievements.map(a => this.mapToAchievementDto(a));
+    return achievements.map((a) => this.mapToAchievementDto(a));
   }
 
   private mapToAchievementDto(achievement: any): AchievementDto {

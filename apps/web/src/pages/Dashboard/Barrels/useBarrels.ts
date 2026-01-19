@@ -38,7 +38,7 @@ export const useBarrels = (includeDeleted = false, eventId?: string) => {
       setIsLoading(true);
       // If eventId is provided, fetch event-specific barrels, otherwise fetch all barrels
       const data = eventId 
-        ? await barrelService.getByEvent(eventId)
+        ? await barrelService.getByEvent(eventId, includeDeleted)
         : await barrelService.getAll(includeDeleted);
       
       if (includeDeleted) {

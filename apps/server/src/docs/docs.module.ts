@@ -4,4 +4,4 @@ import { DocsController } from './docs.controller';
 @Module({
   controllers: [DocsController],
 })
-export class DocsModule {} 
+export class DocsModule {}

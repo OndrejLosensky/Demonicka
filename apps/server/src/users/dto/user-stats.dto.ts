@@ -34,22 +34,22 @@ export class UserStatsDto {
   beersToday: number;
   beersThisWeek: number;
   beersThisMonth: number;
-  
+
   // Time-based Stats
   firstBeerDate: Date | null;
   lastBeerDate: Date | null;
   longestBreak: number; // in hours
   mostBeersInDay: number;
-  
+
   // Distribution
   hourlyDistribution: TimeDistributionDto[];
   dailyStats: DailyStatsDto[];
-  
+
   // Event Stats
   eventStats: EventStatsDto[];
-  
+
   // Rankings
   globalRank: number;
   totalUsers: number;
   percentile: number;
-} 
+}

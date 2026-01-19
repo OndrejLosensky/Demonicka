@@ -65,7 +65,7 @@ async function bootstrap() {
         callback(null, true);
         return;
       }
-      
+
       const allowedOrigins = [
         configService.get('FRONTEND_URL') || 'http://localhost:5173',
         /^http:\/\/localhost:[0-9]+$/,
@@ -75,7 +75,7 @@ async function bootstrap() {
       ];
 
       // Check if the origin matches any of the allowed patterns
-      const isAllowed = allowedOrigins.some(allowedOrigin => {
+      const isAllowed = allowedOrigins.some((allowedOrigin) => {
         if (allowedOrigin instanceof RegExp) {
           return allowedOrigin.test(origin);
         }
@@ -90,7 +90,12 @@ async function bootstrap() {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'x-api-version'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'x-api-version',
+    ],
     exposedHeaders: ['Set-Cookie'],
   });
 
@@ -101,7 +106,6 @@ async function bootstrap() {
   app.useStaticAssets(join(process.cwd(), 'uploads', 'profile-pictures'), {
     prefix: '/api/uploads/profile-pictures',
   });
-
 
   // Use global validation pipe
   app.useGlobalPipes(

@@ -42,10 +42,12 @@ export class AppLogger implements LoggerService {
     const meta: Record<string, unknown> = {};
     if (typeof context === 'string') meta.context = context;
     if (typeof trace === 'string') meta.trace = trace;
-    this.logging.error(toMessage(message), Object.keys(meta).length ? meta : undefined);
+    this.logging.error(
+      toMessage(message),
+      Object.keys(meta).length ? meta : undefined,
+    );
   }
 
   // Optional in some Nest versions; safe no-op.
   setLogLevels?(_levels: string[]) {}
 }
-

@@ -10,6 +10,13 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -20,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import { ParticipantsTable } from './ParticipantsTable';
 import { useParticipants } from './useParticipants';
+import { participantsApi } from './api';
 import { AddParticipantDialog } from './AddParticipantDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
@@ -35,18 +43,44 @@ const ParticipantsPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'combined' | 'split'>('combined');
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_PARTICIPANTS);
   const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
+  const showUserHistory = useFeatureFlag(FeatureFlagKey.SHOW_USER_HISTORY);
   const { activeEvent } = useActiveEvent();
   const {
     participants,
     deletedParticipants,
     isLoading,
     handleDelete,
+    handleRestore,
     handleAddBeer,
     handleRemoveBeer,
     fetchParticipants,
   } = useParticipants(showDeleted);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyUsername, setHistoryUsername] = useState<string>('');
+  const [historyBeers, setHistoryBeers] = useState<Array<{ id: string; consumedAt: string }>>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const openHistory = async (userId: string, username: string) => {
+    if (!activeEvent?.id) return;
+    setHistoryUsername(username);
+    setHistoryOpen(true);
+    setHistoryLoading(true);
+    try {
+      const beers = await participantsApi.getEventBeers(activeEvent.id, userId);
+      const visible = beers
+        .filter((b) => !b.deletedAt)
+        .sort((a, b) => new Date(b.consumedAt).getTime() - new Date(a.consumedAt).getTime())
+        .map((b) => ({ id: b.id, consumedAt: b.consumedAt }));
+      setHistoryBeers(visible);
+    } catch (error) {
+      console.error('Failed to load participant history:', error);
+      setHistoryBeers([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   const { maleParticipants, femaleParticipants } = useMemo(() => {
     const activeParticipants = showDeleted ? [...participants, ...deletedParticipants] : participants;
@@ -62,8 +96,8 @@ const ParticipantsPage: React.FC = () => {
   }, [activeEvent?.id, activeEvent?.updatedAt, fetchParticipants]);
 
   const headerLeft = useMemo(
-    () => (showEventHistory && activeEvent ? <EventSelector /> : undefined),
-    [showEventHistory, activeEvent?.id],
+    () => (showEventHistory ? <EventSelector variant="compact" /> : undefined),
+    [showEventHistory],
   );
 
   const headerAction = useMemo(
@@ -136,9 +170,12 @@ const ParticipantsPage: React.FC = () => {
           participants={participants}
           deletedParticipants={deletedParticipants}
           showDeleted={showDeleted}
+          showUserHistory={showUserHistory}
           onDelete={handleDelete}
+          onRestore={handleRestore}
           onAddBeer={handleAddBeer}
           onRemoveBeer={handleRemoveBeer}
+          onShowHistory={openHistory}
         />
       ) : (
         <Grid container spacing={3}>
@@ -151,9 +188,12 @@ const ParticipantsPage: React.FC = () => {
               participants={maleParticipants}
               deletedParticipants={[]}
               showDeleted={showDeleted}
+              showUserHistory={showUserHistory}
               onDelete={handleDelete}
+              onRestore={handleRestore}
               onAddBeer={handleAddBeer}
               onRemoveBeer={handleRemoveBeer}
+              onShowHistory={openHistory}
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -165,9 +205,12 @@ const ParticipantsPage: React.FC = () => {
               participants={femaleParticipants}
               deletedParticipants={[]}
               showDeleted={showDeleted}
+              showUserHistory={showUserHistory}
               onDelete={handleDelete}
+              onRestore={handleRestore}
               onAddBeer={handleAddBeer}
               onRemoveBeer={handleRemoveBeer}
+              onShowHistory={openHistory}
             />
           </Grid>
         </Grid>
@@ -181,6 +224,37 @@ const ParticipantsPage: React.FC = () => {
           fetchParticipants();
         }}
       />
+
+      <Dialog
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Historie piv: {historyUsername}</DialogTitle>
+        <DialogContent dividers>
+          {historyLoading ? (
+            <CircularProgress size={24} />
+          ) : historyBeers.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              Žádná data
+            </Typography>
+          ) : (
+            <List dense>
+              {historyBeers.map((b, idx) => (
+                <React.Fragment key={b.id}>
+                  <ListItem>
+                    <ListItemText
+                      primary={new Date(b.consumedAt).toLocaleString('cs-CZ')}
+                    />
+                  </ListItem>
+                  {idx < historyBeers.length - 1 && <Divider component="li" />}
+                </React.Fragment>
+              ))}
+            </List>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

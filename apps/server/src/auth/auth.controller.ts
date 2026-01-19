@@ -54,7 +54,10 @@ export class AuthController {
       return await this.usersService.create(createUserDto);
     } catch (error: any) {
       // Prisma unique constraint error code is P2002
-      if (error?.code === 'P2002' && error?.meta?.target?.includes('username')) {
+      if (
+        error?.code === 'P2002' &&
+        error?.meta?.target?.includes('username')
+      ) {
         throw new BadRequestException('Uživatelské jméno již existuje');
       }
       throw error;
@@ -77,9 +80,13 @@ export class AuthController {
   ): Promise<{ access_token: string; user: UserResponse }> {
     const { user } = req;
     const { access_token, refresh_token } = await this.authService.login(user);
-    
+
     // Set refresh token as an HTTP-only cookie
-    response.cookie('refresh_token', refresh_token, this.authService.getCookieOptions(true));
+    response.cookie(
+      'refresh_token',
+      refresh_token,
+      this.authService.getCookieOptions(true),
+    );
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = user;
@@ -99,7 +106,7 @@ export class AuthController {
       throw new UnauthorizedException('Uživatel nebyl nalezen');
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...userWithoutPassword } = currentUser as User;
+    const { password: _, ...userWithoutPassword } = currentUser;
     return userWithoutPassword;
   }
 
@@ -119,10 +126,15 @@ export class AuthController {
     if (!refreshToken) {
       throw new UnauthorizedException('Obnovovací token nebyl nalezen');
     }
-    const { accessToken, refreshToken: newRefreshToken } = await this.authService.refreshTokens(refreshToken);
-    
+    const { accessToken, refreshToken: newRefreshToken } =
+      await this.authService.refreshTokens(refreshToken);
+
     // Set new refresh token cookie
-    response.cookie('refresh_token', newRefreshToken, this.authService.getCookieOptions(true));
+    response.cookie(
+      'refresh_token',
+      newRefreshToken,
+      this.authService.getCookieOptions(true),
+    );
 
     return { accessToken };
   }
@@ -164,11 +176,17 @@ export class AuthController {
     @Body() completeRegistrationDto: CompleteRegistrationDto,
     @Res({ passthrough: true }) response: Response,
   ): Promise<{ access_token: string; user: UserResponse }> {
-    const user = await this.usersService.completeRegistration(completeRegistrationDto);
+    const user = await this.usersService.completeRegistration(
+      completeRegistrationDto,
+    );
     const { access_token, refresh_token } = await this.authService.login(user);
-    
+
     // Set refresh token as an HTTP-only cookie
-    response.cookie('refresh_token', refresh_token, this.authService.getCookieOptions(true));
+    response.cookie(
+      'refresh_token',
+      refresh_token,
+      this.authService.getCookieOptions(true),
+    );
 
     return { access_token, user };
   }

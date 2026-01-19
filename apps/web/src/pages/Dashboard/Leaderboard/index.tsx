@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Typography, Grid, Box, IconButton, Tooltip, Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon, Speed as SpeedIcon, MetricCard, PageHeader, Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon } from '@demonicka/ui';
 import { FaBeer } from 'react-icons/fa';
 import { LeaderboardTable } from './LeaderboardTable';
@@ -6,11 +6,30 @@ import { useLeaderboard } from './useLeaderboard';
 import translations from '../../../locales/cs/dashboard.leaderboard.json';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
 import { useHeaderVisibility } from '../../../contexts/HeaderVisibilityContext';
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
+import { FeatureFlagKey } from '../../../types/featureFlags';
+import { eventService } from '../../../services/eventService';
+import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
+import type { Event } from '@demonicka/shared-types';
+import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
 const LeaderboardComponent: React.FC = () => {
   const { stats, dashboardStats, publicStats, isLoading } = useLeaderboard();
   const { isHeaderVisible, toggleHeader } = useHeaderVisibility();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const showYearFilter = useFeatureFlag(FeatureFlagKey.LEADERBOARD_YEAR_FILTER);
+  const { selectedEvent, setSelectedEvent } = useSelectedEvent();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [selectedYear, setSelectedYear] = useState<number | ''>('');
+
+  const availableYears = useMemo(() => {
+    const years = new Set<number>();
+    for (const e of events) {
+      const y = new Date(e.startDate).getFullYear();
+      if (!Number.isNaN(y)) years.add(y);
+    }
+    return Array.from(years).sort((a, b) => b - a);
+  }, [events]);
 
   // Handle fullscreen API
   const toggleFullscreen = async () => {
@@ -35,6 +54,28 @@ const LeaderboardComponent: React.FC = () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (!showYearFilter) return;
+    const loadEvents = async () => {
+      try {
+        const data = await eventService.getAllEvents();
+        setEvents(data);
+      } catch (error) {
+        console.error('Failed to load events for year filter:', error);
+      }
+    };
+    loadEvents();
+  }, [showYearFilter]);
+
+  useEffect(() => {
+    if (!showYearFilter) return;
+    // Initialize selected year from currently selected event (if any)
+    if (!selectedYear && selectedEvent?.startDate) {
+      const y = new Date(selectedEvent.startDate).getFullYear();
+      if (!Number.isNaN(y)) setSelectedYear(y);
+    }
+  }, [showYearFilter, selectedYear, selectedEvent?.id]);
   
   // Use real-time stats from WebSocket, fallback to calculated values
   const metricStats = {
@@ -95,7 +136,36 @@ const LeaderboardComponent: React.FC = () => {
           )}
           
           <PageHeader title={translations.title} />
-          <Box display="flex" gap={1}>
+          <Box display="flex" gap={1} alignItems="center">
+            {showYearFilter && availableYears.length > 0 && (
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel id="leaderboard-year-label">Rok</InputLabel>
+                <Select
+                  labelId="leaderboard-year-label"
+                  label="Rok"
+                  value={selectedYear}
+                  onChange={(e) => {
+                    const year = e.target.value === '' ? '' : Number(e.target.value);
+                    setSelectedYear(year);
+                    if (year === '') return;
+                    const candidates = events
+                      .filter((ev) => new Date(ev.startDate).getFullYear() === year)
+                      .sort(
+                        (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
+                      );
+                    if (candidates[0]) {
+                      setSelectedEvent(candidates[0]);
+                    }
+                  }}
+                >
+                  {availableYears.map((y) => (
+                    <MenuItem key={y} value={y}>
+                      {y}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
             <Tooltip title={isHeaderVisible ? "Skrýt hlavičku" : "Zobrazit hlavičku"} arrow>
               <IconButton
                 onClick={toggleHeader}

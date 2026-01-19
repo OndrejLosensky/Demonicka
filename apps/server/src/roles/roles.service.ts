@@ -169,7 +169,9 @@ export class RolesService {
         actorUserId,
         roleId,
         roleName: role.name,
-        old: { permissionIds: existingPermissionIds.map((p) => p.permissionId) },
+        old: {
+          permissionIds: existingPermissionIds.map((p) => p.permissionId),
+        },
         new: { permissionIds },
       });
     }

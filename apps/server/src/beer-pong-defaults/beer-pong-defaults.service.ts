@@ -59,4 +59,3 @@ export class BeerPongDefaultsService {
     return updated;
   }
 }
-

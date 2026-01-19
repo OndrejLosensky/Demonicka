@@ -46,4 +46,4 @@ export class SystemController {
   async getLogStats() {
     return this.systemService.getLogStats();
   }
-} 
+}

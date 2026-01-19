@@ -74,12 +74,13 @@ export class LeaderboardGateway
   // Method to emit dashboard stats updates to all connected clients
   async emitDashboardStatsUpdate(eventId?: string) {
     try {
-      const dashboardStats = await this.dashboardService.getDashboardStats(eventId);
+      const dashboardStats =
+        await this.dashboardService.getDashboardStats(eventId);
       const publicStats = await this.dashboardService.getPublicStats(eventId);
-      
+
       if (eventId) {
         const room = `event:${eventId}`;
-        
+
         this.server.to(room).emit('dashboard:stats:update', {
           dashboard: dashboardStats,
           public: publicStats,
@@ -109,10 +110,10 @@ export class LeaderboardGateway
     try {
       // Emit dashboard stats first, then leaderboard to avoid race conditions
       await this.emitDashboardStatsUpdate(eventId);
-      
+
       // Small delay to ensure dashboard stats are processed first
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       await this.emitLeaderboardUpdate(eventId);
     } catch (error) {
       console.error('Failed to emit full update:', error);

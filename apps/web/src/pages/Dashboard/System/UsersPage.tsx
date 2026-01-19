@@ -4,6 +4,8 @@ import {
   Typography,
   CircularProgress,
   Button,
+  FormControlLabel,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -20,12 +22,16 @@ import {
 import {
   Refresh as RefreshIcon,
   ContentCopy as CopyIcon,
+  RestoreFromTrash as RestoreIcon,
 } from '@mui/icons-material';
 import { systemService, type SystemStats } from '../../../services/systemService';
 import { userService } from '../../../services/userService';
 import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/system.json';
 import { MetricCard } from '@demonicka/ui';
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
+import { FeatureFlagKey } from '../../../types/featureFlags';
+import type { User } from '@demonicka/shared-types';
 
 const UsersPage: React.FC = () => {
   const [stats, setStats] = useState<SystemStats | null>(null);
@@ -33,6 +39,10 @@ const UsersPage: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generatingTokenFor, setGeneratingTokenFor] = useState<string | null>(null);
+  const canShowDeletedUsers = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_USERS);
+  const [showDeletedUsers, setShowDeletedUsers] = useState(false);
+  const [deletedUsers, setDeletedUsers] = useState<User[]>([]);
+  const [isDeletedUsersLoading, setIsDeletedUsersLoading] = useState(false);
   const toast = useToast();
   const isRefreshingRef = useRef(false);
 
@@ -95,6 +105,42 @@ const UsersPage: React.FC = () => {
     }
   };
 
+  const loadDeletedUsers = useCallback(async () => {
+    try {
+      setIsDeletedUsersLoading(true);
+      const data = await userService.getDeleted();
+      setDeletedUsers(data);
+    } catch (error) {
+      console.error('Failed to load deleted users:', error);
+      toast.error('Nepodařilo se načíst smazané uživatele');
+    } finally {
+      setIsDeletedUsersLoading(false);
+    }
+  }, [toast]);
+
+  const handleRestoreUser = useCallback(
+    async (userId: string) => {
+      try {
+        await userService.restoreUser(userId);
+        toast.success('Uživatel byl obnoven');
+        await Promise.all([loadStats(false), loadDeletedUsers()]);
+      } catch (error) {
+        console.error('Failed to restore user:', error);
+        toast.error('Nepodařilo se obnovit uživatele');
+      }
+    },
+    [loadDeletedUsers, loadStats, toast],
+  );
+
+  useEffect(() => {
+    if (!canShowDeletedUsers) return;
+    if (showDeletedUsers) {
+      loadDeletedUsers();
+    } else {
+      setDeletedUsers([]);
+    }
+  }, [canShowDeletedUsers, showDeletedUsers, loadDeletedUsers]);
+
   if (isInitialLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
@@ -126,14 +172,27 @@ const UsersPage: React.FC = () => {
         <Typography variant="h6" fontWeight="bold">
           Uživatelé
         </Typography>
-        <Button 
-          variant="outlined" 
-          startIcon={<RefreshIcon />}
-          onClick={() => loadStats(false)}
-          disabled={isRefreshing}
-        >
-          {translations.refresh}
-        </Button>
+        <Box display="flex" alignItems="center" gap={2}>
+          {canShowDeletedUsers && (
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showDeletedUsers}
+                  onChange={(e) => setShowDeletedUsers(e.target.checked)}
+                />
+              }
+              label="Zobrazit smazané"
+            />
+          )}
+          <Button 
+            variant="outlined" 
+            startIcon={<RefreshIcon />}
+            onClick={() => loadStats(false)}
+            disabled={isRefreshing}
+          >
+            {translations.refresh}
+          </Button>
+        </Box>
       </Box>
 
       {stats && (
@@ -226,6 +285,82 @@ const UsersPage: React.FC = () => {
               </TableContainer>
             </CardContent>
           </Card>
+
+          {canShowDeletedUsers && showDeletedUsers && (
+            <Card sx={{ mt: 3 }}>
+              <CardContent>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Typography variant="h6">Smazaní uživatelé</Typography>
+                  <Button
+                    variant="outlined"
+                    startIcon={<RefreshIcon />}
+                    onClick={loadDeletedUsers}
+                    disabled={isDeletedUsersLoading}
+                    size="small"
+                  >
+                    Obnovit
+                  </Button>
+                </Box>
+
+                {isDeletedUsersLoading ? (
+                  <Box display="flex" justifyContent="center" py={4}>
+                    <CircularProgress size={24} />
+                  </Box>
+                ) : deletedUsers.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    Žádní smazaní uživatelé
+                  </Typography>
+                ) : (
+                  <TableContainer sx={{ overflowX: 'auto' }}>
+                    <Table stickyHeader size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Uživatel</TableCell>
+                          <TableCell>Role</TableCell>
+                          <TableCell>Smazáno</TableCell>
+                          <TableCell align="right">Akce</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {deletedUsers.map((u) => (
+                          <TableRow key={u.id} sx={{ opacity: 0.8 }}>
+                            <TableCell>
+                              <Typography variant="body2" fontWeight="medium">
+                                {u.username}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Chip label={u.role} size="small" variant="outlined" />
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" color="text.secondary">
+                                {u.deletedAt ? new Date(u.deletedAt).toLocaleString('cs-CZ') : '-'}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Tooltip title="Obnovit">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleRestoreUser(u.id)}
+                                  sx={{
+                                    border: 1,
+                                    borderColor: 'success.main',
+                                    '&:hover': { bgcolor: 'success.light' },
+                                  }}
+                                >
+                                  <RestoreIcon fontSize="small" sx={{ color: 'success.main' }} />
+                                </IconButton>
+                              </Tooltip>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </Box>

@@ -1,15 +1,15 @@
 import { IsString, IsOptional, IsDateString } from 'class-validator';
 
 export class UpdateEventDto {
-    @IsString()
-    @IsOptional()
-    name?: string;
+  @IsString()
+  @IsOptional()
+  name?: string;
 
-    @IsString()
-    @IsOptional()
-    description?: string;
+  @IsString()
+  @IsOptional()
+  description?: string;
 
-    @IsDateString()
-    @IsOptional()
-    startDate?: string;
-} 
+  @IsDateString()
+  @IsOptional()
+  startDate?: string;
+}

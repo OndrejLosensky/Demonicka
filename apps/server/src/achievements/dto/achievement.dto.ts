@@ -61,4 +61,4 @@ export class UpdateAchievementDto {
   isActive?: boolean;
   isRepeatable?: boolean;
   maxCompletions?: number;
-} 
+}

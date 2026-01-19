@@ -44,7 +44,9 @@ export class BeersController {
    */
   @Public()
   @Get()
-  findByUserId(@Param('userId', ParseUUIDPipe) userId: string): Promise<Beer[]> {
+  findByUserId(
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<Beer[]> {
     return this.beersService.findByUserId(userId);
   }
 
@@ -56,7 +58,9 @@ export class BeersController {
    */
   @Public()
   @Get('count')
-  getBeerCount(@Param('userId', ParseUUIDPipe) userId: string): Promise<number> {
+  getBeerCount(
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<number> {
     return this.beersService.getUserBeerCount(userId);
   }
 

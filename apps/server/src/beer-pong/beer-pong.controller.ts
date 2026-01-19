@@ -65,7 +65,12 @@ export class BeerPongController {
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     // DB check first – count games for this event (visible in server logs)
     const dbCount = await this.gamesService.countGamesByEventId(id);
-    console.error('[BeerPong findOne] *** HANDLER HIT *** id=' + id + ' DB_games_count=' + dbCount);
+    console.error(
+      '[BeerPong findOne] *** HANDLER HIT *** id=' +
+        id +
+        ' DB_games_count=' +
+        dbCount,
+    );
 
     let event = await this.beerPongService.findOne(id);
     const gamesLength = event?.games?.length ?? 0;
@@ -75,28 +80,51 @@ export class BeerPongController {
     // Check both DB count and games array length for safety
     const shouldInitialize = dbCount === 0 || gamesLength === 0;
     if (shouldInitialize) {
-      console.log('[BeerPong findOne] no games (dbCount=' + dbCount + ', gamesLength=' + gamesLength + '), calling initializeEmptyBracket');
+      console.log(
+        '[BeerPong findOne] no games (dbCount=' +
+          dbCount +
+          ', gamesLength=' +
+          gamesLength +
+          '), calling initializeEmptyBracket',
+      );
       try {
         await this.gamesService.initializeEmptyBracket(id);
         console.log('[BeerPong findOne] bracket initialized, reloading event');
         event = await this.beerPongService.findOne(id);
         const reloadGamesLength = event?.games?.length ?? 0;
-        console.log('[BeerPong findOne] after reload, games.length=', reloadGamesLength);
+        console.log(
+          '[BeerPong findOne] after reload, games.length=',
+          reloadGamesLength,
+        );
       } catch (error: any) {
-        const errInfo = { message: error?.message, code: error?.code, meta: error?.meta };
-        console.error('[BeerPong findOne] *** CATCH ***', JSON.stringify(errInfo));
+        const errInfo = {
+          message: error?.message,
+          code: error?.code,
+          meta: error?.meta,
+        };
+        console.error(
+          '[BeerPong findOne] *** CATCH ***',
+          JSON.stringify(errInfo),
+        );
         // If bracket already exists, reload and return
         if (error.message?.includes('already been initialized')) {
-          console.log('[BeerPong findOne] bracket already initialized, reloading event');
+          console.log(
+            '[BeerPong findOne] bracket already initialized, reloading event',
+          );
           event = await this.beerPongService.findOne(id);
         } else {
-          console.error('[BeerPong findOne] Failed to initialize bracket. Rethrowing so client gets 500.');
+          console.error(
+            '[BeerPong findOne] Failed to initialize bracket. Rethrowing so client gets 500.',
+          );
           throw error; // Rethrow so frontend gets 500 and we see the real error
         }
       }
     }
 
-    console.log('[BeerPong findOne] returning, games.length=', event?.games?.length ?? 'n/a');
+    console.log(
+      '[BeerPong findOne] returning, games.length=',
+      event?.games?.length ?? 'n/a',
+    );
     return event;
   }
 
@@ -118,7 +146,10 @@ export class BeerPongController {
 
   @Post(':id/start')
   @Permissions(Permission.UPDATE_BEER_PONG_EVENT)
-  async startTournament(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+  async startTournament(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
     const updated = await this.beerPongService.startTournament(id, user.id);
     // Initialize bracket after starting (assigns teams if bracket is empty)
     try {
@@ -146,7 +177,11 @@ export class BeerPongController {
     @Body() dto: AddTeamFromEventDto,
     @CurrentUser() user: User,
   ) {
-    return this.teamsService.createFromEventTeam(id, dto.eventBeerPongTeamId, user.id);
+    return this.teamsService.createFromEventTeam(
+      id,
+      dto.eventBeerPongTeamId,
+      user.id,
+    );
   }
 
   @Post(':id/teams')

@@ -33,7 +33,10 @@ export class UsersService {
     private readonly leaderboardGateway: LeaderboardGateway,
   ) {}
 
-  async create(createUserDto: CreateUserDto, createdBy?: string): Promise<UserWithoutPassword> {
+  async create(
+    createUserDto: CreateUserDto,
+    createdBy?: string,
+  ): Promise<UserWithoutPassword> {
     // Check if username is already taken
     const existingUser = await this.findByUsername(createUserDto.username);
     if (existingUser) {
@@ -236,7 +239,9 @@ export class UsersService {
     }
 
     if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.OPERATOR) {
-      throw new BadRequestException(`Uživatel ${username} je již operátor nebo super admin`);
+      throw new BadRequestException(
+        `Uživatel ${username} je již operátor nebo super admin`,
+      );
     }
 
     const savedUser = await this.prisma.user.update({

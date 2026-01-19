@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { participantsApi } from './api';
-import { eventService } from '../../../services/eventService';
 import type { Participant } from './types';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { useToast } from '../../../hooks/useToast';
@@ -76,20 +75,26 @@ export const useParticipants = (includeDeleted = false) => {
   }, [includeDeleted, activeEvent?.id]); // Remove toast from dependencies
 
   const handleDelete = useCallback(async (id: string) => {
-    if (!activeEvent) {
-      console.error('No active event found!');
-      return;
-    }
-    
     try {
-      await eventService.removeUser(activeEvent.id, id);
-      toast.success(toastTranslations.success.deleted.replace('{{item}}', 'Účastník'));
+      await participantsApi.delete(id);
+      toast.success(toastTranslations.success.deleted.replace('{{item}}', 'Účastníka'));
       await fetchParticipants();
     } catch (error) {
-      console.error('Failed to remove participant from event:', error);
+      console.error('Failed to delete participant:', error);
       toast.error(toastTranslations.error.delete.replace('{{item}}', 'účastníka'));
     }
-  }, [activeEvent?.id, fetchParticipants]); // Remove toast and participants from dependencies
+  }, [fetchParticipants, toast]); // Remove participants from dependencies
+
+  const handleRestore = useCallback(async (id: string) => {
+    try {
+      await participantsApi.restore(id);
+      toast.success(toastTranslations.success.restored.replace('{{item}}', 'Účastník'));
+      await fetchParticipants();
+    } catch (error) {
+      console.error('Failed to restore participant:', error);
+      toast.error(toastTranslations.error.restore.replace('{{item}}', 'účastníka'));
+    }
+  }, [fetchParticipants, toast]);
 
   const handleAddBeer = useCallback(async (id: string) => {
     const participant = participantsRef.current.find(p => p.id === id);
@@ -190,6 +195,7 @@ export const useParticipants = (includeDeleted = false) => {
     deletedParticipants,
     isLoading,
     handleDelete,
+    handleRestore,
     handleAddBeer,
     handleRemoveBeer,
     handleCleanup,

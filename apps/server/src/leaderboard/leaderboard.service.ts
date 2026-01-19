@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { LeaderboardDto, UserLeaderboardDto } from '../dashboard/dto/leaderboard.dto';
+import {
+  LeaderboardDto,
+  UserLeaderboardDto,
+} from '../dashboard/dto/leaderboard.dto';
 
 interface RawEventBeerStats {
   id: string;
@@ -26,7 +29,7 @@ export class LeaderboardService {
       });
 
       // Get beer counts for each user in the event
-      const userIds = eventUsers.map(eu => eu.userId);
+      const userIds = eventUsers.map((eu) => eu.userId);
       const eventBeers = await this.prisma.eventBeer.groupBy({
         by: ['userId'],
         where: {
@@ -38,17 +41,19 @@ export class LeaderboardService {
       });
 
       const beerCountMap = new Map<string, number>();
-      eventBeers.forEach(eb => {
+      eventBeers.forEach((eb) => {
         beerCountMap.set(eb.userId, eb._count.id);
       });
 
-      const users = eventUsers.map(eu => ({
-        id: eu.user.id,
-        username: eu.user.username || '',
-        gender: eu.user.gender,
-        beerCount: beerCountMap.get(eu.userId) || 0,
-        rank: 0, // Placeholder - this service is deprecated in favor of DashboardService
-      })).sort((a, b) => b.beerCount - a.beerCount);
+      const users = eventUsers
+        .map((eu) => ({
+          id: eu.user.id,
+          username: eu.user.username || '',
+          gender: eu.user.gender,
+          beerCount: beerCountMap.get(eu.userId) || 0,
+          rank: 0, // Placeholder - this service is deprecated in favor of DashboardService
+        }))
+        .sort((a, b) => b.beerCount - a.beerCount);
 
       // Simple rank calculation (dense ranking)
       let currentRank = 1;
@@ -62,8 +67,12 @@ export class LeaderboardService {
       });
 
       return {
-        males: users.filter(u => u.gender === 'MALE').map(({ rank, ...user }) => ({ ...user, rank })),
-        females: users.filter(u => u.gender === 'FEMALE').map(({ rank, ...user }) => ({ ...user, rank })),
+        males: users
+          .filter((u) => u.gender === 'MALE')
+          .map(({ rank, ...user }) => ({ ...user, rank })),
+        females: users
+          .filter((u) => u.gender === 'FEMALE')
+          .map(({ rank, ...user }) => ({ ...user, rank })),
       };
     }
 
@@ -79,18 +88,23 @@ export class LeaderboardService {
       orderBy: { beerCount: 'desc' },
     });
 
-    const usersWithBeerCount = users.map(u => ({
-      id: u.id,
-      username: u.username || '',
-      gender: u.gender,
-      beerCount: u.beerCount || 0,
-      rank: 0,
-    })).sort((a, b) => b.beerCount - a.beerCount);
+    const usersWithBeerCount = users
+      .map((u) => ({
+        id: u.id,
+        username: u.username || '',
+        gender: u.gender,
+        beerCount: u.beerCount || 0,
+        rank: 0,
+      }))
+      .sort((a, b) => b.beerCount - a.beerCount);
 
     // Simple rank calculation (dense ranking)
     let currentRank = 1;
     usersWithBeerCount.forEach((user, index) => {
-      if (index > 0 && usersWithBeerCount[index - 1].beerCount === user.beerCount) {
+      if (
+        index > 0 &&
+        usersWithBeerCount[index - 1].beerCount === user.beerCount
+      ) {
         user.rank = usersWithBeerCount[index - 1].rank;
       } else {
         user.rank = currentRank;
@@ -99,8 +113,8 @@ export class LeaderboardService {
     });
 
     return {
-      males: usersWithBeerCount.filter(u => u.gender === 'MALE'),
-      females: usersWithBeerCount.filter(u => u.gender === 'FEMALE'),
+      males: usersWithBeerCount.filter((u) => u.gender === 'MALE'),
+      females: usersWithBeerCount.filter((u) => u.gender === 'FEMALE'),
     };
   }
 }
