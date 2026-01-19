@@ -20,7 +20,7 @@ import { UsersPage } from './pages/Dashboard/System/UsersPage';
 import { StatisticsPage } from './pages/Dashboard/System/StatisticsPage';
 import { OperationsPage } from './pages/Dashboard/System/OperationsPage';
 import { SettingsPage } from './pages/Dashboard/System/SettingsPage';
-import { Activity } from './pages/User/Activity';
+import { Activity } from './pages/Dashboard/Activity';
 import { PersonalStatsView } from './pages/User/PersonalStats/PersonalStatsView';
 import { AchievementsPage } from './pages/User/Achievements';
 import { BeerPongList } from './pages/BeerPong';
@@ -76,7 +76,7 @@ function App() {
               <Route path="settings" element={<SettingsPage />} />
             </Route>
             <Route
-              path="activity"
+              path="dashboard/activity"
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
                   <Activity />

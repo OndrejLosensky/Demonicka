@@ -41,6 +41,7 @@ export class LoggingController {
     @Query('startDate', DatePipe) startDate?: Date,
     @Query('endDate', DatePipe) endDate?: Date,
     @Query('eventType') eventType?: string | string[],
+    @Query('search') search?: string,
   ) {
     return this.loggingService.getLogs(
       level,
@@ -49,6 +50,7 @@ export class LoggingController {
       startDate,
       endDate,
       eventType,
+      search,
     );
   }
 

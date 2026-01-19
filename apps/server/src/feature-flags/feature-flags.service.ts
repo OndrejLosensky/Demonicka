@@ -2,10 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { FeatureFlag } from '@prisma/client';
 import { UpdateFeatureFlagDto } from './dto/update-feature-flag.dto';
+import { LoggingService } from '../logging/logging.service';
 
 @Injectable()
 export class FeatureFlagsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly loggingService: LoggingService,
+  ) {}
 
   async findAll(): Promise<FeatureFlag[]> {
     return this.prisma.featureFlag.findMany({
@@ -39,11 +43,26 @@ export class FeatureFlagsService {
   async update(
     id: string,
     updateFeatureFlagDto: UpdateFeatureFlagDto,
+    actorUserId?: string,
   ): Promise<FeatureFlag> {
     const featureFlag = await this.findOne(id);
-    return this.prisma.featureFlag.update({
+    const updated = await this.prisma.featureFlag.update({
       where: { id },
       data: updateFeatureFlagDto,
     });
+
+    if (actorUserId) {
+      this.loggingService.info('Settings changed', {
+        event: 'SETTINGS_CHANGED',
+        setting: 'FEATURE_FLAG',
+        actorUserId,
+        featureFlagId: id,
+        key: featureFlag.key,
+        old: { enabled: featureFlag.enabled },
+        new: { enabled: updated.enabled },
+      });
+    }
+
+    return updated;
   }
 }

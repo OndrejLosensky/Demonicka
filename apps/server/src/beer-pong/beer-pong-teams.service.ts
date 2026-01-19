@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BeerPongTeam } from '@prisma/client';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { EventBeerPongTeamsService } from '../events/services/event-beer-pong-teams.service';
+import { LoggingService } from '../logging/logging.service';
 
 @Injectable()
 export class BeerPongTeamsService {
@@ -16,11 +17,13 @@ export class BeerPongTeamsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventBeerPongTeamsService: EventBeerPongTeamsService,
+    private readonly loggingService: LoggingService,
   ) {}
 
   async create(
     beerPongEventId: string,
     createDto: CreateTeamDto,
+    actorUserId?: string,
   ): Promise<BeerPongTeam> {
     // Verify beer pong event exists and is in DRAFT status
     const beerPongEvent = await this.prisma.beerPongEvent.findFirst({
@@ -108,7 +111,7 @@ export class BeerPongTeamsService {
       throw new BadRequestException('Failed to create or find event team');
     }
 
-    return this.prisma.beerPongTeam.create({
+    const team = await this.prisma.beerPongTeam.create({
       data: {
         beerPongEventId,
         eventBeerPongTeamId: eventTeam.id,
@@ -121,6 +124,19 @@ export class BeerPongTeamsService {
         player2: true,
       },
     });
+
+    if (actorUserId) {
+      this.loggingService.logBeerPongTeamCreated({
+        beerPongEventId,
+        teamId: team.id,
+        name: team.name,
+        player1Id: team.player1Id,
+        player2Id: team.player2Id,
+        actorUserId,
+      });
+    }
+
+    return team;
   }
 
   /**
@@ -129,6 +145,7 @@ export class BeerPongTeamsService {
   async createFromEventTeam(
     beerPongEventId: string,
     eventBeerPongTeamId: string,
+    actorUserId?: string,
   ): Promise<BeerPongTeam> {
     const beerPongEvent = await this.prisma.beerPongEvent.findFirst({
       where: { id: beerPongEventId, deletedAt: null },
@@ -188,7 +205,7 @@ export class BeerPongTeamsService {
       );
     }
 
-    return this.prisma.beerPongTeam.create({
+    const team = await this.prisma.beerPongTeam.create({
       data: {
         beerPongEventId,
         eventBeerPongTeamId: eventTeam.id,
@@ -198,6 +215,19 @@ export class BeerPongTeamsService {
       },
       include: { player1: true, player2: true },
     });
+
+    if (actorUserId) {
+      this.loggingService.logBeerPongTeamCreated({
+        beerPongEventId,
+        teamId: team.id,
+        name: team.name,
+        player1Id: team.player1Id,
+        player2Id: team.player2Id,
+        actorUserId,
+      });
+    }
+
+    return team;
   }
 
   async findAll(beerPongEventId: string): Promise<BeerPongTeam[]> {

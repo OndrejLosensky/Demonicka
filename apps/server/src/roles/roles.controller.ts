@@ -14,6 +14,8 @@ import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Permission } from '@demonicka/shared';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { User } from '@prisma/client';
 
 @Controller('system/roles')
 @UseGuards(JwtAuthGuard)
@@ -43,10 +45,12 @@ export class RolesController {
   async updatePermissions(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateRolePermissionsDto: UpdateRolePermissionsDto,
+    @CurrentUser() user: User,
   ) {
     return this.rolesService.updatePermissions(
       id,
       updateRolePermissionsDto.permissionIds,
+      user.id,
     );
   }
 }

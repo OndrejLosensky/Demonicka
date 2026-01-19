@@ -15,6 +15,8 @@ import { Versions } from '../../versioning/decorators/version.decorator';
 import { VersionGuard } from '../../versioning/guards/version.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import type { User } from '@prisma/client';
 @Controller('events/:eventId/beers')
 @Versions('1')
 @UseGuards(JwtAuthGuard, VersionGuard)
@@ -27,8 +29,9 @@ export class EventBeersController {
     @Param('eventId', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body('barrelId') barrelId?: string,
+    @CurrentUser() user?: User,
   ): Promise<EventBeer> {
-    return this.eventBeersService.create(eventId, userId, barrelId);
+    return this.eventBeersService.create(eventId, userId, barrelId, user?.id);
   }
 
   @Delete('users/:userId')
@@ -36,8 +39,9 @@ export class EventBeersController {
   async removeEventBeer(
     @Param('eventId', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
+    @CurrentUser() user?: User,
   ): Promise<void> {
-    return this.eventBeersService.remove(eventId, userId);
+    return this.eventBeersService.remove(eventId, userId, user?.id);
   }
 
   @Get()
@@ -65,4 +69,4 @@ export class EventBeersController {
   ): Promise<number> {
     return this.eventBeersService.getEventBeerCount(eventId, userId);
   }
-} 
+}

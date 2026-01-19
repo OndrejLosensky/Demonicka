@@ -6,6 +6,7 @@ import * as path from 'path';
 import 'winston-daily-rotate-file';
 import type { Stats } from 'fs';
 import type { DailyRotateFileTransportOptions } from 'winston-daily-rotate-file';
+import { PrismaService } from '../prisma/prisma.service';
 
 export interface LogEntry {
   timestamp: string;
@@ -14,8 +15,15 @@ export interface LogEntry {
   service: string;
   event?: string;
   userId?: string;
+  actorUserId?: string;
   barrelId?: string;
   [key: string]: unknown;
+}
+
+export interface LogUserRef {
+  id: string;
+  username: string | null;
+  name: string | null;
 }
 
 interface CleanupOptions {
@@ -35,7 +43,7 @@ export class LoggingService {
   private readonly logDir = 'logs';
   private readonly combinedLogPath = path.join(this.logDir, 'combined.log');
 
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     // Ensure logs directory exists
     fs.mkdir(this.logDir, { recursive: true }).catch(() => {});
 
@@ -115,7 +123,8 @@ export class LoggingService {
     startDate?: Date,
     endDate?: Date,
     eventType?: string | string[],
-  ): Promise<{ logs: LogEntry[]; total: number }> {
+    search?: string,
+  ): Promise<{ logs: (LogEntry & { user?: LogUserRef; actor?: LogUserRef })[]; total: number }> {
     try {
       // Read all log files in the logs directory
       const files = await fs.readdir(this.logDir);
@@ -167,8 +176,67 @@ export class LoggingService {
         });
       }
 
+      if (search && search.trim()) {
+        const needle = search.trim().toLowerCase();
+        allLogs = allLogs.filter((log) => {
+          const actorUserId = (log as any).actorUserId as string | undefined;
+          const hay = [
+            log.message,
+            log.service,
+            log.level,
+            log.event,
+            log.userId,
+            actorUserId,
+            (log as any).eventName,
+            (log as any).operation,
+            (log as any).setting,
+            (log as any).key,
+            (log as any).name,
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+          return hay.includes(needle);
+        });
+      }
+
       const total = allLogs.length;
-      const logs = allLogs.slice(offset, offset + limit);
+      const page = allLogs.slice(offset, offset + limit);
+
+      // Enrich page with username/name for userId + actorUserId (nice UI display)
+      const ids = new Set<string>();
+      for (const log of page) {
+        if (typeof log.userId === 'string' && log.userId) ids.add(log.userId);
+        if (typeof (log as any).actorUserId === 'string' && (log as any).actorUserId) {
+          ids.add(String((log as any).actorUserId));
+        }
+      }
+
+      let userMap = new Map<string, LogUserRef>();
+      if (ids.size > 0) {
+        try {
+          const users = await this.prisma.user.findMany({
+            where: { id: { in: Array.from(ids) } },
+            select: { id: true, username: true, name: true },
+          });
+          userMap = new Map(users.map((u) => [u.id, u]));
+        } catch (e) {
+          // If enrichment fails, return raw logs
+          this.warn('Failed to enrich logs with user info', {
+            event: 'LOG_ENRICH_FAILED',
+            error: e instanceof Error ? e.message : String(e),
+          });
+        }
+      }
+
+      const logs = page.map((log) => {
+        const actorUserId = (log as any).actorUserId as string | undefined;
+        return {
+          ...log,
+          user: log.userId ? userMap.get(String(log.userId)) : undefined,
+          actor: actorUserId ? userMap.get(actorUserId) : undefined,
+        };
+      });
 
       return { logs, total };
     } catch (err) {
@@ -176,6 +244,10 @@ export class LoggingService {
       console.error('Error in getLogs:', error);
       return { logs: [], total: 0 };
     }
+  }
+
+  audit(event: string, message: string, meta?: Record<string, unknown>) {
+    this.info(message, { event, ...meta });
   }
 
   /**
@@ -279,11 +351,15 @@ export class LoggingService {
    * @param userId - ID of the user
    * @param barrelId - Optional ID of the barrel the beer came from
    */
-  logBeerAdded(userId: string, barrelId?: string | null) {
-    this.info('Beer added', {
-      event: 'BEER_ADDED',
+  logBeerAdded(
+    userId: string,
+    barrelId?: string | null,
+    meta?: { actorUserId?: string; eventId?: string },
+  ) {
+    this.audit('BEER_ADDED', 'Beer added', {
       userId,
       barrelId,
+      ...meta,
     });
   }
 
@@ -292,11 +368,102 @@ export class LoggingService {
    * @param userId - ID of the user
    * @param barrelId - Optional ID of the barrel the beer came from
    */
-  logBeerRemoved(userId: string, barrelId?: string | null) {
-    this.info('Beer removed', {
-      event: 'BEER_REMOVED',
+  logBeerRemoved(
+    userId: string,
+    barrelId?: string | null,
+    meta?: { actorUserId?: string; eventId?: string },
+  ) {
+    this.audit('BEER_REMOVED', 'Beer removed', {
       userId,
       barrelId,
+      ...meta,
+    });
+  }
+
+  logEventCreated(eventId: string, name: string, actorUserId: string) {
+    this.audit('EVENT_CREATED', 'Event created', {
+      eventId,
+      eventName: name,
+      actorUserId,
+    });
+  }
+
+  logEventSetActive(
+    eventId: string,
+    actorUserId: string,
+    previousEventId?: string | null,
+  ) {
+    this.audit('EVENT_SET_ACTIVE', 'Event set active', {
+      eventId,
+      actorUserId,
+      previousEventId: previousEventId ?? undefined,
+    });
+  }
+
+  logParticipantAdded(eventId: string, userId: string, actorUserId: string) {
+    this.audit('PARTICIPANT_ADDED', 'Participant added to event', {
+      eventId,
+      userId,
+      actorUserId,
+    });
+  }
+
+  logBarrelAdded(eventId: string, barrelId: string, actorUserId: string) {
+    this.audit('BARREL_ADDED', 'Barrel added to event', {
+      eventId,
+      barrelId,
+      actorUserId,
+    });
+  }
+
+  logParticipantRegistered(userId: string, username: string | null) {
+    this.audit('PARTICIPANT_REGISTERED', 'Participant registered', {
+      userId,
+      username,
+    });
+  }
+
+  logBeerPongEventCreated(
+    beerPongEventId: string,
+    eventId: string,
+    name: string,
+    actorUserId: string,
+  ) {
+    this.audit('BEER_PONG_EVENT_CREATED', 'Beer pong event created', {
+      beerPongEventId,
+      eventId,
+      name,
+      actorUserId,
+    });
+  }
+
+  logBeerPongTeamCreated(params: {
+    beerPongEventId: string;
+    teamId: string;
+    name: string;
+    player1Id: string;
+    player2Id: string;
+    actorUserId: string;
+  }) {
+    this.audit('BEER_PONG_TEAM_CREATED', 'Beer pong team created', params);
+  }
+
+  logBeerPongStarted(beerPongEventId: string, actorUserId: string) {
+    this.audit('BEER_PONG_STARTED', 'Beer pong started', {
+      beerPongEventId,
+      actorUserId,
+    });
+  }
+
+  logSystemOperationTriggered(
+    operation: string,
+    actorUserId?: string,
+    details?: Record<string, unknown>,
+  ) {
+    this.audit('SYSTEM_OPERATION_TRIGGERED', 'System operation triggered', {
+      operation,
+      actorUserId,
+      details,
     });
   }
 

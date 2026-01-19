@@ -24,9 +24,8 @@ export function NavigationLinks() {
   const { activeEvent } = useActiveEvent();
   const location = useLocation();
 
-  if (!user) return null;
-
-  const canSeeAdminNav = hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]);
+  const canSeeAdminNav =
+    Boolean(user) && hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]);
 
   const isActive = (path: string, options?: { includeSubRoutes?: boolean }) => {
     if (options?.includeSubRoutes) {
@@ -106,7 +105,7 @@ export function NavigationLinks() {
     return () => {
       cancelled = true;
     };
-  }, [canSeeAdminNav, activeEvent?.id]);
+  }, [canSeeAdminNav, activeEvent]);
 
   const eventItems = useMemo(() => {
     const sorted = [...events].sort((a, b) => {
@@ -248,6 +247,8 @@ export function NavigationLinks() {
       </Box>
     );
   };
+
+  if (!user) return null;
 
   return (
     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 0.5 }}>

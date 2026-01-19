@@ -118,8 +118,8 @@ export class BeerPongController {
 
   @Post(':id/start')
   @Permissions(Permission.UPDATE_BEER_PONG_EVENT)
-  async startTournament(@Param('id', ParseUUIDPipe) id: string) {
-    const updated = await this.beerPongService.startTournament(id);
+  async startTournament(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+    const updated = await this.beerPongService.startTournament(id, user.id);
     // Initialize bracket after starting (assigns teams if bracket is empty)
     try {
       await this.gamesService.initializeBracket(id);
@@ -144,8 +144,9 @@ export class BeerPongController {
   async addTeamFromEvent(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AddTeamFromEventDto,
+    @CurrentUser() user: User,
   ) {
-    return this.teamsService.createFromEventTeam(id, dto.eventBeerPongTeamId);
+    return this.teamsService.createFromEventTeam(id, dto.eventBeerPongTeamId, user.id);
   }
 
   @Post(':id/teams')
@@ -153,8 +154,9 @@ export class BeerPongController {
   async createTeam(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() createDto: CreateTeamDto,
+    @CurrentUser() user: User,
   ) {
-    return this.teamsService.create(id, createDto);
+    return this.teamsService.create(id, createDto, user.id);
   }
 
   @Get(':id/teams')

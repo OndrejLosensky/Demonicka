@@ -5,13 +5,11 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  BeerPongEvent,
-  BeerPongEventStatus,
-  Prisma,
-} from '@prisma/client';
+import type { BeerPongEvent, CancellationPolicy, Prisma } from '@prisma/client';
 import { CreateBeerPongEventDto } from './dto/create-beer-pong-event.dto';
 import { UpdateBeerPongEventDto } from './dto/update-beer-pong-event.dto';
+import { BeerPongDefaultsService } from '../beer-pong-defaults/beer-pong-defaults.service';
+import { LoggingService } from '../logging/logging.service';
 
 type BeerPongEventWithRelations = Prisma.BeerPongEventGetPayload<{
   include: {
@@ -39,11 +37,22 @@ type BeerPongEventWithRelations = Prisma.BeerPongEventGetPayload<{
   };
 }>;
 
+type BeerPongDefaultsLike = {
+  beersPerPlayer: number;
+  timeWindowMinutes: number;
+  undoWindowMinutes: number;
+  cancellationPolicy: CancellationPolicy;
+};
+
 @Injectable()
 export class BeerPongService {
   private readonly logger = new Logger(BeerPongService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly defaults: BeerPongDefaultsService,
+    private readonly loggingService: LoggingService,
+  ) {}
 
   async create(
     createDto: CreateBeerPongEventDto,
@@ -55,27 +64,50 @@ export class BeerPongService {
     });
 
     if (!event) {
-      throw new NotFoundException(`Event with ID ${createDto.eventId} not found`);
+      throw new NotFoundException(
+        `Event with ID ${createDto.eventId} not found`,
+      );
     }
 
     // Check if event is deleted
     if (event.deletedAt) {
-      throw new BadRequestException('Cannot create beer pong event for deleted event');
+      throw new BadRequestException(
+        'Cannot create beer pong event for deleted event',
+      );
     }
+
+    const globalDefaults =
+      (await this.defaults.getOrCreate()) as BeerPongDefaultsLike;
 
     const beerPongEvent = await this.prisma.beerPongEvent.create({
       data: {
         eventId: createDto.eventId,
         name: createDto.name,
         description: createDto.description,
-        beersPerPlayer: createDto.beersPerPlayer ?? 2,
-        timeWindowMinutes: createDto.timeWindowMinutes ?? 5,
-        undoWindowMinutes: createDto.undoWindowMinutes ?? 5,
-        cancellationPolicy: createDto.cancellationPolicy ?? 'KEEP_BEERS',
+        beersPerPlayer:
+          createDto.beersPerPlayer ?? globalDefaults.beersPerPlayer,
+        timeWindowMinutes:
+          createDto.timeWindowMinutes ?? globalDefaults.timeWindowMinutes,
+        undoWindowMinutes:
+          createDto.undoWindowMinutes ?? globalDefaults.undoWindowMinutes,
+        cancellationPolicy:
+          createDto.cancellationPolicy ?? globalDefaults.cancellationPolicy,
         status: 'DRAFT',
         createdBy: userId,
       },
     });
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    this.loggingService.audit(
+      'BEER_PONG_EVENT_CREATED',
+      'Beer pong event created',
+      {
+        beerPongEventId: beerPongEvent.id,
+        eventId: createDto.eventId,
+        name: createDto.name,
+        actorUserId: userId,
+      },
+    );
 
     // Initialize empty bracket structure
     // We'll need to inject BeerPongGamesService, but for now we'll do it in the controller
@@ -85,7 +117,7 @@ export class BeerPongService {
   }
 
   async findAll(eventId?: string): Promise<BeerPongEvent[]> {
-    const where: any = { deletedAt: null };
+    const where: Prisma.BeerPongEventWhereInput = { deletedAt: null };
 
     if (eventId) {
       where.eventId = eventId;
@@ -189,7 +221,10 @@ export class BeerPongService {
     });
   }
 
-  async startTournament(id: string): Promise<BeerPongEvent> {
+  async startTournament(
+    id: string,
+    actorUserId?: string,
+  ): Promise<BeerPongEvent> {
     const event = await this.findOne(id);
 
     if (event.status !== 'DRAFT') {
@@ -214,6 +249,14 @@ export class BeerPongService {
         startedAt: new Date(),
       },
     });
+
+    if (actorUserId) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      this.loggingService.audit('BEER_PONG_STARTED', 'Beer pong started', {
+        beerPongEventId: id,
+        actorUserId,
+      });
+    }
 
     // Initialize bracket (create quarterfinal games)
     // This will be done by BeerPongGamesService.initializeBracket()

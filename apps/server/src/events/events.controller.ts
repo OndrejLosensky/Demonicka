@@ -26,6 +26,7 @@ import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Permission } from '@demonicka/shared';
 import { BeerPongService } from '../beer-pong/beer-pong.service';
 import { EventDetailExportBuilder } from '../exports/event-detail/EventDetailExportBuilder';
+import { LoggingService } from '../logging/logging.service';
 
 @Controller('events')
 @Versions('1')
@@ -36,6 +37,7 @@ export class EventsController {
     private readonly eventBeersService: EventBeersService,
     private readonly beerPongService: BeerPongService,
     private readonly eventDetailExportBuilder: EventDetailExportBuilder,
+    private readonly loggingService: LoggingService,
   ) {}
 
   @Get()
@@ -59,7 +61,9 @@ export class EventsController {
   }
 
   @Post('cleanup')
-  cleanup(): Promise<void> {
+  cleanup(@CurrentUser() user: User): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    this.loggingService.logSystemOperationTriggered('EVENTS_CLEANUP', user?.id);
     return this.eventsService.cleanup();
   }
 
@@ -90,24 +94,27 @@ export class EventsController {
   addEventBeer(
     @Param('id', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
+    @CurrentUser() user: User,
   ): Promise<void> {
-    return this.eventsService.addBeer(eventId, userId);
+    return this.eventsService.addBeer(eventId, userId, user.id);
   }
 
   @Delete(':id/users/:userId/beers')
   removeEventBeer(
     @Param('id', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
+    @CurrentUser() user: User,
   ): Promise<void> {
-    return this.eventBeersService.remove(eventId, userId);
+    return this.eventBeersService.remove(eventId, userId, user.id);
   }
 
   @Put(':id/users/:userId')
   addUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('userId', ParseUUIDPipe) userId: string,
+    @CurrentUser() user: User,
   ): Promise<Event> {
-    return this.eventsService.addUser(id, userId);
+    return this.eventsService.addUser(id, userId, user.id);
   }
 
   @Delete(':id/users/:userId')
@@ -130,8 +137,9 @@ export class EventsController {
   addBarrel(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('barrelId', ParseUUIDPipe) barrelId: string,
+    @CurrentUser() user: User,
   ): Promise<Event> {
-    return this.eventsService.addBarrel(id, barrelId);
+    return this.eventsService.addBarrel(id, barrelId, user.id);
   }
 
   @Delete(':id/barrels/:barrelId')
@@ -158,8 +166,11 @@ export class EventsController {
   }
 
   @Put(':id/active')
-  setActive(@Param('id', ParseUUIDPipe) id: string): Promise<Event> {
-    return this.eventsService.setActive(id);
+  setActive(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ): Promise<Event> {
+    return this.eventsService.setActive(id, user.id);
   }
 
   @Delete(':id/active')

@@ -182,7 +182,7 @@ export class UsersService {
     });
   }
 
-    async completeRegistration(
+  async completeRegistration(
     completeRegistrationDto: CompleteRegistrationDto,
   ): Promise<UserWithoutPassword> {
     const user = await this.findByRegistrationToken(
@@ -217,6 +217,11 @@ export class UsersService {
         canLogin: true, // Enable login after completing registration
       },
     });
+
+    this.loggingService.logParticipantRegistered(
+      savedUser.id,
+      savedUser.username,
+    );
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = savedUser;

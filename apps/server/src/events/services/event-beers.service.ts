@@ -27,6 +27,7 @@ export class EventBeersService {
     eventId: string,
     userId: string,
     barrelId?: string,
+    actorUserId?: string,
   ): Promise<EventBeer> {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
@@ -67,7 +68,10 @@ export class EventBeersService {
     await this.beersService.create(userId, barrelId, true);
 
     // Log beer addition
-    this.loggingService.logBeerAdded(userId, barrelId);
+    this.loggingService.logBeerAdded(userId, barrelId, {
+      actorUserId,
+      eventId,
+    });
 
     // Emit live updates for leaderboard and dashboard stats
     await this.leaderboardGateway.emitFullUpdate(eventId);
@@ -75,7 +79,11 @@ export class EventBeersService {
     return savedEventBeer;
   }
 
-  async remove(eventId: string, userId: string): Promise<void> {
+  async remove(
+    eventId: string,
+    userId: string,
+    actorUserId?: string,
+  ): Promise<void> {
     const lastBeer = await this.prisma.eventBeer.findFirst({
       where: { eventId, userId, deletedAt: null },
       orderBy: { consumedAt: 'desc' },
@@ -91,7 +99,10 @@ export class EventBeersService {
     });
 
     // Log beer removal
-    this.loggingService.logBeerRemoved(userId, lastBeer.barrelId);
+    this.loggingService.logBeerRemoved(userId, lastBeer.barrelId, {
+      actorUserId,
+      eventId,
+    });
 
     // Emit live updates for leaderboard and dashboard stats
     await this.leaderboardGateway.emitFullUpdate(eventId);

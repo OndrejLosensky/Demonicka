@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -17,27 +17,64 @@ import { Save as SaveIcon } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import { CancellationPolicy } from '@demonicka/shared-types';
 import translations from '../../../../locales/cs/beerPongSettings.json';
+import { api } from '../../../../services/api';
 
 /**
  * Beer Pong Settings Page
- * 
- * Note: Currently, these are default values displayed for reference.
- * Settings are configured per tournament when creating a new beer pong event.
- * In the future, these could be stored as global defaults in the backend.
  */
 const BeerPongSettingsPage: React.FC = () => {
-  // Default values (matching backend defaults)
   const [defaultBeersPerPlayer, setDefaultBeersPerPlayer] = useState(2);
   const [defaultTimeWindowMinutes, setDefaultTimeWindowMinutes] = useState(5);
   const [defaultUndoWindowMinutes, setDefaultUndoWindowMinutes] = useState(5);
   const [defaultCancellationPolicy, setDefaultCancellationPolicy] = useState<CancellationPolicy>(
     CancellationPolicy.KEEP_BEERS,
   );
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
-    // TODO: Implement backend API for saving default settings
-    // For now, this is just a placeholder showing the structure
-    toast.success(translations.toasts.saveSuccess);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.get('/system/beer-pong-defaults');
+        const data = response.data as {
+          beersPerPlayer: number;
+          timeWindowMinutes: number;
+          undoWindowMinutes: number;
+          cancellationPolicy: CancellationPolicy;
+        };
+
+        setDefaultBeersPerPlayer(data.beersPerPlayer);
+        setDefaultTimeWindowMinutes(data.timeWindowMinutes);
+        setDefaultUndoWindowMinutes(data.undoWindowMinutes);
+        setDefaultCancellationPolicy(data.cancellationPolicy);
+      } catch (e) {
+        console.error('Failed to load beer pong defaults:', e);
+        toast.error('Nepodařilo se načíst Beer Pong nastavení');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void load();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      await api.put('/system/beer-pong-defaults', {
+        beersPerPlayer: defaultBeersPerPlayer,
+        timeWindowMinutes: defaultTimeWindowMinutes,
+        undoWindowMinutes: defaultUndoWindowMinutes,
+        cancellationPolicy: defaultCancellationPolicy,
+      });
+      toast.success(translations.toasts.saveSuccess);
+    } catch (e) {
+      console.error('Failed to save beer pong defaults:', e);
+      toast.error('Nepodařilo se uložit nastavení');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -56,6 +93,7 @@ const BeerPongSettingsPage: React.FC = () => {
           startIcon={<SaveIcon />}
           onClick={handleSave}
           sx={{ minWidth: 120 }}
+          disabled={isLoading || isSaving}
         >
           {translations.save}
         </Button>
@@ -79,6 +117,7 @@ const BeerPongSettingsPage: React.FC = () => {
               onChange={(e) => setDefaultBeersPerPlayer(Math.max(1, Number(e.target.value)))}
               inputProps={{ min: 1 }}
               helperText={translations.fields.beersPerPlayer.helper}
+              disabled={isLoading}
             />
           </Grid>
 
@@ -92,6 +131,7 @@ const BeerPongSettingsPage: React.FC = () => {
               onChange={(e) => setDefaultTimeWindowMinutes(Math.max(0, Number(e.target.value)))}
               inputProps={{ min: 0 }}
               helperText={translations.fields.timeWindowMinutes.helper}
+              disabled={isLoading}
             />
           </Grid>
 
@@ -105,6 +145,7 @@ const BeerPongSettingsPage: React.FC = () => {
               onChange={(e) => setDefaultUndoWindowMinutes(Math.max(0, Number(e.target.value)))}
               inputProps={{ min: 0 }}
               helperText={translations.fields.undoWindowMinutes.helper}
+              disabled={isLoading}
             />
           </Grid>
 
@@ -116,6 +157,7 @@ const BeerPongSettingsPage: React.FC = () => {
                 value={defaultCancellationPolicy}
                 label={translations.fields.cancellationPolicy.label}
                 onChange={(e) => setDefaultCancellationPolicy(e.target.value as CancellationPolicy)}
+                disabled={isLoading}
               >
                 <MenuItem value={CancellationPolicy.KEEP_BEERS}>{translations.fields.cancellationPolicy.keepBeers}</MenuItem>
                 <MenuItem value={CancellationPolicy.REMOVE_BEERS}>{translations.fields.cancellationPolicy.removeBeers}</MenuItem>

@@ -31,6 +31,8 @@ export class EventsService {
                 barrels: { include: { barrel: true } },
             },
         });
+
+        this.loggingService.logEventCreated(created.id, created.name, userId);
         
         // Transform EventBarrels[] to Barrel[] and EventUsers[] to User[] for consistent API response
         // NestJS will automatically serialize Date objects to ISO strings in JSON responses
@@ -161,7 +163,7 @@ export class EventsService {
         });
     }
 
-    async setActive(id: string): Promise<Event> {
+    async setActive(id: string, actorUserId?: string): Promise<Event> {
         // First, find the currently active event
         const activeEvent = await this.prisma.event.findFirst({
             where: { isActive: true, deletedAt: null },
@@ -180,6 +182,10 @@ export class EventsService {
             where: { id },
             data: { isActive: true },
         });
+
+        if (actorUserId) {
+            this.loggingService.logEventSetActive(id, actorUserId, activeEvent?.id);
+        }
         
         return this.findOne(id);
     }
@@ -263,7 +269,7 @@ export class EventsService {
         }));
     }
 
-    async addUser(id: string, userId: string): Promise<Event> {
+    async addUser(id: string, userId: string, actorUserId?: string): Promise<Event> {
         await this.findOne(id);
         await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
 
@@ -278,6 +284,10 @@ export class EventsService {
             await this.prisma.eventUsers.create({
                 data: { eventId: id, userId },
             });
+
+            if (actorUserId) {
+                this.loggingService.logParticipantAdded(id, userId, actorUserId);
+            }
         }
 
         return this.findOne(id);
@@ -302,7 +312,7 @@ export class EventsService {
         return event.barrels.map(eb => eb.barrel);
     }
 
-    async addBarrel(id: string, barrelId: string): Promise<Event> {
+    async addBarrel(id: string, barrelId: string, actorUserId?: string): Promise<Event> {
         await this.findOne(id);
         await this.prisma.barrel.findUniqueOrThrow({ where: { id: barrelId } });
 
@@ -317,6 +327,10 @@ export class EventsService {
             await this.prisma.eventBarrels.create({
                 data: { eventId: id, barrelId },
             });
+
+            if (actorUserId) {
+                this.loggingService.logBarrelAdded(id, barrelId, actorUserId);
+            }
         }
 
         return this.findOne(id);
@@ -360,7 +374,7 @@ export class EventsService {
             })) as unknown as Event[];
     }
 
-    async addBeer(eventId: string, userId: string): Promise<void> {
+    async addBeer(eventId: string, userId: string, actorUserId?: string): Promise<void> {
         try {
             await this.findOne(eventId);
             await this.usersService.findOne(userId);
@@ -376,9 +390,7 @@ export class EventsService {
             }
 
             // Create event beer
-            await this.eventBeersService.create(eventId, userId, barrelId);
-
-            this.loggingService.logBeerAdded(userId, barrelId);
+            await this.eventBeersService.create(eventId, userId, barrelId, actorUserId);
         } catch (error: unknown) {
             this.loggingService.error('Failed to add beer to event', {
                 error: error instanceof Error ? error.message : String(error),

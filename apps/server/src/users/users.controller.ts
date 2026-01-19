@@ -32,6 +32,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserStatsService } from './user-stats.service';
 import { RoleGuard } from '../auth/guards/role.guard';
 import { ProfilePictureService } from './profile-picture.service';
+import { LoggingService } from '../logging/logging.service';
 /**
  * Users controller handling user profile management.
  * All routes are prefixed with '/users', protected by JWT authentication, and support API versioning.
@@ -44,6 +45,7 @@ export class UsersController {
     private readonly usersService: UsersService,
     private readonly userStatsService: UserStatsService,
     private readonly profilePictureService: ProfilePictureService,
+    private readonly loggingService: LoggingService,
   ) {}
 
   @Post()
@@ -54,7 +56,10 @@ export class UsersController {
 
   @Post('participant')
   @Public()
-  createParticipant(@Body() createParticipantDto: CreateParticipantDto, @CurrentUser() user?: User) {
+  createParticipant(
+    @Body() createParticipantDto: CreateParticipantDto,
+    @CurrentUser() user?: User,
+  ) {
     return this.usersService.createParticipant(createParticipantDto, user?.id);
   }
 
@@ -81,7 +86,9 @@ export class UsersController {
   }
 
   @Post('cleanup')
-  cleanup() {
+  cleanup(@CurrentUser() user?: User) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    this.loggingService.logSystemOperationTriggered('USERS_CLEANUP', user?.id);
     return this.usersService.cleanup();
   }
 
@@ -116,10 +123,8 @@ export class UsersController {
     }
 
     // Process and save new image
-    const profilePictureUrl = await this.profilePictureService.processAndSaveImage(
-      file,
-      user.id,
-    );
+    const profilePictureUrl =
+      await this.profilePictureService.processAndSaveImage(file, user.id);
 
     // Update user with new profile picture URL
     await this.usersService.update(user.id, { profilePictureUrl });

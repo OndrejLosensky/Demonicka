@@ -355,6 +355,20 @@ model FeatureFlag {
   updatedAt   DateTime @updatedAt @db.Timestamptz(6)
 }
 
+/// Global defaults for Beer Pong tournaments (single-row table managed by the system settings UI).
+model BeerPongDefaults {
+  id                 String             @id @default(uuid()) @db.Uuid
+  beersPerPlayer     Int                @default(2)
+  timeWindowMinutes  Int                @default(5)
+  undoWindowMinutes  Int                @default(5)
+  cancellationPolicy CancellationPolicy @default(KEEP_BEERS)
+  updatedBy          String?            @db.Uuid
+  createdAt          DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime           @updatedAt @db.Timestamptz(6)
+
+  @@index([updatedBy])
+}
+
 model BeerPongEvent {
   id                 String              @id @default(uuid()) @db.Uuid
   eventId            String              @db.Uuid

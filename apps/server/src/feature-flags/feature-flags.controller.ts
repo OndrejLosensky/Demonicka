@@ -14,6 +14,8 @@ import { Permission } from '@demonicka/shared';
 import { UpdateFeatureFlagDto } from './dto/update-feature-flag.dto';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { User } from '@prisma/client';
 
 @Controller('system/feature-flags')
 @Versions('1')
@@ -36,7 +38,8 @@ export class FeatureFlagsController {
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateFeatureFlagDto: UpdateFeatureFlagDto,
+    @CurrentUser() user: User,
   ) {
-    return this.featureFlagsService.update(id, updateFeatureFlagDto);
+    return this.featureFlagsService.update(id, updateFeatureFlagDto, user.id);
   }
 }

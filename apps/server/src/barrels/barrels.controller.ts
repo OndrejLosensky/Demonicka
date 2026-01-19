@@ -15,11 +15,16 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Barrel } from '@prisma/client';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { LoggingService } from '../logging/logging.service';
 @Controller('barrels')
 @Versions('1')
 @UseGuards(JwtAuthGuard, VersionGuard)
 export class BarrelsController {
-  constructor(private readonly barrelsService: BarrelsService) {}
+  constructor(
+    private readonly barrelsService: BarrelsService,
+    private readonly loggingService: LoggingService,
+  ) {}
 
   @Get('active/current')
   getActiveBarrel() {
@@ -32,7 +37,11 @@ export class BarrelsController {
   }
 
   @Post('cleanup')
-  cleanup() {
+  cleanup(@CurrentUser() user?: { id: string }) {
+    this.loggingService.logSystemOperationTriggered(
+      'BARRELS_CLEANUP',
+      user?.id,
+    );
     return this.barrelsService.cleanup();
   }
 

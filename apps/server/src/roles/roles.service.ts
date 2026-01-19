@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Permission } from '@demonicka/shared';
 import { UserRole } from '@prisma/client';
+import { LoggingService } from '../logging/logging.service';
 
 export interface RoleWithPermissions {
   id: string;
@@ -18,7 +19,10 @@ export interface RoleWithPermissions {
 
 @Injectable()
 export class RolesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly loggingService: LoggingService,
+  ) {}
 
   /**
    * Get all roles with their permissions
@@ -112,6 +116,7 @@ export class RolesService {
   async updatePermissions(
     roleId: string,
     permissionIds: string[],
+    actorUserId?: string,
   ): Promise<RoleWithPermissions> {
     // Verify role exists
     const role = await this.prisma.role.findUnique({
@@ -121,6 +126,11 @@ export class RolesService {
     if (!role) {
       throw new NotFoundException(`Role with ID ${roleId} not found`);
     }
+
+    const existingPermissionIds = await this.prisma.rolePermission.findMany({
+      where: { roleId },
+      select: { permissionId: true },
+    });
 
     // Verify all permissions exist
     const permissions = await this.prisma.permission.findMany({
@@ -149,6 +159,18 @@ export class RolesService {
           roleId,
           permissionId,
         })),
+      });
+    }
+
+    if (actorUserId) {
+      this.loggingService.info('Settings changed', {
+        event: 'SETTINGS_CHANGED',
+        setting: 'ROLE_PERMISSIONS',
+        actorUserId,
+        roleId,
+        roleName: role.name,
+        old: { permissionIds: existingPermissionIds.map((p) => p.permissionId) },
+        new: { permissionIds },
       });
     }
 

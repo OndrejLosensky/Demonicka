@@ -29,7 +29,12 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
     return () => clearInterval(timer);
   }, []);
 
-  const includeSubRoutes = new Set<string>(['/events', '/dashboard/system', '/dashboard/beer-pong']);
+  const includeSubRoutes = new Set<string>([
+    '/events',
+    '/dashboard/system',
+    '/dashboard/beer-pong',
+    '/dashboard/activity',
+  ]);
   const isActive = (path: string) => {
     if (includeSubRoutes.has(path)) {
       return location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -60,7 +65,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
         items.push(
           { to: '/dashboard/system', label: 'Systém' },
           { to: '/dashboard/docs', label: 'Dokumentace' },
-          { to: '/activity', label: 'Aktivita' }
+          { to: '/dashboard/activity', label: 'Aktivita' }
         );
       }
     }
