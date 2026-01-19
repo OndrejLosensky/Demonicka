@@ -58,7 +58,8 @@ export function DashboardChrome() {
   const crumbs: Crumb[] = useMemo(() => {
     const items: Crumb[] = [];
 
-    const isDashboardPath = matches[0]?.route.path === 'dashboard';
+    const isDashboardPath =
+      matches[0]?.route.path === 'dashboard' || matches[0]?.route.path === 'u';
     if (!isDashboardPath) {
       items.push({ label: translations.navigation.dashboard, to: '/dashboard' });
     }

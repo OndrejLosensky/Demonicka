@@ -19,6 +19,55 @@ export type DashboardChromeHandle = {
 
 export const dashboardRouteMeta: RouteObject[] = [
   {
+    path: 'u',
+    children: [
+      {
+        path: ':username',
+        handle: {
+          crumb: (p) => p.username ?? 'Uživatel',
+          title: (p) => p.username ?? 'Uživatel',
+        } satisfies DashboardChromeHandle,
+        children: [
+          {
+            path: 'dashboard',
+            handle: {
+              crumb: 'Moje statistiky',
+              title: 'Moje statistiky',
+            } satisfies DashboardChromeHandle,
+            children: [
+              {
+                path: 'events',
+                handle: {
+                  crumb: 'Události',
+                  title: 'Události',
+                } satisfies DashboardChromeHandle,
+                children: [
+                  {
+                    path: ':id',
+                    handle: {
+                      crumb: (p) => p.id ?? 'Událost',
+                      title: (p) => p.id ?? 'Událost',
+                      dynamic: 'event',
+                    } satisfies DashboardChromeHandle,
+                    children: [
+                      {
+                        path: 'beer-pong',
+                        handle: {
+                          crumb: 'Beer Pong',
+                          title: 'Beer Pong',
+                        } satisfies DashboardChromeHandle,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
     path: 'dashboard',
     handle: {
       crumb: translations.navigation.dashboard,

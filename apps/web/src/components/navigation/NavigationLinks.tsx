@@ -137,7 +137,11 @@ export function NavigationLinks() {
     children: React.ReactNode;
   }) => {
     const active = isActive(to, {
-      includeSubRoutes: to === '/dashboard/events' || to === '/dashboard/beer-pong',
+      includeSubRoutes:
+        to === '/dashboard/events' ||
+        to === '/dashboard/beer-pong' ||
+        to.endsWith('/dashboard/events') ||
+        to.endsWith('/dashboard/beer-pong'),
     });
     return (
       <Box
@@ -165,7 +169,11 @@ export function NavigationLinks() {
     const [open, setOpen] = useState(false);
     const hasItems = items.length > 0;
     const active = isActive(to, {
-      includeSubRoutes: to === '/dashboard/events' || to === '/dashboard/beer-pong',
+      includeSubRoutes:
+        to === '/dashboard/events' ||
+        to === '/dashboard/beer-pong' ||
+        to.endsWith('/dashboard/events') ||
+        to.endsWith('/dashboard/beer-pong'),
     });
 
     return (
@@ -250,6 +258,8 @@ export function NavigationLinks() {
 
   if (!user) return null;
 
+  const userDashboardBase = `/u/${encodeURIComponent(user.username)}/dashboard`;
+
   return (
     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 0.5 }}>
       {canSeeAdminNav && (
@@ -295,8 +305,11 @@ export function NavigationLinks() {
       )}
       {user?.role === USER_ROLE.USER && (
         <>
-          <NavLink to={`/${user?.id}/dashboard`} icon={<TrendingUpIcon sx={{ fontSize: 18 }} />}>
+          <NavLink to={userDashboardBase} icon={<TrendingUpIcon sx={{ fontSize: 18 }} />}>
             Moje statistiky
+          </NavLink>
+          <NavLink to={`${userDashboardBase}/events`} icon={<EventIcon sx={{ fontSize: 18 }} />}>
+            Události
           </NavLink>
           <NavLink to="/achievements" icon={<TrophyIcon sx={{ fontSize: 18 }} />}>
             Úspěchy

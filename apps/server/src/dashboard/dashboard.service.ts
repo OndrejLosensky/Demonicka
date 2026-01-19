@@ -1,11 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DashboardResponseDto,
   UserStatsDto,
   BarrelStatsDto,
 } from './dto/dashboard.dto';
-import { LeaderboardDto, UserLeaderboardDto } from './dto/leaderboard.dto';
+import { LeaderboardDto } from './dto/leaderboard.dto';
 import { PublicStatsDto } from './dto/public-stats.dto';
 import { SystemStatsDto } from './dto/system-stats.dto';
 import {
@@ -14,6 +20,17 @@ import {
   HourlyStatsDto,
 } from './dto/personal-stats.dto';
 import { UserRole } from '@prisma/client';
+import type { User } from '@prisma/client';
+import type {
+  UserDashboardBeerPongByRoundDto,
+  UserDashboardEventBeerPongDto,
+  UserDashboardEventDetailDto,
+  UserDashboardEventListDto,
+  UserDashboardHourlyPointDto,
+  UserDashboardOverviewDto,
+  UserDashboardTopEventDto,
+  UserDashboardUserDto,
+} from './dto/user-dashboard.dto';
 
 @Injectable()
 export class DashboardService {
@@ -23,6 +40,614 @@ export class DashboardService {
   private readonly CACHE_TTL = 30000; // 30 seconds in milliseconds
 
   constructor(private prisma: PrismaService) {}
+
+  private toUserDto(user: User): UserDashboardUserDto {
+    if (!user.username) {
+      // In practice USER accounts should always have username; keep this safe.
+      throw new BadRequestException('Uživatel nemá uživatelské jméno');
+    }
+    return {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      profilePictureUrl: user.profilePictureUrl,
+    };
+  }
+
+  async resolveDashboardTargetUser(
+    username: string | undefined,
+    currentUser: User,
+  ): Promise<User> {
+    const effectiveUsername = username ?? currentUser.username ?? undefined;
+    if (!effectiveUsername) {
+      throw new BadRequestException('Chybí username');
+    }
+
+    const isSelf = currentUser.username === effectiveUsername;
+    const isAdmin =
+      currentUser.role === UserRole.SUPER_ADMIN ||
+      currentUser.role === UserRole.OPERATOR;
+
+    if (!isSelf && !isAdmin) {
+      throw new ForbiddenException(
+        'Nemáte oprávnění zobrazit statistiky tohoto uživatele',
+      );
+    }
+
+    const target = await this.prisma.user.findUnique({
+      where: { username: effectiveUsername },
+    });
+    if (!target || target.deletedAt) {
+      throw new NotFoundException('Uživatel nebyl nalezen');
+    }
+    return target;
+  }
+
+  async getUserDashboardOverview(
+    userId: string,
+  ): Promise<UserDashboardOverviewDto> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.deletedAt)
+      throw new NotFoundException('Uživatel nebyl nalezen');
+
+    const timezoneOffset = process.env.TIMEZONE_OFFSET || '+02:00';
+
+    const activeEvent = await this.prisma.event.findFirst({
+      where: { isActive: true, deletedAt: null },
+      orderBy: { startDate: 'desc' },
+    });
+    const seriesEvent =
+      activeEvent ??
+      (await this.prisma.event.findFirst({
+        where: {
+          deletedAt: null,
+          users: {
+            some: {
+              userId,
+            },
+          },
+        },
+        orderBy: { startDate: 'desc' },
+      }));
+
+    const [
+      globalBeers,
+      eventBeers,
+      participatedEvents,
+      daily,
+      topEvents,
+      beerPongSummary,
+    ] = await Promise.all([
+      this.prisma.beer.count({ where: { userId, deletedAt: null } }),
+      this.prisma.eventBeer.count({ where: { userId, deletedAt: null } }),
+      this.prisma.eventUsers.count({ where: { userId } }),
+      seriesEvent
+        ? this.prisma.$queryRaw<
+            Array<{
+              bucketUtc: Date;
+              beers: bigint; // non-spilled
+              eventBeers: bigint; // spilled
+            }>
+          >`
+            WITH bounds AS (
+              SELECT
+                date_trunc('hour', (${seriesEvent.startDate}::timestamptz AT TIME ZONE ${timezoneOffset})) AS start_hour,
+                date_trunc('hour', (COALESCE(${seriesEvent.endDate ?? null}::timestamptz, now()) AT TIME ZONE ${timezoneOffset})) AS end_hour
+            ),
+            hours AS (
+              SELECT generate_series(
+                (SELECT start_hour FROM bounds),
+                (SELECT end_hour FROM bounds),
+                interval '1 hour'
+              ) AS bucket_local
+            ),
+            counts AS (
+              SELECT
+                date_trunc('hour', (eb."consumedAt" AT TIME ZONE ${timezoneOffset})) AS bucket_local,
+                COUNT(*) FILTER (WHERE eb."spilled" = false)::bigint AS beers,
+                COUNT(*) FILTER (WHERE eb."spilled" = true)::bigint AS "eventBeers"
+              FROM "EventBeer" eb
+              WHERE eb."eventId" = ${seriesEvent.id}::uuid
+                AND eb."userId" = ${userId}::uuid
+                AND eb."deletedAt" IS NULL
+              GROUP BY 1
+            )
+            SELECT
+              (h.bucket_local AT TIME ZONE ${timezoneOffset}) AS "bucketUtc",
+              COALESCE(c.beers, 0)::bigint AS beers,
+              COALESCE(c."eventBeers", 0)::bigint AS "eventBeers"
+            FROM hours h
+            LEFT JOIN counts c ON c.bucket_local = h.bucket_local
+            ORDER BY h.bucket_local ASC
+          `
+        : Promise.resolve(
+            [] as Array<{ bucketUtc: Date; beers: bigint; eventBeers: bigint }>,
+          ),
+      this.prisma.$queryRaw<
+        Array<{
+          eventId: string;
+          eventName: string;
+          startDate: Date;
+          endDate: Date | null;
+          isActive: boolean;
+          userBeers: bigint;
+          userSpilledBeers: bigint;
+          totalEventBeers: bigint;
+        }>
+      >`
+        SELECT
+          e.id AS "eventId",
+          e.name AS "eventName",
+          e."startDate",
+          e."endDate",
+          e."isActive",
+          COALESCE(ub.user_beers, 0)::bigint AS "userBeers",
+          COALESCE(ub.user_spilled, 0)::bigint AS "userSpilledBeers",
+          COALESCE(tb.total_beers, 0)::bigint AS "totalEventBeers"
+        FROM "EventUsers" eu
+        JOIN "Event" e ON e.id = eu."eventId" AND e."deletedAt" IS NULL
+        LEFT JOIN (
+          SELECT
+            "eventId",
+            COUNT(*)::bigint AS user_beers,
+            COUNT(*) FILTER (WHERE "spilled" = true)::bigint AS user_spilled
+          FROM "EventBeer"
+          WHERE "userId" = ${userId}::uuid
+            AND "deletedAt" IS NULL
+          GROUP BY "eventId"
+        ) ub ON ub."eventId" = e.id
+        LEFT JOIN (
+          SELECT
+            "eventId",
+            COUNT(*)::bigint AS total_beers
+          FROM "EventBeer"
+          WHERE "deletedAt" IS NULL
+          GROUP BY "eventId"
+        ) tb ON tb."eventId" = e.id
+        WHERE eu."userId" = ${userId}::uuid
+        ORDER BY e."startDate" DESC
+        LIMIT 6
+      `,
+      this.prisma.$queryRaw<
+        Array<{
+          gamesPlayed: bigint;
+          gamesWon: bigint;
+          avgDurationSeconds: number | null;
+          beersFromBeerPong: bigint;
+        }>
+      >`
+        WITH user_games AS (
+          SELECT
+            g.id,
+            g."durationSeconds",
+            CASE
+              WHEN w.id IS NOT NULL AND (w."player1Id" = ${userId}::uuid OR w."player2Id" = ${userId}::uuid)
+                THEN true
+              ELSE false
+            END AS "userWon"
+          FROM "BeerPongGame" g
+          JOIN "BeerPongEvent" e ON e.id = g."beerPongEventId" AND e."deletedAt" IS NULL
+          LEFT JOIN "BeerPongTeam" t1 ON t1.id = g."team1Id"
+          LEFT JOIN "BeerPongTeam" t2 ON t2.id = g."team2Id"
+          LEFT JOIN "BeerPongTeam" w  ON w.id  = g."winnerTeamId"
+          WHERE
+            (t1."player1Id" = ${userId}::uuid OR t1."player2Id" = ${userId}::uuid OR
+             t2."player1Id" = ${userId}::uuid OR t2."player2Id" = ${userId}::uuid)
+        ),
+        beer_pong_beers AS (
+          SELECT COUNT(*)::bigint AS beers
+          FROM "BeerPongGameBeer" bgb
+          WHERE bgb."userId" = ${userId}::uuid
+        )
+        SELECT
+          (SELECT COUNT(*)::bigint FROM user_games) AS "gamesPlayed",
+          (SELECT COUNT(*)::bigint FROM user_games WHERE "userWon" = true) AS "gamesWon",
+          (SELECT AVG("durationSeconds") FROM user_games) AS "avgDurationSeconds",
+          (SELECT beers FROM beer_pong_beers) AS "beersFromBeerPong"
+      `,
+    ]);
+
+    const dailyPoints = daily.map((p) => {
+      const beers = Number(p.beers);
+      const eventBeers = Number(p.eventBeers);
+      return {
+        date: p.bucketUtc.toISOString(),
+        beers,
+        eventBeers,
+        totalBeers: beers + eventBeers,
+      };
+    });
+
+    const topEventDtos: UserDashboardTopEventDto[] = topEvents.map((e) => {
+      const userBeersN = Number(e.userBeers);
+      const totalBeersN = Number(e.totalEventBeers);
+      const share = totalBeersN > 0 ? (userBeersN / totalBeersN) * 100 : 0;
+      return {
+        eventId: e.eventId,
+        eventName: e.eventName,
+        startDate: e.startDate.toISOString(),
+        endDate: e.endDate ? e.endDate.toISOString() : null,
+        isActive: e.isActive,
+        userBeers: userBeersN,
+        totalEventBeers: totalBeersN,
+        sharePercent: share,
+        userSpilledBeers: Number(e.userSpilledBeers),
+      };
+    });
+
+    const pong = beerPongSummary?.[0];
+    const gamesPlayed = Number(pong?.gamesPlayed ?? 0);
+    const gamesWon = Number(pong?.gamesWon ?? 0);
+    const beersFromBeerPong = Number(pong?.beersFromBeerPong ?? 0);
+
+    return {
+      user: this.toUserDto(user),
+      totals: {
+        beers: globalBeers,
+        eventBeers,
+        participatedEvents,
+        totalBeers: globalBeers + eventBeers,
+      },
+      activeEvent: seriesEvent
+        ? {
+            id: seriesEvent.id,
+            name: seriesEvent.name,
+            startDate: seriesEvent.startDate.toISOString(),
+            endDate: seriesEvent.endDate
+              ? seriesEvent.endDate.toISOString()
+              : null,
+            isActive: seriesEvent.isActive,
+          }
+        : undefined,
+      daily: dailyPoints,
+      topEvents: topEventDtos,
+      beerPong: {
+        gamesPlayed,
+        gamesWon,
+        winRate: gamesPlayed > 0 ? gamesWon / gamesPlayed : 0,
+        beersFromBeerPong,
+        averageGameDurationSeconds: pong?.avgDurationSeconds ?? null,
+      },
+    };
+  }
+
+  async getUserDashboardEvents(
+    userId: string,
+  ): Promise<UserDashboardEventListDto> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.deletedAt)
+      throw new NotFoundException('Uživatel nebyl nalezen');
+
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        eventId: string;
+        eventName: string;
+        startDate: Date;
+        endDate: Date | null;
+        isActive: boolean;
+        userBeers: bigint;
+        userSpilledBeers: bigint;
+        totalEventBeers: bigint;
+        totalEventSpilledBeers: bigint;
+      }>
+    >`
+      SELECT
+        e.id AS "eventId",
+        e.name AS "eventName",
+        e."startDate",
+        e."endDate",
+        e."isActive",
+        COALESCE(ub.user_beers, 0)::bigint AS "userBeers",
+        COALESCE(ub.user_spilled, 0)::bigint AS "userSpilledBeers",
+        COALESCE(tb.total_beers, 0)::bigint AS "totalEventBeers",
+        COALESCE(tb.total_spilled, 0)::bigint AS "totalEventSpilledBeers"
+      FROM "EventUsers" eu
+      JOIN "Event" e ON e.id = eu."eventId" AND e."deletedAt" IS NULL
+      LEFT JOIN (
+        SELECT
+          "eventId",
+          COUNT(*)::bigint AS user_beers,
+          COUNT(*) FILTER (WHERE "spilled" = true)::bigint AS user_spilled
+        FROM "EventBeer"
+        WHERE "userId" = ${userId}::uuid
+          AND "deletedAt" IS NULL
+        GROUP BY "eventId"
+      ) ub ON ub."eventId" = e.id
+      LEFT JOIN (
+        SELECT
+          "eventId",
+          COUNT(*)::bigint AS total_beers,
+          COUNT(*) FILTER (WHERE "spilled" = true)::bigint AS total_spilled
+        FROM "EventBeer"
+        WHERE "deletedAt" IS NULL
+        GROUP BY "eventId"
+      ) tb ON tb."eventId" = e.id
+      WHERE eu."userId" = ${userId}::uuid
+      ORDER BY e."startDate" DESC
+    `;
+
+    const events: UserDashboardTopEventDto[] = rows.map((r) => {
+      const userBeersN = Number(r.userBeers);
+      const totalBeersN = Number(r.totalEventBeers);
+      return {
+        eventId: r.eventId,
+        eventName: r.eventName,
+        startDate: r.startDate.toISOString(),
+        endDate: r.endDate ? r.endDate.toISOString() : null,
+        isActive: r.isActive,
+        userBeers: userBeersN,
+        totalEventBeers: totalBeersN,
+        sharePercent: totalBeersN > 0 ? (userBeersN / totalBeersN) * 100 : 0,
+        userSpilledBeers: Number(r.userSpilledBeers),
+      };
+    });
+
+    return { user: this.toUserDto(user), events };
+  }
+
+  async getUserDashboardEventDetail(
+    userId: string,
+    eventId: string,
+  ): Promise<UserDashboardEventDetailDto> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.deletedAt)
+      throw new NotFoundException('Uživatel nebyl nalezen');
+
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+    if (!event || event.deletedAt)
+      throw new NotFoundException('Událost nebyla nalezena');
+
+    const participation = await this.prisma.eventUsers.findUnique({
+      where: { eventId_userId: { eventId, userId } },
+    });
+    if (!participation) {
+      throw new NotFoundException('Uživatel se této události neúčastnil');
+    }
+
+    const timezoneOffset = process.env.TIMEZONE_OFFSET || '+02:00';
+
+    const [summaryRow, hourlyRows] = await Promise.all([
+      this.prisma.$queryRaw<
+        Array<{
+          userBeers: bigint;
+          userSpilledBeers: bigint;
+          totalEventBeers: bigint;
+          totalEventSpilledBeers: bigint;
+        }>
+      >`
+        SELECT
+          COUNT(*) FILTER (WHERE eb."userId" = ${userId}::uuid)::bigint AS "userBeers",
+          COUNT(*) FILTER (WHERE eb."userId" = ${userId}::uuid AND eb."spilled" = true)::bigint AS "userSpilledBeers",
+          COUNT(*)::bigint AS "totalEventBeers",
+          COUNT(*) FILTER (WHERE eb."spilled" = true)::bigint AS "totalEventSpilledBeers"
+        FROM "EventBeer" eb
+        WHERE eb."eventId" = ${eventId}::uuid
+          AND eb."deletedAt" IS NULL
+      `,
+      this.prisma.$queryRaw<
+        Array<{
+          bucketUtc: Date;
+          count: bigint;
+          spilled: bigint;
+        }>
+      >`
+        WITH bounds AS (
+          SELECT
+            date_trunc('hour', (e."startDate" AT TIME ZONE ${timezoneOffset})) AS start_hour,
+            date_trunc('hour', (COALESCE(e."endDate", now()) AT TIME ZONE ${timezoneOffset})) AS end_hour
+          FROM "Event" e
+          WHERE e.id = ${eventId}::uuid
+        ),
+        hours AS (
+          SELECT generate_series(start_hour, end_hour, interval '1 hour') AS bucket_local
+          FROM bounds
+        ),
+        counts AS (
+          SELECT
+            date_trunc('hour', (eb."consumedAt" AT TIME ZONE ${timezoneOffset})) AS bucket_local,
+            COUNT(*) FILTER (WHERE eb."spilled" = false)::bigint AS count,
+            COUNT(*) FILTER (WHERE eb."spilled" = true)::bigint AS spilled
+          FROM "EventBeer" eb
+          WHERE eb."eventId" = ${eventId}::uuid
+            AND eb."userId" = ${userId}::uuid
+            AND eb."deletedAt" IS NULL
+          GROUP BY 1
+        )
+        SELECT
+          (h.bucket_local AT TIME ZONE ${timezoneOffset}) AS "bucketUtc",
+          COALESCE(c.count, 0)::bigint AS count,
+          COALESCE(c.spilled, 0)::bigint AS spilled
+        FROM hours h
+        LEFT JOIN counts c ON c.bucket_local = h.bucket_local
+        ORDER BY h.bucket_local ASC
+      `,
+    ]);
+
+    const summary = summaryRow?.[0];
+    const userBeersN = Number(summary?.userBeers ?? 0);
+    const totalBeersN = Number(summary?.totalEventBeers ?? 0);
+
+    const hourly: UserDashboardHourlyPointDto[] = (hourlyRows ?? []).map(
+      (r) => ({
+        bucketUtc: r.bucketUtc.toISOString(),
+        count: Number(r.count),
+        spilled: Number(r.spilled),
+      }),
+    );
+
+    return {
+      user: this.toUserDto(user),
+      event: {
+        id: event.id,
+        name: event.name,
+        startDate: event.startDate.toISOString(),
+        endDate: event.endDate ? event.endDate.toISOString() : null,
+        isActive: event.isActive,
+      },
+      summary: {
+        userBeers: userBeersN,
+        userSpilledBeers: Number(summary?.userSpilledBeers ?? 0),
+        totalEventBeers: totalBeersN,
+        totalEventSpilledBeers: Number(summary?.totalEventSpilledBeers ?? 0),
+        sharePercent: totalBeersN > 0 ? (userBeersN / totalBeersN) * 100 : 0,
+      },
+      hourly,
+    };
+  }
+
+  async getUserDashboardEventBeerPong(
+    userId: string,
+    eventId: string,
+  ): Promise<UserDashboardEventBeerPongDto> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.deletedAt)
+      throw new NotFoundException('Uživatel nebyl nalezen');
+
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+    if (!event || event.deletedAt)
+      throw new NotFoundException('Událost nebyla nalezena');
+
+    const participation = await this.prisma.eventUsers.findUnique({
+      where: { eventId_userId: { eventId, userId } },
+    });
+    if (!participation) {
+      throw new NotFoundException('Uživatel se této události neúčastnil');
+    }
+
+    const [tournaments, summaryRows, byRoundRows, beersFromRows] =
+      await Promise.all([
+        this.prisma.beerPongEvent.findMany({
+          where: { eventId, deletedAt: null },
+          select: {
+            id: true,
+            name: true,
+            status: true,
+            startedAt: true,
+            completedAt: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.$queryRaw<
+          Array<{
+            gamesPlayed: bigint;
+            gamesWon: bigint;
+            avgDurationSeconds: number | null;
+          }>
+        >`
+        WITH user_games AS (
+          SELECT
+            g.id,
+            g."durationSeconds",
+            CASE
+              WHEN w.id IS NOT NULL AND (w."player1Id" = ${userId}::uuid OR w."player2Id" = ${userId}::uuid)
+                THEN true
+              ELSE false
+            END AS "userWon"
+          FROM "BeerPongGame" g
+          JOIN "BeerPongEvent" e ON e.id = g."beerPongEventId"
+            AND e."eventId" = ${eventId}::uuid
+            AND e."deletedAt" IS NULL
+          LEFT JOIN "BeerPongTeam" t1 ON t1.id = g."team1Id"
+          LEFT JOIN "BeerPongTeam" t2 ON t2.id = g."team2Id"
+          LEFT JOIN "BeerPongTeam" w  ON w.id  = g."winnerTeamId"
+          WHERE
+            (t1."player1Id" = ${userId}::uuid OR t1."player2Id" = ${userId}::uuid OR
+             t2."player1Id" = ${userId}::uuid OR t2."player2Id" = ${userId}::uuid)
+        )
+        SELECT
+          COUNT(*)::bigint AS "gamesPlayed",
+          COUNT(*) FILTER (WHERE "userWon" = true)::bigint AS "gamesWon",
+          AVG("durationSeconds") AS "avgDurationSeconds"
+        FROM user_games
+      `,
+        this.prisma.$queryRaw<
+          Array<{ round: string; gamesPlayed: bigint; gamesWon: bigint }>
+        >`
+        WITH user_games AS (
+          SELECT
+            g.id,
+            g.round,
+            CASE
+              WHEN w.id IS NOT NULL AND (w."player1Id" = ${userId}::uuid OR w."player2Id" = ${userId}::uuid)
+                THEN true
+              ELSE false
+            END AS "userWon"
+          FROM "BeerPongGame" g
+          JOIN "BeerPongEvent" e ON e.id = g."beerPongEventId"
+            AND e."eventId" = ${eventId}::uuid
+            AND e."deletedAt" IS NULL
+          LEFT JOIN "BeerPongTeam" t1 ON t1.id = g."team1Id"
+          LEFT JOIN "BeerPongTeam" t2 ON t2.id = g."team2Id"
+          LEFT JOIN "BeerPongTeam" w  ON w.id  = g."winnerTeamId"
+          WHERE
+            (t1."player1Id" = ${userId}::uuid OR t1."player2Id" = ${userId}::uuid OR
+             t2."player1Id" = ${userId}::uuid OR t2."player2Id" = ${userId}::uuid)
+        )
+        SELECT
+          round::text AS round,
+          COUNT(*)::bigint AS "gamesPlayed",
+          COUNT(*) FILTER (WHERE "userWon" = true)::bigint AS "gamesWon"
+        FROM user_games
+        GROUP BY 1
+        ORDER BY 1
+      `,
+        this.prisma.$queryRaw<Array<{ beersFromBeerPong: bigint }>>`
+        SELECT COUNT(*)::bigint AS "beersFromBeerPong"
+        FROM "BeerPongGameBeer" bgb
+        JOIN "BeerPongGame" g ON g.id = bgb."beerPongGameId"
+        JOIN "BeerPongEvent" e ON e.id = g."beerPongEventId"
+        WHERE e."eventId" = ${eventId}::uuid
+          AND e."deletedAt" IS NULL
+          AND bgb."userId" = ${userId}::uuid
+      `,
+      ]);
+
+    const s = summaryRows?.[0];
+    const gamesPlayed = Number(s?.gamesPlayed ?? 0);
+    const gamesWon = Number(s?.gamesWon ?? 0);
+    const beersFromBeerPong = Number(
+      beersFromRows?.[0]?.beersFromBeerPong ?? 0,
+    );
+
+    const gamesByRound: UserDashboardBeerPongByRoundDto[] = (
+      byRoundRows ?? []
+    ).map((r) => ({
+      round: r.round,
+      gamesPlayed: Number(r.gamesPlayed),
+      gamesWon: Number(r.gamesWon),
+    }));
+
+    return {
+      user: this.toUserDto(user),
+      event: {
+        id: event.id,
+        name: event.name,
+        startDate: event.startDate.toISOString(),
+        endDate: event.endDate ? event.endDate.toISOString() : null,
+        isActive: event.isActive,
+      },
+      tournaments: tournaments.map((t) => ({
+        id: t.id,
+        name: t.name,
+        status: t.status,
+        startedAt: t.startedAt ? t.startedAt.toISOString() : null,
+        completedAt: t.completedAt ? t.completedAt.toISOString() : null,
+      })),
+      summary: {
+        gamesPlayed,
+        gamesWon,
+        winRate: gamesPlayed > 0 ? gamesWon / gamesPlayed : 0,
+        beersFromBeerPong,
+        averageGameDurationSeconds: s?.avgDurationSeconds ?? null,
+        gamesByRound,
+      },
+    };
+  }
 
   async getPublicStats(eventId?: string): Promise<PublicStatsDto> {
     if (eventId) {
@@ -373,8 +998,15 @@ export class DashboardService {
       orderBy: { _count: { id: 'desc' } },
     });
 
+    type LeaderboardUserRow = {
+      id: string;
+      username: string | null;
+      gender: 'MALE' | 'FEMALE';
+      profilePictureUrl: string | null;
+    };
+
     const userIds = eventBeerCounts.map((eb) => eb.userId);
-    const users = await this.prisma.user.findMany({
+    const usersRaw = await this.prisma.user.findMany({
       where: { id: { in: userIds } },
       select: {
         id: true,
@@ -384,7 +1016,16 @@ export class DashboardService {
       },
     });
 
-    const userMap = new Map(users.map((u) => [u.id, u]));
+    const users: LeaderboardUserRow[] = usersRaw.map((u) => ({
+      id: u.id,
+      username: u.username,
+      gender: u.gender as LeaderboardUserRow['gender'],
+      profilePictureUrl: u.profilePictureUrl ?? null,
+    }));
+
+    const userMap = new Map<string, LeaderboardUserRow>(
+      users.map((u) => [u.id, u]),
+    );
     const beerCountMap = new Map(
       eventBeerCounts.map((eb) => [eb.userId, eb._count.id]),
     );
@@ -397,7 +1038,12 @@ export class DashboardService {
       if (!userMap.has(userId)) {
         const eventUser = event.users.find((eu) => eu.userId === userId);
         if (eventUser) {
-          userMap.set(userId, eventUser.user);
+          userMap.set(userId, {
+            id: eventUser.user.id,
+            username: eventUser.user.username,
+            gender: eventUser.user.gender as LeaderboardUserRow['gender'],
+            profilePictureUrl: eventUser.user.profilePictureUrl ?? null,
+          });
         }
       }
     });
@@ -444,7 +1090,7 @@ export class DashboardService {
         username: user.username || '',
         gender: user.gender,
         beerCount: beerCountMap.get(userId) || 0,
-        profilePictureUrl: (user as any).profilePictureUrl || null,
+        profilePictureUrl: user.profilePictureUrl || null,
         reachedAt: getReachedAtTimestamp(userId, beerCountMap.get(userId) || 0),
       }))
       .sort((a, b) => {
@@ -482,12 +1128,16 @@ export class DashboardService {
     const males = allUsers.filter((u) => u.gender === 'MALE');
     const females = allUsers.filter((u) => u.gender === 'FEMALE');
 
-    const malesWithRanks = calculateRanks(males).map(
-      ({ reachedAt, ...user }) => user,
-    );
-    const femalesWithRanks = calculateRanks(females).map(
-      ({ reachedAt, ...user }) => user,
-    );
+    const malesWithRanks = calculateRanks(males).map((u) => {
+      const { reachedAt, ...rest } = u;
+      void reachedAt;
+      return rest;
+    });
+    const femalesWithRanks = calculateRanks(females).map((u) => {
+      const { reachedAt, ...rest } = u;
+      void reachedAt;
+      return rest;
+    });
 
     const result = {
       males: malesWithRanks,

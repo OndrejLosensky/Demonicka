@@ -64,7 +64,6 @@ export class EventsController {
 
   @Post('cleanup')
   cleanup(@CurrentUser() user: User): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     this.loggingService.logSystemOperationTriggered('EVENTS_CLEANUP', user?.id);
     return this.eventsService.cleanup();
   }

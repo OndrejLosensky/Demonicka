@@ -21,8 +21,14 @@ import { StatisticsPage } from './pages/Dashboard/System/StatisticsPage';
 import { OperationsPage } from './pages/Dashboard/System/OperationsPage';
 import { SettingsPage } from './pages/Dashboard/System/SettingsPage';
 import { Activity } from './pages/Dashboard/Activity';
-import { PersonalStatsView } from './pages/User/PersonalStats/PersonalStatsView';
 import { AchievementsPage } from './pages/User/Achievements';
+import { UserDashboardLayout } from './pages/User/Dashboard/UserDashboardLayout';
+import { UserDashboardOverview } from './pages/User/Dashboard/UserDashboardOverview';
+import { UserDashboardEvents } from './pages/User/Dashboard/UserDashboardEvents';
+import { UserDashboardEventLayout } from './pages/User/Dashboard/UserDashboardEventLayout';
+import { UserDashboardEventDetail } from './pages/User/Dashboard/UserDashboardEventDetail';
+import { UserDashboardEventBeerPong } from './pages/User/Dashboard/UserDashboardEventBeerPong';
+import { LegacyUserDashboardRedirect } from './pages/User/Dashboard/LegacyUserDashboardRedirect';
 import { BeerPongList } from './pages/BeerPong';
 import { BeerPongDetail } from './pages/BeerPong/BeerPongDetail';
 import Login from './pages/Auth/Login';
@@ -144,10 +150,25 @@ function App() {
               element={<Leaderboard />}
             />
             <Route
+              path="u/:username/dashboard"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
+                  <UserDashboardLayout />
+                </RoleRoute>
+              }
+            >
+              <Route index element={<UserDashboardOverview />} />
+              <Route path="events" element={<UserDashboardEvents />} />
+              <Route path="events/:id" element={<UserDashboardEventLayout />}>
+                <Route index element={<UserDashboardEventDetail />} />
+                <Route path="beer-pong" element={<UserDashboardEventBeerPong />} />
+              </Route>
+            </Route>
+            <Route
               path=":userId/dashboard"
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
-                  <PersonalStatsView />
+                  <LegacyUserDashboardRedirect />
                 </RoleRoute>
               }
             />

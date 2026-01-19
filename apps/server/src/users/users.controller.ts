@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  NotFoundException,
   // ForbiddenException,
   Query,
   ParseUUIDPipe,
@@ -101,6 +102,22 @@ export class UsersController {
   @Public()
   getUsernameFromToken(@Param('token') token: string) {
     return this.usersService.getUsernameFromToken(token);
+  }
+
+  @Get('by-username/:username')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER)
+  async getByUsername(@Param('username') username: string) {
+    const user = await this.usersService.findByUsername(username);
+    if (!user || user.deletedAt) {
+      throw new NotFoundException('Uživatel nebyl nalezen');
+    }
+    return {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      role: user.role,
+      profilePictureUrl: user.profilePictureUrl,
+    };
   }
 
   // 'me' routes must come before ':id' routes to avoid route conflicts

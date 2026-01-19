@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -13,7 +13,15 @@ import {
   IconButton,
   Tooltip,
   Badge,
+  Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { ProfilePictureUploadDialog } from '../../../components/ProfilePictureUploadDialog';
 import { UserAvatar } from '../../../components/UserAvatar';
 import {
@@ -25,6 +33,8 @@ import {
   Wc as GenderIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
+  TrendingUp as TrendingUpIcon,
+  Save as SaveIcon,
 } from '@mui/icons-material';
 import { FaBeer } from 'react-icons/fa';
 import { motion } from 'framer-motion';
@@ -38,10 +48,13 @@ import translations from '../../../locales/cs/profile.json';
 
 const ProfilePageComponent: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<User | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -83,6 +96,20 @@ const ProfilePageComponent: React.FC = () => {
 
   const displayData = profileData || user;
 
+  const [editName, setEditName] = useState<string>('');
+  const [editGender, setEditGender] = useState<'MALE' | 'FEMALE'>('MALE');
+
+  useEffect(() => {
+    if (!displayData) return;
+    setEditName(displayData.name ?? '');
+    setEditGender(displayData.gender);
+  }, [displayData?.id]); // reset when user changes
+
+  const dashboardUrl = useMemo(
+    () => `/u/${encodeURIComponent(displayData.username)}/dashboard`,
+    [displayData.username],
+  );
+
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'SUPER_ADMIN': return 'error';
@@ -95,6 +122,25 @@ const ProfilePageComponent: React.FC = () => {
 
   const getGenderIcon = (gender: string) => {
     return gender === 'MALE' ? '♂' : '♀';
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      const trimmedName = editName.trim();
+      const updated = await profileApi.updateProfile({
+        name: trimmedName.length ? trimmedName : undefined,
+        gender: editGender,
+      });
+      setProfileData(updated);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message || err?.message || 'Nepodařilo se uložit změny profilu.';
+      setSaveError(String(msg));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -174,11 +220,21 @@ const ProfilePageComponent: React.FC = () => {
                 </Box>
               </Box>
             </Box>
-            <Tooltip title="Obnovit data">
-              <IconButton onClick={handleRefresh} disabled={isRefreshing}>
-                <RefreshIcon className={isRefreshing ? 'animate-spin' : ''} />
-              </IconButton>
-            </Tooltip>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<TrendingUpIcon />}
+                onClick={() => navigate(dashboardUrl)}
+              >
+                Moje statistiky
+              </Button>
+              <Tooltip title="Obnovit data">
+                <IconButton onClick={handleRefresh} disabled={isRefreshing}>
+                  <RefreshIcon className={isRefreshing ? 'animate-spin' : ''} />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Box>
 
           <Divider className="my-4" />
@@ -269,6 +325,51 @@ const ProfilePageComponent: React.FC = () => {
               />
             </ListItem>
           </List>
+        </Paper>
+
+        <Paper className="p-6 rounded-xl shadow-lg mb-6">
+          <Typography variant="h6" className="font-bold text-text-primary" sx={{ mb: 2 }}>
+            Upravit profil
+          </Typography>
+
+          {saveError && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setSaveError(null)}>
+              {saveError}
+            </Alert>
+          )}
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+            <TextField
+              label={translations.basicInfo.fullName}
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              fullWidth
+            />
+
+            <FormControl fullWidth>
+              <InputLabel id="gender-label">{translations.basicInfo.gender}</InputLabel>
+              <Select
+                labelId="gender-label"
+                label={translations.basicInfo.gender}
+                value={editGender}
+                onChange={(e) => setEditGender(e.target.value as 'MALE' | 'FEMALE')}
+              >
+                <MenuItem value="MALE">{translations.gender.MALE}</MenuItem>
+                <MenuItem value="FEMALE">{translations.gender.FEMALE}</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<SaveIcon />}
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? 'Ukládám...' : 'Uložit'}
+            </Button>
+          </Box>
         </Paper>
       </Box>
 

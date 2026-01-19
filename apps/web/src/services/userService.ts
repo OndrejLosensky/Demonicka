@@ -14,6 +14,11 @@ export const userService = {
     return response.data;
   },
 
+  async getByUsername(username: string): Promise<Pick<User, 'id' | 'username' | 'name' | 'role' | 'profilePictureUrl'>> {
+    const response = await api.get(`/users/by-username/${encodeURIComponent(username)}`);
+    return response.data;
+  },
+
   async createUser(user: { name: string; gender: 'MALE' | 'FEMALE' }): Promise<User> {
     const response = await api.post('/users', user);
     return response.data;

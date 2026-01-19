@@ -36,7 +36,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
     '/dashboard/activity',
   ]);
   const isActive = (path: string) => {
-    if (includeSubRoutes.has(path)) {
+    if (includeSubRoutes.has(path) || path.startsWith('/u/')) {
       return location.pathname === path || location.pathname.startsWith(`${path}/`);
     }
     return location.pathname === path;
@@ -71,8 +71,10 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
     }
 
     if (user?.role === USER_ROLE.USER) {
+      const base = `/u/${encodeURIComponent(user.username)}/dashboard`;
       items.push(
-        { to: `/${user?.id}/dashboard`, label: 'Moje statistiky' },
+        { to: base, label: 'Moje statistiky' },
+        { to: `${base}/events`, label: 'Události' },
         { to: '/achievements', label: 'Úspěchy' }
       );
     }

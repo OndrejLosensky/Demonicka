@@ -1,4 +1,12 @@
-import { Controller, Get, UseGuards, Header, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Header,
+  Query,
+  Param,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { DashboardResponseDto } from './dto/dashboard.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -14,6 +22,12 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole, User } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { HourlyStatsDto } from './dto/personal-stats.dto';
+import type {
+  UserDashboardEventBeerPongDto,
+  UserDashboardEventDetailDto,
+  UserDashboardEventListDto,
+  UserDashboardOverviewDto,
+} from './dto/user-dashboard.dto';
 
 @Controller('dashboard')
 @Versions('1')
@@ -71,5 +85,69 @@ export class DashboardController {
     @Query('date') date?: string,
   ): Promise<HourlyStatsDto[]> {
     return this.dashboardService.getEventHourlyStats(eventId, date);
+  }
+
+  @Get('user/overview')
+  @UseGuards(JwtAuthGuard)
+  @Header('Cache-Control', 'no-store')
+  async getUserOverview(
+    @CurrentUser() user: User,
+    @Query('username') username?: string,
+  ): Promise<UserDashboardOverviewDto> {
+    const target = await this.dashboardService.resolveDashboardTargetUser(
+      username,
+      user,
+    );
+    return this.dashboardService.getUserDashboardOverview(target.id);
+  }
+
+  @Get('user/events')
+  @UseGuards(JwtAuthGuard)
+  @Header('Cache-Control', 'no-store')
+  async getUserEvents(
+    @CurrentUser() user: User,
+    @Query('username') username?: string,
+  ): Promise<UserDashboardEventListDto> {
+    const target = await this.dashboardService.resolveDashboardTargetUser(
+      username,
+      user,
+    );
+    return this.dashboardService.getUserDashboardEvents(target.id);
+  }
+
+  @Get('user/events/:eventId')
+  @UseGuards(JwtAuthGuard)
+  @Header('Cache-Control', 'no-store')
+  async getUserEventDetail(
+    @CurrentUser() user: User,
+    @Param('eventId', ParseUUIDPipe) eventId: string,
+    @Query('username') username?: string,
+  ): Promise<UserDashboardEventDetailDto> {
+    const target = await this.dashboardService.resolveDashboardTargetUser(
+      username,
+      user,
+    );
+    return this.dashboardService.getUserDashboardEventDetail(
+      target.id,
+      eventId,
+    );
+  }
+
+  @Get('user/events/:eventId/beer-pong')
+  @UseGuards(JwtAuthGuard)
+  @Header('Cache-Control', 'no-store')
+  async getUserEventBeerPong(
+    @CurrentUser() user: User,
+    @Param('eventId', ParseUUIDPipe) eventId: string,
+    @Query('username') username?: string,
+  ): Promise<UserDashboardEventBeerPongDto> {
+    const target = await this.dashboardService.resolveDashboardTargetUser(
+      username,
+      user,
+    );
+    return this.dashboardService.getUserDashboardEventBeerPong(
+      target.id,
+      eventId,
+    );
   }
 }

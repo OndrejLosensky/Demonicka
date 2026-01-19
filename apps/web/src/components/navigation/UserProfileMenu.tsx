@@ -37,7 +37,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
 
   const handlePersonalStatsClick = () => {
     onClose();
-    navigate(`/${user.id}/dashboard`);
+    navigate(`/u/${encodeURIComponent(user.username)}/dashboard`);
   };
 
   const handleAchievementsClick = () => {
@@ -110,7 +110,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
           }}
         />
       </MenuItem>
-      {hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]) && (
+      {hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]) && (
         <>
           <MenuItem onClick={handlePersonalStatsClick} sx={{ py: 1, px: 2 }}>
             <ListItemIcon>

@@ -466,7 +466,9 @@ export class AchievementsService {
     let id = baseId;
 
     for (let suffix = 2; suffix < 50; suffix++) {
-      const existing = await this.prisma.achievement.findUnique({ where: { id } });
+      const existing = await this.prisma.achievement.findUnique({
+        where: { id },
+      });
       if (!existing) break;
       id = `${baseId}-${suffix}`;
     }
