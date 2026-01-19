@@ -23,7 +23,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
   const handleProfileClick = () => {
     onClose();
     if (hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER])) {
-      navigate('/profile');
+      navigate(`/u/${encodeURIComponent(user.id)}/profile`);
     } else {
       navigate('/');
     }

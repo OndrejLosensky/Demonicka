@@ -22,6 +22,13 @@ export const dashboardRouteMeta: RouteObject[] = [
     path: 'u',
     children: [
       {
+        path: ':userId/profile',
+        handle: {
+          crumb: translations.auth.profile,
+          title: translations.auth.profile,
+        } satisfies DashboardChromeHandle,
+      },
+      {
         path: ':username',
         handle: {
           crumb: (p) => p.username ?? 'Uživatel',
@@ -166,13 +173,6 @@ export const dashboardRouteMeta: RouteObject[] = [
       crumb: translations.navigation.leaderboard,
       title: translations.navigation.leaderboard,
       hideChrome: true,
-    } satisfies DashboardChromeHandle,
-  },
-  {
-    path: 'profile',
-    handle: {
-      crumb: translations.auth.profile,
-      title: translations.auth.profile,
     } satisfies DashboardChromeHandle,
   },
   {

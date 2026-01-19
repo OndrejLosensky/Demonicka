@@ -21,7 +21,7 @@ import {
   MenuItem,
   Alert,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { ProfilePictureUploadDialog } from '../../../components/ProfilePictureUploadDialog';
 import { UserAvatar } from '../../../components/UserAvatar';
 import {
@@ -49,12 +49,31 @@ import translations from '../../../locales/cs/profile.json';
 const ProfilePageComponent: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { userId } = useParams<{ userId: string }>();
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<User | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  const [editName, setEditName] = useState<string>('');
+  const [editGender, setEditGender] = useState<'MALE' | 'FEMALE'>('MALE');
+
+  const displayData = profileData || user;
+
+  useEffect(() => {
+    if (!displayData) return;
+    setEditName(displayData.name ?? '');
+    setEditGender(displayData.gender);
+  }, [displayData?.id]); // reset when user changes
+
+  const dashboardUrl = useMemo(() => {
+    const u = displayData;
+    const username = u?.username;
+    if (!username) return '/';
+    return `/u/${encodeURIComponent(username)}/dashboard`;
+  }, [displayData?.username]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -94,21 +113,11 @@ const ProfilePageComponent: React.FC = () => {
     return null; // withPageLoader will handle loading state
   }
 
-  const displayData = profileData || user;
-
-  const [editName, setEditName] = useState<string>('');
-  const [editGender, setEditGender] = useState<'MALE' | 'FEMALE'>('MALE');
-
-  useEffect(() => {
-    if (!displayData) return;
-    setEditName(displayData.name ?? '');
-    setEditGender(displayData.gender);
-  }, [displayData?.id]); // reset when user changes
-
-  const dashboardUrl = useMemo(
-    () => `/u/${encodeURIComponent(displayData.username)}/dashboard`,
-    [displayData.username],
-  );
+  // Ensure canonical route always uses the current user id.
+  // (Profile API is /users/me, so we don't support viewing others here.)
+  if (userId && userId !== user.id) {
+    return <Navigate to={`/u/${encodeURIComponent(user.id)}/profile`} replace />;
+  }
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -147,9 +156,8 @@ const ProfilePageComponent: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6"
     >
-      <Box maxWidth="lg" mx="auto">
+      <Box>
         {/* Profile Header */}
         <Paper className="p-6 rounded-xl shadow-lg mb-6">
           <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={4}>

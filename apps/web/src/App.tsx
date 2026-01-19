@@ -138,7 +138,7 @@ function App() {
               }
             />
             <Route
-              path="profile"
+              path="u/:userId/profile"
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
                   <ProfilePage />
