@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -53,9 +53,9 @@ export function BeerPongList() {
     }
   };
 
-  const handleCreateTournament = () => {
+  const handleCreateTournament = useCallback(() => {
     setCreateDialogOpen(true);
-  };
+  }, []);
 
   const handleTournamentClick = (id: string) => {
     navigate(`/dashboard/beer-pong/${id}`);
@@ -87,8 +87,8 @@ export function BeerPongList() {
     }
   };
 
-  useDashboardHeaderSlots({
-    action: (
+  const headerAction = useMemo(
+    () => (
       <Button
         variant="contained"
         startIcon={<AddIcon />}
@@ -97,7 +97,9 @@ export function BeerPongList() {
         {translations.list.createButton}
       </Button>
     ),
-  });
+    [handleCreateTournament, translations.list.createButton],
+  );
+  useDashboardHeaderSlots({ action: headerAction });
 
   if (!activeEvent) {
     return (

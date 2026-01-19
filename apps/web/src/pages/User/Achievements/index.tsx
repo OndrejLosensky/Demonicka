@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Card, Button, Grid, MetricCard } from '@demonicka/ui';
 import { useToast } from '../../../hooks/useToast';
 import { achievementsService } from '../../../services/achievementsService';
@@ -56,7 +56,7 @@ export const AchievementsPage: React.FC = () => {
     loadAchievements();
   }, [loadAchievements]);
 
-  const checkAchievements = async () => {
+  const checkAchievements = useCallback(async () => {
     try {
       await achievementsService.checkAchievements();
       await loadAchievements(); // Reload to get updated data
@@ -65,15 +65,18 @@ export const AchievementsPage: React.FC = () => {
       console.error('Failed to check achievements:', error);
       toast.error('Failed to check achievements');
     }
-  };
+  }, [loadAchievements, toast]);
 
-  useDashboardHeaderSlots({
-    action: achievements ? (
-      <Button variant="contained" color="primary" onClick={checkAchievements}>
-        Zkontrolovat úspěchy
-      </Button>
-    ) : undefined,
-  });
+  const headerAction = useMemo(
+    () =>
+      achievements ? (
+        <Button variant="contained" color="primary" onClick={checkAchievements}>
+          Zkontrolovat úspěchy
+        </Button>
+      ) : undefined,
+    [achievements, checkAchievements],
+  );
+  useDashboardHeaderSlots({ action: headerAction });
 
   if (isLoading) {
     return (

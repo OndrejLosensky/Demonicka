@@ -26,6 +26,32 @@ export const dashboardRouteMeta: RouteObject[] = [
     } satisfies DashboardChromeHandle,
     children: [
       {
+        path: 'events',
+        handle: {
+          crumb: translations.navigation.events,
+          title: translations.navigation.events,
+        } satisfies DashboardChromeHandle,
+        children: [
+          {
+            path: ':id',
+            handle: {
+              crumb: (p) => p.id ?? 'Událost',
+              title: (p) => p.id ?? 'Událost',
+              dynamic: 'event',
+            } satisfies DashboardChromeHandle,
+            children: [
+              {
+                path: 'results',
+                handle: {
+                  crumb: 'Výsledky',
+                  title: 'Výsledky',
+                } satisfies DashboardChromeHandle,
+              },
+            ],
+          },
+        ],
+      },
+      {
         path: 'participants',
         handle: {
           crumb: translations.navigation.participants,
@@ -82,33 +108,6 @@ export const dashboardRouteMeta: RouteObject[] = [
           crumb: 'Dokumentace',
           title: 'Dokumentace',
         } satisfies DashboardChromeHandle,
-      },
-    ],
-  },
-  // Non-/dashboard paths that are still under DashboardLayout (see App.tsx)
-  {
-    path: 'events',
-    handle: {
-      crumb: translations.navigation.events,
-      title: translations.navigation.events,
-    } satisfies DashboardChromeHandle,
-    children: [
-      {
-        path: ':id',
-        handle: {
-          crumb: (p) => p.id ?? 'Událost',
-          title: (p) => p.id ?? 'Událost',
-          dynamic: 'event',
-        } satisfies DashboardChromeHandle,
-        children: [
-          {
-            path: 'results',
-            handle: {
-              crumb: 'Výsledky',
-              title: 'Výsledky',
-            } satisfies DashboardChromeHandle,
-          },
-        ],
       },
     ],
   },

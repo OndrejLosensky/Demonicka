@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -50,19 +50,19 @@ const UsersPage: React.FC = () => {
     };
   }, [users, deletedUsers, showDeleted]);
 
-  const confirmCleanup = async () => {
+  const confirmCleanup = useCallback(async () => {
     if (window.confirm(translations.dialogs.cleanupAll.message)) {
       await handleCleanup();
     }
-  };
+  }, [handleCleanup, translations.dialogs.cleanupAll.message]);
 
-  if (isLoading) {
-    return null; // withPageLoader will handle loading state
-  }
+  const headerLeft = useMemo(
+    () => (showEventHistory && activeEvent ? <EventSelector /> : undefined),
+    [showEventHistory, activeEvent?.id],
+  );
 
-  useDashboardHeaderSlots({
-    left: showEventHistory && activeEvent ? <EventSelector /> : undefined,
-    action: (
+  const headerAction = useMemo(
+    () => (
       <Box>
         {showDeletedFeature && (
           <FormControlLabel
@@ -94,7 +94,17 @@ const UsersPage: React.FC = () => {
         </Button>
       </Box>
     ),
+    [showDeletedFeature, showDeleted, confirmCleanup, translations.actions.addUser, translations.actions.cleanupAll, translations.actions.showDeleted],
+  );
+
+  useDashboardHeaderSlots({
+    left: headerLeft,
+    action: headerAction,
   });
+
+  if (isLoading) {
+    return null; // withPageLoader will handle loading state
+  }
 
   return (
     <Box>

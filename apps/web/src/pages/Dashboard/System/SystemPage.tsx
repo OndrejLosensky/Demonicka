@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -83,6 +83,40 @@ const SystemPage: React.FC = () => {
     };
   }, [loadStats]);
 
+  const headerAction = useMemo(
+    () => (
+      <Box display="flex" gap={2}>
+        <Button 
+          variant="contained" 
+          startIcon={<SettingsIcon />}
+          onClick={() => navigate('/dashboard/system/roles')}
+        >
+          Role a oprávnění
+        </Button>
+        <Button 
+          variant="contained" 
+          startIcon={<FlagIcon />}
+          onClick={() => navigate('/dashboard/system/feature-flags')}
+        >
+          Funkce
+        </Button>
+        <Button 
+          variant="outlined" 
+          startIcon={<RefreshIcon />}
+          onClick={() => loadStats(false)}
+          disabled={isRefreshing}
+        >
+          {translations.refresh}
+        </Button>
+      </Box>
+    ),
+    [navigate, loadStats, isRefreshing],
+  );
+
+  useDashboardHeaderSlots({
+    action: headerAction,
+  });
+
   const handleGenerateToken = async (userId: string) => {
     try {
       setGeneratingTokenFor(userId);
@@ -122,35 +156,6 @@ const SystemPage: React.FC = () => {
       </Box>
     );
   }
-
-  useDashboardHeaderSlots({
-    action: (
-      <Box display="flex" gap={2}>
-        <Button 
-          variant="contained" 
-          startIcon={<SettingsIcon />}
-          onClick={() => navigate('/dashboard/system/roles')}
-        >
-          Role a oprávnění
-        </Button>
-        <Button 
-          variant="contained" 
-          startIcon={<FlagIcon />}
-          onClick={() => navigate('/dashboard/system/feature-flags')}
-        >
-          Funkce
-        </Button>
-        <Button 
-          variant="outlined" 
-          startIcon={<RefreshIcon />}
-          onClick={() => loadStats(false)}
-          disabled={isRefreshing}
-        >
-          {translations.refresh}
-        </Button>
-      </Box>
-    ),
-  });
 
   return (
     <Box>

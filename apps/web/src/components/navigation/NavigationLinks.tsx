@@ -114,7 +114,7 @@ export function NavigationLinks() {
       if (aIsActive !== bIsActive) return aIsActive ? -1 : 1;
       return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
     });
-    return sorted.map((e) => ({ key: e.id, label: e.name, to: `/events/${e.id}` }));
+    return sorted.map((e) => ({ key: e.id, label: e.name, to: `/dashboard/events/${e.id}` }));
   }, [events, activeEvent?.id]);
 
   const beerPongItems = useMemo(
@@ -137,7 +137,7 @@ export function NavigationLinks() {
     children: React.ReactNode;
   }) => {
     const active = isActive(to, {
-      includeSubRoutes: to === '/events' || to === '/dashboard/beer-pong',
+      includeSubRoutes: to === '/dashboard/events' || to === '/dashboard/beer-pong',
     });
     return (
       <Box
@@ -165,7 +165,7 @@ export function NavigationLinks() {
     const [open, setOpen] = useState(false);
     const hasItems = items.length > 0;
     const active = isActive(to, {
-      includeSubRoutes: to === '/events' || to === '/dashboard/beer-pong',
+      includeSubRoutes: to === '/dashboard/events' || to === '/dashboard/beer-pong',
     });
 
     return (
@@ -279,7 +279,7 @@ export function NavigationLinks() {
       )}
       {canSeeAdminNav && (
         <>
-          <DropdownNavLink to="/events" icon={<EventIcon sx={{ fontSize: 18 }} />} items={eventItems}>
+          <DropdownNavLink to="/dashboard/events" icon={<EventIcon sx={{ fontSize: 18 }} />} items={eventItems}>
             {translations.navigation.events}
           </DropdownNavLink>
           {activeEvent && (

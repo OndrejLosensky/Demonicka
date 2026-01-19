@@ -30,7 +30,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
   }, []);
 
   const includeSubRoutes = new Set<string>([
-    '/events',
+    '/dashboard/events',
     '/dashboard/system',
     '/dashboard/beer-pong',
     '/dashboard/activity',
@@ -50,7 +50,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
     if (hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR])) {
       items.push(
         { to: '/dashboard', label: translations.navigation.dashboard },
-        { to: '/events', label: translations.navigation.events }
+        { to: '/dashboard/events', label: translations.navigation.events }
       );
 
       if (activeEvent) {

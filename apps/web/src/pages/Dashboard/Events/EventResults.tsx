@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Container,
@@ -39,6 +39,28 @@ export const EventResults: React.FC = () => {
     const [event, setEvent] = useState<Event | null>(null);
     const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    const headerAction = useMemo(
+        () => (
+            <Button
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate(`/dashboard/events/${id}`)}
+                sx={{ 
+                    color: 'text.secondary',
+                    textTransform: 'none',
+                    minWidth: 'auto',
+                    px: 1,
+                }}
+            >
+                Zpět
+            </Button>
+        ),
+        [navigate, id],
+    );
+
+    useDashboardHeaderSlots({
+        action: headerAction,
+    });
 
     const loadEventData = useCallback(async () => {
         if (!id) return;
@@ -235,23 +257,6 @@ export const EventResults: React.FC = () => {
             </Paper>
         );
     };
-
-    useDashboardHeaderSlots({
-        action: (
-            <Button
-                startIcon={<ArrowBackIcon />}
-                onClick={() => navigate(`/events/${id}`)}
-                sx={{ 
-                    color: 'text.secondary',
-                    textTransform: 'none',
-                    minWidth: 'auto',
-                    px: 1,
-                }}
-            >
-                Zpět
-            </Button>
-        ),
-    });
 
     return (
         <Box sx={{ p: 0 }}>

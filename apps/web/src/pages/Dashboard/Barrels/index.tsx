@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Typography,
@@ -70,55 +70,73 @@ const BarrelsPage: React.FC = () => {
     }
   };
 
-  useDashboardHeaderSlots({
-    left: showEventHistory && activeEvent ? <EventSelector /> : undefined,
-    action: activeEvent ? (
-      <Box display="flex" alignItems="center" gap={2}>
-        <ToggleButtonGroup
-          value={viewMode}
-          exclusive
-          onChange={(_, newMode) => newMode && setViewMode(newMode)}
-          size="small"
-        >
-          <ToggleButton value="list">
-            <ViewListIcon />
-          </ToggleButton>
-          <ToggleButton value="split">
-            <ViewModuleIcon />
-          </ToggleButton>
-        </ToggleButtonGroup>
-        {showDeletedFeature && (
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showDeleted}
-                onChange={(e) => setShowDeleted(e.target.checked)}
-              />
-            }
-            label={translations.actions.showDeleted}
-          />
-        )}
-        <Button
-          variant="contained"
-          color="error"
-          startIcon={<AddIcon />}
-          onClick={() => setDialogOpen(true)}
-        >
-          {translations.actions.addBarrel}
-        </Button>
-        {showCleanupFeature && (
+  const headerLeft = useMemo(
+    () => (showEventHistory && activeEvent ? <EventSelector /> : undefined),
+    [showEventHistory, activeEvent?.id],
+  );
+
+  const headerAction = useMemo(
+    () =>
+      activeEvent ? (
+        <Box display="flex" alignItems="center" gap={2}>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={(_, newMode) => newMode && setViewMode(newMode)}
+            size="small"
+          >
+            <ToggleButton value="list">
+              <ViewListIcon />
+            </ToggleButton>
+            <ToggleButton value="split">
+              <ViewModuleIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
+          {showDeletedFeature && (
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showDeleted}
+                  onChange={(e) => setShowDeleted(e.target.checked)}
+                />
+              }
+              label={translations.actions.showDeleted}
+            />
+          )}
           <Button
             variant="contained"
             color="error"
-            startIcon={<DeleteIcon />}
-            onClick={confirmCleanup}
+            startIcon={<AddIcon />}
+            onClick={() => setDialogOpen(true)}
           >
-            {translations.actions.cleanupAll}
+            {translations.actions.addBarrel}
           </Button>
-        )}
-      </Box>
-    ) : undefined,
-  });
+          {showCleanupFeature && (
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={confirmCleanup}
+            >
+              {translations.actions.cleanupAll}
+            </Button>
+          )}
+        </Box>
+      ) : undefined,
+    [
+      activeEvent?.id,
+      viewMode,
+      showDeletedFeature,
+      showDeleted,
+      showCleanupFeature,
+      confirmCleanup,
+      translations.actions.showDeleted,
+      translations.actions.addBarrel,
+      translations.actions.cleanupAll,
+    ],
+  );
+
+  useDashboardHeaderSlots({ left: headerLeft, action: headerAction });
 
   if (!activeEvent) {
     return (

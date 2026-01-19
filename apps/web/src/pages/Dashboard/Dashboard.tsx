@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
     Container,
     Typography,
@@ -68,9 +68,11 @@ export const Dashboard: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [useCustomDate, setUseCustomDate] = useState(false);
 
-    useDashboardHeaderSlots({
-        left: showEventHistory ? <EventSelector /> : undefined,
-    });
+    const headerLeft = useMemo(
+        () => (showEventHistory ? <EventSelector /> : undefined),
+        [showEventHistory],
+    );
+    useDashboardHeaderSlots({ left: headerLeft });
 
     const loadData = useCallback(async () => {
         try {

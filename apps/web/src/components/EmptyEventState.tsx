@@ -35,7 +35,7 @@ export const EmptyEventState: React.FC<EmptyEventStateProps> = ({
         variant="contained"
         color="primary"
         startIcon={<AddIcon />}
-        onClick={() => navigate('/events')}
+        onClick={() => navigate('/dashboard/events')}
         size="large"
       >
         {translations.noActiveEvent.createButton}

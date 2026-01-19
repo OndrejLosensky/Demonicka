@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Container,
@@ -212,7 +212,7 @@ export const EventDetail: React.FC = () => {
             setIsDeleting(true);
             await eventService.deleteEvent(id);
             toast.success('Událost byla úspěšně smazána');
-            navigate('/events');
+            navigate('/dashboard/events');
         } catch (error: any) {
             console.error('Failed to delete event:', error);
             toast.error(error.response?.data?.message || 'Nepodařilo se smazat událost');
@@ -262,7 +262,7 @@ export const EventDetail: React.FC = () => {
             await eventService.endEvent(id);
             
             // Navigate to results page
-            navigate(`/events/${id}/results`);
+            navigate(`/dashboard/events/${id}/results`);
             
             toast.success('Událost byla úspěšně ukončena a vyhodnocena');
             
@@ -308,38 +308,29 @@ export const EventDetail: React.FC = () => {
         }
     };
 
-    if (!event) {
-        return (
-            <Container>
-                <Box sx={{ width: '100%', mt: 4 }}>
-                    <LinearProgress />
-                </Box>
-            </Container>
-        );
-    }
+    const headerLeft = useMemo(
+        () =>
+            event?.isActive ? (
+                <Chip
+                    label="Aktivní"
+                    size="small"
+                    color="success"
+                    sx={{
+                        fontWeight: 600,
+                        height: 24,
+                    }}
+                />
+            ) : undefined,
+        [event?.isActive],
+    );
 
-    const totalBeers = Object.values(eventBeerCounts).reduce((sum, count) => sum + count, 0);
-    const averageBeersPerUser = users.length ? Number((totalBeers / users.length).toFixed(1)) : 0;
-    useAppTheme();
-
-    useDashboardHeaderSlots({
-        left: event?.isActive ? (
-            <Chip
-                label="Aktivní"
-                size="small"
-                color="success"
-                sx={{
-                    fontWeight: 600,
-                    height: 24,
-                }}
-            />
-        ) : undefined,
-        action: event ? (
+    const headerAction = useMemo(
+        () => (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Button
                     startIcon={<ArrowBackIcon />}
-                    onClick={() => navigate('/events')}
-                    sx={{ 
+                    onClick={() => navigate('/dashboard/events')}
+                    sx={{
                         color: 'text.secondary',
                         textTransform: 'none',
                         minWidth: 'auto',
@@ -375,17 +366,18 @@ export const EventDetail: React.FC = () => {
                     </Button>
                 )}
                 <Button
-                    variant={event.isActive ? 'outlined' : 'contained'}
-                    color={event.isActive ? 'error' : 'primary'}
-                    startIcon={event.isActive ? undefined : <AddIcon />}
-                    onClick={event.isActive ? handleDeactivate : handleSetActive}
+                    variant={event?.isActive ? 'outlined' : 'contained'}
+                    color={event?.isActive ? 'error' : 'primary'}
+                    startIcon={event?.isActive ? undefined : <AddIcon />}
+                    onClick={event?.isActive ? handleDeactivate : handleSetActive}
                     sx={{
                         borderRadius: tokens.borderRadius.md,
                     }}
+                    disabled={!event}
                 >
-                    {event.isActive ? 'Deaktivovat' : 'Aktivovat'}
+                    {event?.isActive ? 'Deaktivovat' : 'Aktivovat'}
                 </Button>
-                {event.isActive && (
+                {event?.isActive && (
                     <Button
                         variant="contained"
                         color="primary"
@@ -399,11 +391,39 @@ export const EventDetail: React.FC = () => {
                     </Button>
                 )}
             </Box>
-        ) : undefined,
+        ),
+        [
+            navigate,
+            event?.isActive,
+            isExportingExcel,
+            hasPermission,
+            handleExportEventDetailExcel,
+            handleDeactivate,
+            handleSetActive,
+            handleEvaluateEvent,
+        ],
+    );
+
+    useDashboardHeaderSlots({
+        left: headerLeft,
+        action: headerAction,
     });
 
+    if (!event) {
+        return (
+            <Container>
+                <Box sx={{ width: '100%', mt: 4 }}>
+                    <LinearProgress />
+                </Box>
+            </Container>
+        );
+    }
+
+    const totalBeers = Object.values(eventBeerCounts).reduce((sum, count) => sum + count, 0);
+    const averageBeersPerUser = users.length ? Number((totalBeers / users.length).toFixed(1)) : 0;
+
     return (
-        <Box sx={{ p: 0 }}>
+            <Box sx={{ p: 0 }}>
             {/* Content Section */}
             <Box 
                 sx={{ 

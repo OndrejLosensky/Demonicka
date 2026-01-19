@@ -61,45 +61,60 @@ const ParticipantsPage: React.FC = () => {
     fetchParticipants();
   }, [activeEvent?.id, activeEvent?.updatedAt, fetchParticipants]);
 
-  useDashboardHeaderSlots({
-    left: showEventHistory && activeEvent ? <EventSelector /> : undefined,
-    action: activeEvent ? (
-      <Box display="flex" alignItems="center" gap={2}>
-        <ToggleButtonGroup
-          value={viewMode}
-          exclusive
-          onChange={(_, newMode) => newMode && setViewMode(newMode)}
-          size="small"
-        >
-          <ToggleButton value="combined">
-            <ViewListIcon />
-          </ToggleButton>
-          <ToggleButton value="split">
-            <ViewModuleIcon />
-          </ToggleButton>
-        </ToggleButtonGroup>
-        {showDeletedFeature && (
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showDeleted}
-                onChange={(e) => setShowDeleted(e.target.checked)}
-              />
-            }
-            label={translations.actions.showDeleted}
-          />
-        )}
-        <Button
-          variant="contained"
-          color="error"
-          startIcon={<AddIcon />}
-          onClick={() => setDialogOpen(true)}
-        >
-          {translations.actions.addParticipant}
-        </Button>
-      </Box>
-    ) : undefined,
-  });
+  const headerLeft = useMemo(
+    () => (showEventHistory && activeEvent ? <EventSelector /> : undefined),
+    [showEventHistory, activeEvent?.id],
+  );
+
+  const headerAction = useMemo(
+    () =>
+      activeEvent ? (
+        <Box display="flex" alignItems="center" gap={2}>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={(_, newMode) => newMode && setViewMode(newMode)}
+            size="small"
+          >
+            <ToggleButton value="combined">
+              <ViewListIcon />
+            </ToggleButton>
+            <ToggleButton value="split">
+              <ViewModuleIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
+          {showDeletedFeature && (
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showDeleted}
+                  onChange={(e) => setShowDeleted(e.target.checked)}
+                />
+              }
+              label={translations.actions.showDeleted}
+            />
+          )}
+          <Button
+            variant="contained"
+            color="error"
+            startIcon={<AddIcon />}
+            onClick={() => setDialogOpen(true)}
+          >
+            {translations.actions.addParticipant}
+          </Button>
+        </Box>
+      ) : undefined,
+    [
+      activeEvent?.id,
+      viewMode,
+      showDeletedFeature,
+      showDeleted,
+      translations.actions.showDeleted,
+      translations.actions.addParticipant,
+    ],
+  );
+
+  useDashboardHeaderSlots({ left: headerLeft, action: headerAction });
 
   if (!activeEvent) {
     return (

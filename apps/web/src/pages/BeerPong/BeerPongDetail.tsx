@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -223,14 +223,19 @@ export function BeerPongDetail() {
       tournament.status !== 'ACTIVE',
   );
 
-  useDashboardHeaderSlots({
-    left: tournament ? (
-      <Chip
-        label={getStatusLabel(tournament.status)}
-        color={getStatusColor(tournament.status)}
-      />
-    ) : undefined,
-    action: (
+  const headerLeft = useMemo(
+    () =>
+      tournament ? (
+        <Chip
+          label={getStatusLabel(tournament.status)}
+          color={getStatusColor(tournament.status)}
+        />
+      ) : undefined,
+    [tournament?.status],
+  );
+
+  const headerAction = useMemo(
+    () => (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <IconButton onClick={() => navigate('/dashboard/beer-pong')}>
           <ArrowBackIcon />
@@ -267,7 +272,17 @@ export function BeerPongDetail() {
         )}
       </Box>
     ),
-  });
+    [
+      navigate,
+      canDeleteTournament,
+      canStart,
+      canComplete,
+      translations.detail.actions.startTournament,
+      translations.detail.actions.completeTournament,
+    ],
+  );
+
+  useDashboardHeaderSlots({ left: headerLeft, action: headerAction });
 
   if (loading) {
     return (

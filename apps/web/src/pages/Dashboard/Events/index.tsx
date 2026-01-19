@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { 
     Button, 
     Grid, 
@@ -105,8 +105,8 @@ export const Events: React.FC = () => {
         }
     };
 
-    useDashboardHeaderSlots({
-      action: (
+    const headerAction = useMemo(
+      () => (
         <Box display="flex" gap={2}>
           <Button 
             variant="contained" 
@@ -128,7 +128,9 @@ export const Events: React.FC = () => {
           </Button>
         </Box>
       ),
-    });
+      [navigate],
+    );
+    useDashboardHeaderSlots({ action: headerAction });
 
     if (isLoading) {
         return <PageLoader message="Načítání událostí..." />;
@@ -145,7 +147,7 @@ export const Events: React.FC = () => {
                         return (
                             <Grid item xs={12} md={6} lg={4} key={event.id}>
                                 <Paper 
-                                    onClick={() => navigate(`/events/${event.id}`)}
+                                    onClick={() => navigate(`/dashboard/events/${event.id}`)}
                                     sx={{ 
                                         borderRadius: 1,
                                         overflow: 'hidden',

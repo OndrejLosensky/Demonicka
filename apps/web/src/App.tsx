@@ -84,7 +84,7 @@ function App() {
               }
             />
             <Route
-              path="events"
+              path="dashboard/events"
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
                   <Events />
@@ -92,7 +92,7 @@ function App() {
               }
             />
             <Route
-              path="events/:id"
+              path="dashboard/events/:id"
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
                   <EventDetail />
@@ -100,7 +100,7 @@ function App() {
               }
             />
             <Route
-              path="events/:id/results"
+              path="dashboard/events/:id/results"
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
                   <EventResults />
