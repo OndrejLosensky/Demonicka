@@ -37,6 +37,15 @@ export class UserAchievementsResponseDto {
   totalCount: number;
 }
 
+export class GlobalAchievementDto extends UserAchievementDto {
+  globalCompletionPercent: number;
+}
+
+export class GlobalAchievementsResponseDto {
+  achievements: GlobalAchievementDto[];
+  totalUsers: number;
+}
+
 export class CreateAchievementDto {
   name: string;
   description?: string;

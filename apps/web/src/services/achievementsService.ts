@@ -1,6 +1,7 @@
 import { api } from './api';
 import type {
   UserAchievementsResponse,
+  GlobalAchievementsResponse,
   Achievement,
   CreateAchievementRequest,
   UpdateAchievementRequest,
@@ -14,6 +15,11 @@ export const achievementsService = {
 
   async checkAchievements(): Promise<void> {
     await api.get('/achievements/check');
+  },
+
+  async getGlobalAchievements(): Promise<GlobalAchievementsResponse> {
+    const response = await api.get('/achievements/global');
+    return response.data;
   },
 
   // Admin methods

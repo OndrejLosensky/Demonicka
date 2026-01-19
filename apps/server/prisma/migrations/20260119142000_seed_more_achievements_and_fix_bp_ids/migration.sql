@@ -1,0 +1,433 @@
+-- Clean up achievement icons (remove emoji-based icons)
+UPDATE "Achievement" SET "icon" = NULL WHERE "icon" IS NOT NULL;
+
+-- Remove previously seeded Beer Pong achievements with UUID ids
+DELETE FROM "Achievement"
+WHERE "id" IN (
+  'b2b6f6f2-2d1a-4e53-8b51-7e8a3f2b5a01',
+  'b2b6f6f2-2d1a-4e53-8b51-7e8a3f2b5a02',
+  'b2b6f6f2-2d1a-4e53-8b51-7e8a3f2b5a03',
+  'b2b6f6f2-2d1a-4e53-8b51-7e8a3f2b5a04',
+  'b2b6f6f2-2d1a-4e53-8b51-7e8a3f2b5a05',
+  'b2b6f6f2-2d1a-4e53-8b51-7e8a3f2b5a06',
+  'b2b6f6f2-2d1a-4e53-8b51-7e8a3f2b5a07',
+  'b2b6f6f2-2d1a-4e53-8b51-7e8a3f2b5a08',
+  'b2b6f6f2-2d1a-4e53-8b51-7e8a3f2b5a09'
+);
+
+-- Seed Beer Pong achievements with slug-style IDs (idempotent)
+INSERT INTO "Achievement" (
+  "id",
+  "name",
+  "description",
+  "type",
+  "category",
+  "targetValue",
+  "points",
+  "icon",
+  "isActive",
+  "isRepeatable",
+  "maxCompletions",
+  "createdAt",
+  "updatedAt",
+  "deletedAt"
+)
+VALUES
+  -- Games played
+  (
+    'beer-pong-played-1',
+    'První hra (Beer Pong)',
+    'Odehraj 1 hru beer pongu.',
+    'BEER_PONG_GAMES_PLAYED',
+    'BEGINNER',
+    1,
+    50,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+  (
+    'beer-pong-played-10',
+    'Zahráno 10 her (Beer Pong)',
+    'Odehraj 10 her beer pongu.',
+    'BEER_PONG_GAMES_PLAYED',
+    'INTERMEDIATE',
+    10,
+    150,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+  (
+    'beer-pong-played-50',
+    'Zahráno 50 her (Beer Pong)',
+    'Odehraj 50 her beer pongu.',
+    'BEER_PONG_GAMES_PLAYED',
+    'ADVANCED',
+    50,
+    300,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+
+  -- Games won
+  (
+    'beer-pong-won-1',
+    'První výhra (Beer Pong)',
+    'Vyhraj 1 hru beer pongu.',
+    'BEER_PONG_GAMES_WON',
+    'BEGINNER',
+    1,
+    75,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+  (
+    'beer-pong-won-10',
+    '10 výher (Beer Pong)',
+    'Vyhraj 10 her beer pongu.',
+    'BEER_PONG_GAMES_WON',
+    'INTERMEDIATE',
+    10,
+    200,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+  (
+    'beer-pong-won-25',
+    '25 výher (Beer Pong)',
+    'Vyhraj 25 her beer pongu.',
+    'BEER_PONG_GAMES_WON',
+    'EXPERT',
+    25,
+    450,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+
+  -- Finals won
+  (
+    'beer-pong-finals-won-1',
+    'Vítěz finále (Beer Pong)',
+    'Vyhraj 1 finále beer pongu.',
+    'BEER_PONG_FINALS_WON',
+    'ADVANCED',
+    1,
+    250,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+  (
+    'beer-pong-finals-won-3',
+    '3 vítězství ve finále (Beer Pong)',
+    'Vyhraj 3 finále beer pongu.',
+    'BEER_PONG_FINALS_WON',
+    'EXPERT',
+    3,
+    500,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+  (
+    'beer-pong-finals-won-10',
+    '10 vítězství ve finále (Beer Pong)',
+    'Vyhraj 10 finále beer pongu.',
+    'BEER_PONG_FINALS_WON',
+    'LEGENDARY',
+    10,
+    800,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  )
+ON CONFLICT ("id") DO UPDATE SET
+  "name" = EXCLUDED."name",
+  "description" = EXCLUDED."description",
+  "type" = EXCLUDED."type",
+  "category" = EXCLUDED."category",
+  "targetValue" = EXCLUDED."targetValue",
+  "points" = EXCLUDED."points",
+  "icon" = NULL,
+  "isActive" = EXCLUDED."isActive",
+  "isRepeatable" = EXCLUDED."isRepeatable",
+  "maxCompletions" = EXCLUDED."maxCompletions",
+  "updatedAt" = NOW(),
+  "deletedAt" = NULL;
+
+-- Seed 12 additional generic achievements (idempotent)
+INSERT INTO "Achievement" (
+  "id",
+  "name",
+  "description",
+  "type",
+  "category",
+  "targetValue",
+  "points",
+  "icon",
+  "isActive",
+  "isRepeatable",
+  "maxCompletions",
+  "createdAt",
+  "updatedAt",
+  "deletedAt"
+)
+VALUES
+  -- TOTAL_BEERS (harder)
+  (
+    'beers-250',
+    'Dvě stě padesát',
+    'Vypij 250 piv.',
+    'TOTAL_BEERS',
+    'EXPERT',
+    250,
+    350,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+  (
+    'beers-500',
+    'Pět set',
+    'Vypij 500 piv.',
+    'TOTAL_BEERS',
+    'LEGENDARY',
+    500,
+    800,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+
+  -- BEERS_IN_EVENT
+  (
+    'event-beers-50',
+    'Eventový boss',
+    'Vypij 50 piv na jedné akci.',
+    'BEERS_IN_EVENT',
+    'ADVANCED',
+    50,
+    350,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+  (
+    'event-beers-75',
+    'Eventová legenda',
+    'Vypij 75 piv na jedné akci.',
+    'BEERS_IN_EVENT',
+    'LEGENDARY',
+    75,
+    700,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+
+  -- BEERS_IN_HOUR
+  (
+    'hour-beers-8',
+    'Téměř blesk',
+    'Vypij 8 piv za hodinu.',
+    'BEERS_IN_HOUR',
+    'ADVANCED',
+    8,
+    400,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+  (
+    'hour-beers-10',
+    'Blesk',
+    'Vypij 10 piv za hodinu.',
+    'BEERS_IN_HOUR',
+    'LEGENDARY',
+    10,
+    900,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+
+  -- EVENTS_PARTICIPATED
+  (
+    'events-25',
+    'Štamgast',
+    'Zúčastni se 25 akcí.',
+    'EVENTS_PARTICIPATED',
+    'ADVANCED',
+    25,
+    350,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+  (
+    'events-50',
+    'Inventář',
+    'Zúčastni se 50 akcí.',
+    'EVENTS_PARTICIPATED',
+    'LEGENDARY',
+    50,
+    800,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+
+  -- EVENT_WIN
+  (
+    'event-wins-3',
+    'Trojitý vítěz',
+    'Vyhraj 3 akce.',
+    'EVENT_WIN',
+    'INTERMEDIATE',
+    3,
+    250,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+  (
+    'event-wins-10',
+    'Nezastavitelný',
+    'Vyhraj 10 akcí.',
+    'EVENT_WIN',
+    'LEGENDARY',
+    10,
+    1000,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+
+  -- CONSECUTIVE_DAYS
+  (
+    'consecutive-days-14',
+    'Dvou týdenní série',
+    'Pij 14 dní po sobě.',
+    'CONSECUTIVE_DAYS',
+    'EXPERT',
+    14,
+    600,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  ),
+  (
+    'consecutive-days-30',
+    'Měsíční série',
+    'Pij 30 dní po sobě.',
+    'CONSECUTIVE_DAYS',
+    'LEGENDARY',
+    30,
+    1500,
+    NULL,
+    true,
+    false,
+    1,
+    NOW(),
+    NOW(),
+    NULL
+  )
+ON CONFLICT ("id") DO UPDATE SET
+  "name" = EXCLUDED."name",
+  "description" = EXCLUDED."description",
+  "type" = EXCLUDED."type",
+  "category" = EXCLUDED."category",
+  "targetValue" = EXCLUDED."targetValue",
+  "points" = EXCLUDED."points",
+  "icon" = NULL,
+  "isActive" = EXCLUDED."isActive",
+  "isRepeatable" = EXCLUDED."isRepeatable",
+  "maxCompletions" = EXCLUDED."maxCompletions",
+  "updatedAt" = NOW(),
+  "deletedAt" = NULL;
+

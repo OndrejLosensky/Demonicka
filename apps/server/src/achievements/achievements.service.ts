@@ -1,10 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Achievement, AchievementType, UserAchievement } from '@prisma/client';
+import {
+  Achievement,
+  AchievementType,
+  BeerPongGameStatus,
+  BeerPongRound,
+  UserAchievement,
+} from '@prisma/client';
 import {
   AchievementDto,
   UserAchievementDto,
   UserAchievementsResponseDto,
+  GlobalAchievementsResponseDto,
   CreateAchievementDto,
   UpdateAchievementDto,
 } from './dto/achievement.dto';
@@ -15,6 +22,16 @@ export class AchievementsService {
   private readonly logger = new Logger(AchievementsService.name);
 
   constructor(private prisma: PrismaService) {}
+
+  private toSlug(value: string): string {
+    return value
+      .trim()
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
 
   async getUserAchievements(
     userId: string,
@@ -45,6 +62,66 @@ export class AchievementsService {
       completedCount,
       totalCount,
     };
+  }
+
+  async getGlobalAchievements(
+    userId: string,
+  ): Promise<GlobalAchievementsResponseDto> {
+    // Ensure the requesting user's progress is initialized/up-to-date.
+    await this.checkAndUpdateAchievements(userId);
+
+    const activeAchievementIds = await this.prisma.achievement.findMany({
+      where: { isActive: true, deletedAt: null },
+      select: { id: true },
+    });
+    const achievementIds = activeAchievementIds.map((a) => a.id);
+
+    const [userAchievements, totalUsers, completedByAchievement] =
+      await Promise.all([
+        this.prisma.userAchievement.findMany({
+          where: {
+            userId,
+            deletedAt: null,
+            achievementId: { in: achievementIds },
+          },
+          include: { achievement: true },
+          orderBy: { createdAt: 'asc' },
+        }),
+        this.prisma.user.count({ where: { deletedAt: null } }),
+        this.prisma.userAchievement.groupBy({
+          by: ['achievementId'],
+          where: {
+            deletedAt: null,
+            achievementId: { in: achievementIds },
+            OR: [{ isCompleted: true }, { completionCount: { gt: 0 } }],
+          },
+          _count: { _all: true },
+        }),
+      ]);
+
+    const completionMap = new Map<string, number>(
+      completedByAchievement.map((row) => [row.achievementId, row._count._all]),
+    );
+
+    const achievements = userAchievements
+      .map((ua) => {
+        const completedCount = completionMap.get(ua.achievementId) ?? 0;
+        const percent =
+          totalUsers > 0 ? (completedCount / totalUsers) * 100 : 0;
+
+        return {
+          ...this.mapToUserAchievementDto(ua),
+          globalCompletionPercent: Math.round(percent * 10) / 10,
+        };
+      })
+      .sort((a, b) => {
+        if (a.globalCompletionPercent !== b.globalCompletionPercent) {
+          return b.globalCompletionPercent - a.globalCompletionPercent;
+        }
+        return a.achievement.name.localeCompare(b.achievement.name);
+      });
+
+    return { achievements, totalUsers };
   }
 
   async checkAndUpdateAchievements(userId: string): Promise<void> {
@@ -153,6 +230,15 @@ export class AchievementsService {
 
       case AchievementType.CONSECUTIVE_DAYS:
         return await this.calculateConsecutiveDays(userId);
+
+      case AchievementType.BEER_PONG_GAMES_PLAYED:
+        return await this.calculateBeerPongGamesPlayed(userId);
+
+      case AchievementType.BEER_PONG_GAMES_WON:
+        return await this.calculateBeerPongGamesWon(userId);
+
+      case AchievementType.BEER_PONG_FINALS_WON:
+        return await this.calculateBeerPongFinalsWon(userId);
 
       default:
         return 0;
@@ -297,6 +383,49 @@ export class AchievementsService {
     return maxConsecutive;
   }
 
+  private async calculateBeerPongGamesPlayed(userId: string): Promise<number> {
+    return this.prisma.beerPongGame.count({
+      where: {
+        status: BeerPongGameStatus.COMPLETED,
+        OR: [
+          {
+            team1: {
+              OR: [{ player1Id: userId }, { player2Id: userId }],
+            },
+          },
+          {
+            team2: {
+              OR: [{ player1Id: userId }, { player2Id: userId }],
+            },
+          },
+        ],
+      },
+    });
+  }
+
+  private async calculateBeerPongGamesWon(userId: string): Promise<number> {
+    return this.prisma.beerPongGame.count({
+      where: {
+        status: BeerPongGameStatus.COMPLETED,
+        winnerTeam: {
+          OR: [{ player1Id: userId }, { player2Id: userId }],
+        },
+      },
+    });
+  }
+
+  private async calculateBeerPongFinalsWon(userId: string): Promise<number> {
+    return this.prisma.beerPongGame.count({
+      where: {
+        status: BeerPongGameStatus.COMPLETED,
+        round: BeerPongRound.FINAL,
+        winnerTeam: {
+          OR: [{ player1Id: userId }, { player2Id: userId }],
+        },
+      },
+    });
+  }
+
   private mapToUserAchievementDto(
     userAchievement: UserAchievement & { achievement: Achievement },
   ): UserAchievementDto {
@@ -333,10 +462,19 @@ export class AchievementsService {
   async createAchievement(
     createDto: CreateAchievementDto,
   ): Promise<AchievementDto> {
+    const baseId = this.toSlug(createDto.name);
+    let id = baseId;
+
+    for (let suffix = 2; suffix < 50; suffix++) {
+      const existing = await this.prisma.achievement.findUnique({ where: { id } });
+      if (!existing) break;
+      id = `${baseId}-${suffix}`;
+    }
+
     const saved = await this.prisma.achievement.create({
       data: {
         ...createDto,
-        id: createDto.name.toLowerCase().replace(/\s+/g, '-'), // Generate ID from name
+        id,
       },
     });
     return this.mapToAchievementDto(saved);

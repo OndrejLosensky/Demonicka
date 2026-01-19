@@ -37,6 +37,9 @@ enum AchievementType {
   CONSECUTIVE_DAYS
   FIRST_BEER
   MILESTONE
+  BEER_PONG_GAMES_PLAYED
+  BEER_PONG_GAMES_WON
+  BEER_PONG_FINALS_WON
 }
 
 enum AchievementCategory {
@@ -251,7 +254,7 @@ model EventBeer {
 }
 
 model Achievement {
-  id             String              @id @default(uuid()) @db.Uuid
+  id             String              @id
   name           String
   description    String?
   type           AchievementType
@@ -273,7 +276,7 @@ model Achievement {
 model UserAchievement {
   id                 String    @id @default(uuid()) @db.Uuid
   userId             String    @db.Uuid
-  achievementId      String    @db.Uuid
+  achievementId      String
   progress           Int       @default(0)
   isCompleted        Boolean   @default(false)
   completedAt        DateTime? @db.Timestamptz(6)

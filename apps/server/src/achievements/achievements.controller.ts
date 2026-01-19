@@ -11,6 +11,7 @@ import {
 import { AchievementsService } from './achievements.service';
 import {
   UserAchievementsResponseDto,
+  GlobalAchievementsResponseDto,
   CreateAchievementDto,
   UpdateAchievementDto,
   AchievementDto,
@@ -41,6 +42,14 @@ export class AchievementsController {
   @UseGuards(JwtAuthGuard)
   async checkAchievements(@CurrentUser() user: User): Promise<void> {
     await this.achievementsService.checkAndUpdateAchievements(user.id);
+  }
+
+  @Get('global')
+  @UseGuards(JwtAuthGuard)
+  async getGlobalAchievements(
+    @CurrentUser() user: User,
+  ): Promise<GlobalAchievementsResponseDto> {
+    return this.achievementsService.getGlobalAchievements(user.id);
   }
 
   // Admin endpoints

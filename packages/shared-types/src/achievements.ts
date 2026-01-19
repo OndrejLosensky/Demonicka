@@ -7,6 +7,9 @@ export enum AchievementType {
   CONSECUTIVE_DAYS = 'CONSECUTIVE_DAYS',
   FIRST_BEER = 'FIRST_BEER',
   MILESTONE = 'MILESTONE',
+  BEER_PONG_GAMES_PLAYED = 'BEER_PONG_GAMES_PLAYED',
+  BEER_PONG_GAMES_WON = 'BEER_PONG_GAMES_WON',
+  BEER_PONG_FINALS_WON = 'BEER_PONG_FINALS_WON',
 }
 
 export enum AchievementCategory {
@@ -52,6 +55,16 @@ export interface UserAchievementsResponse {
   totalPoints: number;
   completedCount: number;
   totalCount: number;
+}
+
+export interface GlobalAchievement extends UserAchievement {
+  /** Steam-like rarity % across all non-deleted users. */
+  globalCompletionPercent: number;
+}
+
+export interface GlobalAchievementsResponse {
+  achievements: GlobalAchievement[];
+  totalUsers: number;
 }
 
 export interface CreateAchievementRequest {
