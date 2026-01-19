@@ -13,9 +13,8 @@ export function UserDashboardLayout() {
   return (
     <Box
       sx={{
-        maxWidth: '1280px',
-        mx: 'auto',
-        px: { xs: 2, md: 3 },
+        // Let the app shell (Header main container) control horizontal padding.
+        width: '100%',
         pb: 4,
       }}
     >

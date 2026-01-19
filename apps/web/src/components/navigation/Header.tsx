@@ -7,6 +7,7 @@ import { TopRow } from './TopRow';
 import { BottomRow } from './BottomRow';
 import { tokens } from '../../theme/tokens';
 import { getShadow, getDividerColor, getBackgroundWithOpacity } from '../../theme/utils';
+import { AppContainer } from '../layout/AppContainer';
 
 export default function Header() {
   const { mode } = useAppTheme();
@@ -34,17 +35,10 @@ export default function Header() {
             transition: tokens.transitions.slow,
           }}
         >
-          <Box
-            sx={{
-              maxWidth: tokens.maxWidth.container,
-              mx: 'auto',
-              width: '100%',
-              px: { xs: 2, sm: 3, md: 4 },
-            }}
-          >
+          <AppContainer>
             <TopRow />
             <BottomRow />
-          </Box>
+          </AppContainer>
         </motion.nav>
       )}
 
@@ -53,7 +47,8 @@ export default function Header() {
         sx={{
           pt: isHeaderVisible ? { xs: 12, md: 18 } : 0,
           minHeight: '100vh',
-          ...(isLandingPage ? {} : { maxWidth: tokens.maxWidth.container, mx: 'auto', px: { xs: 2, sm: 3, md: 4 }, py: 3 }),
+          // Keep main full-width; dashboard pages control their own container spacing.
+          ...(isLandingPage ? {} : { width: '100%' }),
         }}
       >
         <Outlet />

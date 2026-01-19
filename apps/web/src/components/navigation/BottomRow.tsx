@@ -21,14 +21,10 @@ export function BottomRow() {
       }}
     >
       {/* Left: Navigation Links */}
-      <Box sx={{ pl: 3 }}>
-        <NavigationLinks />
-      </Box>
+      <NavigationLinks />
 
       {/* Right: System Links (SUPER_ADMIN only) */}
-      <Box sx={{ pr: 3 }}>
-        <SystemLinks />
-      </Box>
+      <SystemLinks />
     </Box>
   );
 }

@@ -29,12 +29,10 @@ export function TopRow() {
         }}
       >
         {/* Left: Logo */}
-        <Box sx={{ pl: 3 }}>
-          <Logo />
-        </Box>
+        <Logo />
 
         {/* Right: Time/Event, Theme, Notifications, User */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pr: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {/* Active Event Display (Time + Event) */}
           <ActiveEventDisplay />
 
