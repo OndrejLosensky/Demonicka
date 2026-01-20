@@ -11,6 +11,7 @@ import {
   UserStatsDto,
   BarrelStatsDto,
 } from './dto/dashboard.dto';
+import { BarrelPredictionService } from '../barrel-prediction/barrel-prediction.service';
 import { LeaderboardDto } from './dto/leaderboard.dto';
 import { PublicStatsDto } from './dto/public-stats.dto';
 import { SystemStatsDto } from './dto/system-stats.dto';
@@ -39,7 +40,10 @@ export class DashboardService {
   private cachedStats: SystemStatsDto | null = null;
   private readonly CACHE_TTL = 30000; // 30 seconds in milliseconds
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly barrelPredictionService: BarrelPredictionService,
+  ) {}
 
   private toUserDto(user: User): UserDashboardUserDto {
     if (!user.username) {
@@ -874,6 +878,17 @@ export class DashboardService {
         count,
       }));
 
+      let barrelPrediction: DashboardResponseDto['barrelPrediction'] | undefined =
+        undefined;
+      try {
+        barrelPrediction = await this.barrelPredictionService.getForEvent(eventId);
+      } catch (error) {
+        this.logger.warn('Failed to compute barrel prediction', {
+          eventId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+
       return {
         totalBeers,
         totalUsers,
@@ -881,6 +896,7 @@ export class DashboardService {
         averageBeersPerUser,
         topUsers,
         barrelStats: formattedBarrelStats,
+        barrelPrediction,
       };
     } else {
       // Global stats

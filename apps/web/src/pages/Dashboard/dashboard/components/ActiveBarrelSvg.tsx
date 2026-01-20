@@ -1,13 +1,30 @@
 import { Box, Typography } from '@demonicka/ui';
 import { Card } from '@mui/material';
-import type { Barrel } from '@demonicka/shared-types';
+import type { Barrel, BarrelPrediction } from '@demonicka/shared-types';
 import { tokens } from '../../../../theme/tokens';
 
 type Props = {
   barrel?: Barrel;
+  prediction?: BarrelPrediction;
 };
 
-export function ActiveBarrelSvg({ barrel }: Props) {
+function formatEta(asOfIso: string, emptyAtIso: string): { relative: string; absolute: string } {
+  const asOf = new Date(asOfIso).getTime();
+  const emptyAt = new Date(emptyAtIso).getTime();
+  const diffMs = Math.max(0, emptyAt - asOf);
+  const totalMinutes = Math.round(diffMs / 60000);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  const relative = h > 0 ? `${h} h ${m} min` : `${m} min`;
+  const d = new Date(emptyAtIso);
+  const absolute = `${d.getHours().toString().padStart(2, '0')}:${d
+    .getMinutes()
+    .toString()
+    .padStart(2, '0')}`;
+  return { relative, absolute };
+}
+
+export function ActiveBarrelSvg({ barrel, prediction }: Props) {
   if (!barrel) {
     return (
       <Card sx={{ borderRadius: tokens.borderRadius.md }}>
@@ -51,6 +68,18 @@ export function ActiveBarrelSvg({ barrel }: Props) {
   const fillY = innerY + (innerH - fillH);
 
   const pctLabel = total > 0 ? `${Math.round(pct * 100)}%` : '—';
+  const effectivePrediction =
+    prediction && prediction.barrel.id === barrel.id ? prediction : undefined;
+
+  const currentEta = effectivePrediction?.eta?.emptyAtByCurrent
+    ? formatEta(effectivePrediction.asOf, effectivePrediction.eta.emptyAtByCurrent)
+    : null;
+  const historicalEta = effectivePrediction?.eta?.emptyAtByHistorical
+    ? formatEta(
+        effectivePrediction.asOf,
+        effectivePrediction.eta.emptyAtByHistorical,
+      )
+    : null;
 
   return (
     <Card sx={{ borderRadius: tokens.borderRadius.md }}>
@@ -155,6 +184,32 @@ export function ActiveBarrelSvg({ barrel }: Props) {
               z {total} piv
             </text>
           </svg>
+        </Box>
+
+        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Bude prázdný za:
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 800 }}>
+              {currentEta
+                ? `${currentEta.relative} (${currentEta.absolute})`
+                : effectivePrediction?.status === 'warming_up'
+                  ? 'Sbírám data…'
+                  : '—'}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Bude prázdný za (historicky):
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 800 }}>
+              {historicalEta
+                ? `${historicalEta.relative} (${historicalEta.absolute})`
+                : '—'}
+            </Typography>
+          </Box>
         </Box>
       </Box>
     </Card>

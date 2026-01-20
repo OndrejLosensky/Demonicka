@@ -54,7 +54,10 @@ export const Dashboard: React.FC = () => {
           </Grid>
           <Grid item xs={12} lg={4}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, height: '100%' }}>
-              <ActiveBarrelSvg barrel={dash.activeBarrel} />
+              <ActiveBarrelSvg
+                barrel={dash.activeBarrel}
+                prediction={dash.dashboardStats.barrelPrediction}
+              />
               <DashboardInsights
                 eventStartedAtLabel={dash.kpis.eventStartedAtLabel}
                 peakHourLabel={dash.insights.peakHourLabel}
