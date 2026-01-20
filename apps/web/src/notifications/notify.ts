@@ -34,11 +34,25 @@ function baseStyle(kind: NotifyKind): React.CSSProperties {
 
 function normalizeErrorMessage(err: unknown): string {
   // Axios shape: err.response?.data?.message
-  const anyErr = err as any;
-  const msg =
-    anyErr?.response?.data?.message ??
-    anyErr?.message ??
-    (typeof anyErr === 'string' ? anyErr : undefined);
+  let msg: unknown;
+
+  if (typeof err === 'object' && err !== null) {
+    const e = err as Record<string, unknown>;
+    const response = e.response;
+    if (typeof response === 'object' && response !== null) {
+      const r = response as Record<string, unknown>;
+      const data = r.data;
+      if (typeof data === 'object' && data !== null) {
+        const d = data as Record<string, unknown>;
+        msg = d.message;
+      }
+    }
+
+    if (msg == null) msg = e.message;
+  } else if (typeof err === 'string') {
+    msg = err;
+  }
+
   return typeof msg === 'string' && msg.trim().length ? msg : 'Něco se pokazilo';
 }
 
