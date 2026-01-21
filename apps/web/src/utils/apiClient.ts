@@ -9,6 +9,8 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Default timeout for all requests (can be overridden per request)
+  timeout: 30000, // 30 seconds default
 });
 
 let isRefreshing = false;
@@ -31,7 +33,7 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-    }
+    }  
     return config;
   },
   (error) => {

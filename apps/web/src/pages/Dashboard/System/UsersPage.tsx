@@ -25,9 +25,11 @@ import {
   RestoreFromTrash as RestoreIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  CloudUpload as CloudUploadIcon,
 } from '@mui/icons-material';
 import { systemService, type SystemStats } from '../../../services/systemService';
 import { userService } from '../../../services/userService';
+import { backupService } from '../../../services/backupService';
 import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/system.json';
 import { MetricCard } from '@demonicka/ui';
@@ -70,6 +72,7 @@ const UsersPage: React.FC = () => {
     username: string | null;
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRunningBackup, setIsRunningBackup] = useState(false);
 
   const copyToClipboard = useCallback(
     async (value: string, successMessage: string) => {
@@ -191,6 +194,19 @@ const UsersPage: React.FC = () => {
     }
   };
 
+  const handleRunBackup = async () => {
+    try {
+      setIsRunningBackup(true);
+      const res = await backupService.run();
+      toast.success(`${translations.toasts.backupCompleted}: ${res.fileName}`);
+    } catch (error) {
+      console.error('Failed to run backup:', error);
+      toast.error(translations.toasts.backupFailed);
+    } finally {
+      setIsRunningBackup(false);
+    }
+  };
+
   const loadDeletedUsers = useCallback(async () => {
     try {
       setIsDeletedUsersLoading(true);
@@ -259,6 +275,16 @@ const UsersPage: React.FC = () => {
           Uživatelé
         </Typography>
         <Box display="flex" alignItems="center" gap={2}>
+          <Button
+            variant="outlined"
+            startIcon={<CloudUploadIcon />}
+            onClick={handleRunBackup}
+            disabled={isRunningBackup}
+          >
+            {isRunningBackup
+              ? translations.backup.running
+              : translations.backup.runButton}
+          </Button>
           {canShowDeletedUsers && (
             <FormControlLabel
               control={

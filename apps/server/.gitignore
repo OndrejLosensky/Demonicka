@@ -74,3 +74,6 @@ data/database.sqlite
 # Uploads
 # No need to commit uploads to git, it should stay local
 /uploads
+
+# Data, backups, etc.
+/data

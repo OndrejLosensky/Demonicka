@@ -22,6 +22,23 @@ export function httpLoggingMiddleware(
     const start = process.hrtime.bigint();
 
     const path = String(req.originalUrl || req.url || '').split('?')[0];
+    
+    // Log incoming requests for backup endpoint to debug hanging issues
+    if (path.includes('/backup')) {
+      console.log(`[HTTP MIDDLEWARE] Incoming ${req.method} request to ${path}`);
+      console.log(`[HTTP MIDDLEWARE] Origin: ${req.headers.origin}`);
+      console.log(`[HTTP MIDDLEWARE] Auth: ${req.headers.authorization ? 'present' : 'missing'}`);
+      logging.info(`[HTTP] Incoming ${req.method} request to ${path}`, {
+        event: 'HTTP_REQUEST_INCOMING',
+        method: req.method,
+        path,
+        headers: {
+          origin: req.headers.origin,
+          authorization: req.headers.authorization ? 'present' : 'missing',
+        },
+      });
+    }
+    
     if (skipPrefixes.some((p) => path.startsWith(p))) {
       next();
       return;

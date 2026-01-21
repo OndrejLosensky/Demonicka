@@ -2,6 +2,10 @@
   "title": "Systém",
   "overview": "Přehled systému",
   "refresh": "Obnovit",
+  "backup": {
+    "runButton": "Spustit zálohu",
+    "running": "Zálohuji..."
+  },
   "userStatistics": {
     "title": "Statistiky uživatelů",
     "totalUsers": "Celkem uživatelů",
@@ -53,6 +57,8 @@
     "roleUpdateFailed": "Nepodařilo se změnit roli",
     "userDeleted": "Uživatel byl smazán",
     "userDeleteFailed": "Nepodařilo se smazat uživatele",
+    "backupCompleted": "Záloha byla úspěšně nahrána na Google Drive",
+    "backupFailed": "Nepodařilo se spustit zálohu",
     "tokenGenerationFailed": "Nepodařilo se vygenerovat registrační token"
   },
   "deleteDialog": {
