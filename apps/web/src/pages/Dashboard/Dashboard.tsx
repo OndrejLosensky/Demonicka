@@ -43,7 +43,8 @@ export const Dashboard: React.FC = () => {
           totalBeers={dash.kpis.totalBeers}
           participantsCount={dash.kpis.participantsCount}
           avgPerPerson={dash.kpis.avgPerPerson}
-          avgPerHour={dash.kpis.avgPerHour}
+          avgPerHourValue={dash.kpis.avgPerHourValue}
+          avgPerHourSubtitle={dash.kpis.avgPerHourSubtitle}
           activeBarrelsCount={dash.kpis.activeBarrelsCount}
           efficiencyPercent={dash.kpis.efficiencyPercent}
         />

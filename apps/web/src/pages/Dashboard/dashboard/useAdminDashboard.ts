@@ -19,7 +19,8 @@ export type AdminDashboardState = {
     totalBeers: number;
     participantsCount: number;
     avgPerPerson: number;
-    avgPerHour: number;
+    avgPerHourValue: string;
+    avgPerHourSubtitle?: string;
     activeBarrelsCount: number;
     remainingBeers: number;
     efficiencyPercent: number;
@@ -146,13 +147,21 @@ export function useAdminDashboard(): AdminDashboardState {
     const efficiencyPercent =
       totalCapacity > 0 ? ((totalCapacity - remainingBeers) / totalCapacity) * 100 : 0;
 
-    const dailyTotalBeers = hourly.reduce((s, h) => s + h.count, 0);
-    const activeHours = hourly.filter((h) => h.count > 0).length || 1;
-    const avgPerHour = dailyTotalBeers / activeHours;
-
     const participantsCount = dashboardStats.totalUsers || 0;
     const totalBeers = dashboardStats.totalBeers || 0;
     const avgPerPerson = participantsCount > 0 ? totalBeers / participantsCount : 0;
+
+    const avgEventPace = dashboardStats.eventPace?.avgBeersPerActiveHour ?? null;
+    const currentPace = dashboardStats.eventPace?.currentBeersPerHour ?? null;
+    const windowMinutes = dashboardStats.eventPace?.windowMinutes ?? 60;
+    const avgPerHourValue =
+      typeof avgEventPace === 'number' && Number.isFinite(avgEventPace)
+        ? avgEventPace.toFixed(1)
+        : '—';
+    const avgPerHourSubtitle =
+      typeof currentPace === 'number' && Number.isFinite(currentPace)
+        ? `${currentPace.toFixed(1)}/h (posledních ${windowMinutes} min)`
+        : undefined;
 
     const peak = hourly.reduce((max, cur) => (cur.count > max.count ? cur : max), {
       hour: 0,
@@ -168,7 +177,8 @@ export function useAdminDashboard(): AdminDashboardState {
         totalBeers,
         participantsCount,
         avgPerPerson,
-        avgPerHour,
+        avgPerHourValue,
+        avgPerHourSubtitle,
         activeBarrelsCount,
         remainingBeers,
         efficiencyPercent,

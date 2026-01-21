@@ -70,6 +70,18 @@ export interface BarrelPrediction {
   };
 }
 
+export interface EventPace {
+  asOf: string; // ISO
+  sleepGapMinutes: number; // e.g. 90
+  windowMinutes: number; // e.g. 60
+  totalNonSpilledBeers: number;
+  sessions: number;
+  activeHours: number;
+  avgBeersPerActiveHour: number | null;
+  beersLastWindow: number;
+  currentBeersPerHour: number;
+}
+
 export interface DashboardStats {
   totalBeers: number;
   totalUsers: number;
@@ -78,4 +90,5 @@ export interface DashboardStats {
   topUsers: UserStats[];
   barrelStats: BarrelStats[];
   barrelPrediction?: BarrelPrediction;
+  eventPace?: EventPace;
 }

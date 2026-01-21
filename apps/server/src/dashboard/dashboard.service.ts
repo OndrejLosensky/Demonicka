@@ -12,6 +12,7 @@ import {
   BarrelStatsDto,
 } from './dto/dashboard.dto';
 import { BarrelPredictionService } from '../barrel-prediction/barrel-prediction.service';
+import { EventPaceService } from '../event-pace/event-pace.service';
 import { LeaderboardDto } from './dto/leaderboard.dto';
 import { PublicStatsDto } from './dto/public-stats.dto';
 import { SystemStatsDto } from './dto/system-stats.dto';
@@ -43,6 +44,7 @@ export class DashboardService {
   constructor(
     private prisma: PrismaService,
     private readonly barrelPredictionService: BarrelPredictionService,
+    private readonly eventPaceService: EventPaceService,
   ) {}
 
   private toUserDto(user: User): UserDashboardUserDto {
@@ -889,6 +891,16 @@ export class DashboardService {
         });
       }
 
+      let eventPace: DashboardResponseDto['eventPace'] | undefined = undefined;
+      try {
+        eventPace = await this.eventPaceService.getForEvent(eventId);
+      } catch (error) {
+        this.logger.warn('Failed to compute event pace', {
+          eventId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+
       return {
         totalBeers,
         totalUsers,
@@ -897,6 +909,7 @@ export class DashboardService {
         topUsers,
         barrelStats: formattedBarrelStats,
         barrelPrediction,
+        eventPace,
       };
     } else {
       // Global stats

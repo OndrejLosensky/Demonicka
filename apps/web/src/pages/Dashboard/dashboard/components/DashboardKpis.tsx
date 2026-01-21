@@ -12,7 +12,8 @@ type Props = {
   totalBeers: number;
   participantsCount: number;
   avgPerPerson: number;
-  avgPerHour: number;
+  avgPerHourValue: string;
+  avgPerHourSubtitle?: string;
   activeBarrelsCount: number;
   efficiencyPercent: number;
 };
@@ -21,7 +22,8 @@ export function DashboardKpis({
   totalBeers,
   participantsCount,
   avgPerPerson,
-  avgPerHour,
+  avgPerHourValue,
+  avgPerHourSubtitle,
   activeBarrelsCount,
   efficiencyPercent,
 }: Props) {
@@ -37,7 +39,13 @@ export function DashboardKpis({
         <MetricCard title="Průměr na osobu" value={avgPerPerson.toFixed(1)} icon={<GroupIcon />} color="success" />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={2}>
-        <MetricCard title="Průměr / hod" value={avgPerHour.toFixed(1)} icon={<SpeedIcon />} color="error" />
+        <MetricCard
+          title="Průměr / hod"
+          value={avgPerHourValue}
+          subtitle={avgPerHourSubtitle}
+          icon={<SpeedIcon />}
+          color="error"
+        />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={2}>
         <MetricCard title="Aktivní sudy" value={activeBarrelsCount} icon={<BarrelIcon />} color="info" />

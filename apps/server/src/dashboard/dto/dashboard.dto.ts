@@ -61,6 +61,18 @@ export class BarrelPredictionDto {
   };
 }
 
+export class EventPaceDto {
+  asOf: string;
+  sleepGapMinutes: number;
+  windowMinutes: number;
+  totalNonSpilledBeers: number;
+  sessions: number;
+  activeHours: number;
+  avgBeersPerActiveHour: number | null;
+  beersLastWindow: number;
+  currentBeersPerHour: number;
+}
+
 export class DashboardResponseDto {
   totalBeers: number;
   totalUsers: number;
@@ -69,4 +81,5 @@ export class DashboardResponseDto {
   topUsers: UserStatsDto[];
   barrelStats: BarrelStatsDto[];
   barrelPrediction?: BarrelPredictionDto;
+  eventPace?: EventPaceDto;
 }
