@@ -1363,48 +1363,26 @@ export class DashboardService {
         `Fetching hourly stats for event: ${eventId}, date: ${date || 'current day'}`,
       );
 
-      // Get timezone offset from environment or default to UTC+2
-      const timezoneOffset = process.env.TIMEZONE_OFFSET || '+02:00';
+      // Use an IANA timezone to avoid DST/offset issues (defaults to Europe/Prague).
+      const timezone =
+        process.env.TIMEZONE || process.env.TZ || 'Europe/Prague';
 
-      let hourlyStatsRaw: Array<{ hour: number; count: bigint }>;
-
-      if (date) {
-        const targetDate = new Date(date);
-        const startOfDay = new Date(
-          targetDate.getFullYear(),
-          targetDate.getMonth(),
-          targetDate.getDate(),
-        );
-        const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
-
-        hourlyStatsRaw = await this.prisma.$queryRaw<
-          Array<{ hour: number; count: bigint }>
-        >`
-          SELECT 
-            EXTRACT(HOUR FROM ("consumedAt" AT TIME ZONE ${timezoneOffset}))::int as hour,
-            COUNT(*)::bigint as count
-          FROM "EventBeer"
-          WHERE "eventId" = ${eventId}::uuid
-            AND "deletedAt" IS NULL
-            AND "consumedAt" >= ${startOfDay}::timestamptz
-            AND "consumedAt" < ${endOfDay}::timestamptz
-          GROUP BY hour
-          ORDER BY hour ASC
-        `;
-      } else {
-        hourlyStatsRaw = await this.prisma.$queryRaw<
-          Array<{ hour: number; count: bigint }>
-        >`
-          SELECT 
-            EXTRACT(HOUR FROM ("consumedAt" AT TIME ZONE ${timezoneOffset}))::int as hour,
-            COUNT(*)::bigint as count
-          FROM "EventBeer"
-          WHERE "eventId" = ${eventId}::uuid
-            AND "deletedAt" IS NULL
-          GROUP BY hour
-          ORDER BY hour ASC
-        `;
-      }
+      const hourlyStatsRaw = await this.prisma.$queryRaw<
+        Array<{ hour: number; count: bigint }>
+      >`
+        SELECT
+          EXTRACT(HOUR FROM ("consumedAt" AT TIME ZONE ${timezone}))::int as hour,
+          COUNT(*)::bigint as count
+        FROM "EventBeer"
+        WHERE "eventId" = ${eventId}::uuid
+          AND "deletedAt" IS NULL
+          AND DATE("consumedAt" AT TIME ZONE ${timezone}) = COALESCE(
+            ${date}::date,
+            DATE(now() AT TIME ZONE ${timezone})
+          )
+        GROUP BY hour
+        ORDER BY hour ASC
+      `;
 
       const formattedHourlyStats: HourlyStatsDto[] = hourlyStatsRaw.map(
         (stat) => ({
@@ -1426,7 +1404,7 @@ export class DashboardService {
       ].sort((a, b) => a.hour - b.hour);
 
       this.logger.log(
-        `Hourly stats fetched: ${completeHourlyStats.length} hours with timezone offset ${timezoneOffset}`,
+        `Hourly stats fetched: ${completeHourlyStats.length} hours in timezone ${timezone}`,
       );
       return completeHourlyStats;
     } catch (error) {

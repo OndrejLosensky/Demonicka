@@ -76,7 +76,8 @@ export function useAdminDashboard(): AdminDashboardState {
         return;
       }
 
-      const dateParam = new Date().toISOString().split('T')[0];
+      // Use local date (not UTC) to avoid day-boundary shifts.
+      const dateParam = format(new Date(), 'yyyy-MM-dd');
       const [barrelsData, dashboardData, hourlyData, leaderboard] = await Promise.all([
         barrelService.getAll(),
         dashboardService.getDashboardStats(eventData.id),

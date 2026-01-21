@@ -190,6 +190,9 @@ export class EventsService {
       });
     }
 
+    // Reset barrel active state when switching events (prevents “ghost active” barrel on dashboard)
+    await this.barrelsService.deactivateAllActive();
+
     // Then activate the specified event
     await this.prisma.event.update({
       where: { id },

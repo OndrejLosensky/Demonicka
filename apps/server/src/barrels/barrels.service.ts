@@ -40,6 +40,19 @@ export class BarrelsService {
     });
   }
 
+  async deactivateAllActive(): Promise<number> {
+    const res = await this.prisma.barrel.updateMany({
+      where: { isActive: true, deletedAt: null },
+      data: { isActive: false },
+    });
+    if (res.count > 0) {
+      // Use existing cleanup type enum; keep detail for clarity.
+      this.loggingService.logCleanup('BARRELS', { deactivated: res.count });
+      await this.leaderboardGateway.emitDashboardUpdate();
+    }
+    return res.count;
+  }
+
   async findOne(id: string): Promise<Barrel> {
     const barrel = await this.prisma.barrel.findUnique({
       where: { id },
