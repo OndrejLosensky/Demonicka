@@ -37,9 +37,6 @@ import type {
 @Injectable()
 export class DashboardService {
   private readonly logger = new Logger(DashboardService.name);
-  private lastFetch: number = 0;
-  private cachedStats: SystemStatsDto | null = null;
-  private readonly CACHE_TTL = 30000; // 30 seconds in milliseconds
 
   constructor(
     private prisma: PrismaService,
@@ -1222,16 +1219,6 @@ export class DashboardService {
   }
 
   async getSystemStats(): Promise<SystemStatsDto> {
-    const now = Date.now();
-
-    // Return cached data if it's still fresh
-    if (this.cachedStats && now - this.lastFetch < this.CACHE_TTL) {
-      this.logger.log('Returning cached system stats');
-      return this.cachedStats;
-    }
-
-    this.logger.log('Cache miss - fetching fresh system stats');
-
     try {
       const users = await this.prisma.user.findMany({
         where: { deletedAt: null },
@@ -1268,11 +1255,6 @@ export class DashboardService {
         ).length,
         total2FAEnabled: users.filter((u) => u.isTwoFactorEnabled).length,
       };
-
-      // Update cache
-      this.cachedStats = stats;
-      this.lastFetch = now;
-      this.logger.log('System stats cached successfully');
 
       return stats;
     } catch (error) {

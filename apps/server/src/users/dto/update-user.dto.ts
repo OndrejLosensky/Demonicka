@@ -9,14 +9,16 @@ import {
   IsDate,
 } from 'class-validator';
 import { UserRole } from '@prisma/client';
+import { Transform } from 'class-transformer';
 
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @MinLength(3, { message: 'Username must be at least 3 characters long' })
-  @Matches(/^[\p{L}\p{M}0-9_-]+$/u, {
+  @Matches(/^[\p{L}\p{M}0-9 _-]+$/u, {
     message:
-      'Username can contain letters (incl. diacritics), numbers, underscores, and hyphens',
+      'Username can contain letters (incl. diacritics), numbers, spaces, underscores, and hyphens',
   })
   username?: string;
 

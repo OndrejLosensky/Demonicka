@@ -60,7 +60,7 @@ export function CompleteRegistration() {
       toast.success('Registrace byla úspěšně dokončena!');
     } catch (error) {
       console.error('Error completing registration:', error);
-      toast.error('Nepodařilo se dokončit registraci. Zkuste to prosím znovu.');
+      // Error is already handled (and toasted) in AuthContext
     } finally {
       setIsLoading(false);
     }

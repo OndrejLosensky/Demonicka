@@ -72,16 +72,44 @@ function App() {
             <Route
               path="dashboard/system"
               element={
-                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
                   <SystemLayout />
                 </RoleRoute>
               }
             >
               <Route index element={<Navigate to="users" replace />} />
-              <Route path="users" element={<UsersPage />} />
-              <Route path="statistics" element={<StatisticsPage />} />
-              <Route path="operations" element={<OperationsPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+              <Route
+                path="users"
+                element={
+                  <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
+                    <UsersPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="statistics"
+                element={
+                  <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
+                    <StatisticsPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="operations"
+                element={
+                  <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
+                    <OperationsPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="settings"
+                element={
+                  <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
+                    <SettingsPage />
+                  </RoleRoute>
+                }
+              />
             </Route>
             <Route
               path="dashboard/activity"

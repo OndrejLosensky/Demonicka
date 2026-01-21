@@ -23,6 +23,8 @@ import {
   Refresh as RefreshIcon,
   ContentCopy as CopyIcon,
   RestoreFromTrash as RestoreIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { systemService, type SystemStats } from '../../../services/systemService';
 import { userService } from '../../../services/userService';
@@ -31,7 +33,11 @@ import translations from '../../../locales/cs/system.json';
 import { MetricCard } from '@demonicka/ui';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
-import type { User } from '@demonicka/shared-types';
+import type { User, UserRole } from '@demonicka/shared-types';
+import { RegistrationTokenDialog } from './components/RegistrationTokenDialog';
+import { ChangeUserRoleDialog } from './components/ChangeUserRoleDialog';
+import { useAuth } from '../../../contexts/AuthContext';
+import { DeleteUserConfirmDialog } from './components/DeleteUserConfirmDialog';
 
 const UsersPage: React.FC = () => {
   const [stats, setStats] = useState<SystemStats | null>(null);
@@ -43,8 +49,40 @@ const UsersPage: React.FC = () => {
   const [showDeletedUsers, setShowDeletedUsers] = useState(false);
   const [deletedUsers, setDeletedUsers] = useState<User[]>([]);
   const [isDeletedUsersLoading, setIsDeletedUsersLoading] = useState(false);
+  const { user: currentUser } = useAuth();
   const toast = useToast();
   const isRefreshingRef = useRef(false);
+  const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
+  const [tokenDialogToken, setTokenDialogToken] = useState<string | null>(null);
+  const [tokenDialogUsername, setTokenDialogUsername] = useState<string | null>(
+    null,
+  );
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [roleDialogUser, setRoleDialogUser] = useState<{
+    id: string;
+    username: string | null;
+    role: string;
+  } | null>(null);
+  const [isRoleSaving, setIsRoleSaving] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    username: string | null;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const copyToClipboard = useCallback(
+    async (value: string, successMessage: string) => {
+      try {
+        await navigator.clipboard.writeText(value);
+        toast.success(successMessage);
+      } catch (error) {
+        console.error('Failed to copy to clipboard:', error);
+        toast.error(translations.toasts.copyFailed);
+      }
+    },
+    [toast],
+  );
 
   const loadStats = useCallback(async (isInitial = false) => {
     // Prevent multiple simultaneous calls
@@ -90,18 +128,66 @@ const UsersPage: React.FC = () => {
     };
   }, [loadStats]);
 
-  const handleGenerateToken = async (userId: string) => {
+  const handleGenerateToken = async (userId: string, username?: string | null) => {
     try {
       setGeneratingTokenFor(userId);
       const response = await userService.generateRegisterToken(userId);
-      await navigator.clipboard.writeText(response.token);
-      toast.success(translations.toasts.tokenCopied);
+      setTokenDialogToken(response.token);
+      setTokenDialogUsername(username ?? null);
+      setTokenDialogOpen(true);
       loadStats(false);
     } catch (error) {
       console.error('Failed to generate token:', error);
       toast.error(translations.toasts.tokenGenerationFailed);
     } finally {
       setGeneratingTokenFor(null);
+    }
+  };
+
+  const handleOpenRoleDialog = (u: { id: string; username: string | null; role: string }) => {
+    setRoleDialogUser(u);
+    setRoleDialogOpen(true);
+  };
+
+  const handleSaveRole = async (role: UserRole) => {
+    if (!roleDialogUser) return;
+    try {
+      setIsRoleSaving(true);
+      await userService.updateUserRole(roleDialogUser.id, role);
+      toast.success(translations.toasts.roleUpdated);
+      setRoleDialogOpen(false);
+      setRoleDialogUser(null);
+      await loadStats(false);
+    } catch (error) {
+      console.error('Failed to update user role:', error);
+      toast.error(translations.toasts.roleUpdateFailed);
+    } finally {
+      setIsRoleSaving(false);
+    }
+  };
+
+  const handleRequestDelete = (u: { id: string; username: string | null }) => {
+    setDeleteTarget(u);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      setIsDeleting(true);
+      await userService.deleteUser(deleteTarget.id);
+      toast.success(translations.toasts.userDeleted);
+      setDeleteDialogOpen(false);
+      setDeleteTarget(null);
+      await Promise.all([
+        loadStats(false),
+        showDeletedUsers ? loadDeletedUsers() : Promise.resolve(),
+      ]);
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      toast.error(translations.toasts.userDeleteFailed);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -265,11 +351,48 @@ const UsersPage: React.FC = () => {
                           </Typography>
                         </TableCell>
                         <TableCell align="right">
+                          <Tooltip title={translations.userList.actions.editRole}>
+                            <span>
+                              <IconButton
+                                size="small"
+                                onClick={() =>
+                                  handleOpenRoleDialog({
+                                    id: user.id,
+                                    username: user.username ?? null,
+                                    role: user.role,
+                                  })
+                                }
+                                disabled={
+                                  currentUser?.role === 'OPERATOR' &&
+                                  user.role === 'SUPER_ADMIN'
+                                }
+                                color="inherit"
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                          {currentUser?.role === 'SUPER_ADMIN' && (
+                            <Tooltip title={translations.userList.actions.deleteUser}>
+                              <IconButton
+                                size="small"
+                                onClick={() =>
+                                  handleRequestDelete({
+                                    id: user.id,
+                                    username: user.username ?? null,
+                                  })
+                                }
+                                color="error"
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                           {!user.isRegistrationComplete && (
                             <Tooltip title={translations.userList.actions.generateToken}>
                               <IconButton
                                 size="small"
-                                onClick={() => handleGenerateToken(user.id)}
+                                onClick={() => handleGenerateToken(user.id, user.username)}
                                 disabled={generatingTokenFor === user.id}
                                 color="primary"
                               >
@@ -285,6 +408,69 @@ const UsersPage: React.FC = () => {
               </TableContainer>
             </CardContent>
           </Card>
+
+          <RegistrationTokenDialog
+            open={tokenDialogOpen}
+            username={tokenDialogUsername}
+            token={tokenDialogToken}
+            onClose={() => setTokenDialogOpen(false)}
+            onCopy={async (value) => {
+              const isUrl =
+                value.startsWith('http://') || value.startsWith('https://');
+              await copyToClipboard(
+                value,
+                isUrl ? translations.toasts.urlCopied : translations.toasts.tokenCopied,
+              );
+            }}
+            labels={{
+              title: translations.tokenDialog.title,
+              tokenLabel: translations.tokenDialog.tokenLabel,
+              urlLabel: translations.tokenDialog.urlLabel,
+              qrTitle: translations.tokenDialog.qrTitle,
+              close: translations.tokenDialog.close,
+              copyToken: translations.tokenDialog.copyToken,
+              copyUrl: translations.tokenDialog.copyUrl,
+            }}
+          />
+
+          <ChangeUserRoleDialog
+            open={roleDialogOpen}
+            username={roleDialogUser?.username ?? null}
+            currentRole={roleDialogUser?.role ?? null}
+            actorRole={currentUser?.role ?? null}
+            isSaving={isRoleSaving}
+            onClose={() => {
+              if (isRoleSaving) return;
+              setRoleDialogOpen(false);
+              setRoleDialogUser(null);
+            }}
+            onSave={(role) => void handleSaveRole(role)}
+            labels={{
+              title: translations.roleDialog.title,
+              roleLabel: translations.roleDialog.roleLabel,
+              cancel: translations.roleDialog.cancel,
+              save: translations.roleDialog.save,
+              helperTextOperator: translations.roleDialog.operatorHint,
+            }}
+          />
+
+          <DeleteUserConfirmDialog
+            open={deleteDialogOpen}
+            username={deleteTarget?.username ?? null}
+            isLoading={isDeleting}
+            onClose={() => {
+              if (isDeleting) return;
+              setDeleteDialogOpen(false);
+              setDeleteTarget(null);
+            }}
+            onConfirm={() => void handleConfirmDelete()}
+            labels={{
+              title: translations.deleteDialog.title,
+              message: translations.deleteDialog.message,
+              cancel: translations.deleteDialog.cancel,
+              confirm: translations.deleteDialog.confirm,
+            }}
+          />
 
           {canShowDeletedUsers && showDeletedUsers && (
             <Card sx={{ mt: 3 }}>

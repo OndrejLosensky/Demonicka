@@ -6,14 +6,16 @@ import {
   IsEnum,
   IsOptional,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
   @IsString()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsNotEmpty({ message: 'Uživatelské jméno je povinné' })
   @MinLength(3, { message: 'Uživatelské jméno musí mít alespoň 3 znaky' })
-  @Matches(/^[\p{L}\p{M}0-9_-]+$/u, {
+  @Matches(/^[\p{L}\p{M}0-9 _-]+$/u, {
     message:
-      'Uživatelské jméno může obsahovat písmena (včetně diakritiky), čísla, podtržítka a pomlčky',
+      'Uživatelské jméno může obsahovat písmena (včetně diakritiky), čísla, mezery, podtržítka a pomlčky',
   })
   username: string;
 

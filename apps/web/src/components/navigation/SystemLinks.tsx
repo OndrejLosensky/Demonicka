@@ -10,7 +10,11 @@ export function SystemLinks() {
   const { user } = useAuth();
   const location = useLocation();
 
-  if (!user || user.role !== USER_ROLE.SUPER_ADMIN) return null;
+  if (!user) return null;
+
+  const isSuperAdmin = user.role === USER_ROLE.SUPER_ADMIN;
+  const isOperator = user.role === USER_ROLE.OPERATOR;
+  if (!isSuperAdmin && !isOperator) return null;
 
   const isActive = (path: string, options?: { includeSubRoutes?: boolean }) => {
     if (options?.includeSubRoutes) {
@@ -78,12 +82,16 @@ export function SystemLinks() {
       <SystemLink to="/dashboard/system" icon={<SettingsIcon sx={{ fontSize: 18 }} />}>
         Systém
       </SystemLink>
-      <SystemLink to="/dashboard/docs" icon={<FaBook className="text-base" />}>
-        Dokumentace
-      </SystemLink>
-      <SystemLink to="/dashboard/activity" icon={<HistoryIcon sx={{ fontSize: 18 }} />}>
-        Aktivita
-      </SystemLink>
+      {isSuperAdmin && (
+        <>
+          <SystemLink to="/dashboard/docs" icon={<FaBook className="text-base" />}>
+            Dokumentace
+          </SystemLink>
+          <SystemLink to="/dashboard/activity" icon={<HistoryIcon sx={{ fontSize: 18 }} />}>
+            Aktivita
+          </SystemLink>
+        </>
+      )}
     </Box>
   );
 }

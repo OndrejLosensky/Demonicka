@@ -20,8 +20,10 @@
       "actions": "Akce"
     },
     "roles": {
-      "ADMIN": "Administrátor",
-      "USER": "Uživatel"
+      "SUPER_ADMIN": "Super admin",
+      "OPERATOR": "Operátor",
+      "USER": "Uživatel",
+      "PARTICIPANT": "Účastník"
     },
     "twoFactorStatus": {
       "enabled": "Povoleno",
@@ -32,6 +34,8 @@
       "incomplete": "Nedokončeno"
     },
     "actions": {
+      "editRole": "Změnit roli",
+      "deleteUser": "Smazat uživatele",
       "generateToken": "Vygenerovat token",
       "generating": "Generuji..."
     }
@@ -43,6 +47,34 @@
   },
   "toasts": {
     "tokenCopied": "Token zkopírován do schránky",
+    "urlCopied": "Odkaz zkopírován do schránky",
+    "copyFailed": "Nepodařilo se zkopírovat do schránky",
+    "roleUpdated": "Role byla změněna",
+    "roleUpdateFailed": "Nepodařilo se změnit roli",
+    "userDeleted": "Uživatel byl smazán",
+    "userDeleteFailed": "Nepodařilo se smazat uživatele",
     "tokenGenerationFailed": "Nepodařilo se vygenerovat registrační token"
+  },
+  "deleteDialog": {
+    "title": "Smazat uživatele",
+    "message": "Opravdu chcete smazat uživatele {{username}}? Tato akce je vratná (obnovením).",
+    "cancel": "Zrušit",
+    "confirm": "Smazat"
+  },
+  "roleDialog": {
+    "title": "Změna role",
+    "roleLabel": "Role",
+    "cancel": "Zrušit",
+    "save": "Uložit",
+    "operatorHint": "Operátor nemůže měnit super admina ani přiřadit roli SUPER_ADMIN."
+  },
+  "tokenDialog": {
+    "title": "Registrační token",
+    "tokenLabel": "Token",
+    "urlLabel": "Odkaz na registraci",
+    "qrTitle": "QR kód",
+    "close": "Zavřít",
+    "copyToken": "Kopírovat token",
+    "copyUrl": "Kopírovat odkaz"
   }
 } 

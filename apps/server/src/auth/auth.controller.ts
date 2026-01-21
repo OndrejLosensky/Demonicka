@@ -80,6 +80,7 @@ export class AuthController {
   ): Promise<{ access_token: string; user: UserResponse }> {
     const { user } = req;
     const { access_token, refresh_token } = await this.authService.login(user);
+    await this.usersService.update(user.id, { lastAdminLogin: new Date() });
 
     // Set refresh token as an HTTP-only cookie
     response.cookie(
@@ -180,6 +181,7 @@ export class AuthController {
       completeRegistrationDto,
     );
     const { access_token, refresh_token } = await this.authService.login(user);
+    await this.usersService.update(user.id, { lastAdminLogin: new Date() });
 
     // Set refresh token as an HTTP-only cookie
     response.cookie(

@@ -33,6 +33,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException();
     }
+    if (user.deletedAt) {
+      throw new UnauthorizedException('Uživatel byl smazán');
+    }
+    if (!user.canLogin) {
+      throw new UnauthorizedException('Přihlášení není pro tohoto uživatele povoleno');
+    }
     return user;
   }
 }

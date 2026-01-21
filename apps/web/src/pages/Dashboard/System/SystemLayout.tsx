@@ -7,24 +7,36 @@ import {
   Settings as SettingsIcon,
   Build as BuildIcon,
 } from '@mui/icons-material';
+import { useAuth } from '../../../contexts/AuthContext';
+import { USER_ROLE } from '@demonicka/shared-types';
 
 const SystemLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const isOperator = user?.role === USER_ROLE.OPERATOR;
+  const tabs = isOperator
+    ? [{ path: '/dashboard/system/users', label: 'Uživatelé', icon: <PeopleIcon /> }]
+    : [
+        { path: '/dashboard/system/users', label: 'Uživatelé', icon: <PeopleIcon /> },
+        { path: '/dashboard/system/statistics', label: 'Statistiky', icon: <BarChartIcon /> },
+        { path: '/dashboard/system/operations', label: 'Operace', icon: <BuildIcon /> },
+        { path: '/dashboard/system/settings', label: 'Nastavení', icon: <SettingsIcon /> },
+      ];
 
   // Determine active tab based on current route
   const getActiveTab = () => {
     const path = location.pathname;
     if (path.includes('/users')) return 0;
-    if (path.includes('/statistics')) return 1;
-    if (path.includes('/operations')) return 2;
-    if (path.includes('/settings')) return 3;
+    if (!isOperator && path.includes('/statistics')) return 1;
+    if (!isOperator && path.includes('/operations')) return 2;
+    if (!isOperator && path.includes('/settings')) return 3;
     return 0; // Default to users
   };
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    const routes = ['/dashboard/system/users', '/dashboard/system/statistics', '/dashboard/system/operations', '/dashboard/system/settings'];
-    navigate(routes[newValue]);
+    navigate(tabs[newValue].path);
   };
 
   return (
@@ -41,46 +53,19 @@ const SystemLayout: React.FC = () => {
             px: 2,
           }}
         >
-          <Tab
-            icon={<PeopleIcon />}
-            iconPosition="start"
-            label="Uživatelé"
-            sx={{
-              textTransform: 'none',
-              fontWeight: 'medium',
-              minHeight: 48,
-            }}
-          />
-          <Tab
-            icon={<BarChartIcon />}
-            iconPosition="start"
-            label="Statistiky"
-            sx={{
-              textTransform: 'none',
-              fontWeight: 'medium',
-              minHeight: 48,
-            }}
-          />
-          <Tab
-            icon={<BuildIcon />}
-            iconPosition="start"
-            label="Operace"
-            sx={{
-              textTransform: 'none',
-              fontWeight: 'medium',
-              minHeight: 48,
-            }}
-          />
-          <Tab
-            icon={<SettingsIcon />}
-            iconPosition="start"
-            label="Nastavení"
-            sx={{
-              textTransform: 'none',
-              fontWeight: 'medium',
-              minHeight: 48,
-            }}
-          />
+          {tabs.map((t) => (
+            <Tab
+              key={t.path}
+              icon={t.icon}
+              iconPosition="start"
+              label={t.label}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 'medium',
+                minHeight: 48,
+              }}
+            />
+          ))}
         </Tabs>
 
         <Box sx={{ p: 3 }}>

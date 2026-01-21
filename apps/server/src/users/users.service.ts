@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { User, UserRole } from '@prisma/client';
@@ -148,10 +149,11 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('Neplatný registrační token');
     }
-
-    // Extract username from token format: username-randomNumber
-    const username = token.split('-')[0];
-    return { username };
+    if (!user.username) {
+      throw new BadRequestException('Uživatel nemá uživatelské jméno');
+    }
+    // Use the stored username (do not parse token format; usernames may contain '-' or spaces)
+    return { username: user.username };
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
@@ -171,6 +173,58 @@ export class UsersService {
       where: { id },
       data: {
         preferredTheme: dto.preferredTheme ?? null,
+      },
+    });
+  }
+
+  async updateUserRole(targetUserId: string, role: UserRole, actor: User) {
+    const target = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: {
+        id: true,
+        role: true,
+        deletedAt: true,
+      },
+    });
+
+    if (!target) {
+      throw new NotFoundException('Uživatel nebyl nalezen');
+    }
+
+    if (target.deletedAt) {
+      throw new BadRequestException(
+        'Uživatel je smazán. Nejprve jej obnovte a poté změňte roli.',
+      );
+    }
+
+    if (actor.role === UserRole.OPERATOR) {
+      if (target.role === UserRole.SUPER_ADMIN) {
+        throw new ForbiddenException('Operátor nemůže měnit roli super admina');
+      }
+      if (role === UserRole.SUPER_ADMIN) {
+        throw new ForbiddenException('Operátor nemůže přiřadit roli super admin');
+      }
+    }
+
+    const canLogin = role !== UserRole.PARTICIPANT;
+
+    return this.prisma.user.update({
+      where: { id: targetUserId },
+      data: {
+        role,
+        canLogin,
+      },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        canLogin: true,
+        isRegistrationComplete: true,
+        isTwoFactorEnabled: true,
+        lastAdminLogin: true,
+        createdAt: true,
+        updatedAt: true,
+        deletedAt: true,
       },
     });
   }

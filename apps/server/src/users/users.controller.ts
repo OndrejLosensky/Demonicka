@@ -23,6 +23,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateParticipantDto } from './dto/create-participant.dto';
 import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
+import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
@@ -192,8 +193,18 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @Delete(':id')
+  @Patch(':id/role')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
+  updateRole(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateUserRoleDto,
+    @GetUser() actor: User,
+  ) {
+    return this.usersService.updateUserRole(id, dto.role, actor);
+  }
+
+  @Delete(':id')
+  @Roles(UserRole.SUPER_ADMIN)
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }

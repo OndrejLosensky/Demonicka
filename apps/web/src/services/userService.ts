@@ -60,6 +60,11 @@ export const userService = {
     return response.data;
   },
 
+  async updateUserRole(userId: string, role: User['role']) {
+    const response = await api.patch(`/users/${userId}/role`, { role });
+    return response.data;
+  },
+
   async restoreUser(id: string) {
     const response = await api.post(`/users/${id}/restore`);
     return response.data;
