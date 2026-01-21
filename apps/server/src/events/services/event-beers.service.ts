@@ -28,6 +28,7 @@ export class EventBeersService {
     userId: string,
     barrelId?: string,
     actorUserId?: string,
+    spilled = false,
   ): Promise<EventBeer> {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
@@ -61,6 +62,7 @@ export class EventBeersService {
         eventId,
         userId,
         barrelId: barrelId || null,
+        spilled,
       },
     });
 

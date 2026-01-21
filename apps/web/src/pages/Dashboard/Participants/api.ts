@@ -50,12 +50,19 @@ export const participantsApi = {
     await api.post(`/users/${id}/restore`);
   },
 
-  addBeer: async (id: string, eventId?: string): Promise<void> => {
+  addBeer: async (id: string, eventId?: string, options?: { spilled?: boolean }): Promise<void> => {
     if (eventId) {
-      await api.post(`/events/${eventId}/users/${id}/beers`);
+      await api.post(
+        `/events/${eventId}/users/${id}/beers`,
+        options?.spilled ? { spilled: true } : undefined,
+      );
     } else {
       await api.post(`/users/${id}/beers`);
     }
+  },
+
+  addSpilledBeer: async (id: string, eventId: string): Promise<void> => {
+    await api.post(`/events/${eventId}/users/${id}/beers`, { spilled: true });
   },
 
   removeBeer: async (id: string, eventId?: string): Promise<void> => {

@@ -29,9 +29,16 @@ export class EventBeersController {
     @Param('eventId', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body('barrelId') barrelId?: string,
+    @Body('spilled') spilled?: boolean,
     @CurrentUser() user?: User,
   ): Promise<EventBeer> {
-    return this.eventBeersService.create(eventId, userId, barrelId, user?.id);
+    return this.eventBeersService.create(
+      eventId,
+      userId,
+      barrelId,
+      user?.id,
+      Boolean(spilled),
+    );
   }
 
   @Delete('users/:userId')

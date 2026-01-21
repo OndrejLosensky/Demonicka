@@ -284,6 +284,12 @@ export class EventsService {
       eventBeerCount: event.eventBeers.filter(
         (eb) => eb.userId === user.id && !eb.deletedAt,
       ).length,
+      eventSpilledBeerCount: event.eventBeers.filter(
+        (eb) => eb.userId === user.id && !eb.deletedAt && eb.spilled,
+      ).length,
+      eventNonSpilledBeerCount: event.eventBeers.filter(
+        (eb) => eb.userId === user.id && !eb.deletedAt && !eb.spilled,
+      ).length,
     }));
   }
 
@@ -405,6 +411,7 @@ export class EventsService {
     eventId: string,
     userId: string,
     actorUserId?: string,
+    spilled = false,
   ): Promise<void> {
     try {
       await this.findOne(eventId);
@@ -426,6 +433,7 @@ export class EventsService {
         userId,
         barrelId,
         actorUserId,
+        spilled,
       );
     } catch (error: unknown) {
       this.loggingService.error('Failed to add beer to event', {

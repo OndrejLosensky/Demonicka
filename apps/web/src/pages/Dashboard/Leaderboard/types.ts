@@ -4,6 +4,7 @@ export interface UserLeaderboard {
   id: string;
   username: string;
   beerCount: number;
+  spilledCount: number;
   rank: number;
   profilePictureUrl?: string | null;
 }

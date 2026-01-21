@@ -51,6 +51,7 @@ export class LeaderboardService {
           username: eu.user.username || '',
           gender: eu.user.gender,
           beerCount: beerCountMap.get(eu.userId) || 0,
+          spilledCount: 0,
           rank: 0, // Placeholder - this service is deprecated in favor of DashboardService
         }))
         .sort((a, b) => b.beerCount - a.beerCount);
@@ -94,6 +95,7 @@ export class LeaderboardService {
         username: u.username || '',
         gender: u.gender,
         beerCount: u.beerCount || 0,
+        spilledCount: 0,
         rank: 0,
       }))
       .sort((a, b) => b.beerCount - a.beerCount);

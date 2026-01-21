@@ -113,7 +113,11 @@ export const useParticipants = (includeDeleted = false) => {
     setParticipants(prevParticipants => {
       const updated = prevParticipants.map(p => 
         p.id === id 
-          ? { ...p, eventBeerCount: (p.eventBeerCount ?? 0) + 1 }
+          ? { 
+              ...p, 
+              eventBeerCount: (p.eventBeerCount ?? 0) + 1,
+              eventNonSpilledBeerCount: (p.eventNonSpilledBeerCount ?? 0) + 1,
+            }
           : p
       );
       participantsRef.current = updated;
@@ -141,13 +145,71 @@ export const useParticipants = (includeDeleted = false) => {
       setParticipants(prevParticipants => {
         const reverted = prevParticipants.map(p => 
           p.id === id 
-            ? { ...p, eventBeerCount: Math.max((p.eventBeerCount ?? 1) - 1, 0) }
+            ? { 
+                ...p, 
+                eventBeerCount: Math.max((p.eventBeerCount ?? 1) - 1, 0),
+                eventNonSpilledBeerCount: Math.max((p.eventNonSpilledBeerCount ?? 1) - 1, 0),
+              }
             : p
         );
         participantsRef.current = reverted;
         return reverted;
       });
       notify.error(translations.errors.addBeerFailed, { id: toastId });
+    }
+  }, [activeEvent?.id, fetchParticipants]);
+
+  const handleAddSpilledBeer = useCallback(async (id: string) => {
+    if (!activeEvent?.id) return;
+    const participant = participantsRef.current.find(p => p.id === id);
+    if (!participant) return;
+
+    // Optimistic update: total +1, spilled +1
+    setParticipants(prevParticipants => {
+      const updated = prevParticipants.map(p => 
+        p.id === id 
+          ? { 
+              ...p, 
+              eventBeerCount: (p.eventBeerCount ?? 0) + 1,
+              eventSpilledBeerCount: (p.eventSpilledBeerCount ?? 0) + 1,
+            }
+          : p
+      );
+      participantsRef.current = updated;
+      return updated;
+    });
+
+    try {
+      await participantsApi.addSpilledBeer(id, activeEvent.id);
+      const toastId = `beer:spilled:add:${activeEvent.id}:${id}`;
+      notify.success(
+        toastTranslations.success.beerAdded.replace(
+          '{{user}}',
+          participant?.name || participant?.username || id,
+        ),
+        { id: toastId },
+      );
+      fetchParticipants().catch(error => {
+        console.error('Failed to sync participants after adding spilled beer:', error);
+      });
+    } catch (error) {
+      console.error('Failed to add spilled beer:', error);
+      const toastId = `beer:spilled:add:${activeEvent.id}:${id}`;
+      // Revert optimistic update on error
+      setParticipants(prevParticipants => {
+        const reverted = prevParticipants.map(p => 
+          p.id === id 
+            ? { 
+                ...p, 
+                eventBeerCount: Math.max((p.eventBeerCount ?? 1) - 1, 0),
+                eventSpilledBeerCount: Math.max((p.eventSpilledBeerCount ?? 1) - 1, 0),
+              }
+            : p
+        );
+        participantsRef.current = reverted;
+        return reverted;
+      });
+      notify.error(translations.errors.addSpilledBeerFailed ?? translations.errors.addBeerFailed, { id: toastId });
     }
   }, [activeEvent?.id, fetchParticipants]);
 
@@ -162,7 +224,19 @@ export const useParticipants = (includeDeleted = false) => {
     setParticipants(prevParticipants => {
       const updated = prevParticipants.map(p => 
         p.id === id 
-          ? { ...p, eventBeerCount: Math.max((p.eventBeerCount ?? 0) - 1, 0) }
+          ? { 
+              ...p, 
+              eventBeerCount: Math.max((p.eventBeerCount ?? 0) - 1, 0),
+              // Best-effort decrement until server sync (we can't know whether the last beer was spilled)
+              eventNonSpilledBeerCount:
+                (p.eventNonSpilledBeerCount ?? 0) > 0
+                  ? Math.max((p.eventNonSpilledBeerCount ?? 0) - 1, 0)
+                  : (p.eventNonSpilledBeerCount ?? 0),
+              eventSpilledBeerCount:
+                (p.eventNonSpilledBeerCount ?? 0) > 0
+                  ? (p.eventSpilledBeerCount ?? 0)
+                  : Math.max((p.eventSpilledBeerCount ?? 0) - 1, 0),
+            }
           : p
       );
       participantsRef.current = updated;
@@ -226,6 +300,7 @@ export const useParticipants = (includeDeleted = false) => {
     handleDelete,
     handleRestore,
     handleAddBeer,
+    handleAddSpilledBeer,
     handleRemoveBeer,
     handleCleanup,
     fetchParticipants,

@@ -6,6 +6,8 @@ export interface Participant {
   role: 'SUPER_ADMIN' | 'OPERATOR' | 'USER' | 'PARTICIPANT';
   beerCount: number;  // Global beer count
   eventBeerCount?: number;  // Event-specific beer count
+  eventNonSpilledBeerCount?: number; // Event-specific score (non-spilled)
+  eventSpilledBeerCount?: number; // Event-specific spilled beers
   lastBeerTime: string | null;
   profilePictureUrl?: string | null;
   createdAt: string;
@@ -19,6 +21,7 @@ export interface ParticipantTableProps {
   showDeleted: boolean;
   showUserHistory?: boolean;
   onAddBeer: (participantId: string) => Promise<void>;
+  onAddSpilledBeer?: (participantId: string) => Promise<void>;
   onRemoveBeer: (participantId: string) => Promise<void>;
   onDelete: (participantId: string) => Promise<void>;
   onRestore: (participantId: string) => Promise<void>;

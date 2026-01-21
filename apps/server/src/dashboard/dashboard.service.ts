@@ -880,10 +880,12 @@ export class DashboardService {
         count,
       }));
 
-      let barrelPrediction: DashboardResponseDto['barrelPrediction'] | undefined =
-        undefined;
+      let barrelPrediction:
+        | DashboardResponseDto['barrelPrediction']
+        | undefined = undefined;
       try {
-        barrelPrediction = await this.barrelPredictionService.getForEvent(eventId);
+        barrelPrediction =
+          await this.barrelPredictionService.getForEvent(eventId);
       } catch (error) {
         this.logger.warn('Failed to compute barrel prediction', {
           eventId,
@@ -1002,29 +1004,42 @@ export class DashboardService {
     // Event-specific leaderboard only
     const eventUserIds = event.users.map((eu) => eu.userId);
 
-    // Get total event beers
-    const totalEventBeers = await this.prisma.eventBeer.count({
+    // Leaderboard score is based on non-spilled beers only
+    const totalEventNonSpilledBeers = await this.prisma.eventBeer.count({
       where: {
         eventId: event.id,
         userId: { in: eventUserIds },
         deletedAt: null,
+        spilled: false,
       },
     });
 
     this.logger.log(
-      `Total event beers from event_beers table for event ${event.id}: ${totalEventBeers}`,
+      `Total NON-SPILLED event beers for event ${event.id}: ${totalEventNonSpilledBeers}`,
     );
 
-    // Get user rankings with their individual beer counts
-    const eventBeerCounts = await this.prisma.eventBeer.groupBy({
-      by: ['userId'],
+    const totalEventSpilledBeers = await this.prisma.eventBeer.count({
+      where: {
+        eventId: event.id,
+        userId: { in: eventUserIds },
+        deletedAt: null,
+        spilled: true,
+      },
+    });
+
+    this.logger.log(
+      `Total SPILLED event beers for event ${event.id}: ${totalEventSpilledBeers}`,
+    );
+
+    // Get user rankings with their individual beer counts (split spilled/non-spilled)
+    const eventBeerCountsBySpill = await this.prisma.eventBeer.groupBy({
+      by: ['userId', 'spilled'],
       where: {
         eventId: event.id,
         userId: { in: eventUserIds },
         deletedAt: null,
       },
       _count: { id: true },
-      orderBy: { _count: { id: 'desc' } },
     });
 
     type LeaderboardUserRow = {
@@ -1034,9 +1049,8 @@ export class DashboardService {
       profilePictureUrl: string | null;
     };
 
-    const userIds = eventBeerCounts.map((eb) => eb.userId);
     const usersRaw = await this.prisma.user.findMany({
-      where: { id: { in: userIds } },
+      where: { id: { in: eventUserIds } },
       select: {
         id: true,
         username: true,
@@ -1055,14 +1069,25 @@ export class DashboardService {
     const userMap = new Map<string, LeaderboardUserRow>(
       users.map((u) => [u.id, u]),
     );
-    const beerCountMap = new Map(
-      eventBeerCounts.map((eb) => [eb.userId, eb._count.id]),
-    );
+
+    const beerCountMap = new Map<string, number>(); // non-spilled
+    const spilledCountMap = new Map<string, number>();
+    eventBeerCountsBySpill.forEach((row) => {
+      const count = row._count.id;
+      if (row.spilled) {
+        spilledCountMap.set(row.userId, count);
+      } else {
+        beerCountMap.set(row.userId, count);
+      }
+    });
 
     // Include users with 0 beers
     eventUserIds.forEach((userId) => {
       if (!beerCountMap.has(userId)) {
         beerCountMap.set(userId, 0);
+      }
+      if (!spilledCountMap.has(userId)) {
+        spilledCountMap.set(userId, 0);
       }
       if (!userMap.has(userId)) {
         const eventUser = event.users.find((eu) => eu.userId === userId);
@@ -1077,12 +1102,13 @@ export class DashboardService {
       }
     });
 
-    // Get all eventBeers to determine when users reached their current beer count
+    // Get NON-SPILLED eventBeers to determine when users reached their current score
     const allEventBeers = await this.prisma.eventBeer.findMany({
       where: {
         eventId: event.id,
         userId: { in: eventUserIds },
         deletedAt: null,
+        spilled: false,
       },
       select: {
         userId: true,
@@ -1119,6 +1145,7 @@ export class DashboardService {
         username: user.username || '',
         gender: user.gender,
         beerCount: beerCountMap.get(userId) || 0,
+        spilledCount: spilledCountMap.get(userId) || 0,
         profilePictureUrl: user.profilePictureUrl || null,
         reachedAt: getReachedAtTimestamp(userId, beerCountMap.get(userId) || 0),
       }))
@@ -1181,13 +1208,13 @@ export class DashboardService {
       `Leaderboard result: ${result.males.length} males, ${result.females.length} females, total beers: ${totalBeers}`,
     );
     this.logger.log(
-      `Verification: Direct count from event_beers table: ${totalEventBeers}, Sum from user counts: ${totalBeers}`,
+      `Verification: Direct NON-SPILLED count: ${totalEventNonSpilledBeers}, Sum from user counts: ${totalBeers}`,
     );
 
     // Verify our counts match
-    if (totalBeers !== totalEventBeers) {
+    if (totalBeers !== totalEventNonSpilledBeers) {
       this.logger.warn(
-        `COUNT MISMATCH! Direct count: ${totalEventBeers}, User sum: ${totalBeers}`,
+        `COUNT MISMATCH! Direct NON-SPILLED count: ${totalEventNonSpilledBeers}, User sum: ${totalBeers}`,
       );
     }
 

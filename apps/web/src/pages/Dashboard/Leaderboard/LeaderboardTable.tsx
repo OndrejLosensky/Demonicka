@@ -267,18 +267,35 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
                             borderRadius: 3,
                           }} />
                         </Box>
-                        <Typography 
-                          variant={isTopThree ? 'h6' : 'body1'}
-                          sx={{ 
-                            fontWeight: 700,
-                            fontSize: isTopThree ? '1.1rem' : '1rem',
-                            color: 'text.primary',
-                            textShadow: 'none',
-                            minWidth: '30px',
-                          }}
-                        >
-                          {participant.beerCount}
-                        </Typography>
+                        <Box sx={{ minWidth: '30px', textAlign: 'right' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end', gap: 0.5 }}>
+                            <Typography 
+                              variant={isTopThree ? 'h6' : 'body1'}
+                              sx={{ 
+                                fontWeight: 700,
+                                fontSize: isTopThree ? '1.1rem' : '1rem',
+                                color: 'text.primary',
+                                textShadow: 'none',
+                                lineHeight: 1.1,
+                              }}
+                            >
+                              {participant.beerCount}
+                            </Typography>
+                            {participant.spilledCount > 0 && (
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontWeight: 800,
+                                  color: 'warning.main',
+                                  fontSize: '0.75rem',
+                                  lineHeight: 1,
+                                }}
+                              >
+                                +{participant.spilledCount}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
                         <FaBeer style={{ 
                           fontSize: isTopThree ? '1rem' : '0.9rem',
                           opacity: isTopThree ? 1 : 0.7,
