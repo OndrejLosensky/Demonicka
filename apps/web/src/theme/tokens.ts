@@ -5,7 +5,7 @@
 export const tokens = {
   // Border Radius
   borderRadius: {
-    xs: 4,
+    xs: 2,
     sm: 6,
     md: 8,
     lg: 12,

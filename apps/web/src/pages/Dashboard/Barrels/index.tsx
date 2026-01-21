@@ -168,7 +168,7 @@ const BarrelsPage: React.FC = () => {
       ) : (
         <Grid container spacing={3}>
           <Grid item xs={12} md={5}>
-            <Paper sx={{ p: 3, height: '100%', borderRadius: tokens.borderRadius.md }}>
+            <Paper sx={{ p: 3, height: '100%', borderRadius: 1 }}>
               <Typography variant="h6" sx={{ mb: 2 }}>
                 {activeBarrel 
                   ? `Aktivní sud: #${activeBarrel.orderNumber}`

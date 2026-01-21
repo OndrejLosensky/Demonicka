@@ -77,7 +77,7 @@ export function createAppTheme(mode: PaletteMode) {
         defaultProps: { elevation: 0 },
         styleOverrides: {
           root: {
-            borderRadius: tokens.borderRadius.md,
+            borderRadius: 1,
             border: `1px solid ${getDividerColor(mode)}`,
             backgroundImage: 'none',
           },
@@ -86,7 +86,7 @@ export function createAppTheme(mode: PaletteMode) {
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: tokens.borderRadius.md,
+            borderRadius: 1,
             padding: 16,
           },
         },
@@ -110,7 +110,7 @@ export function createAppTheme(mode: PaletteMode) {
       MuiIconButton: {
         styleOverrides: {
           root: {
-            borderRadius: tokens.borderRadius.md,
+            borderRadius: 1,
             transition: tokens.transitions.default,
             '&:hover': {
               backgroundColor: isDark ? getDividerColor(mode) : 'rgba(0,0,0,0.04)',
@@ -120,7 +120,7 @@ export function createAppTheme(mode: PaletteMode) {
       },
       MuiChip: {
         styleOverrides: {
-          root: { borderRadius: tokens.borderRadius.sm, fontWeight: 600 },
+          root: { borderRadius: 1, fontWeight: 600 },
         },
       },
       MuiLink: {

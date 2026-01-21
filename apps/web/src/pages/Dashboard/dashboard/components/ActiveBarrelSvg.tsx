@@ -27,7 +27,7 @@ function formatEta(asOfIso: string, emptyAtIso: string): { relative: string; abs
 export function ActiveBarrelSvg({ barrel, prediction }: Props) {
   if (!barrel) {
     return (
-      <Card sx={{ borderRadius: tokens.borderRadius.md }}>
+      <Card sx={{ borderRadius: 1 }}>
         <Box sx={{ p: 3 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1 }}>
             Aktivní sud

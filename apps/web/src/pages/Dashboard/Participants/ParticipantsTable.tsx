@@ -75,7 +75,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
 
   return (
     <>
-      <TableContainer component={Paper} sx={{ borderRadius: tokens.borderRadius.md, overflowX: 'auto' }}>
+      <TableContainer component={Paper} sx={{ borderRadius: 1, overflowX: 'auto' }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>

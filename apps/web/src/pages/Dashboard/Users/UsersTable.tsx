@@ -26,6 +26,7 @@ import type { UserTableProps } from './types';
 import { format } from 'date-fns';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import translations from '../../../locales/cs/dashboard.users.json';
+import { tokens } from '../../../theme/tokens';
 
 export const UsersTable: React.FC<UserTableProps> = ({
   users,
@@ -56,7 +57,7 @@ export const UsersTable: React.FC<UserTableProps> = ({
 
   return (
     <>
-      <TableContainer component={Paper} className="shadow-lg rounded-xl" sx={{ overflowX: 'auto' }}>
+      <TableContainer component={Paper} className="shadow-lg" sx={{ borderRadius: 1, overflowX: 'auto' }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>

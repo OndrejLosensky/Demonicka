@@ -78,7 +78,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
           filter: getShadow('dropShadow', mode),
           mt: 1.5,
           minWidth: 200,
-          borderRadius: tokens.borderRadius.md,
+          borderRadius: 1,
           '&:before': {
             content: '""',
             display: 'block',
