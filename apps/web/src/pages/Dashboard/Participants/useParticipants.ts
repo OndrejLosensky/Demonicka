@@ -130,7 +130,7 @@ export const useParticipants = (includeDeleted = false) => {
       notify.success(
         toastTranslations.success.beerAdded.replace(
           '{{user}}',
-          participant?.name || participant?.username || id,
+          participant?.username || id,
         ),
         { id: toastId },
       );
@@ -185,7 +185,7 @@ export const useParticipants = (includeDeleted = false) => {
       notify.success(
         toastTranslations.success.beerAdded.replace(
           '{{user}}',
-          participant?.name || participant?.username || id,
+          participant?.username || id,
         ),
         { id: toastId },
       );
@@ -249,7 +249,7 @@ export const useParticipants = (includeDeleted = false) => {
       notify.success(
         toastTranslations.success.beerRemoved.replace(
           '{{user}}',
-          participant?.name || participant?.username || id,
+          participant?.username || id,
         ),
         { id: toastId },
       );

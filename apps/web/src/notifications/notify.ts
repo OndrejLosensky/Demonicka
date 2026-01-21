@@ -17,19 +17,11 @@ function baseStyle(kind: NotifyKind): React.CSSProperties {
     background: 'var(--color-background-card)',
     color: 'var(--color-text-primary)',
     border: '1px solid var(--color-border-primary)',
-    borderLeftWidth: 6,
+    padding: '12px 16px',
+    gap: '12px',
   };
 
-  const accent =
-    kind === 'success'
-      ? 'oklch(0.72 0.22 145)' // green-ish
-      : kind === 'warning'
-        ? 'oklch(0.78 0.16 75)' // amber-ish
-        : kind === 'info'
-          ? 'oklch(0.72 0.18 240)' // blue-ish
-          : 'oklch(0.62 0.22 25)'; // red-ish
-
-  return { ...common, borderLeftColor: accent };
+  return common;
 }
 
 function normalizeErrorMessage(err: unknown): string {
@@ -66,6 +58,7 @@ async function action<T>(
       id: meta.id,
       duration: 3000,
       style: baseStyle('success'),
+      closeButton: true,
     });
     return result;
   } catch (e) {
@@ -80,6 +73,7 @@ async function action<T>(
       id: meta.id,
       duration: 4500,
       style: baseStyle('error'),
+      closeButton: true,
     });
     throw e;
   }
@@ -91,6 +85,7 @@ export const notify = {
       id: opts?.id,
       duration: opts?.duration ?? 3000,
       style: baseStyle('success'),
+      closeButton: true,
     });
   },
   error(message: string, opts?: NotifyOptions) {
@@ -98,6 +93,7 @@ export const notify = {
       id: opts?.id,
       duration: opts?.duration ?? 4500,
       style: baseStyle('error'),
+      closeButton: true,
     });
   },
   warning(message: string, opts?: NotifyOptions) {
@@ -106,6 +102,7 @@ export const notify = {
       duration: opts?.duration ?? 4500,
       icon: '⚠️',
       style: baseStyle('warning'),
+      closeButton: true,
     });
   },
   info(message: string, opts?: NotifyOptions) {
@@ -114,6 +111,7 @@ export const notify = {
       duration: opts?.duration ?? 3500,
       icon: 'ℹ️',
       style: baseStyle('info'),
+      closeButton: true,
     });
   },
   action,

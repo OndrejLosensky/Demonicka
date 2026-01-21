@@ -26,9 +26,9 @@ export function CoreProviders({ children }: CoreProvidersProps) {
                 <HeaderVisibilityProvider>
                   {children}
                   <Toaster
-                    position="top-right"
+                    position="bottom-right"
                     gutter={10}
-                    containerStyle={{ top: 72, zIndex: 20000 }}
+                    containerStyle={{ bottom: 20, zIndex: 20000 }}
                     toastOptions={{
                       duration: 3500,
                       style: {
@@ -36,8 +36,11 @@ export function CoreProviders({ children }: CoreProvidersProps) {
                         color: 'var(--color-text-primary)',
                         border: '1px solid var(--color-border-primary)',
                         boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
+                        padding: '12px 16px',
+                        gap: '12px',
                       },
                     }}
+                    closeButton={true}
                   />
                 </HeaderVisibilityProvider>
               </ActiveEventProvider>

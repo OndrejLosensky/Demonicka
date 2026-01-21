@@ -82,7 +82,7 @@ export const useUsers = (includeDeleted = false) => {
     try {
       await userService.addBeer(userId);
       await fetchUsers();
-      toast.success(toastTranslations.success.beerAdded.replace('{{user}}', user?.name || userId));
+      toast.success(toastTranslations.success.beerAdded.replace('{{user}}', user?.username || userId));
     } catch (error) {
       console.error('Failed to add beer:', error);
       toast.error(translations.errors.addBeerFailed);
@@ -94,7 +94,7 @@ export const useUsers = (includeDeleted = false) => {
     try {
       await userService.removeBeer(userId);
       await fetchUsers();
-      toast.success(toastTranslations.success.beerRemoved.replace('{{user}}', user?.name || userId));
+      toast.success(toastTranslations.success.beerRemoved.replace('{{user}}', user?.username || userId));
     } catch (error) {
       console.error('Failed to remove beer:', error);
       toast.error(translations.errors.removeBeerFailed);
