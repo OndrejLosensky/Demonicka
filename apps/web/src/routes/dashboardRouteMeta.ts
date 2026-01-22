@@ -136,6 +136,66 @@ export const dashboardRouteMeta: RouteObject[] = [
         } satisfies DashboardChromeHandle,
       },
       {
+        path: 'consumption',
+        handle: {
+          crumb: 'Spotřeba piv',
+          title: 'Spotřeba piv během dne',
+        } satisfies DashboardChromeHandle,
+      },
+      {
+        path: 'kpi',
+        handle: {
+          crumb: 'KPI',
+          title: 'KPI',
+        } satisfies DashboardChromeHandle,
+        children: [
+          {
+            path: ':metric',
+            handle: {
+              crumb: (p) => {
+                const metricMap: Record<string, string> = {
+                  'total-beers': 'Celkem piv',
+                  'avg-per-hour': 'Průměr / hod',
+                  'avg-per-person': 'průměr / os.',
+                };
+                return metricMap[p.metric ?? ''] ?? 'KPI';
+              },
+              title: (p) => {
+                const metricMap: Record<string, string> = {
+                  'total-beers': 'Celkem piv',
+                  'avg-per-hour': 'Průměr / hod',
+                  'avg-per-person': 'průměr / os.',
+                };
+                return metricMap[p.metric ?? ''] ?? 'KPI';
+              },
+            } satisfies DashboardChromeHandle,
+          },
+        ],
+      },
+      {
+        path: 'barrel',
+        handle: {
+          crumb: 'Sud',
+          title: 'Sud',
+        } satisfies DashboardChromeHandle,
+        children: [
+          {
+            path: ':id',
+            handle: {
+              crumb: (p) => `Sud #${p.id ?? ''}`,
+              title: (p) => `Sud #${p.id ?? ''}`,
+            } satisfies DashboardChromeHandle,
+          },
+        ],
+      },
+      {
+        path: 'top-users',
+        handle: {
+          crumb: 'Nejlepší uživatelé',
+          title: 'Nejlepší uživatelé',
+        } satisfies DashboardChromeHandle,
+      },
+      {
         path: 'activity',
         handle: {
           crumb: 'Aktivita',

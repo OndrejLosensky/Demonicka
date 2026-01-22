@@ -1,7 +1,8 @@
 import { Box, Typography } from '@demonicka/ui';
 import { Card } from '@mui/material';
+import { Link } from 'react-router-dom';
+import { ChevronRight } from '@mui/icons-material';
 import type { Barrel, BarrelPrediction } from '@demonicka/shared-types';
-import { tokens } from '../../../../theme/tokens';
 
 type Props = {
   barrel?: Barrel;
@@ -27,8 +28,8 @@ function formatEta(asOfIso: string, emptyAtIso: string): { relative: string; abs
 export function ActiveBarrelSvg({ barrel, prediction }: Props) {
   if (!barrel) {
     return (
-      <Card sx={{ borderRadius: 1 }}>
-        <Box sx={{ p: 3 }}>
+      <Card sx={{ borderRadius: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1 }}>
             Aktivní sud
           </Typography>
@@ -81,19 +82,42 @@ export function ActiveBarrelSvg({ barrel, prediction }: Props) {
       )
     : null;
 
+  const titleContent = barrel ? (
+    <Link 
+      to={`/dashboard/barrel/${barrel.id}`}
+      style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
+    >
+      <Typography 
+        variant="subtitle1" 
+        sx={{ 
+          fontWeight: 800,
+          color: 'text.primary',
+          '&:hover': {
+            color: 'primary.main',
+          },
+        }}
+      >
+        Aktivní sud
+      </Typography>
+      <ChevronRight sx={{ fontSize: '1.2rem', color: 'text.secondary' }} />
+    </Link>
+  ) : (
+    <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+      Aktivní sud
+    </Typography>
+  );
+
   return (
-    <Card sx={{ borderRadius: tokens.borderRadius.md }}>
-      <Box sx={{ p: 3 }}>
+    <Card sx={{ borderRadius: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 2, mb: 1 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-            Aktivní sud
-          </Typography>
+          {titleContent}
           <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 700 }}>
             {pctLabel}
           </Typography>
         </Box>
 
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
           Sud #{barrel.orderNumber ?? '—'} · {barrel.size ?? '—'}L
         </Typography>
 
@@ -186,7 +210,7 @@ export function ActiveBarrelSvg({ barrel, prediction }: Props) {
           </svg>
         </Box>
 
-        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Bude prázdný za:

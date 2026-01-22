@@ -286,7 +286,7 @@ export const EventResults: React.FC = () => {
                         <MetricCard title="Účastníci" value={totalParticipants} icon={<GroupIcon />} color="error" />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
-                        <MetricCard title="Průměr na osobu" value={averageBeersPerUser} icon={<TrendingUpIcon />} color="success" />
+                        <MetricCard title="průměr / os." value={averageBeersPerUser} icon={<TrendingUpIcon />} color="success" />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
                         <MetricCard title="Doba trvání" value={event.endDate && event.startDate ? 
@@ -446,7 +446,7 @@ export const EventResults: React.FC = () => {
                                             <strong>Účastníci:</strong> {totalParticipants}
                                         </Typography>
                                         <Typography variant="body1" paragraph sx={{ mb: 1.5, color: 'text.secondary' }}>
-                                            <strong>Průměr na osobu:</strong> {averageBeersPerUser} piv
+                                            <strong>průměr / os.:</strong> {averageBeersPerUser} piv
                                         </Typography>
                                         <Typography variant="body1" paragraph sx={{ mb: 0, color: 'text.secondary' }}>
                                             <strong>Doba trvání:</strong> {event.endDate && event.startDate ? 

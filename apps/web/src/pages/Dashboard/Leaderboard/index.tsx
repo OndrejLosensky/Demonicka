@@ -231,7 +231,7 @@ const LeaderboardComponent: React.FC = () => {
           </Grid>
           <Grid item xs={6} sm={3}>
             <MetricCard 
-              title="Průměr na osobu" 
+              title="průměr / os." 
               value={metricStats.averagePerPerson.toFixed(1)} 
               icon={<FaBeer style={{ fontSize: '1rem' }} />} 
               color="warning" 

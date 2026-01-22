@@ -1,45 +1,85 @@
 import { Box, Card, Typography } from '@demonicka/ui';
-import { Grid, Chip } from '@mui/material';
-import { EmojiEvents as TrophyIcon } from '@mui/icons-material';
+import { Grid } from '@mui/material';
+import { Link } from 'react-router-dom';
+import { ChevronRight } from '@mui/icons-material';
 import type { UserStats } from '../../../../types/dashboard';
 import { UserAvatar } from '../../../../components/UserAvatar';
-import { tokens } from '../../../../theme/tokens';
 
 type Props = {
   users: UserStats[];
 };
 
 export function DashboardTopUsers({ users }: Props) {
+  const topUsers = users.slice(0, 4);
+
   return (
-    <Card sx={{ borderRadius: tokens.borderRadius.md }}>
-      <Box sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-          <TrophyIcon sx={{ color: 'primary.main' }} />
-          <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-            Nejlepší uživatelé
-          </Typography>
+    <Card sx={{ borderRadius: 1, display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+          <Link
+            to="/dashboard/top-users"
+            style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
+          >
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: 800,
+                color: 'text.primary',
+                '&:hover': {
+                  color: 'primary.main',
+                },
+              }}
+            >
+              Nejlepší uživatelé
+            </Typography>
+            <ChevronRight sx={{ fontSize: '1.2rem', color: 'text.secondary' }} />
+          </Link>
         </Box>
 
-        {users.length === 0 ? (
+        {topUsers.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
             Zatím žádná data.
           </Typography>
         ) : (
-          <Grid container spacing={2}>
-            {users.slice(0, 12).map((u, idx) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={u.id}>
+          <Grid container spacing={1.5} sx={{ width: '100%' }}>
+            {topUsers.map((u, idx) => (
+              <Grid item xs key={u.id} sx={{ display: 'flex' }}>
                 <Box
                   sx={{
-                    p: 2,
+                    p: 1.25,
                     border: '1px solid',
                     borderColor: 'divider',
-                    borderRadius: tokens.borderRadius.md,
+                    borderRadius: 1,
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 2,
-                    backgroundColor: idx === 0 ? 'primary.50' : 'background.paper',
+                    gap: 0.75,
+                    backgroundColor: idx === 0 ? 'rgba(255, 59, 48, 0.05)' : 'transparent',
+                    transition: 'all 0.2s',
+                    textAlign: 'center',
+                    width: '100%',
+                    '&:hover': {
+                      borderColor: idx === 0 ? 'primary.main' : 'divider',
+                      backgroundColor: idx === 0 ? 'rgba(255, 59, 48, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                    },
                   }}
                 >
+                  <Box
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 1,
+                      bgcolor: idx === 0 ? 'primary.main' : 'transparent',
+                      color: idx === 0 ? 'white' : 'text.secondary',
+                      fontWeight: 700,
+                      fontSize: '0.7rem',
+                    }}
+                  >
+                    {idx + 1}
+                  </Box>
                   <UserAvatar
                     user={{
                       username: u.username,
@@ -47,25 +87,30 @@ export function DashboardTopUsers({ users }: Props) {
                       name: u.name ?? u.username,
                     }}
                     sx={{
-                      width: 44,
-                      height: 44,
-                      bgcolor: idx === 0 ? 'primary.main' : 'grey.500',
-                      fontSize: '0.95rem',
+                      width: 40,
+                      height: 40,
+                      fontSize: '0.875rem',
                       fontWeight: 800,
-                      flexShrink: 0,
                     }}
                   />
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography sx={{ fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <Box sx={{ width: '100%' }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontWeight: 700, 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        fontSize: '0.8rem',
+                        mb: 0.25,
+                      }}
+                    >
                       {u.username}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500, fontSize: '0.7rem' }}>
                       {u.beerCount} piv
                     </Typography>
                   </Box>
-                  {idx === 0 ? (
-                    <Chip label="Top" size="small" color="warning" sx={{ fontWeight: 800 }} />
-                  ) : null}
                 </Box>
               </Grid>
             ))}

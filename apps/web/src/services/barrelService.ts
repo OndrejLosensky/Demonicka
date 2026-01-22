@@ -27,6 +27,11 @@ class BarrelService {
     return response.data;
   }
 
+  async getById(id: string): Promise<Barrel> {
+    const response = await api.get(`/barrels/${id}`);
+    return response.data;
+  }
+
   async create(data: CreateBarrelDto): Promise<Barrel> {
     const response = await api.post('/barrels', data);
     return response.data;

@@ -126,32 +126,36 @@ export function DashboardChrome() {
 
   if (hideChrome) return null;
 
+  const isDashboardRoute = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
+
   return (
     <Box sx={{ mb: 2.5 }}>
-      {crumbs.length > 1 && (
-        <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 1 }}>
-          {crumbs.map((c, idx) =>
-            c.to ? (
-              <MuiLink
-                key={`${c.label}-${idx}`}
-                component={RouterLink}
-                to={c.to}
-                underline="hover"
-                color="inherit"
-                sx={{ fontSize: '0.85rem' }}
-              >
-                {c.label}
-              </MuiLink>
-            ) : (
-              <Typography key={`${c.label}-${idx}`} color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-                {c.label}
-              </Typography>
-            ),
-          )}
-        </Breadcrumbs>
-      )}
+      <Box sx={{ minHeight: crumbs.length > 0 ? '24px' : 0, mb: crumbs.length > 0 ? 1 : 0 }}>
+        {crumbs.length > 0 && (
+          <Breadcrumbs aria-label="breadcrumb" sx={{ fontSize: '0.85rem' }}>
+            {crumbs.map((c, idx) =>
+              c.to ? (
+                <MuiLink
+                  key={`${c.label}-${idx}`}
+                  component={RouterLink}
+                  to={c.to}
+                  underline="hover"
+                  color="inherit"
+                  sx={{ fontSize: '0.85rem' }}
+                >
+                  {c.label}
+                </MuiLink>
+              ) : (
+                <Typography key={`${c.label}-${idx}`} color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                  {c.label}
+                </Typography>
+              ),
+            )}
+          </Breadcrumbs>
+        )}
+      </Box>
 
-      <PageHeader title={title} left={left} action={action} />
+      <PageHeader title={title} left={left} action={action} noMargin={isDashboardRoute} />
     </Box>
   );
 }

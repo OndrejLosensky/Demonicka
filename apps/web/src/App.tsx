@@ -9,6 +9,10 @@ import { DashboardLayout } from './routes/DashboardRoutes';
 import { Dashboard } from './pages/Dashboard/Dashboard';
 import Participants from './pages/Dashboard/Participants';
 import Barrels from './pages/Dashboard/Barrels';
+import { ConsumptionDetail } from './pages/Dashboard/ConsumptionDetail';
+import { KpiDetail, KpiList } from './pages/Dashboard/KpiDetail';
+import { BarrelDetail } from './pages/Dashboard/BarrelDetail';
+import { TopUsersDetail } from './pages/Dashboard/TopUsersDetail';
 import Leaderboard from './pages/Dashboard/Leaderboard';
 import ProfilePage from './pages/Dashboard/Profile/index';
 import { Events } from './pages/Dashboard/Events';
@@ -66,6 +70,46 @@ function App() {
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
                   <Barrels />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="dashboard/consumption"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
+                  <ConsumptionDetail />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="dashboard/kpi"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
+                  <KpiList />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="dashboard/kpi/:metric"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
+                  <KpiDetail />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="dashboard/barrel/:id"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
+                  <BarrelDetail />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="dashboard/top-users"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
+                  <TopUsersDetail />
                 </RoleRoute>
               }
             />

@@ -514,7 +514,7 @@ export const EventDetail: React.FC = () => {
                         <MetricCard title="Účastníci" value={users.length || 0} icon={<GroupIcon />} color="error" />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
-                        <MetricCard title="Průměr na osobu" value={averageBeersPerUser} icon={<TrendingUpIcon />} color="success" />
+                        <MetricCard title="průměr / os." value={averageBeersPerUser} icon={<TrendingUpIcon />} color="success" />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
                         <MetricCard title="Sudy" value={event.barrels?.length || 0} icon={<FilterIcon />} color="warning" />

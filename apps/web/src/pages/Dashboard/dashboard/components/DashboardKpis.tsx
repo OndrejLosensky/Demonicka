@@ -30,13 +30,13 @@ export function DashboardKpis({
   return (
     <Grid container spacing={2.5}>
       <Grid item xs={12} sm={6} md={4} lg={2}>
-        <MetricCard title="Celkem piv" value={totalBeers} icon={<BeerIcon />} color="primary" />
+        <MetricCard title="Celkem piv" value={totalBeers} icon={<BeerIcon />} to="/dashboard/kpi/total-beers" />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={2}>
-        <MetricCard title="Účastníci" value={participantsCount} icon={<GroupIcon />} color="warning" />
+        <MetricCard title="Účastníci" value={participantsCount} icon={<GroupIcon />} />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={2}>
-        <MetricCard title="Průměr na osobu" value={avgPerPerson.toFixed(1)} icon={<GroupIcon />} color="success" />
+        <MetricCard title="průměr / os." value={avgPerPerson.toFixed(1)} icon={<GroupIcon />} to="/dashboard/kpi/avg-per-person" />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={2}>
         <MetricCard
@@ -44,18 +44,17 @@ export function DashboardKpis({
           value={avgPerHourValue}
           subtitle={avgPerHourSubtitle}
           icon={<SpeedIcon />}
-          color="error"
+          to="/dashboard/kpi/avg-per-hour"
         />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={2}>
-        <MetricCard title="Aktivní sudy" value={activeBarrelsCount} icon={<BarrelIcon />} color="info" />
+        <MetricCard title="Aktivní sudy" value={activeBarrelsCount} icon={<BarrelIcon />} to="/dashboard/barrels" />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={2}>
         <MetricCard
           title="Efektivita"
           value={`${efficiencyPercent.toFixed(1)}%`}
           icon={<EfficiencyIcon />}
-          color="warning"
         />
       </Grid>
     </Grid>
