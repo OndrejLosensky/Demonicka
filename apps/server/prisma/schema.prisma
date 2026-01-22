@@ -73,6 +73,12 @@ enum CancellationPolicy {
   REMOVE_BEERS
 }
 
+enum EventRegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // Models
 model User {
   id                     String    @id @default(uuid()) @db.Uuid
@@ -114,7 +120,8 @@ model User {
   eventBeerPongTeamsAsP1     EventBeerPongTeam[]    @relation("EventBeerPongTeamPlayer1")
   eventBeerPongTeamsAsP2     EventBeerPongTeam[]    @relation("EventBeerPongTeamPlayer2")
   beerPongGameBeers          BeerPongGameBeer[]
-  startedBeerPongGames  BeerPongGame[]
+  startedBeerPongGames       BeerPongGame[]
+  matchedRegistrations       EventRegistration[]
 
   creator User? @relation("UserCreator", fields: [createdBy], references: [id])
 
@@ -190,24 +197,27 @@ model Beer {
 }
 
 model Event {
-  id          String    @id @default(uuid()) @db.Uuid
-  name        String
-  description String?
-  startDate   DateTime  @db.Timestamptz(6)
-  endDate     DateTime? @db.Timestamptz(6)
-  isActive    Boolean   @default(false)
-  createdBy   String?   @db.Uuid
-  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
-  deletedAt   DateTime? @db.Timestamptz(6)
+  id                   String    @id @default(uuid()) @db.Uuid
+  name                 String
+  description          String?
+  startDate            DateTime  @db.Timestamptz(6)
+  endDate              DateTime? @db.Timestamptz(6)
+  isActive             Boolean   @default(false)
+  registrationEnabled  Boolean   @default(false)
+  registrationToken    String?   @unique
+  createdBy            String?   @db.Uuid
+  createdAt            DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime  @updatedAt @db.Timestamptz(6)
+  deletedAt            DateTime? @db.Timestamptz(6)
 
   // Relations
-  eventBeers         EventBeer[]
-  users              EventUsers[]
-  barrels            EventBarrels[]
-  beerPongEvents     BeerPongEvent[]
+  eventBeers          EventBeer[]
+  users               EventUsers[]
+  barrels             EventBarrels[]
+  beerPongEvents      BeerPongEvent[]
   eventBeerPongTeams  EventBeerPongTeam[]
-  creator            User?           @relation(fields: [createdBy], references: [id])
+  eventRegistrations  EventRegistration[]
+  creator             User?      @relation(fields: [createdBy], references: [id])
 
   @@index([createdBy])
 }
@@ -316,6 +326,26 @@ model EventBarrels {
 
   @@id([eventId, barrelId])
   @@index([barrelId])
+}
+
+model EventRegistration {
+  id               String                 @id @default(uuid()) @db.Uuid
+  eventId          String                 @db.Uuid
+  rawName          String
+  participating    Boolean                @default(true)
+  arrivalTime      DateTime?              @db.Timestamptz(6)
+  leaveTime        DateTime?              @db.Timestamptz(6)
+  matchedUserId    String?                @db.Uuid
+  matchConfidence  Decimal?               @db.Decimal(5, 4)
+  status           EventRegistrationStatus @default(PENDING)
+  createdAt        DateTime               @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime               @updatedAt @db.Timestamptz(6)
+
+  event        Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  matchedUser  User? @relation(fields: [matchedUserId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([status])
 }
 
 model Role {

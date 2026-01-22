@@ -12,6 +12,7 @@ import { UsersModule } from '../users/users.module';
 import { LeaderboardModule } from '../leaderboard/leaderboard.module';
 import { BeerPongModule } from '../beer-pong/beer-pong.module';
 import { ExportsModule } from '../exports/exports.module';
+import { EventRegistrationModule } from '../event-registration/event-registration.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ExportsModule } from '../exports/exports.module';
     LeaderboardModule,
     forwardRef(() => BeerPongModule),
     ExportsModule,
+    EventRegistrationModule,
   ],
   controllers: [
     EventBeerPongTeamsController,

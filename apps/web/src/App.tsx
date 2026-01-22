@@ -18,6 +18,7 @@ import ProfilePage from './pages/Dashboard/Profile/index';
 import { Events } from './pages/Dashboard/Events';
 import { EventDetail } from './pages/Dashboard/Events/EventDetail';
 import { EventResults } from './pages/Dashboard/Events/EventResults';
+import { EventRegistrationReview } from './pages/Dashboard/Events/EventRegistrationReview';
 import { Docs } from './pages/Dashboard/System/Docs';
 import { SystemLayout } from './pages/Dashboard/System/SystemLayout';
 import { UsersPage } from './pages/Dashboard/System/UsersPage';
@@ -41,6 +42,7 @@ import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import { CompleteRegistration } from './pages/Auth/CompleteRegistration';
 import { EnterToken } from './pages/Auth/EnterToken';
+import { RegisterEventByToken } from './pages/EventRegistration/RegisterEventByToken';
 
 function App() {
   return (
@@ -188,6 +190,14 @@ function App() {
               }
             />
             <Route
+              path="dashboard/events/:id/registration"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
+                  <EventRegistrationReview />
+                </RoleRoute>
+              }
+            />
+            <Route
               path="dashboard/beer-pong"
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
@@ -303,6 +313,10 @@ function App() {
               <EnterToken />
             </GuestRoute>
           }
+        />
+        <Route
+          path="/register/event/:token"
+          element={<RegisterEventByToken />}
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

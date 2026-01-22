@@ -8,6 +8,8 @@ export interface Event {
     startDate: string;
     endDate?: string;
     isActive: boolean;
+    registrationEnabled?: boolean;
+    registrationToken?: string | null;
     createdBy: string | null;
     users: User[];
     barrels: Barrel[];

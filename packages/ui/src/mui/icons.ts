@@ -38,4 +38,7 @@ export {
   VisibilityOff,
   SportsBar,
   Notifications,
+  ContentCopy,
+  HowToReg,
+  Link as LinkIcon,
 } from '@mui/icons-material';

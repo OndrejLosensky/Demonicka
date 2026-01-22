@@ -102,4 +102,13 @@ export const eventService = {
         });
         return response.data as Blob;
     },
+
+    async openRegistration(eventId: string): Promise<{ token: string; link: string }> {
+        const response = await api.put(`/events/${eventId}/registration/open`);
+        return response.data;
+    },
+
+    async closeRegistration(eventId: string): Promise<void> {
+        await api.put(`/events/${eventId}/registration/close`);
+    },
 }; 

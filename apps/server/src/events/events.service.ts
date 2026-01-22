@@ -13,6 +13,7 @@ import { EventBeersService } from './services/event-beers.service';
 import { BarrelsService } from '../barrels/barrels.service';
 import { LoggingService } from '../logging/logging.service';
 import { UsersService } from '../users/users.service';
+import { EventRegistrationService } from '../event-registration/event-registration.service';
 import { userCanAccessEvent } from '../auth/guards/permissions.guard';
 
 @Injectable()
@@ -23,6 +24,7 @@ export class EventsService {
     private readonly barrelsService: BarrelsService,
     private readonly loggingService: LoggingService,
     private readonly usersService: UsersService,
+    private readonly eventRegistrationService: EventRegistrationService,
   ) {}
 
   async create(createEventDto: CreateEventDto, userId: string): Promise<Event> {
@@ -469,5 +471,15 @@ export class EventsService {
     }
 
     this.loggingService.logCleanup('ALL', { eventsDeleted: events.length });
+  }
+
+  async openRegistration(eventId: string): Promise<{ token: string; link: string }> {
+    await this.findOne(eventId);
+    return this.eventRegistrationService.openRegistration(eventId);
+  }
+
+  async closeRegistration(eventId: string): Promise<void> {
+    await this.findOne(eventId);
+    return this.eventRegistrationService.closeRegistration(eventId);
   }
 }

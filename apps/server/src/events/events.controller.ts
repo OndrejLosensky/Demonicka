@@ -202,6 +202,18 @@ export class EventsController {
     return this.eventDetailExportBuilder.build(id);
   }
 
+  @Put(':id/registration/open')
+  @Permissions(Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS)
+  async openRegistration(@Param('id', ParseUUIDPipe) id: string) {
+    return this.eventsService.openRegistration(id);
+  }
+
+  @Put(':id/registration/close')
+  @Permissions(Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS)
+  async closeRegistration(@Param('id', ParseUUIDPipe) id: string) {
+    return this.eventsService.closeRegistration(id);
+  }
+
   // Generic :id routes must come after all specific routes
   @Get(':id')
   findOne(

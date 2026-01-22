@@ -31,6 +31,9 @@ import {
     SportsBar as SportsBarIcon,
     Save as SaveIcon,
     TextField,
+    HowToReg as HowToRegIcon,
+    ContentCopy as ContentCopyIcon,
+    LinkIcon,
 } from '@demonicka/ui';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
@@ -62,6 +65,9 @@ export const EventDetail: React.FC = () => {
     const [deleteEventOpen, setDeleteEventOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isExportingExcel, setIsExportingExcel] = useState(false);
+    const [isManagingRegistration, setIsManagingRegistration] = useState(false);
+    const [registrationLink, setRegistrationLink] = useState<string | null>(null);
+    const [showLinkDialog, setShowLinkDialog] = useState(false);
     const [teamForm, setTeamForm] = useState<CreateTeamDto>({
         name: '',
         player1Id: '',
@@ -327,6 +333,46 @@ export const EventDetail: React.FC = () => {
         return sanitized.replace(/^_+|_+$/g, '') || 'export';
     };
 
+    const handleOpenRegistration = async () => {
+        if (!id) return;
+        try {
+            setIsManagingRegistration(true);
+            const result = await eventService.openRegistration(id);
+            const fullLink = `${window.location.origin}${result.link}`;
+            setRegistrationLink(fullLink);
+            setShowLinkDialog(true);
+            loadEventData();
+            notify.success('Registrace otevřena', { id: `event:registration:open:${id}` });
+        } catch (error) {
+            console.error('Failed to open registration:', error);
+            notify.error('Nepodařilo se otevřít registraci', { id: `event:registration:open:${id}` });
+        } finally {
+            setIsManagingRegistration(false);
+        }
+    };
+
+    const handleCloseRegistration = async () => {
+        if (!id) return;
+        try {
+            setIsManagingRegistration(true);
+            await eventService.closeRegistration(id);
+            loadEventData();
+            notify.success('Registrace uzavřena', { id: `event:registration:close:${id}` });
+        } catch (error) {
+            console.error('Failed to close registration:', error);
+            notify.error('Nepodařilo se uzavřít registraci', { id: `event:registration:close:${id}` });
+        } finally {
+            setIsManagingRegistration(false);
+        }
+    };
+
+    const handleCopyLink = () => {
+        if (registrationLink) {
+            navigator.clipboard.writeText(registrationLink);
+            notify.success('Odkaz zkopírován do schránky');
+        }
+    };
+
     const handleExportEventDetailExcel = async () => {
         if (!id || !event) return;
 
@@ -392,6 +438,63 @@ export const EventDetail: React.FC = () => {
                 >
                     Zpět
                 </Button>
+                {hasPermission([Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS]) && (
+                    <>
+                        <Button
+                            variant="outlined"
+                            startIcon={<HowToRegIcon />}
+                            onClick={() => navigate(`/dashboard/events/${id}/registration`)}
+                            sx={{
+                                borderRadius: tokens.borderRadius.md,
+                            }}
+                        >
+                            Kontrola registrací
+                        </Button>
+                        {event?.registrationEnabled ? (
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                startIcon={<LinkIcon />}
+                                onClick={handleCloseRegistration}
+                                disabled={isManagingRegistration}
+                                sx={{
+                                    borderRadius: tokens.borderRadius.md,
+                                }}
+                            >
+                                {isManagingRegistration ? 'Uzavírám...' : 'Uzavřít registraci'}
+                            </Button>
+                        ) : (
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                startIcon={<LinkIcon />}
+                                onClick={handleOpenRegistration}
+                                disabled={isManagingRegistration}
+                                sx={{
+                                    borderRadius: tokens.borderRadius.md,
+                                }}
+                            >
+                                {isManagingRegistration ? 'Otevírám...' : 'Otevřít registraci'}
+                            </Button>
+                        )}
+                        {event?.registrationEnabled && event?.registrationToken && (
+                            <Button
+                                variant="outlined"
+                                startIcon={<ContentCopyIcon />}
+                                onClick={() => {
+                                    const link = `${window.location.origin}/register/event/${event.registrationToken}`;
+                                    setRegistrationLink(link);
+                                    setShowLinkDialog(true);
+                                }}
+                                sx={{
+                                    borderRadius: tokens.borderRadius.md,
+                                }}
+                            >
+                                Zkopírovat odkaz
+                            </Button>
+                        )}
+                    </>
+                )}
                 {hasPermission([Permission.VIEW_BEERS, Permission.VIEW_LEADERBOARD]) && (
                     <Button
                         variant="outlined"
@@ -872,6 +975,38 @@ export const EventDetail: React.FC = () => {
                     >
                         Přidat
                     </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Registration Link Dialog */}
+            <Dialog open={showLinkDialog} onClose={() => setShowLinkDialog(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Registrační odkaz</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ mt: 2 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            Sdílejte tento odkaz s účastníky, aby se mohli zaregistrovat:
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            <TextField
+                                fullWidth
+                                value={registrationLink || ''}
+                                InputProps={{
+                                    readOnly: true,
+                                }}
+                                sx={{ flex: 1 }}
+                            />
+                            <Button
+                                startIcon={<ContentCopyIcon />}
+                                onClick={handleCopyLink}
+                                variant="outlined"
+                            >
+                                Kopírovat
+                            </Button>
+                        </Box>
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowLinkDialog(false)}>Zavřít</Button>
                 </DialogActions>
             </Dialog>
 

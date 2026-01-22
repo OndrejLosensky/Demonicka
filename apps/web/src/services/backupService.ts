@@ -19,7 +19,7 @@ export const backupService = {
         code: error?.code,
         response: error?.response?.status,
         responseData: error?.response?.data,
-      });
+      }); 
       throw error;
     }
   },
