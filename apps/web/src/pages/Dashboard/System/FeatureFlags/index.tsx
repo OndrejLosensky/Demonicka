@@ -10,13 +10,13 @@ import {
   TableRow,
   Paper,
   Switch,
-  Button,
   CircularProgress,
   Tooltip,
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
+import { LoadingButton, TableSkeleton } from '@demonicka/ui';
 import { featureFlagsService, type FeatureFlag } from '../../../../services/featureFlagsService';
 import { FeatureFlagKey } from '@demonicka/shared-types';
 import { toast } from 'react-hot-toast';
@@ -64,8 +64,21 @@ const FeatureFlagsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
+      <Box>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h6" fontWeight="bold">
+            Funkce
+          </Typography>
+          <LoadingButton
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            loading={isLoading}
+            disabled
+          >
+            Obnovit
+          </LoadingButton>
+        </Box>
+        <TableSkeleton rows={10} columns={4} />
       </Box>
     );
   }
@@ -76,14 +89,14 @@ const FeatureFlagsPage: React.FC = () => {
         <Typography variant="h6" fontWeight="bold">
           Funkce
         </Typography>
-        <Button
+        <LoadingButton
           variant="outlined"
           startIcon={<RefreshIcon />}
           onClick={loadFeatureFlags}
-          disabled={isLoading}
+          loading={isLoading}
         >
           Obnovit
-        </Button>
+        </LoadingButton>
       </Box>
 
       <Box>

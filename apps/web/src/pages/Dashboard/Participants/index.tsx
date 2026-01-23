@@ -25,6 +25,7 @@ import {
   Male as MaleIcon,
   Female as FemaleIcon,
 } from '@mui/icons-material';
+import { TableSkeleton } from '@demonicka/ui';
 import { ParticipantsTable } from './ParticipantsTable';
 import { useParticipants } from './useParticipants';
 import { participantsApi } from './api';
@@ -35,7 +36,6 @@ import { EventSelector } from '../../../components/EventSelector';
 import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import translations from '../../../locales/cs/dashboard.participants.json';
-import { withPageLoader } from '../../../components/hoc/withPageLoader';
 import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
 const ParticipantsPage: React.FC = () => {
@@ -165,7 +165,26 @@ const ParticipantsPage: React.FC = () => {
   return (
     <Box>
       {isLoading ? (
-        <CircularProgress />
+        viewMode === 'combined' ? (
+          <TableSkeleton rows={8} columns={5} />
+        ) : (
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MaleIcon color="primary" />
+                {translations.sections.male}
+              </Typography>
+              <TableSkeleton rows={6} columns={5} />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FemaleIcon sx={{ color: '#E91E63' }} />
+                {translations.sections.female}
+              </Typography>
+              <TableSkeleton rows={6} columns={5} />
+            </Grid>
+          </Grid>
+        )
       ) : viewMode === 'combined' ? (
         <ParticipantsTable
           participants={participants}
@@ -263,5 +282,4 @@ const ParticipantsPage: React.FC = () => {
   );
 };
 
-const Participants = withPageLoader(ParticipantsPage);
-export default Participants; 
+export default ParticipantsPage; 

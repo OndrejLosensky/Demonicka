@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import {
   Box,
   Typography,
-  CircularProgress,
   Button,
   FormControlLabel,
   Switch,
@@ -18,6 +17,7 @@ import {
   ViewModule as ViewModuleIcon,
 } from '@mui/icons-material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { TableSkeleton, CardSkeleton } from '@demonicka/ui';
 import { BarrelsTable } from './BarrelsTable';
 import { ActiveBarrelGraph } from './ActiveBarrelGraph';
 import { useBarrels } from './useBarrels';
@@ -31,7 +31,6 @@ import { barrelService } from '../../../services/barrelService';
 import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/dashboard.barrels.json';
 import toastTranslations from '../../../locales/cs/toasts.json';
-import { withPageLoader } from '../../../components/hoc/withPageLoader';
 import { tokens } from '../../../theme/tokens';
 import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
@@ -155,7 +154,18 @@ const BarrelsPage: React.FC = () => {
   return (
     <Box>
       {isLoading ? (
-        <CircularProgress />
+        viewMode === 'list' ? (
+          <TableSkeleton rows={8} columns={6} />
+        ) : (
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={5}>
+              <CardSkeleton height={400} />
+            </Grid>
+            <Grid item xs={12} md={7}>
+              <TableSkeleton rows={8} columns={6} />
+            </Grid>
+          </Grid>
+        )
       ) : viewMode === 'list' ? (
         <BarrelsTable
           barrels={barrels}
@@ -202,5 +212,4 @@ const BarrelsPage: React.FC = () => {
   );
 };
 
-const Barrels = withPageLoader(BarrelsPage);
-export default Barrels; 
+export default BarrelsPage; 

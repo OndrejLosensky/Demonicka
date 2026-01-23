@@ -67,4 +67,5 @@ export {
   Divider,
   CircularProgress,
   InputAdornment,
+  Skeleton,
 } from '@mui/material';

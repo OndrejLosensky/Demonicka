@@ -8,11 +8,11 @@ import {
   Box,
   Typography,
   Avatar,
-  CircularProgress,
   Alert,
   Slider,
 } from '@mui/material';
 import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
+import { LoadingButton } from '@demonicka/ui';
 import { profileApi } from '../pages/Dashboard/Profile/api';
 import { tokens } from '../theme/tokens';
 
@@ -343,16 +343,17 @@ export const ProfilePictureUploadDialog: React.FC<ProfilePictureUploadDialogProp
         <Button onClick={handleClose} disabled={isUploading} variant="outlined" size="large">
           Zrušit
         </Button>
-        <Button
+        <LoadingButton
           onClick={handleUpload}
-          disabled={!selectedFile || isUploading}
+          disabled={!selectedFile}
           variant="contained"
           color="primary"
           size="large"
-          startIcon={isUploading ? <CircularProgress size={20} /> : undefined}
+          loading={isUploading}
+          loadingText="Nahrávání..."
         >
-          {isUploading ? 'Nahrávání...' : 'Nahrát'}
-        </Button>
+          Nahrát
+        </LoadingButton>
       </DialogActions>
     </Dialog>
   );

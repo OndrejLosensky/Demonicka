@@ -4,11 +4,11 @@ import {
   Box,
   Typography,
   Button,
-  CircularProgress,
   Chip,
   Paper,
   Grid,
   Add as AddIcon,
+  CardSkeleton,
 } from '@demonicka/ui';
 import { beerPongService } from '../../services/beerPongService';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
@@ -116,9 +116,13 @@ export function BeerPongList() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-        <CircularProgress />
-      </Box>
+      <Grid container spacing={3}>
+        {Array.from({ length: 6 }).map((_, idx) => (
+          <Grid item xs={12} sm={6} md={4} key={idx}>
+            <CardSkeleton height={250} />
+          </Grid>
+        ))}
+      </Grid>
     );
   }
 

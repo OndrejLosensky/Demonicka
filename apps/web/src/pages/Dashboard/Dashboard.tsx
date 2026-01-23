@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useCallback } from 'react';
-import { Box, PageLoader } from '@demonicka/ui';
-import { Container, Grid, Button, CircularProgress } from '@mui/material';
+import { Box, LoadingButton, MetricCardSkeleton, ChartSkeleton, CardSkeleton } from '@demonicka/ui';
+import { Container, Grid } from '@mui/material';
 import { Refresh as RefreshIcon } from '@mui/icons-material';
 import { EmptyEventState } from '../../components/EmptyEventState';
 import { useDashboardHeaderSlots } from '../../contexts/DashboardChromeContext';
@@ -26,28 +26,58 @@ export const Dashboard: React.FC = () => {
 
     const headerAction = useMemo(
       () => (
-        <Button
+        <LoadingButton
           variant="outlined"
-          startIcon={isRefreshing ? <CircularProgress size={16} /> : <RefreshIcon />}
+          startIcon={<RefreshIcon />}
           onClick={handleRefresh}
-          disabled={isRefreshing}
+          loading={isRefreshing}
           sx={{ borderRadius: 1 }}
         >
           Obnovit
-        </Button>
+        </LoadingButton>
       ),
       [isRefreshing, handleRefresh],
     );
 
     useDashboardHeaderSlots({ action: headerAction });
 
-    if (dash.isLoading) return <PageLoader message="Načítání přehledu..." />;
-
     if (!dash.activeEvent) {
       return (
         <Container>
           <EmptyEventState />
         </Container>
+      );
+    }
+
+    if (dash.isLoading) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Grid container spacing={2.5}>
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <Grid item xs={12} sm={6} md={4} lg={2} key={idx}>
+                <MetricCardSkeleton />
+              </Grid>
+            ))}
+          </Grid>
+
+          <Grid container spacing={3} alignItems="stretch">
+            <Grid item xs={12} lg={8}>
+              <ChartSkeleton height={300} />
+            </Grid>
+            <Grid item xs={12} lg={4}>
+              <CardSkeleton height={300} />
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} lg={8}>
+              <CardSkeleton contentLines={4} />
+            </Grid>
+            <Grid item xs={12} lg={4}>
+              <CardSkeleton contentLines={3} />
+            </Grid>
+          </Grid>
+        </Box>
       );
     }
 

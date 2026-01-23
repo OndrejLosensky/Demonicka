@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   Button,
-  CircularProgress,
   Chip,
   Paper,
   Grid,
@@ -16,6 +15,7 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   ArrowBack as ArrowBackIcon,
+  CardSkeleton,
 } from '@demonicka/ui';
 import { DialogContentText, Tabs, Tab } from '@mui/material';
 import { PlayArrow as PlayArrowIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
@@ -286,8 +286,11 @@ export function BeerPongDetail() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-        <CircularProgress />
+      <Box>
+        <CardSkeleton height={200} />
+        <Box sx={{ mt: 3 }}>
+          <CardSkeleton height={400} />
+        </Box>
       </Box>
     );
   }

@@ -8,9 +8,9 @@ import {
   Typography,
   Box,
   Alert,
-  CircularProgress,
 } from '@mui/material';
 import { Warning as WarningIcon } from '@mui/icons-material';
+import { LoadingButton } from '@demonicka/ui';
 import { tokens } from '../../../../theme/tokens';
 
 export interface CleanupConfirmDialogProps {
@@ -87,16 +87,16 @@ export const CleanupConfirmDialog: React.FC<CleanupConfirmDialogProps> = ({
         >
           {cancelText}
         </Button>
-        <Button
+        <LoadingButton
           onClick={handleConfirm}
-          disabled={isLoading}
           variant="contained"
           color={severity === 'error' ? 'error' : 'warning'}
           size="large"
-          startIcon={isLoading ? <CircularProgress size={20} /> : undefined}
+          loading={isLoading}
+          loadingText="Probíhá..."
         >
-          {isLoading ? 'Probíhá...' : confirmText}
-        </Button>
+          {confirmText}
+        </LoadingButton>
       </DialogActions>
     </Dialog>
   );

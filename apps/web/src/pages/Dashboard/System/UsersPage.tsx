@@ -27,6 +27,7 @@ import {
   Delete as DeleteIcon,
   CloudUpload as CloudUploadIcon,
 } from '@mui/icons-material';
+import { LoadingButton, MetricCardSkeleton, TableSkeleton } from '@demonicka/ui';
 import { systemService, type SystemStats } from '../../../services/systemService';
 import { userService } from '../../../services/userService';
 import { backupService } from '../../../services/backupService';
@@ -245,8 +246,15 @@ const UsersPage: React.FC = () => {
 
   if (isInitialLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
+      <Box>
+        <Grid container spacing={3} mb={3}>
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <Grid item xs={12} sm={6} md={3} key={idx}>
+              <MetricCardSkeleton />
+            </Grid>
+          ))}
+        </Grid>
+        <TableSkeleton rows={8} columns={7} />
       </Box>
     );
   }
@@ -275,16 +283,15 @@ const UsersPage: React.FC = () => {
           Uživatelé
         </Typography>
         <Box display="flex" alignItems="center" gap={2}>
-          <Button
+          <LoadingButton
             variant="outlined"
             startIcon={<CloudUploadIcon />}
             onClick={handleRunBackup}
-            disabled={isRunningBackup}
+            loading={isRunningBackup}
+            loadingText={translations.backup.running}
           >
-            {isRunningBackup
-              ? translations.backup.running
-              : translations.backup.runButton}
-          </Button>
+            {translations.backup.runButton}
+          </LoadingButton>
           {canShowDeletedUsers && (
             <FormControlLabel
               control={
@@ -296,14 +303,14 @@ const UsersPage: React.FC = () => {
               label="Zobrazit smazané"
             />
           )}
-          <Button 
+          <LoadingButton 
             variant="outlined" 
             startIcon={<RefreshIcon />}
             onClick={() => loadStats(false)}
-            disabled={isRefreshing}
+            loading={isRefreshing}
           >
             {translations.refresh}
-          </Button>
+          </LoadingButton>
         </Box>
       </Box>
 
@@ -503,21 +510,19 @@ const UsersPage: React.FC = () => {
               <CardContent>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                   <Typography variant="h6">Smazaní uživatelé</Typography>
-                  <Button
+                  <LoadingButton
                     variant="outlined"
                     startIcon={<RefreshIcon />}
                     onClick={loadDeletedUsers}
-                    disabled={isDeletedUsersLoading}
+                    loading={isDeletedUsersLoading}
                     size="small"
                   >
                     Obnovit
-                  </Button>
+                  </LoadingButton>
                 </Box>
 
                 {isDeletedUsersLoading ? (
-                  <Box display="flex" justifyContent="center" py={4}>
-                    <CircularProgress size={24} />
-                  </Box>
+                  <TableSkeleton rows={5} columns={7} />
                 ) : deletedUsers.length === 0 ? (
                   <Typography variant="body2" color="text.secondary">
                     Žádní smazaní uživatelé

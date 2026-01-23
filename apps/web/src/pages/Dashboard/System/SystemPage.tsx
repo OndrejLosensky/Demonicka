@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   Box,
   Typography,
-  CircularProgress,
   Button,
   Table,
   TableBody,
@@ -21,6 +20,7 @@ import {
   Refresh as RefreshIcon,
   ContentCopy as CopyIcon,
 } from '@mui/icons-material';
+import { LoadingButton, MetricCardSkeleton, CardSkeleton } from '@demonicka/ui';
 import { systemService, type SystemStats } from '../../../services/systemService';
 import { userService } from '../../../services/userService';
 import { useToast } from '../../../hooks/useToast';
@@ -100,14 +100,14 @@ const SystemPage: React.FC = () => {
         >
           Funkce
         </Button>
-        <Button 
+        <LoadingButton 
           variant="outlined" 
           startIcon={<RefreshIcon />}
           onClick={() => loadStats(false)}
-          disabled={isRefreshing}
+          loading={isRefreshing}
         >
           {translations.refresh}
-        </Button>
+        </LoadingButton>
       </Box>
     ),
     [navigate, loadStats, isRefreshing],
@@ -134,8 +134,15 @@ const SystemPage: React.FC = () => {
 
   if (isInitialLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
+      <Box>
+        <Grid container spacing={3} mb={3}>
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <Grid item xs={12} sm={6} md={3} key={idx}>
+              <MetricCardSkeleton />
+            </Grid>
+          ))}
+        </Grid>
+        <CardSkeleton height={400} />
       </Box>
     );
   }
