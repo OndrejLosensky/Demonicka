@@ -75,8 +75,11 @@ export class EventBeersService {
       eventId,
     });
 
-    // Emit live updates for leaderboard and dashboard stats
-    await this.leaderboardGateway.emitFullUpdate(eventId);
+    // Emit live updates for leaderboard and dashboard stats immediately
+    // Don't await to avoid blocking the response - fire and forget
+    this.leaderboardGateway.emitFullUpdate(eventId).catch((error) => {
+      console.error('Failed to emit leaderboard update after beer creation:', error);
+    });
 
     return savedEventBeer;
   }
@@ -106,8 +109,11 @@ export class EventBeersService {
       eventId,
     });
 
-    // Emit live updates for leaderboard and dashboard stats
-    await this.leaderboardGateway.emitFullUpdate(eventId);
+    // Emit live updates for leaderboard and dashboard stats immediately
+    // Don't await to avoid blocking the response - fire and forget
+    this.leaderboardGateway.emitFullUpdate(eventId).catch((error) => {
+      console.error('Failed to emit leaderboard update after beer removal:', error);
+    });
   }
 
   async findByEventId(eventId: string): Promise<EventBeer[]> {

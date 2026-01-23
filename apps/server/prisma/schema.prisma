@@ -410,6 +410,27 @@ model BeerPongDefaults {
   @@index([updatedBy])
 }
 
+enum LeaderboardViewMode {
+  LEADERBOARD
+  BEER_PONG
+  AUTO
+}
+
+/// Leaderboard view settings (single-row table managed by the system settings UI).
+model LeaderboardViewSettings {
+  id                      String              @id @default(uuid()) @db.Uuid
+  autoSwitchEnabled       Boolean             @default(false)
+  currentView             LeaderboardViewMode @default(LEADERBOARD)
+  switchIntervalSeconds   Int                 @default(15)
+  selectedBeerPongEventId String?             @db.Uuid
+  updatedBy               String?             @db.Uuid
+  createdAt               DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt               DateTime            @updatedAt @db.Timestamptz(6)
+
+  @@index([updatedBy])
+  @@index([selectedBeerPongEventId])
+}
+
 model BeerPongEvent {
   id                 String              @id @default(uuid()) @db.Uuid
   eventId            String              @db.Uuid

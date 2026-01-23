@@ -247,7 +247,7 @@ function App() {
               }
             />
             <Route
-              path="leaderboard"
+              path="dashboard/leaderboard"
               element={<Leaderboard />}
             />
             <Route

@@ -31,6 +31,15 @@ export const beerPongService = {
   },
 
   /**
+   * Get active beer pong tournaments for an event (public endpoint)
+   */
+  async getActiveTournaments(eventId?: string): Promise<BeerPongEvent[]> {
+    const params = eventId ? { eventId } : {};
+    const response = await api.get('/beer-pong/active-tournaments', { params });
+    return response.data;
+  },
+
+  /**
    * Create a new beer pong tournament
    */
   async create(data: CreateBeerPongEventDto): Promise<BeerPongEvent> {

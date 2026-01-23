@@ -30,7 +30,10 @@ export class LeaderboardGateway
   constructor(
     private readonly leaderboardService: LeaderboardService,
     private readonly dashboardService: DashboardService,
-  ) {}
+  ) {
+    // Log when gateway is initialized
+    console.log('[LeaderboardGateway] Initialized');
+  }
 
   handleConnection(client: Socket) {
     // Client connected
@@ -56,7 +59,8 @@ export class LeaderboardGateway
   // Method to emit leaderboard updates to all connected clients
   async emitLeaderboardUpdate(eventId?: string) {
     try {
-      const leaderboard = await this.leaderboardService.getLeaderboard(eventId);
+      // Use dashboard service for consistency with frontend and better performance
+      const leaderboard = await this.dashboardService.getLeaderboard(eventId);
       if (eventId) {
         const room = `event:${eventId}`;
         this.server.to(room).emit('leaderboard:update', leaderboard);
@@ -74,9 +78,13 @@ export class LeaderboardGateway
   // Method to emit dashboard stats updates to all connected clients
   async emitDashboardStatsUpdate(eventId?: string) {
     try {
-      const dashboardStats =
-        await this.dashboardService.getDashboardStats(eventId);
-      const publicStats = await this.dashboardService.getPublicStats(eventId);
+      const startTime = Date.now();
+      // Run both queries in parallel for better performance
+      const [dashboardStats, publicStats] = await Promise.all([
+        this.dashboardService.getDashboardStats(eventId),
+        this.dashboardService.getPublicStats(eventId),
+      ]);
+      const queryTime = Date.now() - startTime;
 
       if (eventId) {
         const room = `event:${eventId}`;
@@ -100,6 +108,10 @@ export class LeaderboardGateway
           public: publicStats,
         });
       }
+      const totalTime = Date.now() - startTime;
+      if (totalTime > 1000) {
+        console.log(`[LeaderboardGateway] Dashboard stats update took ${totalTime}ms (queries: ${queryTime}ms) for eventId: ${eventId || 'global'}`);
+      }
     } catch (error) {
       console.error('Failed to emit dashboard stats update:', error);
     }
@@ -108,13 +120,14 @@ export class LeaderboardGateway
   // Method to emit both leaderboard and dashboard updates
   async emitFullUpdate(eventId?: string) {
     try {
-      // Emit dashboard stats first, then leaderboard to avoid race conditions
-      await this.emitDashboardStatsUpdate(eventId);
-
-      // Small delay to ensure dashboard stats are processed first
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      await this.emitLeaderboardUpdate(eventId);
+      const startTime = Date.now();
+      // Emit both updates in parallel for faster response
+      await Promise.all([
+        this.emitDashboardStatsUpdate(eventId),
+        this.emitLeaderboardUpdate(eventId),
+      ]);
+      const duration = Date.now() - startTime;
+      console.log(`[LeaderboardGateway] Full update emitted in ${duration}ms for eventId: ${eventId || 'global'}`);
     } catch (error) {
       console.error('Failed to emit full update:', error);
     }
@@ -131,6 +144,15 @@ export class LeaderboardGateway
       }
     } catch (error) {
       console.error('Failed to emit dashboard update:', error);
+    }
+  }
+
+  // Method to emit leaderboard view settings updates
+  emitLeaderboardViewSettingsUpdate(settings: any) {
+    try {
+      this.server.emit('leaderboard-view-settings:update', settings);
+    } catch (error) {
+      console.error('Failed to emit leaderboard view settings update:', error);
     }
   }
 }

@@ -284,7 +284,7 @@ export function NavigationLinks() {
         </>
       )}
       {activeEvent && canSeeAdminNav && (
-        <NavLink to="/leaderboard" icon={<TrophyIcon sx={{ fontSize: 18 }} />}>
+        <NavLink to="/dashboard/leaderboard" icon={<TrophyIcon sx={{ fontSize: 18 }} />}>
           {translations.navigation.leaderboard}
         </NavLink>
       )}

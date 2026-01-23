@@ -4,10 +4,12 @@ import {
   Flag as FlagIcon,
   Security as SecurityIcon,
   SportsBar as SportsBarIcon,
+  Leaderboard as LeaderboardIcon,
 } from '@mui/icons-material';
 import RolesPage from './Roles';
 import FeatureFlagsPage from './FeatureFlags';
 import BeerPongSettingsPage from './BeerPongSettings';
+import LeaderboardSettingsPage from './LeaderboardSettings';
 import { tokens } from '../../../theme/tokens';
 
 const SettingsPage: React.FC = () => {
@@ -61,12 +63,23 @@ const SettingsPage: React.FC = () => {
               minHeight: 48,
             }}
           />
+          <Tab
+            icon={<LeaderboardIcon />}
+            iconPosition="start"
+            label="Žebříček"
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'medium',
+              minHeight: 48,
+            }}
+          />
         </Tabs>
 
         <Box sx={{ p: 3 }}>
           {activeTab === 0 && <FeatureFlagsPage />}
           {activeTab === 1 && <RolesPage />}
           {activeTab === 2 && <BeerPongSettingsPage />}
+          {activeTab === 3 && <LeaderboardSettingsPage />}
         </Box>
       </Paper>
     </Box>

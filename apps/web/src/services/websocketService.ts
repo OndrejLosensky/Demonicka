@@ -42,6 +42,7 @@ class WebSocketService {
 
     // Listen for leaderboard updates
     this.socket.on('leaderboard:update', (data: WebSocketEvents['leaderboard:update']) => {
+      console.log('[WebSocket] Received leaderboard:update', { timestamp: new Date().toISOString() });
       this.notifyEventListeners('leaderboard:update', data);
     });
 
@@ -52,6 +53,7 @@ class WebSocketService {
 
     // Listen for dashboard stats updates (new real-time data)
     this.socket.on('dashboard:stats:update', (data: WebSocketEvents['dashboard:stats:update']) => {
+      console.log('[WebSocket] Received dashboard:stats:update', { timestamp: new Date().toISOString() });
       this.notifyEventListeners('dashboard:stats:update', data);
     });
 

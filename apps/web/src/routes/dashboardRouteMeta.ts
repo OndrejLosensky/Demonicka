@@ -249,7 +249,7 @@ export const dashboardRouteMeta: RouteObject[] = [
     ],
   },
   {
-    path: 'leaderboard',
+    path: 'dashboard/leaderboard',
     handle: {
       crumb: translations.navigation.leaderboard,
       title: translations.navigation.leaderboard,

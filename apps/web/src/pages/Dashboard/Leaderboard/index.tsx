@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Typography, Grid, Box, IconButton, Tooltip, Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon, Speed as SpeedIcon, MetricCard, PageHeader, Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon } from '@demonicka/ui';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Typography, Grid, Box, IconButton, Tooltip, Fullscreen as FullscreenIcon, FullscreenExit as FullscreenExitIcon, Speed as SpeedIcon, MetricCard, PageHeader, Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon, Button } from '@demonicka/ui';
 import { FaBeer } from 'react-icons/fa';
 import { LeaderboardTable } from './LeaderboardTable';
+import { BeerPongStandings } from './BeerPongStandings';
 import { useLeaderboard } from './useLeaderboard';
+import { useLeaderboardViewSettings } from './useLeaderboardViewSettings';
 import translations from '../../../locales/cs/dashboard.leaderboard.json';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
 import { useHeaderVisibility } from '../../../contexts/HeaderVisibilityContext';
@@ -10,17 +12,32 @@ import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
 import { eventService } from '../../../services/eventService';
 import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
+import { useActiveEvent } from '../../../contexts/ActiveEventContext';
+import { beerPongService } from '../../../services/beerPongService';
 import type { Event } from '@demonicka/shared-types';
-import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
+import { FormControl, InputLabel, MenuItem, Select, ButtonGroup } from '@mui/material';
 
 const LeaderboardComponent: React.FC = () => {
   const { stats, dashboardStats, publicStats, isLoading } = useLeaderboard();
   const { isHeaderVisible, toggleHeader } = useHeaderVisibility();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const showYearFilter = useFeatureFlag(FeatureFlagKey.LEADERBOARD_YEAR_FILTER);
+  const showAutoSwitch = useFeatureFlag(FeatureFlagKey.LEADERBOARD_AUTO_SWITCH);
   const { selectedEvent, setSelectedEvent } = useSelectedEvent();
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedYear, setSelectedYear] = useState<number | ''>('');
+  const { settings } = useLeaderboardViewSettings();
+  const { activeEvent } = useActiveEvent();
+  
+  // View state
+  const [currentView, setCurrentView] = useState<'LEADERBOARD' | 'BEER_PONG'>('LEADERBOARD');
+  const switchTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasInitializedView = useRef(false);
+  const timerSettingsRef = useRef<{ interval: number; enabled: boolean; mode: string } | null>(null);
+  
+  // Pre-load beer pong data if auto-switch is enabled
+  const [beerPongTournaments, setBeerPongTournaments] = useState<any[]>([]);
+  const [beerPongLoading, setBeerPongLoading] = useState(false);
 
   const availableYears = useMemo(() => {
     const years = new Set<number>();
@@ -76,6 +93,151 @@ const LeaderboardComponent: React.FC = () => {
       if (!Number.isNaN(y)) setSelectedYear(y);
     }
   }, [showYearFilter, selectedYear, selectedEvent?.id]);
+
+  // Pre-load beer pong tournaments if auto-switch is enabled
+  useEffect(() => {
+    if (!showAutoSwitch || !settings || !settings.autoSwitchEnabled || !activeEvent?.id) {
+      return;
+    }
+
+    // Pre-load beer pong tournaments in the background
+    const loadTournaments = async () => {
+      try {
+        setBeerPongLoading(true);
+        const tournaments = await beerPongService.getActiveTournaments(activeEvent.id);
+        setBeerPongTournaments(tournaments);
+        console.log('[Leaderboard] Pre-loaded beer pong tournaments:', tournaments.length);
+      } catch (error) {
+        console.error('[Leaderboard] Failed to pre-load beer pong tournaments:', error);
+      } finally {
+        setBeerPongLoading(false);
+      }
+    };
+
+    loadTournaments();
+  }, [showAutoSwitch, settings?.autoSwitchEnabled, activeEvent?.id]);
+
+  // Initialize view from settings when they load
+  useEffect(() => {
+    if (!settings) {
+      console.log('[Leaderboard] Settings not loaded yet');
+      return;
+    }
+    
+    if (hasInitializedView.current) {
+      console.log('[Leaderboard] View already initialized');
+      return;
+    }
+    
+    console.log('[Leaderboard] Initializing view from settings:', {
+      currentView: settings.currentView,
+      autoSwitchEnabled: settings.autoSwitchEnabled,
+    });
+    
+    if (settings.currentView === 'BEER_PONG') {
+      setCurrentView('BEER_PONG');
+    } else if (settings.currentView === 'LEADERBOARD') {
+      setCurrentView('LEADERBOARD');
+    } else if (settings.currentView === 'AUTO') {
+      setCurrentView('LEADERBOARD'); // Start with leaderboard in AUTO mode
+    }
+    
+    hasInitializedView.current = true;
+  }, [settings]);
+
+  // Auto-switch logic - separate effect that only runs when settings change
+  useEffect(() => {
+    if (!showAutoSwitch || !settings) {
+      // Clear timer if feature is disabled
+      if (switchTimerRef.current) {
+        clearInterval(switchTimerRef.current);
+        switchTimerRef.current = null;
+      }
+      return;
+    }
+
+    // If auto-switch is disabled in settings, don't start timer
+    if (!settings.autoSwitchEnabled) {
+      if (switchTimerRef.current) {
+        clearInterval(switchTimerRef.current);
+        switchTimerRef.current = null;
+      }
+      // Set view based on settings
+      if (settings.currentView === 'LEADERBOARD') {
+        setCurrentView('LEADERBOARD');
+      } else if (settings.currentView === 'BEER_PONG') {
+        setCurrentView('BEER_PONG');
+      }
+      return;
+    }
+
+    // Handle AUTO mode or manual mode
+    if (settings.currentView === 'AUTO') {
+      // Start auto-switching
+      const interval = Math.max(5000, settings.switchIntervalSeconds * 1000); // Minimum 5 seconds
+      
+      // Only restart timer if settings actually changed
+      const currentTimerSettings = timerSettingsRef.current;
+      if (
+        currentTimerSettings &&
+        currentTimerSettings.interval === interval &&
+        currentTimerSettings.enabled === settings.autoSwitchEnabled &&
+        currentTimerSettings.mode === 'AUTO' &&
+        switchTimerRef.current
+      ) {
+        // Timer already running with same settings, don't restart
+        return;
+      }
+
+      // Clear any existing timer first
+      if (switchTimerRef.current) {
+        clearInterval(switchTimerRef.current);
+        switchTimerRef.current = null;
+      }
+
+      console.log('[Leaderboard] Starting auto-switch timer:', {
+        interval: interval,
+        intervalSeconds: settings.switchIntervalSeconds,
+      });
+
+      // Store current timer settings
+      timerSettingsRef.current = {
+        interval,
+        enabled: settings.autoSwitchEnabled,
+        mode: 'AUTO',
+      };
+
+      // Start the timer - it will switch views at the specified interval
+      switchTimerRef.current = setInterval(() => {
+        setCurrentView((prev) => {
+          const next = prev === 'LEADERBOARD' ? 'BEER_PONG' : 'LEADERBOARD';
+          console.log('[Leaderboard] Auto-switching view:', prev, '->', next);
+          return next;
+        });
+      }, interval);
+    } else if (settings.currentView === 'LEADERBOARD') {
+      if (switchTimerRef.current) {
+        clearInterval(switchTimerRef.current);
+        switchTimerRef.current = null;
+      }
+      timerSettingsRef.current = null;
+      setCurrentView('LEADERBOARD');
+    } else if (settings.currentView === 'BEER_PONG') {
+      if (switchTimerRef.current) {
+        clearInterval(switchTimerRef.current);
+        switchTimerRef.current = null;
+      }
+      timerSettingsRef.current = null;
+      setCurrentView('BEER_PONG');
+    }
+
+    return () => {
+      if (switchTimerRef.current) {
+        clearInterval(switchTimerRef.current);
+        switchTimerRef.current = null;
+      }
+    };
+  }, [showAutoSwitch, settings?.autoSwitchEnabled, settings?.currentView, settings?.switchIntervalSeconds]);
   
   // Use real-time stats from WebSocket, fallback to calculated values
   const metricStats = {
@@ -137,6 +299,22 @@ const LeaderboardComponent: React.FC = () => {
           
           <PageHeader title={translations.title} />
           <Box display="flex" gap={1} alignItems="center">
+            {isHeaderVisible && showAutoSwitch && settings && settings.autoSwitchEnabled && (
+              <ButtonGroup size="small" variant="outlined">
+                <Button
+                  variant={currentView === 'LEADERBOARD' ? 'contained' : 'outlined'}
+                  onClick={() => setCurrentView('LEADERBOARD')}
+                >
+                  Žebříček
+                </Button>
+                <Button
+                  variant={currentView === 'BEER_PONG' ? 'contained' : 'outlined'}
+                  onClick={() => setCurrentView('BEER_PONG')}
+                >
+                  Beer Pong
+                </Button>
+              </ButtonGroup>
+            )}
             {showYearFilter && availableYears.length > 0 && (
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <InputLabel id="leaderboard-year-label">Rok</InputLabel>
@@ -239,22 +417,33 @@ const LeaderboardComponent: React.FC = () => {
           </Grid>
         </Grid>
 
-        <Grid container spacing={isHeaderVisible ? 4 : 3}>
-          <Grid item xs={12} md={6}>
-            <LeaderboardTable 
-              participants={stats.males} 
-              title={translations.sections.men}
-              icon={<FaBeer style={{ fontSize: '1.5rem' }} />}
-            />
+        {showAutoSwitch && settings && settings.autoSwitchEnabled && currentView === 'BEER_PONG' ? (
+          <Grid container spacing={isHeaderVisible ? 4 : 3}>
+            <Grid item xs={12}>
+              <BeerPongStandings 
+                selectedTournamentId={settings.selectedBeerPongEventId}
+                preloadedTournaments={beerPongTournaments}
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={6}>
-            <LeaderboardTable 
-              participants={stats.females} 
-              title={translations.sections.women}
-              icon={<FaBeer style={{ fontSize: '1.5rem' }} />}
-            />
+        ) : (
+          <Grid container spacing={isHeaderVisible ? 4 : 3}>
+            <Grid item xs={12} md={6}>
+              <LeaderboardTable 
+                participants={stats.males} 
+                title={translations.sections.men}
+                icon={<FaBeer style={{ fontSize: '1.5rem' }} />}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <LeaderboardTable 
+                participants={stats.females} 
+                title={translations.sections.women}
+                icon={<FaBeer style={{ fontSize: '1.5rem' }} />}
+              />
+            </Grid>
           </Grid>
-        </Grid>
+        )}
       </Box>
     </Box>
   );

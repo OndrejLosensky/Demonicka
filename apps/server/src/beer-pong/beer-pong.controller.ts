@@ -23,6 +23,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Permission } from '@demonicka/shared';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 import { User } from '@prisma/client';
 
 @Controller('beer-pong')
@@ -58,6 +59,12 @@ export class BeerPongController {
   @Permissions(Permission.VIEW_DASHBOARD)
   async findAll(@Query('eventId') eventId?: string) {
     return this.beerPongService.findAll(eventId);
+  }
+
+  @Get('active-tournaments')
+  @Public()
+  async findActiveTournaments(@Query('eventId') eventId?: string) {
+    return this.beerPongService.findActiveTournaments(eventId);
   }
 
   @Get(':id')

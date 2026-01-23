@@ -145,6 +145,47 @@ export class BeerPongService {
     });
   }
 
+  async findActiveTournaments(eventId?: string): Promise<BeerPongEventWithRelations[]> {
+    const where: Prisma.BeerPongEventWhereInput = {
+      deletedAt: null,
+      status: 'ACTIVE',
+    };
+
+    if (eventId) {
+      where.eventId = eventId;
+    }
+
+    return this.prisma.beerPongEvent.findMany({
+      where,
+      include: {
+        event: true,
+        teams: {
+          where: { deletedAt: null },
+          include: {
+            player1: true,
+            player2: true,
+          },
+        },
+        games: {
+          include: {
+            team1: true,
+            team2: true,
+            winnerTeam: true,
+            gameBeers: {
+              include: {
+                user: true,
+                eventBeer: true,
+              },
+            },
+          },
+          orderBy: [{ round: 'asc' }, { createdAt: 'asc' }],
+        },
+        creator: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async findOne(id: string): Promise<BeerPongEventWithRelations> {
     const beerPongEvent = await this.prisma.beerPongEvent.findFirst({
       where: {

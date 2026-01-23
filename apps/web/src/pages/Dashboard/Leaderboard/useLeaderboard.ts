@@ -54,8 +54,12 @@ export const useLeaderboard = () => {
     loadLeaderboard();
 
     // Subscribe to real-time updates
-    const onLeaderboard = (data: LeaderboardData) => setStats(data);
+    const onLeaderboard = (data: LeaderboardData) => {
+      console.log('[useLeaderboard] Received leaderboard update via WebSocket', { timestamp: new Date().toISOString() });
+      setStats(data);
+    };
     const onDashboardStats = (data: { dashboard: DashboardStats; public: PublicStats }) => {
+      console.log('[useLeaderboard] Received dashboard stats update via WebSocket', { timestamp: new Date().toISOString() });
       setDashboardStats(data.dashboard);
       setPublicStats(data.public);
     };

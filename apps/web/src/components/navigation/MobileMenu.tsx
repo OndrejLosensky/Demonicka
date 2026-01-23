@@ -57,7 +57,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
         items.push(
           { to: '/dashboard/participants', label: translations.navigation.participants },
           { to: '/dashboard/barrels', label: translations.navigation.barrels },
-          { to: '/leaderboard', label: translations.navigation.leaderboard }
+          { to: '/dashboard/leaderboard', label: translations.navigation.leaderboard }
         );
       }
 

@@ -670,27 +670,29 @@ export class DashboardService {
       const eventUserIds = event.users.map((eu) => eu.userId);
       const eventBarrelIds = event.barrels.map((eb) => eb.barrelId);
 
-      // Get beer count for event users using event_beers table
-      const totalBeers = await this.prisma.eventBeer.count({
-        where: {
-          eventId: event.id,
-          userId: { in: eventUserIds },
-          deletedAt: null,
-        },
-      });
-
-      // Get top users for this event using event_beers
-      const eventBeerCounts = await this.prisma.eventBeer.groupBy({
-        by: ['userId'],
-        where: {
-          eventId: event.id,
-          userId: { in: eventUserIds },
-          deletedAt: null,
-        },
-        _count: { id: true },
-        orderBy: { _count: { id: 'desc' } },
-        take: 6,
-      });
+      // Run queries in parallel for better performance
+      const [totalBeers, eventBeerCounts] = await Promise.all([
+        // Get beer count for event users using event_beers table
+        this.prisma.eventBeer.count({
+          where: {
+            eventId: event.id,
+            userId: { in: eventUserIds },
+            deletedAt: null,
+          },
+        }),
+        // Get top users for this event using event_beers
+        this.prisma.eventBeer.groupBy({
+          by: ['userId'],
+          where: {
+            eventId: event.id,
+            userId: { in: eventUserIds },
+            deletedAt: null,
+          },
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+          take: 6,
+        }),
+      ]);
 
       const userIds = eventBeerCounts.map((eb) => eb.userId);
       const users = await this.prisma.user.findMany({
@@ -811,31 +813,34 @@ export class DashboardService {
       const eventUserIds = event.users.map((eu) => eu.userId);
       const eventBarrelIds = event.barrels.map((eb) => eb.barrelId);
 
-      // Get beer count for event users using event_beers table
-      const totalBeers = await this.prisma.eventBeer.count({
-        where: {
-          eventId: event.id,
-          userId: { in: eventUserIds },
-          deletedAt: null,
-        },
-      });
-
       const totalUsers = event.users.length;
       const totalBarrels = event.barrels.length;
-      const averageBeersPerUser = totalUsers ? totalBeers / totalUsers : 0;
 
-      // Get top users for this event using event_beers
-      const eventBeerCounts = await this.prisma.eventBeer.groupBy({
-        by: ['userId'],
-        where: {
-          eventId: event.id,
-          userId: { in: eventUserIds },
-          deletedAt: null,
-        },
-        _count: { id: true },
-        orderBy: { _count: { id: 'desc' } },
-        take: 10,
-      });
+      // Run queries in parallel for better performance
+      const [totalBeers, eventBeerCounts] = await Promise.all([
+        // Get beer count for event users using event_beers table
+        this.prisma.eventBeer.count({
+          where: {
+            eventId: event.id,
+            userId: { in: eventUserIds },
+            deletedAt: null,
+          },
+        }),
+        // Get top users for this event using event_beers
+        this.prisma.eventBeer.groupBy({
+          by: ['userId'],
+          where: {
+            eventId: event.id,
+            userId: { in: eventUserIds },
+            deletedAt: null,
+          },
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+          take: 10,
+        }),
+      ]);
+
+      const averageBeersPerUser = totalUsers ? totalBeers / totalUsers : 0;
 
       const userIds = eventBeerCounts.map((eb) => eb.userId);
       const users = await this.prisma.user.findMany({
@@ -1001,43 +1006,50 @@ export class DashboardService {
     // Event-specific leaderboard only
     const eventUserIds = event.users.map((eu) => eu.userId);
 
-    // Leaderboard score is based on non-spilled beers only
-    const totalEventNonSpilledBeers = await this.prisma.eventBeer.count({
-      where: {
-        eventId: event.id,
-        userId: { in: eventUserIds },
-        deletedAt: null,
-        spilled: false,
-      },
-    });
-
-    this.logger.log(
-      `Total NON-SPILLED event beers for event ${event.id}: ${totalEventNonSpilledBeers}`,
-    );
-
-    const totalEventSpilledBeers = await this.prisma.eventBeer.count({
-      where: {
-        eventId: event.id,
-        userId: { in: eventUserIds },
-        deletedAt: null,
-        spilled: true,
-      },
-    });
-
-    this.logger.log(
-      `Total SPILLED event beers for event ${event.id}: ${totalEventSpilledBeers}`,
-    );
-
-    // Get user rankings with their individual beer counts (split spilled/non-spilled)
-    const eventBeerCountsBySpill = await this.prisma.eventBeer.groupBy({
-      by: ['userId', 'spilled'],
-      where: {
-        eventId: event.id,
-        userId: { in: eventUserIds },
-        deletedAt: null,
-      },
-      _count: { id: true },
-    });
+    // Run all queries in parallel for better performance
+    const [
+      totalEventNonSpilledBeers,
+      totalEventSpilledBeers,
+      eventBeerCountsBySpill,
+      usersRaw,
+    ] = await Promise.all([
+      // Leaderboard score is based on non-spilled beers only
+      this.prisma.eventBeer.count({
+        where: {
+          eventId: event.id,
+          userId: { in: eventUserIds },
+          deletedAt: null,
+          spilled: false,
+        },
+      }),
+      this.prisma.eventBeer.count({
+        where: {
+          eventId: event.id,
+          userId: { in: eventUserIds },
+          deletedAt: null,
+          spilled: true,
+        },
+      }),
+      // Get user rankings with their individual beer counts (split spilled/non-spilled)
+      this.prisma.eventBeer.groupBy({
+        by: ['userId', 'spilled'],
+        where: {
+          eventId: event.id,
+          userId: { in: eventUserIds },
+          deletedAt: null,
+        },
+        _count: { id: true },
+      }),
+      this.prisma.user.findMany({
+        where: { id: { in: eventUserIds } },
+        select: {
+          id: true,
+          username: true,
+          gender: true,
+          profilePictureUrl: true,
+        },
+      }),
+    ]);
 
     type LeaderboardUserRow = {
       id: string;
@@ -1045,16 +1057,6 @@ export class DashboardService {
       gender: 'MALE' | 'FEMALE';
       profilePictureUrl: string | null;
     };
-
-    const usersRaw = await this.prisma.user.findMany({
-      where: { id: { in: eventUserIds } },
-      select: {
-        id: true,
-        username: true,
-        gender: true,
-        profilePictureUrl: true,
-      },
-    });
 
     const users: LeaderboardUserRow[] = usersRaw.map((u) => ({
       id: u.id,
