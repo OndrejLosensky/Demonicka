@@ -4,6 +4,7 @@ export interface UserLeaderboardData {
   gender: 'MALE' | 'FEMALE';
   beerCount: number;
   spilledCount: number;
+  totalLitres: number;
   rank: number;
   profilePictureUrl?: string | null;
 }

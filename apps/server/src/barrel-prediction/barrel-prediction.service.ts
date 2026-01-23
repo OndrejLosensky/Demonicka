@@ -11,6 +11,8 @@ type PredictionRow = {
   barrelSize: number;
   barrelTotalBeers: number;
   barrelRemainingBeers: number;
+  barrelTotalLitres: number;
+  barrelRemainingLitres: number;
   barrelCreatedAt: Date;
 
   windowMinutes: number;
@@ -25,7 +27,9 @@ type PredictionRow = {
 
   previousEventId: string | null;
   previousMatchBeersPerHour: number | null;
+  previousMatchLitresPerHour: number | null;
   previousAvgBeersPerHour: number | null;
+  previousAvgLitresPerHour: number | null;
   previousFullBarrelsUsed: number | null;
 };
 
@@ -60,6 +64,14 @@ export class BarrelPredictionService {
         : null;
     const rollingBph =
       row.rollingHoursElapsed > 0 ? row.rollingConsumed / row.rollingHoursElapsed : null;
+    
+    // Calculate litres per hour (consumed is already in litres)
+    const fromStartLph =
+      row.fromStartHoursElapsed > 0
+        ? row.fromStartConsumed / row.fromStartHoursElapsed
+        : null;
+    const rollingLph =
+      row.rollingHoursElapsed > 0 ? row.rollingConsumed / row.rollingHoursElapsed : null;
 
     const rollingElapsedMinutes = row.rollingHoursElapsed * 60;
     const fromStartElapsedMinutes = row.fromStartHoursElapsed * 60;
@@ -91,6 +103,10 @@ export class BarrelPredictionService {
       row.previousMatchBeersPerHour ??
       row.previousAvgBeersPerHour ??
       null;
+    const prevLph =
+      row.previousMatchLitresPerHour ??
+      row.previousAvgLitresPerHour ??
+      null;
     const matchingStrategy =
       row.previousMatchBeersPerHour != null
         ? 'same_index_size'
@@ -98,14 +114,20 @@ export class BarrelPredictionService {
           ? 'avg_same_size'
           : null;
 
+    // Use litres for ETA calculations
+    const remainingLitres = Number(row.barrelRemainingLitres);
+    const currentLph = methodUsed === 'rolling_window'
+      ? rollingHasSignal ? rollingLph : null
+      : fromStartHasSignal ? fromStartLph : null;
+
     const emptyAtByCurrent =
-      currentBph && currentBph > 0
-        ? new Date(row.asOf.getTime() + (row.barrelRemainingBeers / currentBph) * 3600_000).toISOString()
+      currentLph && currentLph > 0
+        ? new Date(row.asOf.getTime() + (remainingLitres / currentLph) * 3600_000).toISOString()
         : null;
 
     const emptyAtByHistorical =
-      prevBph && prevBph > 0
-        ? new Date(row.asOf.getTime() + (row.barrelRemainingBeers / prevBph) * 3600_000).toISOString()
+      prevLph && prevLph > 0
+        ? new Date(row.asOf.getTime() + (remainingLitres / prevLph) * 3600_000).toISOString()
         : null;
 
     const status: BarrelPrediction['status'] =
@@ -124,6 +146,8 @@ export class BarrelPredictionService {
         size: row.barrelSize,
         totalBeers: row.barrelTotalBeers,
         remainingBeers: row.barrelRemainingBeers,
+        totalLitres: Number(row.barrelTotalLitres),
+        remainingLitres: Number(row.barrelRemainingLitres),
         createdAt: barrelCreatedAtIso,
       },
       current: {
@@ -136,6 +160,7 @@ export class BarrelPredictionService {
           consumed: row.fromStartConsumed,
           hoursElapsed: row.fromStartHoursElapsed,
           beersPerHour: fromStartBph,
+          litresPerHour: fromStartLph,
         },
         rollingWindow: {
           from: row.rollingFrom.toISOString(),
@@ -143,6 +168,7 @@ export class BarrelPredictionService {
           consumed: row.rollingConsumed,
           hoursElapsed: row.rollingHoursElapsed,
           beersPerHour: rollingBph,
+          litresPerHour: rollingLph,
         },
       },
       historical: {
@@ -150,6 +176,7 @@ export class BarrelPredictionService {
         matchingStrategy,
         fullBarrelsUsed: prevFullUsed,
         beersPerHour: prevBph,
+        litresPerHour: prevLph,
       },
       eta: {
         emptyAtByCurrent,

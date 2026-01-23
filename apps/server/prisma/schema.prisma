@@ -79,6 +79,11 @@ enum EventRegistrationStatus {
   REJECTED
 }
 
+enum BeerSize {
+  SMALL
+  LARGE
+}
+
 // Models
 model User {
   id                     String    @id @default(uuid()) @db.Uuid
@@ -179,6 +184,8 @@ model Barrel {
   orderNumber    Int
   remainingBeers Int
   totalBeers     Int
+  remainingLitres Decimal  @db.Decimal(10, 2)
+  totalLitres    Decimal   @db.Decimal(10, 2)
   createdAt      DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt      DateTime  @updatedAt @db.Timestamptz(6)
   deletedAt      DateTime? @db.Timestamptz(6)
@@ -190,11 +197,13 @@ model Barrel {
 }
 
 model Beer {
-  id        String    @id @default(uuid()) @db.Uuid
-  userId    String    @db.Uuid
-  barrelId  String?   @db.Uuid
-  createdAt DateTime  @default(now()) @db.Timestamptz(6)
-  deletedAt DateTime? @db.Timestamptz(6)
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @db.Uuid
+  barrelId     String?   @db.Uuid
+  beerSize     BeerSize  @default(LARGE)
+  volumeLitres Decimal   @default(0.5) @db.Decimal(3, 2)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   barrel Barrel? @relation(fields: [barrelId], references: [id], onDelete: Cascade)
@@ -253,13 +262,15 @@ model EventBeerPongTeam {
 }
 
 model EventBeer {
-  id         String    @id @default(uuid()) @db.Uuid
-  eventId    String    @db.Uuid
-  userId     String    @db.Uuid
-  barrelId   String?   @db.Uuid
-  spilled    Boolean   @default(false)
-  consumedAt DateTime  @default(now()) @db.Timestamptz(6)
-  deletedAt  DateTime? @db.Timestamptz(6)
+  id           String    @id @default(uuid()) @db.Uuid
+  eventId      String    @db.Uuid
+  userId       String    @db.Uuid
+  barrelId     String?   @db.Uuid
+  spilled      Boolean   @default(false)
+  beerSize     BeerSize  @default(LARGE)
+  volumeLitres Decimal   @default(0.5) @db.Decimal(3, 2)
+  consumedAt   DateTime  @default(now()) @db.Timestamptz(6)
+  deletedAt    DateTime? @db.Timestamptz(6)
 
   event             Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -441,6 +452,8 @@ model BeerPongEvent {
   timeWindowMinutes  Int                 @default(5)
   undoWindowMinutes  Int                 @default(5)
   cancellationPolicy CancellationPolicy  @default(KEEP_BEERS)
+  beerSize           BeerSize?
+  beerVolumeLitres   Decimal?             @db.Decimal(3, 2)
   startedAt          DateTime?           @db.Timestamptz(6)
   completedAt        DateTime?           @db.Timestamptz(6)
   createdBy          String?             @db.Uuid

@@ -41,7 +41,9 @@ export function AvgPerPersonDetail() {
 
   const totalUsers = stats?.totalUsers || 0;
   const totalBeers = stats?.totalBeers || 0;
+  const totalLitres = stats?.totalLitres || 0;
   const avgPerPerson = totalUsers > 0 ? totalBeers / totalUsers : 0;
+  const avgLitresPerPerson = totalUsers > 0 ? totalLitres / totalUsers : 0;
 
   const chartData = stats?.topUsers?.slice(0, 10).map((user) => ({
     name: user.username,
@@ -57,10 +59,10 @@ export function AvgPerPersonDetail() {
 
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-            Průměr: {avgPerPerson.toFixed(2)} piv na osobu
+            Průměr: {avgPerPerson.toFixed(2)} piv na osobu ({avgLitresPerPerson.toFixed(2)} L)
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Celkem: {totalBeers} piv / {totalUsers} účastníků
+            Celkem: {totalBeers} piv ({totalLitres.toFixed(1)} L) / {totalUsers} účastníků
           </Typography>
         </Box>
 

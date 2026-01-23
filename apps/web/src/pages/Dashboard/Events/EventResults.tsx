@@ -217,16 +217,30 @@ export const EventResults: React.FC = () => {
                                             opacity: 0.7,
                                             color: index < 3 ? 'warning.main' : 'text.secondary',
                                         }} />
-                                        <Typography 
-                                            variant="body2" 
-                                            color="text.secondary"
-                                            sx={{ 
-                                                fontSize: '0.9rem',
-                                                fontWeight: 500,
-                                            }}
-                                        >
-                                            {user.beerCount} piv
-                                        </Typography>
+                                        <Box display="flex" flexDirection="column" gap={0.25}>
+                                          <Typography 
+                                              variant="body2" 
+                                              color="text.secondary"
+                                              sx={{ 
+                                                  fontSize: '0.9rem',
+                                                  fontWeight: 500,
+                                              }}
+                                          >
+                                              {user.beerCount} piv
+                                          </Typography>
+                                          {user.totalLitres !== undefined && user.totalLitres > 0 && (
+                                            <Typography 
+                                                variant="caption" 
+                                                color="text.secondary"
+                                                sx={{ 
+                                                    fontSize: '0.75rem',
+                                                    opacity: 0.7,
+                                                }}
+                                            >
+                                                {user.totalLitres.toFixed(1)} L
+                                            </Typography>
+                                          )}
+                                        </Box>
                                     </Box>
                                 </Box>
                                 {index < 3 && (

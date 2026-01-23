@@ -6,6 +6,8 @@ export interface Barrel {
   isActive: boolean;
   remainingBeers: number;
   totalBeers: number;
+  remainingLitres: number;
+  totalLitres: number;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;

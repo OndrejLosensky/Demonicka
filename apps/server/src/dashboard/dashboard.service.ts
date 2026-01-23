@@ -148,7 +148,9 @@ export class DashboardService {
               SELECT
                 date_trunc('hour', (eb."consumedAt" AT TIME ZONE ${timezoneOffset})) AS bucket_local,
                 COUNT(*) FILTER (WHERE eb."spilled" = false)::bigint AS beers,
-                COUNT(*) FILTER (WHERE eb."spilled" = true)::bigint AS "eventBeers"
+                COUNT(*) FILTER (WHERE eb."spilled" = true)::bigint AS "eventBeers",
+                COALESCE(SUM(eb."volumeLitres") FILTER (WHERE eb."spilled" = false), 0)::float AS litres,
+                COALESCE(SUM(eb."volumeLitres") FILTER (WHERE eb."spilled" = true), 0)::float AS "eventLitres"
               FROM "EventBeer" eb
               WHERE eb."eventId" = ${seriesEvent.id}::uuid
                 AND eb."userId" = ${userId}::uuid
@@ -158,7 +160,9 @@ export class DashboardService {
             SELECT
               (h.bucket_local AT TIME ZONE ${timezoneOffset}) AS "bucketUtc",
               COALESCE(c.beers, 0)::bigint AS beers,
-              COALESCE(c."eventBeers", 0)::bigint AS "eventBeers"
+              COALESCE(c."eventBeers", 0)::bigint AS "eventBeers",
+              COALESCE(c.litres, 0)::float AS litres,
+              COALESCE(c."eventLitres", 0)::float AS "eventLitres"
             FROM hours h
             LEFT JOIN counts c ON c.bucket_local = h.bucket_local
             ORDER BY h.bucket_local ASC
@@ -193,7 +197,9 @@ export class DashboardService {
           SELECT
             "eventId",
             COUNT(*)::bigint AS user_beers,
-            COUNT(*) FILTER (WHERE "spilled" = true)::bigint AS user_spilled
+            COUNT(*) FILTER (WHERE "spilled" = true)::bigint AS user_spilled,
+            COALESCE(SUM("volumeLitres"), 0)::float AS user_litres,
+            COALESCE(SUM("volumeLitres") FILTER (WHERE "spilled" = true), 0)::float AS user_spilled_litres
           FROM "EventBeer"
           WHERE "userId" = ${userId}::uuid
             AND "deletedAt" IS NULL
@@ -202,7 +208,8 @@ export class DashboardService {
         LEFT JOIN (
           SELECT
             "eventId",
-            COUNT(*)::bigint AS total_beers
+            COUNT(*)::bigint AS total_beers,
+            COALESCE(SUM("volumeLitres"), 0)::float AS total_litres
           FROM "EventBeer"
           WHERE "deletedAt" IS NULL
           GROUP BY "eventId"
@@ -350,7 +357,9 @@ export class DashboardService {
         SELECT
           "eventId",
           COUNT(*)::bigint AS user_beers,
-          COUNT(*) FILTER (WHERE "spilled" = true)::bigint AS user_spilled
+          COUNT(*) FILTER (WHERE "spilled" = true)::bigint AS user_spilled,
+          COALESCE(SUM("volumeLitres"), 0)::float AS user_litres,
+          COALESCE(SUM("volumeLitres") FILTER (WHERE "spilled" = true), 0)::float AS user_spilled_litres
         FROM "EventBeer"
         WHERE "userId" = ${userId}::uuid
           AND "deletedAt" IS NULL
@@ -360,7 +369,9 @@ export class DashboardService {
         SELECT
           "eventId",
           COUNT(*)::bigint AS total_beers,
-          COUNT(*) FILTER (WHERE "spilled" = true)::bigint AS total_spilled
+          COUNT(*) FILTER (WHERE "spilled" = true)::bigint AS total_spilled,
+          COALESCE(SUM("volumeLitres"), 0)::float AS total_litres,
+          COALESCE(SUM("volumeLitres") FILTER (WHERE "spilled" = true), 0)::float AS total_spilled_litres
         FROM "EventBeer"
         WHERE "deletedAt" IS NULL
         GROUP BY "eventId"
@@ -424,7 +435,11 @@ export class DashboardService {
           COUNT(*) FILTER (WHERE eb."userId" = ${userId}::uuid)::bigint AS "userBeers",
           COUNT(*) FILTER (WHERE eb."userId" = ${userId}::uuid AND eb."spilled" = true)::bigint AS "userSpilledBeers",
           COUNT(*)::bigint AS "totalEventBeers",
-          COUNT(*) FILTER (WHERE eb."spilled" = true)::bigint AS "totalEventSpilledBeers"
+          COUNT(*) FILTER (WHERE eb."spilled" = true)::bigint AS "totalEventSpilledBeers",
+          COALESCE(SUM(eb."volumeLitres") FILTER (WHERE eb."userId" = ${userId}::uuid), 0)::float AS "userLitres",
+          COALESCE(SUM(eb."volumeLitres") FILTER (WHERE eb."userId" = ${userId}::uuid AND eb."spilled" = true), 0)::float AS "userSpilledLitres",
+          COALESCE(SUM(eb."volumeLitres"), 0)::float AS "totalEventLitres",
+          COALESCE(SUM(eb."volumeLitres") FILTER (WHERE eb."spilled" = true), 0)::float AS "totalEventSpilledLitres"
         FROM "EventBeer" eb
         WHERE eb."eventId" = ${eventId}::uuid
           AND eb."deletedAt" IS NULL
@@ -451,7 +466,9 @@ export class DashboardService {
           SELECT
             date_trunc('hour', (eb."consumedAt" AT TIME ZONE ${timezoneOffset})) AS bucket_local,
             COUNT(*) FILTER (WHERE eb."spilled" = false)::bigint AS count,
-            COUNT(*) FILTER (WHERE eb."spilled" = true)::bigint AS spilled
+            COUNT(*) FILTER (WHERE eb."spilled" = true)::bigint AS spilled,
+            COALESCE(SUM(eb."volumeLitres") FILTER (WHERE eb."spilled" = false), 0)::float AS litres,
+            COALESCE(SUM(eb."volumeLitres") FILTER (WHERE eb."spilled" = true), 0)::float AS spilled_litres
           FROM "EventBeer" eb
           WHERE eb."eventId" = ${eventId}::uuid
             AND eb."userId" = ${userId}::uuid
@@ -1012,6 +1029,7 @@ export class DashboardService {
       totalEventSpilledBeers,
       eventBeerCountsBySpill,
       usersRaw,
+      litresByUser,
     ] = await Promise.all([
       // Leaderboard score is based on non-spilled beers only
       this.prisma.eventBeer.count({
@@ -1049,6 +1067,18 @@ export class DashboardService {
           profilePictureUrl: true,
         },
       }),
+      // Get litres for each user
+      this.prisma.$queryRaw<Array<{ userId: string; totalLitres: number }>>`
+        SELECT
+          "userId",
+          COALESCE(SUM("volumeLitres"), 0)::float AS "totalLitres"
+        FROM "EventBeer"
+        WHERE "eventId" = ${event.id}::uuid
+          AND "userId" = ANY(${eventUserIds}::uuid[])
+          AND "deletedAt" IS NULL
+          AND "spilled" = false
+        GROUP BY "userId"
+      `,
     ]);
 
     type LeaderboardUserRow = {
@@ -1071,6 +1101,8 @@ export class DashboardService {
 
     const beerCountMap = new Map<string, number>(); // non-spilled
     const spilledCountMap = new Map<string, number>();
+    const litresMap = new Map<string, number>();
+    
     eventBeerCountsBySpill.forEach((row) => {
       const count = row._count.id;
       if (row.spilled) {
@@ -1078,6 +1110,11 @@ export class DashboardService {
       } else {
         beerCountMap.set(row.userId, count);
       }
+    });
+    
+    // Populate litres map
+    litresByUser.forEach((row) => {
+      litresMap.set(row.userId, Number(row.totalLitres));
     });
 
     // Include users with 0 beers
@@ -1087,6 +1124,9 @@ export class DashboardService {
       }
       if (!spilledCountMap.has(userId)) {
         spilledCountMap.set(userId, 0);
+      }
+      if (!litresMap.has(userId)) {
+        litresMap.set(userId, 0);
       }
       if (!userMap.has(userId)) {
         const eventUser = event.users.find((eu) => eu.userId === userId);
@@ -1145,6 +1185,7 @@ export class DashboardService {
         gender: user.gender,
         beerCount: beerCountMap.get(userId) || 0,
         spilledCount: spilledCountMap.get(userId) || 0,
+        totalLitres: litresMap.get(userId) || 0,
         profilePictureUrl: user.profilePictureUrl || null,
         reachedAt: getReachedAtTimestamp(userId, beerCountMap.get(userId) || 0),
       }))
@@ -1310,7 +1351,8 @@ export class DashboardService {
         >`
           SELECT 
             EXTRACT(HOUR FROM ("consumedAt" AT TIME ZONE ${timezoneOffset}))::int as hour,
-            COUNT(*)::bigint as count
+            COUNT(*)::bigint as count,
+            COALESCE(SUM("volumeLitres"), 0)::float as litres
           FROM "EventBeer"
           WHERE "eventId" = ${event.id}::uuid
             AND "userId" = ${userId}::uuid
@@ -1374,7 +1416,8 @@ export class DashboardService {
       >`
         SELECT
           EXTRACT(HOUR FROM ("consumedAt" AT TIME ZONE ${timezone}))::int as hour,
-          COUNT(*)::bigint as count
+          COUNT(*)::bigint as count,
+          COALESCE(SUM("volumeLitres"), 0)::float as litres
         FROM "EventBeer"
         WHERE "eventId" = ${eventId}::uuid
           AND "deletedAt" IS NULL

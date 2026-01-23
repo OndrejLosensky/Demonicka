@@ -8,6 +8,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { EventBeer } from '@prisma/client';
 import { BeersService } from '../../beers/beers.service';
+import { BarrelsService } from '../../barrels/barrels.service';
 import { LeaderboardGateway } from '../../leaderboard/leaderboard.gateway';
 import { LoggingService } from '../../logging/logging.service';
 
@@ -19,6 +20,7 @@ export class EventBeersService {
     private prisma: PrismaService,
     @Inject(forwardRef(() => BeersService))
     private readonly beersService: BeersService,
+    private readonly barrelsService: BarrelsService,
     private readonly leaderboardGateway: LeaderboardGateway,
     private readonly loggingService: LoggingService,
   ) {}
@@ -29,6 +31,8 @@ export class EventBeersService {
     barrelId?: string,
     actorUserId?: string,
     spilled = false,
+    beerSize: 'SMALL' | 'LARGE' = 'LARGE',
+    volumeLitres: number = 0.5,
   ): Promise<EventBeer> {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
@@ -63,11 +67,19 @@ export class EventBeersService {
         userId,
         barrelId: barrelId || null,
         spilled,
+        beerSize,
+        volumeLitres,
       },
     });
 
     // Also create a global beer record, with skipEventBeer=true to prevent infinite loop
-    await this.beersService.create(userId, barrelId, true);
+    await this.beersService.create(userId, barrelId, true, beerSize, volumeLitres);
+
+    // Update barrel litres if barrel is provided
+    if (barrelId) {
+      this.logger.debug(`Decrementing barrel ${barrelId} by ${volumeLitres}L (beerSize: ${beerSize})`);
+      await this.barrelsService.decrementLitres(barrelId, volumeLitres);
+    }
 
     // Log beer addition
     this.loggingService.logBeerAdded(userId, barrelId, {

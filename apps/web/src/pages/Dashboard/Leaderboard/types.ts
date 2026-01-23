@@ -5,6 +5,7 @@ export interface UserLeaderboard {
   username: string;
   beerCount: number;
   spilledCount: number;
+  totalLitres?: number;
   rank: number;
   profilePictureUrl?: string | null;
 }

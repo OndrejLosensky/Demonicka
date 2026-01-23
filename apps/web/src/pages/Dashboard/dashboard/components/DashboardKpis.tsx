@@ -10,6 +10,7 @@ import {
 
 type Props = {
   totalBeers: number;
+  totalLitres: number;
   participantsCount: number;
   avgPerPerson: number;
   avgPerHourValue: string;
@@ -20,6 +21,7 @@ type Props = {
 
 export function DashboardKpis({
   totalBeers,
+  totalLitres,
   participantsCount,
   avgPerPerson,
   avgPerHourValue,
@@ -30,7 +32,13 @@ export function DashboardKpis({
   return (
     <Grid container spacing={2.5}>
       <Grid item xs={12} sm={6} md={4} lg={2}>
-        <MetricCard title="Celkem piv" value={totalBeers} icon={<BeerIcon />} to="/dashboard/kpi/total-beers" />
+        <MetricCard 
+          title="Celkem piv" 
+          value={totalBeers} 
+          subtitle={`${totalLitres.toFixed(1)} L`}
+          icon={<BeerIcon />} 
+          to="/dashboard/kpi/total-beers" 
+        />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={2}>
         <MetricCard title="Účastníci" value={participantsCount} icon={<GroupIcon />} />

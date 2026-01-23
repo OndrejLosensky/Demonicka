@@ -516,6 +516,14 @@ export function BeerPongDetail() {
                       {tournament.cancellationPolicy === 'KEEP_BEERS' ? translations.createDialog.cancellationPolicy.keepBeers : translations.createDialog.cancellationPolicy.removeBeers}
                     </Typography>
                   </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Velikost piva:
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {tournament.beerSize === 'SMALL' ? 'Malé' : 'Velké'} ({tournament.beerVolumeLitres || 0.5} L)
+                    </Typography>
+                  </Box>
                   {tournament.startedAt && (
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">

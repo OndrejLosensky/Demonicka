@@ -2,5 +2,17 @@
     "workbench.colorCustomizations": {
         "minimap.background": "#00000000",
         "scrollbar.shadow": "#00000000"
-    }
+    },
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "194.182.86.102",
+            "port": 3003,
+            "driver": "PostgreSQL",
+            "name": "demonicka_dev",
+            "database": "demonicka_dev",
+            "username": "postgres"
+        }
+    ]
 }

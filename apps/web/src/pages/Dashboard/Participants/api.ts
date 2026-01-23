@@ -50,11 +50,15 @@ export const participantsApi = {
     await api.post(`/users/${id}/restore`);
   },
 
-  addBeer: async (id: string, eventId?: string, options?: { spilled?: boolean }): Promise<void> => {
+  addBeer: async (id: string, eventId?: string, options?: { spilled?: boolean; beerSize?: 'SMALL' | 'LARGE'; volumeLitres?: number }): Promise<void> => {
     if (eventId) {
+      const body: { spilled?: boolean; beerSize?: 'SMALL' | 'LARGE'; volumeLitres?: number } = {};
+      if (options?.spilled) body.spilled = true;
+      if (options?.beerSize) body.beerSize = options.beerSize;
+      if (options?.volumeLitres !== undefined) body.volumeLitres = options.volumeLitres;
       await api.post(
         `/events/${eventId}/users/${id}/beers`,
-        options?.spilled ? { spilled: true } : undefined,
+        Object.keys(body).length > 0 ? body : undefined,
       );
     } else {
       await api.post(`/users/${id}/beers`);

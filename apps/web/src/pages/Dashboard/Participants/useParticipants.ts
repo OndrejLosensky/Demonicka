@@ -105,7 +105,7 @@ export const useParticipants = (includeDeleted = false) => {
     }
   }, [fetchParticipants]);
 
-  const handleAddBeer = useCallback(async (id: string) => {
+  const handleAddBeer = useCallback(async (id: string, beerSize: 'SMALL' | 'LARGE' = 'LARGE', volumeLitres: number = 0.5) => {
     const participant = participantsRef.current.find(p => p.id === id);
     if (!participant) return;
 
@@ -125,7 +125,7 @@ export const useParticipants = (includeDeleted = false) => {
     });
 
     try {
-      await participantsApi.addBeer(id, activeEvent?.id);
+      await participantsApi.addBeer(id, activeEvent?.id, { beerSize, volumeLitres });
       const toastId = `beer:add:${activeEvent?.id ?? 'none'}:${id}`;
       notify.success(
         toastTranslations.success.beerAdded.replace(

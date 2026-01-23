@@ -417,6 +417,8 @@ export class EventsService {
     userId: string,
     actorUserId?: string,
     spilled = false,
+    beerSize: 'SMALL' | 'LARGE' = 'LARGE',
+    volumeLitres: number = 0.5,
   ): Promise<void> {
     try {
       await this.findOne(eventId);
@@ -427,18 +429,19 @@ export class EventsService {
       let barrelId: string | undefined = undefined;
 
       if (activeBarrel) {
-        // If there is an active barrel, use it and decrement its beers
         barrelId = activeBarrel.id;
-        await this.barrelsService.decrementBeers(activeBarrel.id);
+        // Barrel decrement is now handled in EventBeersService.create
       }
 
-      // Create event beer
+      // Create event beer (this will handle barrel decrement)
       await this.eventBeersService.create(
         eventId,
         userId,
         barrelId,
         actorUserId,
         spilled,
+        beerSize,
+        volumeLitres,
       );
     } catch (error: unknown) {
       this.loggingService.error('Failed to add beer to event', {

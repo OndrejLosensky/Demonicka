@@ -20,7 +20,7 @@ export interface ParticipantTableProps {
   deletedParticipants: Participant[];
   showDeleted: boolean;
   showUserHistory?: boolean;
-  onAddBeer: (participantId: string) => Promise<void>;
+  onAddBeer: (participantId: string, beerSize?: 'SMALL' | 'LARGE', volumeLitres?: number) => Promise<void>;
   onAddSpilledBeer?: (participantId: string) => Promise<void>;
   onRemoveBeer: (participantId: string) => Promise<void>;
   onDelete: (participantId: string) => Promise<void>;

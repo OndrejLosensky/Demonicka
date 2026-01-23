@@ -6,6 +6,8 @@ import toastTranslations from '../../../locales/cs/toasts.json';
 
 const LOW_BEER_THRESHOLD = 10;
 const ALMOST_EMPTY_THRESHOLD = 5;
+const LOW_LITRES_THRESHOLD = 5.0; // 10 beers * 0.5L
+const ALMOST_EMPTY_LITRES_THRESHOLD = 2.5; // 5 beers * 0.5L
 
 export const useBarrels = (includeDeleted = false, eventId?: string) => {
   const [barrels, setBarrels] = useState<Barrel[]>([]);
@@ -19,16 +21,18 @@ export const useBarrels = (includeDeleted = false, eventId?: string) => {
   const checkBarrelWarnings = useCallback((barrel: Barrel) => {
     if (!barrel.isActive) return;
     
-    if (barrel.remainingBeers <= ALMOST_EMPTY_THRESHOLD) {
+    const remainingLitres = Number(barrel.remainingLitres || 0);
+    
+    if (remainingLitres <= ALMOST_EMPTY_LITRES_THRESHOLD) {
       notify.warning(
         toastTranslations.warning.almostEmpty.replace('{{barrel}}', `#${barrel.orderNumber}`),
         { id: `barrel:warning:${barrel.id}:almostEmpty` },
       );
-    } else if (barrel.remainingBeers <= LOW_BEER_THRESHOLD) {
+    } else if (remainingLitres <= LOW_LITRES_THRESHOLD) {
       notify.warning(
         toastTranslations.warning.lowBeers
           .replace('{{barrel}}', `#${barrel.orderNumber}`)
-          .replace('{{count}}', barrel.remainingBeers.toString()),
+          .replace('{{count}}', remainingLitres.toFixed(1) + ' L'),
         { id: `barrel:warning:${barrel.id}:lowBeers` },
       );
     }

@@ -58,16 +58,28 @@ sessions AS (
   FROM sessionized
   GROUP BY session_id
 ),
+beers_with_volume AS (
+  SELECT 
+    eb."consumedAt",
+    COALESCE(eb."volumeLitres", 0.5) AS volume_litres
+  FROM "EventBeer" eb
+  JOIN params p ON p.event_id = eb."eventId"
+  JOIN participants par ON par."userId" = eb."userId"
+  WHERE eb."deletedAt" IS NULL
+    AND eb."spilled" = false
+),
 agg AS (
   SELECT
     (SELECT COUNT(*)::float FROM beers) AS total_beers,
+    (SELECT COALESCE(SUM(volume_litres), 0)::float FROM beers_with_volume) AS total_litres,
     (SELECT COUNT(*)::int FROM sessions) AS sessions,
     COALESCE(SUM(EXTRACT(EPOCH FROM (session_end - session_start))) / 3600.0, 0) AS active_hours
   FROM sessions
 ),
 cur AS (
   SELECT
-    COUNT(*)::int AS beers_last_window
+    COUNT(*)::int AS beers_last_window,
+    COALESCE(SUM(eb."volumeLitres"), 0)::float AS litres_last_window
   FROM "EventBeer" eb
   JOIN params p ON p.event_id = eb."eventId"
   JOIN participants par ON par."userId" = eb."userId"
@@ -82,6 +94,7 @@ SELECT
   (SELECT window_minutes FROM params)::int AS "windowMinutes",
 
   COALESCE((SELECT total_beers FROM agg), 0)::int AS "totalNonSpilledBeers",
+  COALESCE((SELECT total_litres FROM agg), 0)::float AS "totalNonSpilledLitres",
   COALESCE((SELECT sessions FROM agg), 0)::int AS "sessions",
   COALESCE((SELECT active_hours FROM agg), 0)::float AS "activeHours",
   CASE
@@ -89,9 +102,16 @@ SELECT
       THEN (COALESCE((SELECT total_beers FROM agg), 0) / NULLIF((SELECT active_hours FROM agg), 0))
     ELSE NULL
   END AS "avgBeersPerActiveHour",
+  CASE
+    WHEN COALESCE((SELECT active_hours FROM agg), 0) > 0
+      THEN (COALESCE((SELECT total_litres FROM agg), 0) / NULLIF((SELECT active_hours FROM agg), 0))
+    ELSE NULL
+  END AS "avgLitresPerActiveHour",
 
   (SELECT beers_last_window FROM cur) AS "beersLastWindow",
-  ((SELECT beers_last_window FROM cur)::float / NULLIF(((SELECT window_minutes FROM params)::float / 60.0), 0)) AS "currentBeersPerHour";
+  (SELECT litres_last_window FROM cur) AS "litresLastWindow",
+  ((SELECT beers_last_window FROM cur)::float / NULLIF(((SELECT window_minutes FROM params)::float / 60.0), 0)) AS "currentBeersPerHour",
+  ((SELECT litres_last_window FROM cur)::float / NULLIF(((SELECT window_minutes FROM params)::float / 60.0), 0)) AS "currentLitresPerHour";
 `;
 }
 

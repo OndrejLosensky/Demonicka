@@ -30,6 +30,7 @@ export interface BarrelPredictionCurrentPace {
     consumed: number;
     hoursElapsed: number;
     beersPerHour: number | null;
+    litresPerHour: number | null;
   };
 
   rollingWindow: {
@@ -38,6 +39,7 @@ export interface BarrelPredictionCurrentPace {
     consumed: number;
     hoursElapsed: number;
     beersPerHour: number | null;
+    litresPerHour: number | null;
   };
 }
 
@@ -46,6 +48,7 @@ export interface BarrelPredictionHistoricalPace {
   matchingStrategy: 'same_index_size' | 'avg_same_size' | null;
   fullBarrelsUsed: number;
   beersPerHour: number | null;
+  litresPerHour: number | null;
 }
 
 export interface BarrelPrediction {
@@ -58,6 +61,8 @@ export interface BarrelPrediction {
     size: number;
     totalBeers: number;
     remainingBeers: number;
+    totalLitres: number;
+    remainingLitres: number;
     createdAt: string; // ISO
   };
 
@@ -75,18 +80,24 @@ export interface EventPace {
   sleepGapMinutes: number; // e.g. 90
   windowMinutes: number; // e.g. 60
   totalNonSpilledBeers: number;
+  totalNonSpilledLitres: number;
   sessions: number;
   activeHours: number;
   avgBeersPerActiveHour: number | null;
+  avgLitresPerActiveHour: number | null;
   beersLastWindow: number;
+  litresLastWindow: number;
   currentBeersPerHour: number;
+  currentLitresPerHour: number;
 }
 
 export interface DashboardStats {
   totalBeers: number;
+  totalLitres: number;
   totalUsers: number;
   totalBarrels: number;
   averageBeersPerUser: number;
+  averageLitresPerUser: number;
   topUsers: UserStats[];
   barrelStats: BarrelStats[];
   barrelPrediction?: BarrelPrediction;

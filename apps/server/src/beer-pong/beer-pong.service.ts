@@ -92,6 +92,8 @@ export class BeerPongService {
           createDto.undoWindowMinutes ?? globalDefaults.undoWindowMinutes,
         cancellationPolicy:
           createDto.cancellationPolicy ?? globalDefaults.cancellationPolicy,
+        beerSize: createDto.beerSize,
+        beerVolumeLitres: createDto.beerVolumeLitres,
         status: 'DRAFT',
         createdBy: userId,
       },

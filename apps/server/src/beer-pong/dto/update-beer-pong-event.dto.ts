@@ -1,5 +1,5 @@
-import { IsString, IsOptional, IsInt, IsEnum, Min } from 'class-validator';
-import { CancellationPolicy } from '@prisma/client';
+import { IsString, IsOptional, IsInt, IsEnum, Min, IsNumber } from 'class-validator';
+import { CancellationPolicy, BeerSize } from '@prisma/client';
 
 export class UpdateBeerPongEventDto {
   @IsString()
@@ -28,4 +28,12 @@ export class UpdateBeerPongEventDto {
   @IsEnum(CancellationPolicy)
   @IsOptional()
   cancellationPolicy?: CancellationPolicy;
+
+  @IsEnum(BeerSize)
+  @IsOptional()
+  beerSize?: BeerSize;
+
+  @IsNumber()
+  @IsOptional()
+  beerVolumeLitres?: number;
 }

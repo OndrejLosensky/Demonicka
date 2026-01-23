@@ -28,7 +28,7 @@ export class LeaderboardService {
         },
       });
 
-      // Get beer counts for each user in the event
+      // Get beer counts and litres for each user in the event
       const userIds = eventUsers.map((eu) => eu.userId);
       const eventBeers = await this.prisma.eventBeer.groupBy({
         by: ['userId'],
@@ -40,9 +40,28 @@ export class LeaderboardService {
         _count: { id: true },
       });
 
+      // Get litres sum for each user
+      const litresData = await this.prisma.$queryRaw<
+        Array<{ userId: string; totalLitres: number }>
+      >`
+        SELECT 
+          "userId",
+          COALESCE(SUM("volumeLitres"), 0)::float AS "totalLitres"
+        FROM "EventBeer"
+        WHERE "eventId" = ${eventId}::uuid
+          AND "userId" = ANY(${userIds}::uuid[])
+          AND "deletedAt" IS NULL
+        GROUP BY "userId"
+      `;
+
       const beerCountMap = new Map<string, number>();
       eventBeers.forEach((eb) => {
         beerCountMap.set(eb.userId, eb._count.id);
+      });
+
+      const litresMap = new Map<string, number>();
+      litresData.forEach((ld) => {
+        litresMap.set(ld.userId, Number(ld.totalLitres));
       });
 
       const users = eventUsers
@@ -51,6 +70,7 @@ export class LeaderboardService {
           username: eu.user.username || '',
           gender: eu.user.gender,
           beerCount: beerCountMap.get(eu.userId) || 0,
+          totalLitres: litresMap.get(eu.userId) || 0,
           spilledCount: 0,
           rank: 0, // Placeholder - this service is deprecated in favor of DashboardService
         }))
@@ -89,12 +109,30 @@ export class LeaderboardService {
       orderBy: { beerCount: 'desc' },
     });
 
+    // Get litres sum for each user globally
+    const globalLitresData = await this.prisma.$queryRaw<
+      Array<{ userId: string; totalLitres: number }>
+    >`
+      SELECT 
+        "userId",
+        COALESCE(SUM("volumeLitres"), 0)::float AS "totalLitres"
+      FROM "Beer"
+      WHERE "deletedAt" IS NULL
+      GROUP BY "userId"
+    `;
+
+    const globalLitresMap = new Map<string, number>();
+    globalLitresData.forEach((ld) => {
+      globalLitresMap.set(ld.userId, Number(ld.totalLitres));
+    });
+
     const usersWithBeerCount = users
       .map((u) => ({
         id: u.id,
         username: u.username || '',
         gender: u.gender,
         beerCount: u.beerCount || 0,
+        totalLitres: globalLitresMap.get(u.id) || 0,
         spilledCount: 0,
         rank: 0,
       }))

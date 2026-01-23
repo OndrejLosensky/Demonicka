@@ -24,6 +24,8 @@ export class BeersService {
     userId: string,
     barrelId?: string,
     skipEventBeer = false,
+    beerSize: 'SMALL' | 'LARGE' = 'LARGE',
+    volumeLitres: number = 0.5,
   ): Promise<Beer> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -50,6 +52,8 @@ export class BeersService {
       data: {
         userId,
         barrelId: barrelIdToUse,
+        beerSize,
+        volumeLitres,
       },
     });
 
@@ -75,6 +79,10 @@ export class BeersService {
               activeEvent.id,
               userId,
               barrelId,
+              undefined,
+              false,
+              beerSize,
+              volumeLitres,
             );
           }
         }

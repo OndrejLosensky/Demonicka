@@ -828,10 +828,15 @@ export default function Landing() {
                                   <div className={`w-8 h-8 rounded-full ring-1 flex items-center justify-center text-xs font-bold ${rankBg}`}>{item.rank}</div>
                                   <div className="text-gray-800 font-medium">{item.username}</div>
                                 </div>
-                                <div className="inline-flex items-center gap-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1">
-                                  <FaBeer className="text-primary/80" />
-                                  <span className="font-semibold">{item.beerCount}</span>
-                                  <span className="text-gray-500">piv</span>
+                                <div className="inline-flex flex-col items-end gap-0.5 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1">
+                                  <div className="inline-flex items-center gap-2">
+                                    <FaBeer className="text-primary/80" />
+                                    <span className="font-semibold">{item.beerCount}</span>
+                                    <span className="text-gray-500">piv</span>
+                                  </div>
+                                  {item.totalLitres !== undefined && (
+                                    <span className="text-xs text-gray-500">{item.totalLitres.toFixed(1)} L</span>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -871,10 +876,15 @@ export default function Landing() {
                                   <div className={`w-8 h-8 rounded-full ring-1 flex items-center justify-center text-xs font-bold ${rankBg}`}>{item.rank}</div>
                                   <div className="text-gray-800 font-medium">{item.username}</div>
                                 </div>
-                                <div className="inline-flex items-center gap-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1">
-                                  <FaBeer className="text-primary/80" />
-                                  <span className="font-semibold">{item.beerCount}</span>
-                                  <span className="text-gray-500">piv</span>
+                                <div className="inline-flex flex-col items-end gap-0.5 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1">
+                                  <div className="inline-flex items-center gap-2">
+                                    <FaBeer className="text-primary/80" />
+                                    <span className="font-semibold">{item.beerCount}</span>
+                                    <span className="text-gray-500">piv</span>
+                                  </div>
+                                  {item.totalLitres !== undefined && (
+                                    <span className="text-xs text-gray-500">{item.totalLitres.toFixed(1)} L</span>
+                                  )}
                                 </div>
                               </div>
                             );

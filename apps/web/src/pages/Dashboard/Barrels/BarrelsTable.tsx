@@ -80,7 +80,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
             <TableRow>
               <TableCell>{translations.table.columns.barrel}</TableCell>
               <TableCell>{translations.table.columns.size}</TableCell>
-              <TableCell>{translations.table.columns.remainingBeers}</TableCell>
+              <TableCell>{translations.table.columns.remainingBeers || 'Zbývá'}</TableCell>
               <TableCell>{translations.table.columns.status}</TableCell>
               <TableCell>{translations.table.columns.createdAt}</TableCell>
               <TableCell align="right" sx={{ width: 220 }}>{translations.table.columns.actions}</TableCell>
@@ -123,13 +123,13 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                     <Box sx={{ flex: 1 }}>
                       <LinearProgress
                         variant="determinate"
-                        value={(barrel.remainingBeers / barrel.totalBeers) * 100}
+                        value={Number(barrel.totalLitres || 0) > 0 ? ((Number(barrel.remainingLitres || 0)) / Number(barrel.totalLitres || 0)) * 100 : 0}
                         sx={{
                           height: 8,
                           borderRadius: tokens.borderRadius.sm,
                           bgcolor: 'grey.200',
                           '& .MuiLinearProgress-bar': {
-                            bgcolor: barrel.remainingBeers === 0 ? 'error.main' : 'success.main',
+                            bgcolor: (Number(barrel.remainingLitres || 0)) <= 0.01 ? 'error.main' : 'success.main',
                           }
                         }}
                       />
@@ -137,9 +137,9 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                     <Typography sx={{ 
                       minWidth: 80,
                       fontWeight: 'bold',
-                      color: barrel.remainingBeers === 0 ? 'error.main' : 'success.main'
+                      color: (Number(barrel.remainingLitres || 0)) <= 0.01 ? 'error.main' : 'success.main'
                     }}>
-                      {barrel.remainingBeers} / {barrel.totalBeers}
+                      {Number(barrel.remainingLitres || 0).toFixed(1)} L / {Number(barrel.totalLitres || 0).toFixed(1)} L
                     </Typography>
                   </Box>
                 </TableCell>
@@ -161,7 +161,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                 <TableCell align="right">
                   {!barrel.deletedAt && (
                     <>
-                      {canToggleStatus && !barrel.isActive && barrel.remainingBeers > 0 && (
+                      {canToggleStatus && !barrel.isActive && (Number(barrel.remainingLitres || 0)) > 0.01 && (
                         <Tooltip title={translations.table.actions.activate}>
                           <IconButton
                             size="small"

@@ -47,8 +47,8 @@ export function ActiveBarrelSvg({ barrel, prediction }: Props) {
     );
   }
 
-  const total = Math.max(0, barrel.totalBeers || 0);
-  const remaining = Math.max(0, barrel.remainingBeers || 0);
+  const total = Math.max(0, Number(barrel.totalLitres || 0));
+  const remaining = Math.max(0, Number(barrel.remainingLitres || 0));
   const pct = total > 0 ? Math.max(0, Math.min(1, remaining / total)) : 0;
 
   // SVG dimensions
@@ -127,7 +127,7 @@ export function ActiveBarrelSvg({ barrel, prediction }: Props) {
             width="100%"
             height="100%"
             role="img"
-            aria-label={`Aktivní sud, zbývá ${remaining} z ${total} piv (${pctLabel})`}
+            aria-label={`Aktivní sud, zbývá ${remaining.toFixed(1)} L z ${total.toFixed(1)} L (${pctLabel})`}
           >
             <defs>
               <linearGradient id="beerGradient" x1="0" y1="0" x2="0" y2="1">
@@ -202,10 +202,10 @@ export function ActiveBarrelSvg({ barrel, prediction }: Props) {
 
             {/* Text */}
             <text x={W / 2} y={98} textAnchor="middle" fill="currentColor" opacity="0.9" fontSize="34" fontWeight="800">
-              {remaining}
+              {remaining.toFixed(1)}
             </text>
             <text x={W / 2} y={124} textAnchor="middle" fill="currentColor" opacity="0.55" fontSize="14" fontWeight="600">
-              z {total} piv
+              z {total.toFixed(1)} L
             </text>
           </svg>
         </Box>

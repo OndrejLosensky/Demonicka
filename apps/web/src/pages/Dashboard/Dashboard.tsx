@@ -56,6 +56,7 @@ export const Dashboard: React.FC = () => {
         <div data-onboard="kpis">
           <DashboardKpis
             totalBeers={dash.kpis.totalBeers}
+            totalLitres={dash.kpis.totalLitres}
             participantsCount={dash.kpis.participantsCount}
             avgPerPerson={dash.kpis.avgPerPerson}
             avgPerHourValue={dash.kpis.avgPerHourValue}

@@ -4,6 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import { Barrel } from '@prisma/client';
 import { CreateBarrelDto } from './dto/create-barrel.dto';
 import { UpdateBarrelDto } from './dto/update-barrel.dto';
@@ -65,6 +66,9 @@ export class BarrelsService {
 
   async create(createBarrelDto: CreateBarrelDto): Promise<Barrel> {
     try {
+      // Barrel size is already in litres (15L, 30L, or 50L)
+      const totalLitres = createBarrelDto.size;
+      
       // Create new barrel (inactive by default)
       const savedBarrel = await this.prisma.barrel.create({
         data: {
@@ -73,6 +77,8 @@ export class BarrelsService {
           isActive: false,
           remainingBeers: createBarrelDto.size,
           totalBeers: createBarrelDto.size,
+          remainingLitres: new Prisma.Decimal(totalLitres),
+          totalLitres: new Prisma.Decimal(totalLitres),
         },
       });
       this.loggingService.logBarrelCreated(savedBarrel.id, savedBarrel.size);
@@ -117,7 +123,9 @@ export class BarrelsService {
     try {
       const barrel = await this.findOne(id);
 
-      if (barrel.remainingBeers <= 0) {
+      // Check remaining litres (with tolerance for floating point)
+      const remainingLitres = barrel.remainingLitres ? Number(barrel.remainingLitres) : 0;
+      if (remainingLitres <= 0.01) {
         throw new BadRequestException('Nelze aktivovat prázdný sud');
       }
 
@@ -126,7 +134,10 @@ export class BarrelsService {
       if (currentActive && currentActive.id !== id) {
         await this.prisma.barrel.update({
           where: { id: currentActive.id },
-          data: { isActive: false },
+          data: { 
+            isActive: false,
+            remainingLitres: 0, // Set to 0 when deactivated (as per plan)
+          },
         });
       }
 
@@ -188,18 +199,22 @@ export class BarrelsService {
     }
   }
 
-  async decrementBeers(id: string): Promise<void> {
+  async decrementLitres(id: string, volumeLitres: number): Promise<void> {
     try {
       const barrel = await this.findOne(id);
       if (!barrel) {
         return;
       }
 
-      // If no beers remaining, deactivate the barrel
-      if (barrel.remainingBeers <= 1) {
+      const currentRemainingLitres = barrel.remainingLitres ? Number(barrel.remainingLitres) : 0;
+      const newRemainingLitres = Math.max(0, currentRemainingLitres - volumeLitres);
+
+      // If remaining litres is <= 0.01 (tolerance for floating point), deactivate the barrel
+      if (newRemainingLitres <= 0.01) {
         await this.prisma.barrel.update({
           where: { id },
           data: {
+            remainingLitres: 0,
             remainingBeers: 0,
             isActive: false,
           },
@@ -210,20 +225,33 @@ export class BarrelsService {
         await this.prisma.barrel.update({
           where: { id },
           data: {
-            remainingBeers: barrel.remainingBeers - 1,
+            remainingLitres: newRemainingLitres,
           },
         });
-        this.loggingService.debug('Barrel beers decremented', {
+        this.loggingService.debug('Barrel litres decremented', {
           id,
-          remainingBeers: barrel.remainingBeers - 1,
+          volumeLitres,
+          remainingLitres: newRemainingLitres,
         });
       }
     } catch (error: unknown) {
-      this.loggingService.error('Failed to decrement barrel beers', {
+      this.loggingService.error('Failed to decrement barrel litres', {
         id,
+        volumeLitres,
         error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
+  }
+
+  async getRemainingLitres(id: string): Promise<number> {
+    const barrel = await this.findOne(id);
+    return barrel.remainingLitres ? Number(barrel.remainingLitres) : 0;
+  }
+
+  // Keep decrementBeers for backward compatibility, but it now uses litres
+  async decrementBeers(id: string): Promise<void> {
+    // Default to 0.5L for legacy calls
+    await this.decrementLitres(id, 0.5);
   }
 }

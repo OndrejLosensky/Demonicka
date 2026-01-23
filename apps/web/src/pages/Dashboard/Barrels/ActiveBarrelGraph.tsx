@@ -27,7 +27,9 @@ export const ActiveBarrelGraph: React.FC<ActiveBarrelGraphProps> = ({ barrel }) 
     );
   }
 
-  const percentage = (barrel.remainingBeers / barrel.totalBeers) * 100;
+  const remainingLitres = Number(barrel.remainingLitres || 0);
+  const totalLitres = Number(barrel.totalLitres || 0);
+  const percentage = totalLitres > 0 ? (remainingLitres / totalLitres) * 100 : 0;
   const color = percentage === 0 ? 'error.main' : 'success.main';
   const size = 250;
 
@@ -71,11 +73,11 @@ export const ActiveBarrelGraph: React.FC<ActiveBarrelGraphProps> = ({ barrel }) 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             <FaBeer style={{ fontSize: '2rem', color: color }} />
             <Typography variant="h4" component="div" color={color} sx={{ fontWeight: 'bold' }}>
-              {barrel.remainingBeers}
+              {remainingLitres.toFixed(1)} L
             </Typography>
           </Box>
           <Typography variant="body2" color="text.secondary">
-            z celkových {barrel.totalBeers} piv
+            z celkových {totalLitres.toFixed(1)} L
           </Typography>
           <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold' }}>
             {barrel.size}L

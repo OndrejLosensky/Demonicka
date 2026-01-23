@@ -8,3 +8,5 @@ package-lock.json
 .turbo/
 
 docs/
+
+*session.sql

@@ -95,11 +95,27 @@ export class EventsController {
   addEventBeer(
     @Param('id', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
+    @CurrentUser() user: User,
     @Body('spilled', new DefaultValuePipe(false), ParseBoolPipe)
     spilled: boolean,
-    @CurrentUser() user: User,
+    @Body('beerSize') beerSize?: 'SMALL' | 'LARGE',
+    @Body('volumeLitres') volumeLitres?: number,
   ): Promise<void> {
-    return this.eventsService.addBeer(eventId, userId, user.id, spilled);
+    // Ensure volumeLitres is properly parsed as a number
+    const parsedVolumeLitres = volumeLitres !== undefined 
+      ? typeof volumeLitres === 'string' 
+        ? parseFloat(volumeLitres) 
+        : volumeLitres
+      : 0.5;
+    
+    return this.eventsService.addBeer(
+      eventId, 
+      userId, 
+      user.id, 
+      spilled,
+      beerSize || 'LARGE',
+      parsedVolumeLitres,
+    );
   }
 
   @Delete(':id/users/:userId/beers')

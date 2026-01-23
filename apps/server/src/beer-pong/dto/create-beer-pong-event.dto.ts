@@ -5,8 +5,9 @@ import {
   IsInt,
   IsEnum,
   Min,
+  IsNumber,
 } from 'class-validator';
-import { CancellationPolicy } from '@prisma/client';
+import { CancellationPolicy, BeerSize } from '@prisma/client';
 
 export class CreateBeerPongEventDto {
   @IsUUID()
@@ -37,4 +38,12 @@ export class CreateBeerPongEventDto {
   @IsEnum(CancellationPolicy)
   @IsOptional()
   cancellationPolicy?: CancellationPolicy;
+
+  @IsEnum(BeerSize)
+  @IsOptional()
+  beerSize?: BeerSize;
+
+  @IsNumber()
+  @IsOptional()
+  beerVolumeLitres?: number;
 }

@@ -425,10 +425,19 @@ export class BeerPongGamesService {
       const beersPerPlayer = game.beerPongEvent.beersPerPlayer;
       const now = new Date();
 
+      // Get beer size and volume from event (default to LARGE, 0.5L)
+      const beerSize = game.beerPongEvent.beerSize || 'LARGE';
+      const beerVolumeLitres = game.beerPongEvent.beerVolumeLitres 
+        ? Number(game.beerPongEvent.beerVolumeLitres) 
+        : 0.5;
+
       // Get active barrel for event beers (optional)
       const activeBarrel = await tx.barrel.findFirst({
         where: { isActive: true, deletedAt: null },
       });
+
+      // Track total litres to decrement from barrel
+      let totalLitresToDecrement = 0;
 
       // Add beers for team1 players
       if (!game.team1) {
@@ -444,6 +453,8 @@ export class BeerPongGamesService {
               eventId: game.beerPongEvent.eventId,
               userId: playerId,
               barrelId: activeBarrel?.id || null,
+              beerSize,
+              volumeLitres: beerVolumeLitres,
             },
           });
 
@@ -452,8 +463,14 @@ export class BeerPongGamesService {
             data: {
               userId: playerId,
               barrelId: activeBarrel?.id || null,
+              beerSize,
+              volumeLitres: beerVolumeLitres,
             },
           });
+
+          if (activeBarrel) {
+            totalLitresToDecrement += beerVolumeLitres;
+          }
 
           // Update user beer count
           const user = await tx.user.findUnique({
@@ -491,6 +508,8 @@ export class BeerPongGamesService {
               eventId: game.beerPongEvent.eventId,
               userId: playerId,
               barrelId: activeBarrel?.id || null,
+              beerSize,
+              volumeLitres: beerVolumeLitres,
             },
           });
 
@@ -499,8 +518,14 @@ export class BeerPongGamesService {
             data: {
               userId: playerId,
               barrelId: activeBarrel?.id || null,
+              beerSize,
+              volumeLitres: beerVolumeLitres,
             },
           });
+
+          if (activeBarrel) {
+            totalLitresToDecrement += beerVolumeLitres;
+          }
 
           // Update user beer count
           const user = await tx.user.findUnique({
@@ -528,6 +553,22 @@ export class BeerPongGamesService {
       await tx.beerPongGameBeer.createMany({
         data: [...team1Beers, ...team2Beers],
       });
+
+      // Decrement litres from barrel if active barrel exists
+      if (activeBarrel && totalLitresToDecrement > 0) {
+        const currentRemainingLitres = activeBarrel.remainingLitres 
+          ? Number(activeBarrel.remainingLitres) 
+          : 0;
+        const newRemainingLitres = Math.max(0, currentRemainingLitres - totalLitresToDecrement);
+        
+        await tx.barrel.update({
+          where: { id: activeBarrel.id },
+          data: {
+            remainingLitres: newRemainingLitres,
+            isActive: newRemainingLitres > 0.01,
+          },
+        });
+      }
 
       // Update game status
       const updatedGame = await tx.beerPongGame.update({

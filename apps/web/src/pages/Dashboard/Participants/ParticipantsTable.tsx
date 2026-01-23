@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AddBeerDialog } from './AddBeerDialog';
 import {
   Table,
   TableBody,
@@ -16,6 +17,7 @@ import {
   Typography,
   Chip,
   Box,
+  ButtonGroup,
 } from '@mui/material';
 import { 
   Delete as DeleteIcon,
@@ -26,6 +28,7 @@ import {
   Male as MaleIcon,
   Female as FemaleIcon,
   WarningAmber as SpillIcon,
+  ArrowDropDown as ArrowDropDownIcon,
 } from '@mui/icons-material';
 import { FaBeer } from 'react-icons/fa';
 import type { ParticipantTableProps } from './types';
@@ -50,6 +53,9 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; participant: { id: string; username: string } }>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<{ id: string; username: string } | null>(null);
+  const [addBeerDialogOpen, setAddBeerDialogOpen] = useState(false);
+  const [beerDialogParticipant, setBeerDialogParticipant] = useState<{ id: string; username: string } | null>(null);
+  const [beerSizeMenuAnchor, setBeerSizeMenuAnchor] = useState<null | { element: HTMLElement; participantId: string }>(null);
 
   const handleCloseMenu = () => {
     setMenuAnchor(null);
@@ -217,22 +223,56 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                           </IconButton>
                         </span>
                       </Tooltip>
-                      <Tooltip title={translations.table.actions.addBeer}>
-                        <IconButton
-                          size="small"
-                          onClick={() => onAddBeer(participant.id)}
-                          sx={{
-                            mr: { xs: 0.5, sm: 1 },
-                            bgcolor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                              bgcolor: 'primary.dark',
-                            },
-                          }}
-                        >
-                          <AddIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      <ButtonGroup
+                        variant="contained"
+                        size="small"
+                        sx={{
+                          mr: { xs: 0.5, sm: 1 },
+                          '& .MuiButton-root': {
+                            minWidth: 'auto',
+                            px: { xs: 0.5, sm: 1 },
+                          },
+                        }}
+                      >
+                        <Tooltip title={translations.table.actions.addBeer}>
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              // Quick add large beer (default)
+                              onAddBeer(participant.id, 'LARGE', 0.5);
+                            }}
+                            sx={{
+                              bgcolor: 'primary.main',
+                              color: 'white',
+                              borderRadius: '4px 0 0 4px',
+                              '&:hover': {
+                                bgcolor: 'primary.dark',
+                              },
+                            }}
+                          >
+                            <AddIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Vybrat velikost piva">
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              setBeerSizeMenuAnchor({ element: e.currentTarget, participantId: participant.id });
+                            }}
+                            sx={{
+                              bgcolor: 'primary.main',
+                              color: 'white',
+                              borderRadius: '0 4px 4px 0',
+                              borderLeft: '1px solid rgba(255, 255, 255, 0.2)',
+                              '&:hover': {
+                                bgcolor: 'primary.dark',
+                              },
+                            }}
+                          >
+                            <ArrowDropDownIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </ButtonGroup>
                       {onAddSpilledBeer && (
                         <Tooltip title={translations.table.actions.addSpilledBeer ?? 'Rozlít pivo'}>
                           <IconButton
@@ -288,11 +328,77 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
         </MenuItem>
       </Menu>
 
+      <Menu
+        anchorEl={beerSizeMenuAnchor?.element}
+        open={Boolean(beerSizeMenuAnchor)}
+        onClose={() => setBeerSizeMenuAnchor(null)}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+      >
+        <MenuItem
+          onClick={() => {
+            if (beerSizeMenuAnchor) {
+              onAddBeer(beerSizeMenuAnchor.participantId, 'LARGE', 0.5);
+              setBeerSizeMenuAnchor(null);
+            }
+          }}
+        >
+          <ListItemIcon>
+            <AddIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Velké (0.5 L)" secondary="Standardní velikost" />
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (beerSizeMenuAnchor) {
+              onAddBeer(beerSizeMenuAnchor.participantId, 'SMALL', 0.3);
+              setBeerSizeMenuAnchor(null);
+            }
+          }}
+        >
+          <ListItemIcon>
+            <AddIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Malé (0.3 L)" secondary="Menší velikost" />
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (beerSizeMenuAnchor) {
+              const participant = participants.find(p => p.id === beerSizeMenuAnchor.participantId);
+              setBeerDialogParticipant({ 
+                id: beerSizeMenuAnchor.participantId, 
+                username: participant?.username || '' 
+              });
+              setAddBeerDialogOpen(true);
+              setBeerSizeMenuAnchor(null);
+            }
+          }}
+        >
+          <ListItemIcon>
+            <AddIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Vlastní výběr..." />
+        </MenuItem>
+      </Menu>
+
       <DeleteConfirmDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
         participantUsername={selectedParticipant?.username || ''}
+      />
+      <AddBeerDialog
+        open={addBeerDialogOpen}
+        onClose={() => {
+          setAddBeerDialogOpen(false);
+          setBeerDialogParticipant(null);
+        }}
+        onConfirm={(beerSize, volumeLitres) => {
+          if (beerDialogParticipant) {
+            onAddBeer(beerDialogParticipant.id, beerSize, volumeLitres);
+          }
+        }}
+        participantName={beerDialogParticipant?.username}
       />
     </>
   );

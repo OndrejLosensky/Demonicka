@@ -56,7 +56,7 @@ export function TotalBeersDetail() {
 
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-            Celkem: {stats?.totalBeers || 0} piv
+            Celkem: {stats?.totalBeers || 0} piv ({stats?.totalLitres?.toFixed(1) || '0.0'} L)
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Celkový počet vypitých piv v aktivní události

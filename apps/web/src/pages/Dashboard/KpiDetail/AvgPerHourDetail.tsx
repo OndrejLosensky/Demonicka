@@ -64,9 +64,11 @@ export function AvgPerHourDetail() {
   }));
 
   const totalBeers = stats?.totalBeers || 0;
+  const totalLitres = stats?.totalLitres || 0;
   const eventStart = activeEvent?.createdAt ? new Date(activeEvent.createdAt) : new Date();
   const hoursSinceStart = Math.max(1, (Date.now() - eventStart.getTime()) / (1000 * 60 * 60));
   const avgPerHour = totalBeers / hoursSinceStart;
+  const avgLitresPerHour = totalLitres / hoursSinceStart;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -77,10 +79,10 @@ export function AvgPerHourDetail() {
 
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-            Průměr: {avgPerHour.toFixed(2)} piv/hod
+            Průměr: {avgPerHour.toFixed(2)} piv/hod ({avgLitresPerHour.toFixed(2)} L/hod)
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Celkem: {totalBeers} piv za {hoursSinceStart.toFixed(1)} hodin
+            Celkem: {totalBeers} piv ({totalLitres.toFixed(1)} L) za {hoursSinceStart.toFixed(1)} hodin
           </Typography>
         </Box>
 

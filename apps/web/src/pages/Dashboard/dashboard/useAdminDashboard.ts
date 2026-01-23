@@ -17,6 +17,7 @@ export type AdminDashboardState = {
   hourly: HourlyStats[];
   kpis: {
     totalBeers: number;
+    totalLitres: number;
     participantsCount: number;
     avgPerPerson: number;
     avgPerHourValue: string;
@@ -143,10 +144,10 @@ export function useAdminDashboard(): AdminDashboardState {
 
   const derived = useMemo(() => {
     const activeBarrelsCount = barrels.filter((b) => b.isActive).length;
-    const remainingBeers = barrels.reduce((sum, b) => sum + (b.remainingBeers || 0), 0);
-    const totalCapacity = barrels.reduce((sum, b) => sum + (b.totalBeers || 0), 0);
+    const remainingLitres = barrels.reduce((sum, b) => sum + (b.remainingLitres ? Number(b.remainingLitres) : 0), 0);
+    const totalLitres = barrels.reduce((sum, b) => sum + (b.totalLitres ? Number(b.totalLitres) : 0), 0);
     const efficiencyPercent =
-      totalCapacity > 0 ? ((totalCapacity - remainingBeers) / totalCapacity) * 100 : 0;
+      totalLitres > 0 ? ((totalLitres - remainingLitres) / totalLitres) * 100 : 0;
 
     const participantsCount = dashboardStats.totalUsers || 0;
     const totalBeers = dashboardStats.totalBeers || 0;
@@ -176,12 +177,13 @@ export function useAdminDashboard(): AdminDashboardState {
     return {
       kpis: {
         totalBeers,
+        totalLitres: dashboardStats.totalLitres || 0,
         participantsCount,
         avgPerPerson,
         avgPerHourValue,
         avgPerHourSubtitle,
         activeBarrelsCount,
-        remainingBeers,
+        remainingBeers: remainingLitres, // Keep for backward compatibility but it's actually litres now
         efficiencyPercent,
         eventStartedAtLabel: activeEvent
           ? format(new Date(activeEvent.startDate), 'PPp', { locale: cs })

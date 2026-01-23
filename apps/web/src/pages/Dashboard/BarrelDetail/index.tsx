@@ -77,8 +77,8 @@ export function BarrelDetail() {
     );
   }
 
-  const total = Math.max(0, barrel.totalBeers || 0);
-  const remaining = Math.max(0, barrel.remainingBeers || 0);
+  const total = Math.max(0, Number(barrel.totalLitres || 0));
+  const remaining = Math.max(0, Number(barrel.remainingLitres || 0));
   const pct = total > 0 ? Math.max(0, Math.min(1, remaining / total)) : 0;
   const pctLabel = total > 0 ? `${Math.round(pct * 100)}%` : '—';
 
@@ -121,7 +121,7 @@ export function BarrelDetail() {
               Velikost: {barrel.size}L
             </Typography>
             <Typography variant="body1">
-              Zbývá: {remaining} z {total} piv ({pctLabel})
+              Zbývá: {remaining.toFixed(1)} L z {total.toFixed(1)} L ({pctLabel})
             </Typography>
             <Typography variant="body1">
               Stav: {barrel.isActive ? 'Aktivní' : 'Neaktivní'}

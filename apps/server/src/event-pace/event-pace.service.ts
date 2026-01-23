@@ -9,11 +9,15 @@ type EventPaceRow = {
   sleepGapMinutes: number;
   windowMinutes: number;
   totalNonSpilledBeers: number;
+  totalNonSpilledLitres: number;
   sessions: number;
   activeHours: number;
   avgBeersPerActiveHour: number | null;
+  avgLitresPerActiveHour: number | null;
   beersLastWindow: number;
+  litresLastWindow: number;
   currentBeersPerHour: number;
+  currentLitresPerHour: number;
 };
 
 @Injectable()
@@ -40,11 +44,15 @@ export class EventPaceService {
         sleepGapMinutes: this.SLEEP_GAP_MINUTES,
         windowMinutes: this.WINDOW_MINUTES,
         totalNonSpilledBeers: 0,
+        totalNonSpilledLitres: 0,
         sessions: 0,
         activeHours: 0,
         avgBeersPerActiveHour: null,
+        avgLitresPerActiveHour: null,
         beersLastWindow: 0,
+        litresLastWindow: 0,
         currentBeersPerHour: 0,
+        currentLitresPerHour: 0,
       };
     }
 
@@ -53,11 +61,15 @@ export class EventPaceService {
       sleepGapMinutes: row.sleepGapMinutes,
       windowMinutes: row.windowMinutes,
       totalNonSpilledBeers: row.totalNonSpilledBeers,
+      totalNonSpilledLitres: row.totalNonSpilledLitres,
       sessions: row.sessions,
       activeHours: row.activeHours,
       avgBeersPerActiveHour: row.avgBeersPerActiveHour,
+      avgLitresPerActiveHour: row.avgLitresPerActiveHour,
       beersLastWindow: row.beersLastWindow,
+      litresLastWindow: row.litresLastWindow,
       currentBeersPerHour: row.currentBeersPerHour,
+      currentLitresPerHour: row.currentLitresPerHour,
     };
   }
 }

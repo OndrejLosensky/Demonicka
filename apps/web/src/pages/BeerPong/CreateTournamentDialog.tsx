@@ -41,6 +41,8 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
     timeWindowMinutes: 5,
     undoWindowMinutes: 5,
     cancellationPolicy: CancellationPolicy.KEEP_BEERS,
+    beerSize: 'LARGE',
+    beerVolumeLitres: 0.5,
   });
 
   useEffect(() => {
@@ -53,6 +55,8 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
         timeWindowMinutes: 5,
         undoWindowMinutes: 5,
         cancellationPolicy: CancellationPolicy.KEEP_BEERS,
+        beerSize: 'LARGE',
+        beerVolumeLitres: 0.5,
       });
     }
   }, [open, activeEvent]);
@@ -178,6 +182,43 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
                   <MenuItem value={CancellationPolicy.REMOVE_BEERS}>{translations.createDialog.cancellationPolicy.removeBeers}</MenuItem>
                 </Select>
               </FormControl>
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <FormControl fullWidth disabled={isSubmitting}>
+                <InputLabel>Velikost piva</InputLabel>
+                <Select
+                  value={formData.beerSize || 'LARGE'}
+                  label="Velikost piva"
+                  onChange={(e) => {
+                    const beerSize = e.target.value as 'SMALL' | 'LARGE';
+                    setFormData((prev) => ({
+                      ...prev,
+                      beerSize,
+                      beerVolumeLitres: beerSize === 'SMALL' ? 0.3 : 0.5,
+                    }));
+                  }}
+                >
+                  <MenuItem value="LARGE">Velké (0.5 L)</MenuItem>
+                  <MenuItem value="SMALL">Malé (0.3 L)</MenuItem>
+                </Select>
+              </FormControl>
+
+              <TextField
+                label="Objem piva (L)"
+                type="number"
+                fullWidth
+                value={formData.beerVolumeLitres || 0.5}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    beerVolumeLitres: parseFloat(e.target.value) || 0.5,
+                  }))
+                }
+                inputProps={{ min: 0.1, max: 1.0, step: 0.1 }}
+                disabled={isSubmitting}
+                helperText="Objem jednoho piva v litrech"
+              />
             </Box>
 
             {activeEvent && (

@@ -37,6 +37,8 @@ cur_barrel AS (
     b.size,
     b."totalBeers",
     b."remainingBeers",
+    b."totalLitres",
+    b."remainingLitres",
     b."createdAt"
   FROM input i
   JOIN "EventBarrels" eb ON eb."eventId" = i.cur_event_id
@@ -61,20 +63,20 @@ rolling_bounds AS (
 cur_counts AS (
   SELECT
     cb.id AS cur_barrel_id,
-    COUNT(*) FILTER (
+    COALESCE(SUM(eb."volumeLitres") FILTER (
       WHERE eb."deletedAt" IS NULL
         AND eb."eventId" = (SELECT cur_event_id FROM input)
         AND eb."barrelId" = cb.id
         AND eb."consumedAt" >= cb."createdAt"
         AND eb."consumedAt" < (SELECT as_of FROM asof)
-    )::float AS from_start_consumed,
-    COUNT(*) FILTER (
+    ), 0)::float AS from_start_consumed,
+    COALESCE(SUM(eb."volumeLitres") FILTER (
       WHERE eb."deletedAt" IS NULL
         AND eb."eventId" = (SELECT cur_event_id FROM input)
         AND eb."barrelId" = cb.id
         AND eb."consumedAt" >= (SELECT rolling_from FROM rolling_bounds)
         AND eb."consumedAt" < (SELECT rolling_to FROM rolling_bounds)
-    )::float AS rolling_consumed
+    ), 0)::float AS rolling_consumed
   FROM cur_barrel cb
   LEFT JOIN "EventBeer" eb ON eb."barrelId" = cb.id
   GROUP BY cb.id
@@ -96,12 +98,12 @@ prev_event AS (
         AND b."deletedAt" IS NULL
         AND b.size = cb.size
         AND (
-          SELECT COUNT(*)
+          SELECT COALESCE(SUM(beer."volumeLitres"), 0)
           FROM "EventBeer" beer
           WHERE beer."eventId" = e.id
             AND beer."barrelId" = b.id
             AND beer."deletedAt" IS NULL
-        ) >= b."totalBeers"
+        ) >= COALESCE(b."totalLitres", b.size::float)
     )
   ORDER BY e."startDate" DESC
   LIMIT 1
@@ -154,13 +156,16 @@ prev_full_barrel_pace AS (
     order_number,
     total_beers::float AS beers_to_empty,
     EXTRACT(EPOCH FROM (empty_at - started_at))/3600.0 AS hours_to_empty,
-    (total_beers::float / NULLIF(EXTRACT(EPOCH FROM (empty_at - started_at))/3600.0, 0)) AS beers_per_hour
+    (total_beers::float / NULLIF(EXTRACT(EPOCH FROM (empty_at - started_at))/3600.0, 0)) AS beers_per_hour,
+    -- Calculate litres per hour (assuming 0.5L per beer for historical data)
+    (total_beers::float * 0.5 / NULLIF(EXTRACT(EPOCH FROM (empty_at - started_at))/3600.0, 0)) AS litres_per_hour
   FROM prev_empty_at
   WHERE empty_at IS NOT NULL
 ),
 prev_match AS (
   SELECT
-    p.beers_per_hour AS match_beers_per_hour
+    p.beers_per_hour AS match_beers_per_hour,
+    p.litres_per_hour AS match_litres_per_hour
   FROM prev_full_barrel_pace p
   JOIN cur_barrel cb ON true
   WHERE p.order_number = cb."orderNumber"
@@ -169,6 +174,7 @@ prev_match AS (
 prev_avg AS (
   SELECT
     AVG(beers_per_hour) AS avg_beers_per_hour,
+    AVG(litres_per_hour) AS avg_litres_per_hour,
     COUNT(*)::int AS full_barrels_used
   FROM prev_full_barrel_pace
 )
@@ -181,6 +187,8 @@ SELECT
   cb.size AS "barrelSize",
   cb."totalBeers"::int AS "barrelTotalBeers",
   cb."remainingBeers"::int AS "barrelRemainingBeers",
+  COALESCE(cb."totalLitres", cb.size::float)::float AS "barrelTotalLitres",
+  COALESCE(cb."remainingLitres", cb."remainingBeers"::float * 0.5)::float AS "barrelRemainingLitres",
   cb."createdAt" AS "barrelCreatedAt",
 
   (SELECT window_minutes FROM input)::int AS "windowMinutes",
@@ -195,7 +203,9 @@ SELECT
 
   pe.id AS "previousEventId",
   pm.match_beers_per_hour AS "previousMatchBeersPerHour",
+  pm.match_litres_per_hour AS "previousMatchLitresPerHour",
   pa.avg_beers_per_hour AS "previousAvgBeersPerHour",
+  pa.avg_litres_per_hour AS "previousAvgLitresPerHour",
   pa.full_barrels_used AS "previousFullBarrelsUsed"
 FROM cur_barrel cb
 JOIN cur_counts cc ON cc.cur_barrel_id = cb.id

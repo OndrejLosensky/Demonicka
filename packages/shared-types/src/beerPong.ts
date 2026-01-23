@@ -35,6 +35,8 @@ export interface BeerPongEvent {
   timeWindowMinutes: number;
   undoWindowMinutes: number;
   cancellationPolicy: CancellationPolicy;
+  beerSize?: 'SMALL' | 'LARGE';
+  beerVolumeLitres?: number;
   startedAt?: string;
   completedAt?: string;
   createdBy?: string;
@@ -132,6 +134,8 @@ export interface CreateBeerPongEventDto {
   timeWindowMinutes?: number;
   undoWindowMinutes?: number;
   cancellationPolicy?: CancellationPolicy;
+  beerSize?: 'SMALL' | 'LARGE';
+  beerVolumeLitres?: number;
 }
 
 export interface UpdateBeerPongEventDto {
@@ -141,6 +145,8 @@ export interface UpdateBeerPongEventDto {
   timeWindowMinutes?: number;
   undoWindowMinutes?: number;
   cancellationPolicy?: CancellationPolicy;
+  beerSize?: 'SMALL' | 'LARGE';
+  beerVolumeLitres?: number;
 }
 
 export interface CreateTeamDto {

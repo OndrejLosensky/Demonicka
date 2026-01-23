@@ -268,30 +268,44 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
                           }} />
                         </Box>
                         <Box sx={{ minWidth: '30px', textAlign: 'right' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end', gap: 0.5 }}>
-                            <Typography 
-                              variant={isTopThree ? 'h6' : 'body1'}
-                              sx={{ 
-                                fontWeight: 700,
-                                fontSize: isTopThree ? '1.1rem' : '1rem',
-                                color: 'text.primary',
-                                textShadow: 'none',
-                                lineHeight: 1.1,
-                              }}
-                            >
-                              {participant.beerCount}
-                            </Typography>
-                            {participant.spilledCount > 0 && (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.25 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end', gap: 0.5 }}>
+                              <Typography 
+                                variant={isTopThree ? 'h6' : 'body1'}
+                                sx={{ 
+                                  fontWeight: 700,
+                                  fontSize: isTopThree ? '1.1rem' : '1rem',
+                                  color: 'text.primary',
+                                  textShadow: 'none',
+                                  lineHeight: 1.1,
+                                }}
+                              >
+                                {participant.beerCount}
+                              </Typography>
+                              {participant.spilledCount > 0 && (
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontWeight: 800,
+                                    color: 'warning.main',
+                                    fontSize: '0.75rem',
+                                    lineHeight: 1,
+                                  }}
+                                >
+                                  +{participant.spilledCount}
+                                </Typography>
+                              )}
+                            </Box>
+                            {participant.totalLitres !== undefined && (
                               <Typography
                                 variant="caption"
                                 sx={{
-                                  fontWeight: 800,
-                                  color: 'warning.main',
-                                  fontSize: '0.75rem',
+                                  color: 'text.secondary',
+                                  fontSize: '0.7rem',
                                   lineHeight: 1,
                                 }}
                               >
-                                +{participant.spilledCount}
+                                {participant.totalLitres.toFixed(1)} L
                               </Typography>
                             )}
                           </Box>

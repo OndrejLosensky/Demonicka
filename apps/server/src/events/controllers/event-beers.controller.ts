@@ -17,6 +17,7 @@ import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import type { User } from '@prisma/client';
+import { CreateEventBeerDto } from '../dto/create-event-beer.dto';
 @Controller('events/:eventId/beers')
 @Versions('1')
 @UseGuards(JwtAuthGuard, VersionGuard)
@@ -28,16 +29,24 @@ export class EventBeersController {
   async createEventBeer(
     @Param('eventId', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
-    @Body('barrelId') barrelId?: string,
-    @Body('spilled') spilled?: boolean,
+    @Body() dto: CreateEventBeerDto,
     @CurrentUser() user?: User,
   ): Promise<EventBeer> {
+    // Ensure volumeLitres is properly parsed as a number
+    const volumeLitres = dto.volumeLitres !== undefined 
+      ? typeof dto.volumeLitres === 'string' 
+        ? parseFloat(dto.volumeLitres) 
+        : dto.volumeLitres
+      : 0.5;
+    
     return this.eventBeersService.create(
       eventId,
       userId,
-      barrelId,
+      dto.barrelId,
       user?.id,
-      Boolean(spilled),
+      Boolean(dto.spilled),
+      dto.beerSize || 'LARGE',
+      volumeLitres,
     );
   }
 
