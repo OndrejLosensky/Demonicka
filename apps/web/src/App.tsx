@@ -42,6 +42,7 @@ import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import { CompleteRegistration } from './pages/Auth/CompleteRegistration';
 import { EnterToken } from './pages/Auth/EnterToken';
+import { GoogleCallback } from './pages/Auth/GoogleCallback';
 import { RegisterEventByToken } from './pages/EventRegistration/RegisterEventByToken';
 
 function App() {
@@ -311,6 +312,14 @@ function App() {
           element={
             <GuestRoute>
               <EnterToken />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/auth/google/callback"
+          element={
+            <GuestRoute>
+              <GoogleCallback />
             </GuestRoute>
           }
         />

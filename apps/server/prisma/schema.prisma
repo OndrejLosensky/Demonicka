@@ -85,6 +85,7 @@ model User {
   username               String?   @unique
   password               String?
   email                  String?
+  googleId                String?   @unique
   name                   String?
   firstName              String?
   lastName               String?
@@ -101,6 +102,7 @@ model User {
   allowedIPs             String[]  @default([])
   lastAdminLogin         DateTime? @db.Timestamptz(6)
   profilePictureUrl      String?
+  googleProfilePictureUrl String?
   preferredTheme         String?
   createdAt              DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt              DateTime  @updatedAt @db.Timestamptz(6)
@@ -129,6 +131,7 @@ model User {
 
   @@index([createdBy])
   @@index([email])
+  @@index([googleId])
 }
 
 model RefreshToken {

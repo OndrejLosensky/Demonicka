@@ -20,11 +20,14 @@ import { User } from '@prisma/client';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { GetUser } from './decorators/get-user.decorator';
+import { AuthGuard } from '@nestjs/passport';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { UsersService } from '../users/users.service';
 import { TwoFactorService } from './two-factor.service';
 import { CompleteRegistrationDto } from '../users/dto/complete-registration.dto';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 interface RequestWithUser extends Request {
   user: User;
@@ -47,6 +50,8 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
     private readonly twoFactorService: TwoFactorService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -299,6 +304,218 @@ export class AuthController {
     });
     return {
       message: 'Dvoufázové ověření bylo deaktivováno',
+    };
+  }
+
+  /**
+   * Initiate Google OAuth login flow
+   * Redirects user to Google OAuth consent screen
+   */
+  @Public()
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {
+    // Guard redirects to Google
+  }
+
+  /**
+   * Handle Google OAuth callback
+   * Creates or links user account and returns JWT tokens
+   */
+  @Public()
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthCallback(
+    @Req() req: RequestWithUser,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    const { user } = req;
+    const fullUser = await this.usersService.findOne(user.id);
+
+    // Generate tokens
+    const { access_token, refresh_token } = await this.authService.login(user);
+
+    // Set refresh token as an HTTP-only cookie
+    response.cookie(
+      'refresh_token',
+      refresh_token,
+      this.authService.getCookieOptions(true),
+    );
+
+    // Redirect to frontend with access token
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    response.redirect(
+      `${frontendUrl}/auth/google/callback?token=${access_token}`,
+    );
+  }
+
+  /**
+   * Link Google account to existing authenticated user
+   * User must be logged in to link their Google account
+   * Creates a signed token with user ID to pass in OAuth state
+   */
+  @Get('google/link')
+  @UseGuards(JwtAuthGuard)
+  async linkGoogleAccount(
+    @GetUser() currentUser: User,
+    @Res() response: Response,
+  ): Promise<void> {
+    // Create a signed token with user ID for the callback
+    const linkToken = await this.jwtService.signAsync(
+      { userId: currentUser.id, type: 'link' },
+      { expiresIn: '10m' },
+    );
+
+    // Build Google OAuth URL with link token in state
+    const clientID = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    const redirectURI = `${this.configService.get<string>('API_URL') || 'http://localhost:3000'}/api/auth/google/link/callback`;
+    const scope = 'email profile';
+    const encodedState = encodeURIComponent(linkToken);
+
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientID}&redirect_uri=${encodeURIComponent(redirectURI)}&response_type=code&scope=${encodeURIComponent(scope)}&state=${encodedState}`;
+    response.redirect(googleAuthUrl);
+  }
+
+  /**
+   * Handle Google OAuth callback for linking account
+   * Verifies the link token and links Google account to user
+   */
+  @Get('google/link/callback')
+  @Public()
+  async linkGoogleAccountCallback(
+    @Req() req: any,
+    @Res() response: Response,
+  ): Promise<void> {
+    const { code, state } = req.query;
+
+    if (!code || !state) {
+      const frontendUrl =
+        this.configService.get<string>('FRONTEND_URL') ||
+        'http://localhost:5173';
+      response.redirect(`${frontendUrl}/profile?error=google_link_failed`);
+      return;
+    }
+
+    try {
+      // Verify and decode the link token
+      const payload = await this.jwtService.verifyAsync(state as string, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      });
+
+      if (payload.type !== 'link' || !payload.userId) {
+        throw new Error('Invalid link token');
+      }
+
+      const currentUser = await this.usersService.findOne(payload.userId);
+
+      // Exchange code for Google tokens and profile
+      const clientID = this.configService.get<string>('GOOGLE_CLIENT_ID');
+      const clientSecret = this.configService.get<string>(
+        'GOOGLE_CLIENT_SECRET',
+      );
+      const redirectURI = `${this.configService.get<string>('API_URL') || 'http://localhost:3000'}/api/auth/google/link/callback`;
+
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          code: code as string,
+          client_id: clientID!,
+          client_secret: clientSecret!,
+          redirect_uri: redirectURI,
+          grant_type: 'authorization_code',
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        throw new Error('Failed to exchange code for tokens');
+      }
+
+      const tokens = (await tokenResponse.json()) as {
+        access_token: string;
+        token_type: string;
+        expires_in: number;
+      };
+
+      // Get Google user profile
+      const profileResponse = await fetch(
+        'https://www.googleapis.com/oauth2/v2/userinfo',
+        {
+          headers: { Authorization: `Bearer ${tokens.access_token}` },
+        },
+      );
+
+      if (!profileResponse.ok) {
+        throw new Error('Failed to fetch Google profile');
+      }
+
+      const googleProfile = (await profileResponse.json()) as {
+        id: string;
+        email: string;
+        verified_email: boolean;
+        name: string;
+        given_name: string;
+        family_name: string;
+        picture: string;
+        locale: string;
+      };
+
+      // Check if this Google account is already linked to another user
+      if (googleProfile.id) {
+        const existingUser = await this.usersService.findByGoogleId(
+          googleProfile.id,
+        );
+        if (existingUser && existingUser.id !== currentUser.id) {
+          const frontendUrl =
+            this.configService.get<string>('FRONTEND_URL') ||
+            'http://localhost:5173';
+          response.redirect(
+            `${frontendUrl}/profile?error=google_account_already_linked`,
+          );
+          return;
+        }
+      }
+
+      // Link Google account to current user
+      // Don't overwrite existing profile picture - store Google picture separately
+      await this.usersService.update(currentUser.id, {
+        googleId: googleProfile.id,
+        email: googleProfile.email?.toLowerCase() || (currentUser.email ?? undefined),
+        // Store Google profile picture separately, preserve existing profile picture
+        googleProfilePictureUrl: googleProfile.picture,
+        // Only set profile picture if user doesn't have one
+        profilePictureUrl: currentUser.profilePictureUrl || googleProfile.picture || undefined,
+        name: currentUser.name || googleProfile.name,
+        firstName: currentUser.firstName || googleProfile.given_name,
+        lastName: currentUser.lastName || googleProfile.family_name,
+      });
+
+      const frontendUrl =
+        this.configService.get<string>('FRONTEND_URL') ||
+        'http://localhost:5173';
+      response.redirect(`${frontendUrl}/profile?success=google_account_linked`);
+    } catch (error) {
+      const frontendUrl =
+        this.configService.get<string>('FRONTEND_URL') ||
+        'http://localhost:5173';
+      response.redirect(`${frontendUrl}/profile?error=google_link_failed`);
+    }
+  }
+
+  /**
+   * Unlink Google account from current user
+   * User must be logged in
+   */
+  @Post('google/unlink')
+  async unlinkGoogleAccount(
+    @GetUser() currentUser: User,
+  ): Promise<{ message: string }> {
+    await this.usersService.update(currentUser.id, {
+      googleId: undefined,
+    });
+
+    return {
+      message: 'Google účet byl úspěšně odpojen',
     };
   }
 }

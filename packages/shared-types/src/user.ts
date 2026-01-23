@@ -14,6 +14,7 @@ export interface User {
     firstName: string | null;
     lastName: string | null;
     email: string | null;
+    googleId: string | null;
     gender: 'MALE' | 'FEMALE';
     role: UserRole;
     beerCount: number;
@@ -24,6 +25,7 @@ export interface User {
     canLogin: boolean;
     createdBy: string | null;
     profilePictureUrl: string | null;
+    googleProfilePictureUrl: string | null;
     preferredTheme?: 'light' | 'dark' | null;
     createdAt: string;
     updatedAt: string;

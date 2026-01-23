@@ -32,4 +32,8 @@ export const profileApi = {
     const response = await api.post('/auth/2fa/disable');
     return response.data;
   },
+  unlinkGoogleAccount: async (): Promise<{ message: string }> => {
+    const response = await api.post('/auth/google/unlink');
+    return response.data;
+  },
 };

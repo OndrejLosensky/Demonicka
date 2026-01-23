@@ -27,7 +27,7 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ProfilePictureUploadDialog } from '../../../components/ProfilePictureUploadDialog';
 import { UserAvatar } from '../../../components/UserAvatar';
 import {
@@ -56,6 +56,7 @@ const ProfilePageComponent: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<User | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -70,6 +71,7 @@ const ProfilePageComponent: React.FC = () => {
   const [show2FADialog, setShow2FADialog] = useState(false);
   const [is2FALoading, setIs2FALoading] = useState(false);
   const [twoFactorError, setTwoFactorError] = useState<string | null>(null);
+  const [isUnlinkingGoogle, setIsUnlinkingGoogle] = useState(false);
 
   const displayData = profileData || user;
 
@@ -102,6 +104,25 @@ const ProfilePageComponent: React.FC = () => {
 
     fetchData();
   }, []);
+
+  // Handle Google OAuth callback query parameters
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const error = searchParams.get('error');
+
+    if (success === 'google_account_linked') {
+      // Refresh profile data to show updated Google account status
+      profileApi.getProfile().then(setProfileData).catch(console.error);
+      setSearchParams({});
+    } else if (error) {
+      if (error === 'google_account_already_linked') {
+        setSaveError('Tento Google účet je již propojen s jiným účtem');
+      } else if (error === 'google_link_failed') {
+        setSaveError('Nepodařilo se propojit Google účet');
+      }
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -546,6 +567,63 @@ const ProfilePageComponent: React.FC = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        <Paper className="p-6 rounded-xl shadow-lg mb-6">
+          <Typography variant="h6" className="font-bold text-text-primary" sx={{ mb: 2 }}>
+            Google účet
+          </Typography>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant="body1" className="text-text-primary">
+                {(displayData as any)?.googleId
+                  ? 'Google účet je propojen'
+                  : 'Google účet není propojen'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                {(displayData as any)?.googleId
+                  ? 'Můžete se přihlásit pomocí Google účtu nebo uživatelského jména a hesla'
+                  : 'Propojte svůj Google účet pro jednodušší přihlášení'}
+              </Typography>
+            </Box>
+            <Button
+              variant={(displayData as any)?.googleId ? 'outlined' : 'contained'}
+              color={(displayData as any)?.googleId ? 'error' : 'primary'}
+              onClick={async () => {
+                if ((displayData as any)?.googleId) {
+                  // Unlink Google account
+                  setIsUnlinkingGoogle(true);
+                  try {
+                    await profileApi.unlinkGoogleAccount();
+                    // Refresh profile data
+                    const data = await profileApi.getProfile();
+                    setProfileData(data);
+                  } catch (err: any) {
+                    setSaveError(
+                      err?.response?.data?.message ||
+                        err?.message ||
+                        'Nepodařilo se odpojit Google účet',
+                    );
+                  } finally {
+                    setIsUnlinkingGoogle(false);
+                  }
+                } else {
+                  // Link Google account
+                  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+                  const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api';
+                  window.location.href = `${apiUrl}${apiPrefix}/auth/google/link`;
+                }
+              }}
+              disabled={isUnlinkingGoogle}
+            >
+              {isUnlinkingGoogle
+                ? 'Odpojuji...'
+                : (displayData as any)?.googleId
+                ? 'Zrušit propojení'
+                : 'Propojit Google účet'}
+            </Button>
+          </Box>
+        </Paper>
       </Box>
 
       <ProfilePictureUploadDialog

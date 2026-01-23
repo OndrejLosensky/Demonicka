@@ -89,4 +89,8 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   profilePictureUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  googleId?: string | null;
 }

@@ -144,6 +144,18 @@ export class UsersService {
     });
   }
 
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { googleId },
+    });
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.prisma.user.findFirst({
+      where: { email: email.toLowerCase() },
+    });
+  }
+
   async getUsernameFromToken(token: string): Promise<{ username: string }> {
     const user = await this.findByRegistrationToken(token);
     if (!user) {
@@ -390,5 +402,101 @@ export class UsersService {
     });
 
     return { token: registrationToken };
+  }
+
+  /**
+   * Find or create a user from Google OAuth profile
+   * Logic:
+   * 1. If user exists with googleId → return user
+   * 2. If user exists with email (but no googleId) → link Google account
+   * 3. If no user exists → create new user
+   */
+  async findOrCreateGoogleUser(googleData: {
+    googleId: string;
+    email: string;
+    displayName?: string;
+    firstName?: string;
+    lastName?: string;
+    photoUrl?: string;
+  }): Promise<UserWithoutPassword> {
+    const { googleId, email, displayName, firstName, lastName, photoUrl } =
+      googleData;
+
+    // 1. Check if user exists with this Google ID
+    let user = await this.findByGoogleId(googleId);
+    if (user) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _, ...result } = user;
+      return result;
+    }
+
+    // 2. Check if user exists with this email (link Google account)
+    user = await this.findByEmail(email);
+    if (user) {
+      // Link Google account to existing user
+      const updatedUser = await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          googleId,
+          email: email.toLowerCase(),
+          // Store Google profile picture separately, don't overwrite existing profile picture
+          googleProfilePictureUrl: photoUrl,
+          // Only update profile picture if user doesn't have one
+          profilePictureUrl: user.profilePictureUrl || photoUrl,
+          // Update name fields if not set
+          name: user.name || displayName,
+          firstName: user.firstName || firstName,
+          lastName: user.lastName || lastName,
+        },
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _, ...result } = updatedUser;
+      return result;
+    }
+
+    // 3. Create new user from Google profile
+    // Generate username from email (e.g., "john.doe@gmail.com" -> "john.doe")
+    const emailUsername = email.split('@')[0];
+    let username = emailUsername;
+    let counter = 1;
+
+    // Ensure username is unique
+    while (await this.findByUsername(username)) {
+      username = `${emailUsername}${counter}`;
+      counter++;
+    }
+
+    const newUser = await this.prisma.user.create({
+      data: {
+        googleId,
+        email: email.toLowerCase(),
+        username,
+        name: displayName || firstName || emailUsername,
+        firstName: firstName,
+        lastName: lastName,
+        profilePictureUrl: photoUrl,
+        googleProfilePictureUrl: photoUrl, // Store Google picture separately too
+        gender: 'MALE', // Default, user can update later
+        role: UserRole.USER,
+        isRegistrationComplete: true,
+        canLogin: true,
+        password: null, // OAuth users don't have passwords
+      },
+    });
+
+    // Log user creation
+    this.loggingService.logUserCreated(
+      newUser.id,
+      newUser.name || 'Unknown',
+      newUser.gender || 'Unknown',
+    );
+
+    // Emit live updates for leaderboard and dashboard stats
+    await this.leaderboardGateway.emitFullUpdate();
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...result } = newUser;
+    return result;
   }
 }

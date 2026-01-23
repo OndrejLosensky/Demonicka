@@ -4,7 +4,7 @@ import type { ComponentProps } from 'react';
 import { config } from '../config/index';
 
 interface UserAvatarProps extends Omit<ComponentProps<typeof Avatar>, 'src' | 'children'> {
-  user: User | { username: string; profilePictureUrl?: string | null; name?: string };
+  user: User | { username: string; profilePictureUrl?: string | null; googleProfilePictureUrl?: string | null; name?: string };
   getInitials?: (user: { username: string; name?: string }) => string;
 }
 
@@ -27,14 +27,18 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   };
 
   const initials = getInitials ? getInitials(user) : getDefaultInitials(user);
+  
+  // Priority: 1. User's uploaded profile picture, 2. Google profile picture, 3. None
   const profilePictureUrl = user.profilePictureUrl;
+  const googleProfilePictureUrl = 'googleProfilePictureUrl' in user ? user.googleProfilePictureUrl : null;
+  const pictureUrl = profilePictureUrl || googleProfilePictureUrl;
 
-  // Construct full URL if profilePictureUrl is relative
+  // Construct full URL if pictureUrl is relative
   // Use API URL instead of window.location.origin since API runs on different port
-  const imageSrc = profilePictureUrl
-    ? profilePictureUrl.startsWith('http')
-      ? profilePictureUrl
-      : `${config.apiUrl}${profilePictureUrl}`
+  const imageSrc = pictureUrl
+    ? pictureUrl.startsWith('http')
+      ? pictureUrl
+      : `${config.apiUrl}${pictureUrl}`
     : undefined;
 
   return (

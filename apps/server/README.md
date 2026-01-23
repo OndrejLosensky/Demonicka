@@ -126,4 +126,32 @@ Optional configuration:
 
 **Note:** Without `RESEND_API_KEY`, two-factor authentication will not work. Users will not be able to enable 2FA or receive verification codes.
 
+## Google OAuth Configuration
+
+The server supports Google OAuth for user authentication. To enable this feature:
+
+1. Create a project in [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable the Google+ API (or Google Identity API)
+3. Create OAuth 2.0 credentials:
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "OAuth client ID"
+   - Choose "Web application"
+   - Add authorized redirect URIs:
+     - `http://localhost:3000/api/auth/google/callback` (development)
+     - `http://localhost:3000/api/auth/google/link/callback` (development - for linking)
+     - Your production URLs (e.g., `https://api.yourdomain.com/api/auth/google/callback`)
+4. Set the following environment variables:
+   ```
+   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback
+   API_URL=http://localhost:3000
+   FRONTEND_URL=http://localhost:5173
+   ```
+
+**Note:** 
+- `GOOGLE_CALLBACK_URL` should match one of your authorized redirect URIs
+- For production, update `GOOGLE_CALLBACK_URL` to your production API URL
+- The `API_URL` environment variable should also be set to your API base URL (used for linking callbacks)
+
 ## Installation
