@@ -43,6 +43,11 @@ export interface EventRegistration {
   suggestedConfidence?: number;
 }
 
+export interface ImportResult {
+  created: number;
+  errors: Array<{ row: number; field: string; error: string }>;
+}
+
 export const eventRegistrationService = {
   async getEventByToken(token: string): Promise<EventRegistrationInfo> {
     const response = await api.get(`/registration/by-token/${token}`);
@@ -75,6 +80,24 @@ export const eventRegistrationService = {
 
   async applyRegistrations(eventId: string): Promise<{ applied: number }> {
     const response = await api.post(`/events/${eventId}/registration/apply`);
+    return response.data;
+  },
+
+  async exportRegistrations(eventId: string): Promise<Blob> {
+    const response = await api.get(`/events/${eventId}/registration/export/excel`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  async importRegistrations(eventId: string, file: File): Promise<ImportResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post(`/events/${eventId}/registration/import/excel`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   },
 };

@@ -41,4 +41,6 @@ export {
   ContentCopy,
   HowToReg,
   Link as LinkIcon,
+  GetApp as DownloadIcon,
+  CloudUpload as UploadIcon,
 } from '@mui/icons-material';

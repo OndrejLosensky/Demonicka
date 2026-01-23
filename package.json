@@ -1,6 +1,6 @@
 {
   "name": "demonicka-monorepo",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "private": true,
   "description": "Démonická monorepo",
   "packageManager": "pnpm@10.17.1",

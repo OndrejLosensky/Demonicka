@@ -7,7 +7,11 @@ import {
   Body,
   ParseUUIDPipe,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Permission } from '@demonicka/shared';
 import { EventRegistrationService } from './event-registration.service';
@@ -82,5 +86,25 @@ export class RegistrationReviewController {
   @Permissions(Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS)
   async applyRegistrations(@Param('eventId', ParseUUIDPipe) eventId: string) {
     return this.registrationService.applyRegistrations(eventId);
+  }
+
+  @Get('export/excel')
+  @Permissions(Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS)
+  async exportRegistrations(@Param('eventId', ParseUUIDPipe) eventId: string) {
+    return this.registrationService.exportRegistrationsToExcel(eventId);
+  }
+
+  @Post('import/excel')
+  @Permissions(Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS)
+  @UseInterceptors(FileInterceptor('file'))
+  async importRegistrations(
+    @Param('eventId', ParseUUIDPipe) eventId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Nebyl poskytnut žádný soubor');
+    }
+
+    return this.registrationService.importRegistrationsFromExcel(eventId, file);
   }
 }
