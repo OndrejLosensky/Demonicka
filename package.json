@@ -12,9 +12,11 @@
     "start": "turbo run start",
     "start:server": "turbo run start --filter=demonicka-server",
     "start:web": "turbo run start --filter=demonicka-web",
+    "start:mobile": "turbo run start --filter=demonicka-mobile",
     "dev": "turbo run dev",
     "dev:server": "turbo run dev --filter=demonicka-server",
     "dev:web": "turbo run dev --filter=demonicka-web",
+    "dev:mobile": "turbo run dev --filter=demonicka-mobile",
     "preview:web": "turbo run preview --filter=demonicka-web",
     "test": "turbo run test",
     "lint": "turbo run lint"
