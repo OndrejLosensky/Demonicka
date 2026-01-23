@@ -6,9 +6,11 @@ import {
   UnauthorizedException,
   Get,
   Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { DeviceTokenService } from './device-token.service';
+import { TwoFactorService } from './two-factor.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
@@ -28,6 +30,7 @@ export class AdminAuthController {
     private readonly authService: AuthService,
     private readonly deviceTokenService: DeviceTokenService,
     private readonly usersService: UsersService,
+    private readonly twoFactorService: TwoFactorService,
   ) {}
 
   @Public()
@@ -66,12 +69,30 @@ export class AdminAuthController {
     // Validate 2FA if enabled
     if (user.isTwoFactorEnabled) {
       if (!adminLoginDto.twoFactorCode) {
-        return {
-          requiresTwoFactor: true,
-          message: 'Two-factor authentication code required',
-        };
+        // Generate and send code
+        try {
+          await this.twoFactorService.generateAndSendCode(user.id);
+          return {
+            requiresTwoFactor: true,
+            message: 'Two-factor authentication code required',
+          };
+        } catch (error) {
+          throw new BadRequestException(
+            'Failed to send two-factor authentication code',
+          );
+        }
       }
-      // TODO: Implement 2FA code validation
+
+      // Validate 2FA code
+      const isValid = await this.twoFactorService.validateCode(
+        user.id,
+        adminLoginDto.twoFactorCode,
+      );
+      if (!isValid) {
+        throw new UnauthorizedException(
+          'Invalid or expired two-factor authentication code',
+        );
+      }
     }
 
     // Generate tokens

@@ -10,9 +10,11 @@ import { withPageLoader } from '../../components/hoc/withPageLoader';
 const LoginComponent: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginWithTwoFactor } = useAuth();
   usePageTitle('Přihlášení');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,9 +23,25 @@ const LoginComponent: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await login(username, password);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Něco se pokazilo');
+      if (requiresTwoFactor) {
+        // Second step: submit 2FA code
+        await loginWithTwoFactor(username, password, twoFactorCode);
+        setRequiresTwoFactor(false);
+        setTwoFactorCode('');
+      } else {
+        // First step: submit username/password
+        const result = await login(username, password);
+        if (result?.requiresTwoFactor) {
+          setRequiresTwoFactor(true);
+        }
+      }
+    } catch (err: any) {
+      if (err?.response?.data?.requiresTwoFactor) {
+        setRequiresTwoFactor(true);
+        setError('');
+      } else {
+        setError(err instanceof Error ? err.message : 'Něco se pokazilo');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -34,39 +52,75 @@ const LoginComponent: React.FC = () => {
       title={translations.login.title}
       subtitle={translations.login.subtitle}
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm border border-red-200 dark:border-red-800">
             {error}
           </div>
         )}
-        <Input
-          id="username"
-          name="username"
-          type="text"
-          label={translations.login.username}
-          autoComplete="username"
-          required
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder={translations.login.username}
-        />
-        <PasswordInput
-          id="password"
-          name="password"
-          label={translations.login.password}
-          autoComplete="current-password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={translations.login.password}
-        />
+        <div>
+          <div className="mb-5">
+            <Input
+              id="username"
+              name="username"
+              type="text"
+              label={translations.login.username}
+              autoComplete="username"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder={translations.login.username}
+            />
+          </div>
+          <div>
+            <PasswordInput
+              id="password"
+              name="password"
+              label={translations.login.password}
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={translations.login.password}
+              disabled={requiresTwoFactor}
+            />
+          </div>
+        </div>
+        {requiresTwoFactor && (
+          <div className="space-y-2">
+            <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 p-3 rounded-lg text-sm border border-blue-200 dark:border-blue-800">
+              Kód pro dvoufázové ověření byl odeslán na váš email. Zadejte 6místný kód.
+            </div>
+            <Input
+              id="twoFactorCode"
+              name="twoFactorCode"
+              type="text"
+              label="Kód pro dvoufázové ověření"
+              autoComplete="one-time-code"
+              required
+              value={twoFactorCode}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                setTwoFactorCode(value);
+              }}
+              placeholder="000000"
+              inputMode="numeric"
+              maxLength={6}
+            />
+          </div>
+        )}
         <Button
           type="submit"
           className="w-full"
-          disabled={isLoading}
+          disabled={isLoading || (requiresTwoFactor && twoFactorCode.length !== 6)}
         >
-          {isLoading ? translations.login.signingIn : translations.login.signIn}
+          {isLoading
+            ? requiresTwoFactor
+              ? 'Ověřuji...'
+              : translations.login.signingIn
+            : requiresTwoFactor
+            ? 'Ověřit a přihlásit'
+            : translations.login.signIn}
         </Button>
         <div className="text-center">
           <Link
@@ -76,13 +130,15 @@ const LoginComponent: React.FC = () => {
             {translations.login.noAccount}
           </Link>
         </div>
+        <div className="text-center pt-2">
+          <Link 
+            to="/enter-token" 
+            className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+          >
+            {translations.login.completeRegistration}
+          </Link>
+        </div>
       </form>
-
-      <div className="flex flex-col space-y-4 text-center mt-8">
-        <Link to="/enter-token" className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
-          {translations.login.completeRegistration}
-        </Link>
-      </div>
     </AuthLayout>
   );
 };

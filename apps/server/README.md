@@ -110,4 +110,20 @@ Set the `TIMEZONE_OFFSET` environment variable:
 
 Default is `+2` (Central European Summer Time).
 
+## Email Configuration (2FA)
+
+The server uses Resend for sending two-factor authentication codes via email. To enable this feature:
+
+1. Get your API key from [Resend](https://resend.com)
+2. Set the `RESEND_API_KEY` environment variable:
+   ```
+   RESEND_API_KEY=re_xxxxxxxxxxxxx
+   ```
+
+Optional configuration:
+- `RESEND_FROM_EMAIL` - Email address to send from (default: `noreply@demonicka.app`)
+- `RESEND_FROM_NAME` - Name to display as sender (default: `Démonická`)
+
+**Note:** Without `RESEND_API_KEY`, two-factor authentication will not work. Users will not be able to enable 2FA or receive verification codes.
+
 ## Installation

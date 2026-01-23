@@ -10,7 +10,8 @@ import { useAppTheme } from './ThemeContext';
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<{ requiresTwoFactor?: boolean } | void>;
+  loginWithTwoFactor: (username: string, password: string, code: string) => Promise<void>;
   register: (username: string, password: string, name: string | null, gender: 'MALE' | 'FEMALE') => Promise<void>;
   completeRegistration: (token: string, username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -90,6 +91,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         username,
         password,
       });
+
+      // Check if 2FA is required
+      if (response.data.requiresTwoFactor) {
+        return { requiresTwoFactor: true };
+      }
+
       localStorage.setItem('access_token', response.data.access_token);
       const u = response.data.user as User;
       setUser(u);
@@ -111,12 +118,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Login failed:', error);
       const axiosError = error as AxiosError<ApiErrorResponse>;
+      
+      // Check if error response indicates 2FA is required
+      if (axiosError.response?.data && 'requiresTwoFactor' in axiosError.response.data) {
+        return { requiresTwoFactor: true };
+      }
+
       if (axiosError.response?.data?.message) {
         toast.error(axiosError.response.data.message);
       } else {
         toast.error('Přihlášení se nezdařilo');
       }
       setIsLoading(false); // Also clear loading state on error
+      throw error;
+    }
+  };
+
+  const loginWithTwoFactor = async (username: string, password: string, code: string) => {
+    try {
+      const response = await apiClient.post('/auth/login', {
+        username,
+        password,
+        twoFactorCode: code,
+      });
+      localStorage.setItem('access_token', response.data.access_token);
+      const u = response.data.user as User;
+      setUser(u);
+      if (
+        (u as any).preferredTheme &&
+        ((u as any).preferredTheme === 'light' || (u as any).preferredTheme === 'dark') &&
+        (u as any).preferredTheme !== mode
+      ) {
+        setMode((u as any).preferredTheme, { persistToServer: false });
+      }
+      setIsLoading(false);
+      
+      // Redirect based on user role
+      if (response.data.user.role === 'USER') {
+        navigate(`/${response.data.user.id}/dashboard`);
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('2FA login failed:', error);
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      if (axiosError.response?.data?.message) {
+        toast.error(axiosError.response.data.message);
+      } else {
+        toast.error('Ověření kódu se nezdařilo');
+      }
+      setIsLoading(false);
       throw error;
     }
   };
@@ -210,7 +261,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, completeRegistration, logout, isLoading, hasRole, hasPermission, refreshUser }}>
+    <AuthContext.Provider value={{ user, login, loginWithTwoFactor, register, completeRegistration, logout, isLoading, hasRole, hasPermission, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

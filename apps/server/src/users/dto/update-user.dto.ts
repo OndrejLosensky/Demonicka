@@ -7,6 +7,7 @@ import {
   IsBoolean,
   IsArray,
   IsDate,
+  IsEmail,
 } from 'class-validator';
 import { UserRole } from '@prisma/client';
 import { Transform } from 'class-transformer';
@@ -26,6 +27,12 @@ export class UpdateUserDto {
   @IsString()
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   password?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEmail({}, { message: 'Email must be a valid email address' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  email?: string;
 
   @IsOptional()
   @IsString()

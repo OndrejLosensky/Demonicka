@@ -4,9 +4,11 @@ import { AuthController } from './auth.controller';
 import { AdminAuthController } from './admin-auth.controller';
 import { UsersModule } from '../users/users.module';
 import { RolesModule } from '../roles/roles.module';
+import { EmailModule } from '../email/email.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DeviceTokenService } from './device-token.service';
+import { TwoFactorService } from './two-factor.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { PassportModule } from '@nestjs/passport';
@@ -21,6 +23,7 @@ import { RolesService } from '../roles/roles.service';
   imports: [
     UsersModule,
     RolesModule,
+    EmailModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -35,6 +38,7 @@ import { RolesService } from '../roles/roles.service';
   providers: [
     AuthService,
     DeviceTokenService,
+    TwoFactorService,
     JwtStrategy,
     LocalStrategy,
     {
@@ -53,6 +57,6 @@ import { RolesService } from '../roles/roles.service';
       inject: [Reflector, RolesService],
     },
   ],
-  exports: [AuthService, DeviceTokenService],
+  exports: [AuthService, DeviceTokenService, TwoFactorService],
 })
 export class AuthModule {}

@@ -110,6 +110,7 @@ export function createAppTheme(mode: PaletteMode) {
       MuiTextField: {
         styleOverrides: {
           root: {
+            margin: 0,
             '& .MuiInputLabel-root': {
               color: isDark ? '#b8bcc7' : '#1a1a1a',
               '&.Mui-focused': {
@@ -118,6 +119,19 @@ export function createAppTheme(mode: PaletteMode) {
             },
             '& .MuiInputBase-input': {
               color: isDark ? '#e6e8ee' : '#1a1a1a',
+            },
+            '& .MuiOutlinedInput-root': {
+              backgroundColor: isDark ? '#1a1d24' : '#ffffff',
+              '& fieldset': {
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.23)',
+              },
+              '&:hover fieldset': {
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.4)',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: isDark ? '#ff6a64' : '#ff3b30',
+                borderWidth: '2px',
+              },
             },
           },
         },

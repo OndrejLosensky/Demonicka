@@ -13,12 +13,14 @@ export interface User {
     name: string;
     firstName: string | null;
     lastName: string | null;
+    email: string | null;
     gender: 'MALE' | 'FEMALE';
     role: UserRole;
     beerCount: number;
     lastBeerTime: string | null;
     registrationToken: string | null;
     isRegistrationComplete: boolean;
+    isTwoFactorEnabled: boolean;
     canLogin: boolean;
     createdBy: string | null;
     profilePictureUrl: string | null;

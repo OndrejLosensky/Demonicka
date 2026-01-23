@@ -157,10 +157,21 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    await this.findOne(id); // Verify user exists
+    const user = await this.findOne(id); // Verify user exists
+
+    // If email is being removed and 2FA is enabled, disable 2FA
+    const updateData: any = { ...updateUserDto };
+    if (
+      updateUserDto.email === null &&
+      user.isTwoFactorEnabled
+    ) {
+      updateData.isTwoFactorEnabled = false;
+      updateData.twoFactorSecret = null;
+    }
+
     return this.prisma.user.update({
       where: { id },
-      data: updateUserDto,
+      data: updateData,
     });
   }
 
@@ -168,12 +179,42 @@ export class UsersService {
     id: string,
     dto: UpdateUserSettingsDto,
   ): Promise<User> {
-    await this.findOne(id); // Verify user exists
+    const user = await this.findOne(id); // Verify user exists
+
+    // Validation: email required when enabling 2FA
+    if (dto.isTwoFactorEnabled === true && !dto.email && !user.email) {
+      throw new BadRequestException(
+        'Email address is required to enable two-factor authentication',
+      );
+    }
+
+    // If disabling 2FA or removing email while 2FA is enabled, disable 2FA
+    const willDisable2FA =
+      dto.isTwoFactorEnabled === false ||
+      (dto.email === null && user.isTwoFactorEnabled) ||
+      (dto.email === undefined && !dto.isTwoFactorEnabled && user.isTwoFactorEnabled);
+
+    const updateData: any = {
+      preferredTheme: dto.preferredTheme ?? undefined,
+    };
+
+    if (dto.email !== undefined) {
+      updateData.email = dto.email;
+    }
+
+    if (dto.isTwoFactorEnabled !== undefined) {
+      updateData.isTwoFactorEnabled = dto.isTwoFactorEnabled;
+    }
+
+    // Auto-disable 2FA if email is being removed
+    if (willDisable2FA) {
+      updateData.isTwoFactorEnabled = false;
+      updateData.twoFactorSecret = null;
+    }
+
     return this.prisma.user.update({
       where: { id },
-      data: {
-        preferredTheme: dto.preferredTheme ?? null,
-      },
+      data: updateData,
     });
   }
 

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, MinLength, Matches } from 'class-validator';
+import { IsNotEmpty, IsString, MinLength, Matches, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class LoginDto {
@@ -16,4 +16,9 @@ export class LoginDto {
   @IsNotEmpty({ message: 'Heslo je povinné' })
   @MinLength(8, { message: 'Heslo musí mít alespoň 8 znaků' })
   password: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{6}$/, { message: 'Kód pro dvoufázové ověření musí být 6 číslic' })
+  twoFactorCode?: string;
 }

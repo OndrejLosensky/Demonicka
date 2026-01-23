@@ -31,45 +31,49 @@ export function EnterToken() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Zadejte registrační token
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Pro dokončení registrace zadejte token, který jste obdrželi
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <Input
-            id="token"
-            name="token"
-            type="text"
-            label="Registrační token"
-            required
-            placeholder="Zadejte váš registrační token"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            disabled={isLoading}
-          />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 p-8">
+          <div>
+            <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
+              Zadejte registrační token
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+              Pro dokončení registrace zadejte token, který jste obdrželi
+            </p>
+          </div>
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            <div>
+              <Input
+                id="token"
+                name="token"
+                type="text"
+                label="Registrační token"
+                required
+                placeholder="Zadejte váš registrační token"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Zpracovávám...' : 'Pokračovat'}
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Zpracovávám...' : 'Pokračovat'}
+            </Button>
+          </form>
 
-        <div className="text-center">
-          <button
-            onClick={() => navigate('/login')}
-            className="text-sm text-indigo-600 hover:text-indigo-500"
-          >
-            Zpět na přihlášení
-          </button>
+          <div className="text-center mt-6">
+            <button
+              onClick={() => navigate('/login')}
+              className="text-sm text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 transition-colors"
+            >
+              Zpět na přihlášení
+            </button>
+          </div>
         </div>
       </div>
     </div>

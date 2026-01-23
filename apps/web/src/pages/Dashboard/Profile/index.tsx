@@ -20,6 +20,12 @@ import {
   Select,
   MenuItem,
   Alert,
+  Switch,
+  FormControlLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { ProfilePictureUploadDialog } from '../../../components/ProfilePictureUploadDialog';
@@ -59,6 +65,11 @@ const ProfilePageComponent: React.FC = () => {
 
   const [editName, setEditName] = useState<string>('');
   const [editGender, setEditGender] = useState<'MALE' | 'FEMALE'>('MALE');
+  const [editEmail, setEditEmail] = useState<string>('');
+  const [twoFactorCode, setTwoFactorCode] = useState<string>('');
+  const [show2FADialog, setShow2FADialog] = useState(false);
+  const [is2FALoading, setIs2FALoading] = useState(false);
+  const [twoFactorError, setTwoFactorError] = useState<string | null>(null);
 
   const displayData = profileData || user;
 
@@ -66,6 +77,7 @@ const ProfilePageComponent: React.FC = () => {
     if (!displayData) return;
     setEditName(displayData.name ?? '');
     setEditGender(displayData.gender);
+    setEditEmail(displayData.email ?? '');
   }, [displayData?.id]); // reset when user changes
 
   const dashboardUrl = useMemo(() => {
@@ -141,6 +153,7 @@ const ProfilePageComponent: React.FC = () => {
       const updated = await profileApi.updateProfile({
         name: trimmedName.length ? trimmedName : undefined,
         gender: editGender,
+        email: editEmail.trim() || undefined,
       });
       setProfileData(updated);
     } catch (err: any) {
@@ -149,6 +162,65 @@ const ProfilePageComponent: React.FC = () => {
       setSaveError(String(msg));
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleEnable2FA = async () => {
+    if (!editEmail.trim()) {
+      setSaveError('Pro aktivaci dvoufázového ověření musíte mít nastavenou emailovou adresu');
+      return;
+    }
+
+    setIs2FALoading(true);
+    setTwoFactorError(null);
+    try {
+      await profileApi.enableTwoFactor();
+      setShow2FADialog(true);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message || err?.message || 'Nepodařilo se odeslat ověřovací kód';
+      setTwoFactorError(String(msg));
+    } finally {
+      setIs2FALoading(false);
+    }
+  };
+
+  const handleVerify2FA = async () => {
+    if (!twoFactorCode.trim() || twoFactorCode.length !== 6) {
+      setTwoFactorError('Zadejte 6místný kód');
+      return;
+    }
+
+    setIs2FALoading(true);
+    setTwoFactorError(null);
+    try {
+      await profileApi.verifyTwoFactorCode(twoFactorCode);
+      setShow2FADialog(false);
+      setTwoFactorCode('');
+      const updated = await profileApi.getProfile();
+      setProfileData(updated);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message || err?.message || 'Neplatný ověřovací kód';
+      setTwoFactorError(String(msg));
+    } finally {
+      setIs2FALoading(false);
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    setIs2FALoading(true);
+    setTwoFactorError(null);
+    try {
+      await profileApi.disableTwoFactor();
+      const updated = await profileApi.getProfile();
+      setProfileData(updated);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message || err?.message || 'Nepodařilo se deaktivovat dvoufázové ověření';
+      setTwoFactorError(String(msg));
+    } finally {
+      setIs2FALoading(false);
     }
   };
 
@@ -366,6 +438,15 @@ const ProfilePageComponent: React.FC = () => {
                 <MenuItem value="FEMALE">{translations.gender.FEMALE}</MenuItem>
               </Select>
             </FormControl>
+
+            <TextField
+              label="Email"
+              type="email"
+              value={editEmail}
+              onChange={(e) => setEditEmail(e.target.value)}
+              fullWidth
+              helperText={displayData?.isTwoFactorEnabled ? 'Email je vyžadován pro dvoufázové ověření' : ''}
+            />
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
@@ -379,6 +460,92 @@ const ProfilePageComponent: React.FC = () => {
             </Button>
           </Box>
         </Paper>
+
+        <Paper className="p-6 rounded-xl shadow-lg mb-6">
+          <Typography variant="h6" className="font-bold text-text-primary" sx={{ mb: 2 }}>
+            Dvoufázové ověření
+          </Typography>
+
+          {twoFactorError && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setTwoFactorError(null)}>
+              {twoFactorError}
+            </Alert>
+          )}
+
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant="body1" className="text-text-primary">
+                {displayData?.isTwoFactorEnabled ? 'Dvoufázové ověření je aktivní' : 'Dvoufázové ověření je deaktivováno'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                {displayData?.isTwoFactorEnabled
+                  ? 'Při přihlášení budete potřebovat kód z emailu'
+                  : 'Zapněte dvoufázové ověření pro zvýšení bezpečnosti vašeho účtu'}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {displayData?.isTwoFactorEnabled ? (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={handleDisable2FA}
+                  disabled={is2FALoading}
+                >
+                  {is2FALoading ? 'Deaktivuji...' : 'Deaktivovat'}
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={handleEnable2FA}
+                  disabled={is2FALoading || !editEmail.trim()}
+                >
+                  {is2FALoading ? 'Odesílám...' : 'Aktivovat'}
+                </Button>
+              )}
+            </Box>
+          </Box>
+        </Paper>
+
+        <Dialog open={show2FADialog} onClose={() => setShow2FADialog(false)}>
+          <DialogTitle>Ověření dvoufázového ověření</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Zadejte 6místný kód, který jsme vám odeslali na email {displayData?.email}
+            </Typography>
+            {twoFactorError && (
+              <Alert severity="error" sx={{ mb: 2 }} onClose={() => setTwoFactorError(null)}>
+                {twoFactorError}
+              </Alert>
+            )}
+            <TextField
+              label="Ověřovací kód"
+              value={twoFactorCode}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                setTwoFactorCode(value);
+              }}
+              fullWidth
+              inputProps={{ maxLength: 6, pattern: '[0-9]*' }}
+              placeholder="000000"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => {
+              setShow2FADialog(false);
+              setTwoFactorCode('');
+              setTwoFactorError(null);
+            }}>
+              Zrušit
+            </Button>
+            <Button
+              onClick={handleVerify2FA}
+              variant="contained"
+              disabled={is2FALoading || twoFactorCode.length !== 6}
+            >
+              {is2FALoading ? 'Ověřuji...' : 'Ověřit'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
 
       <ProfilePictureUploadDialog

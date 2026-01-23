@@ -61,21 +61,23 @@ export default function Register() {
       subtitle={translations.register.subtitle}
     >
       <form className="space-y-6" onSubmit={handleSubmit}>
-        <div className="space-y-5">
-          <Input
-            id="username"
-            name="username"
-            type="text"
-            label={translations.register.username}
-            required
-            value={formData.username}
-            onChange={handleChange}
-            placeholder={translations.register.username}
-          />
-          <div className="space-y-1">
+        <div>
+          <div className="mb-5">
+            <Input
+              id="username"
+              name="username"
+              type="text"
+              label={translations.register.username}
+              required
+              value={formData.username}
+              onChange={handleChange}
+              placeholder={translations.register.username}
+            />
+          </div>
+          <div className="mb-5">
             <label 
               htmlFor="gender" 
-              className="block text-sm font-medium text-text-primary dark:text-text-dark-primary"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               {translations.register.gender}
             </label>
@@ -84,32 +86,36 @@ export default function Register() {
               name="gender"
               value={formData.gender}
               onChange={handleSelectChange}
-              className="block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 border-gray-300 dark:border-dark-primary text-text-primary dark:text-text-dark-primary bg-background-card dark:bg-background-dark-card"
+              className="block w-full px-3 py-2.5 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 bg-white dark:bg-[#1a1d24] transition-colors"
               required
             >
               <option value="MALE">{translations.register.genders.male}</option>
               <option value="FEMALE">{translations.register.genders.female}</option>
             </select>
           </div>
-          <PasswordInput
-            id="password"
-            name="password"
-            label={translations.register.password}
-            required
-            value={formData.password}
-            onChange={handleChange}
-            placeholder={translations.register.password}
-          />
-          <PasswordInput
-            id="confirmPassword"
-            name="confirmPassword"
-            label={translations.register.confirmPassword}
-            required
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            placeholder={translations.register.confirmPassword}
-            error={error}
-          />
+          <div className="mb-5">
+            <PasswordInput
+              id="password"
+              name="password"
+              label={translations.register.password}
+              required
+              value={formData.password}
+              onChange={handleChange}
+              placeholder={translations.register.password}
+            />
+          </div>
+          <div>
+            <PasswordInput
+              id="confirmPassword"
+              name="confirmPassword"
+              label={translations.register.confirmPassword}
+              required
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder={translations.register.confirmPassword}
+              error={error}
+            />
+          </div>
         </div>
 
         <div className="mt-8">
@@ -123,10 +129,10 @@ export default function Register() {
         </div>
       </form>
 
-      <div className="text-sm text-center mt-8 text-text-primary">
+      <div className="text-sm text-center mt-8">
         <Link 
           to="/login" 
-          className="font-medium text-primary-500 hover:text-primary-600 transition-colors duration-200"
+          className="font-medium text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 transition-colors duration-200"
         >
           {translations.register.haveAccount}
         </Link>

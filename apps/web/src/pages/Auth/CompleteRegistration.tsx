@@ -38,11 +38,11 @@ export function CompleteRegistration() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 p-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900">Neplatný odkaz</h2>
-            <p className="mt-2 text-sm text-gray-600">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">Neplatný odkaz</h2>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               Tento odkaz pro dokončení registrace je neplatný. Kontaktujte prosím organizátora.
             </p>
           </div>
@@ -67,51 +67,59 @@ export function CompleteRegistration() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Dokončení registrace
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Vytvořte si své přihlašovací údaje pro přístup do aplikace
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <Input
-            id="username"
-            name="username"
-            type="text"
-            label="Uživatelské jméno"
-            required
-            value={isLoadingUsername ? 'Načítám...' : username}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
-            placeholder="Uživatelské jméno"
-            disabled={true}
-          />
-          {isLoadingUsername && (
-            <p className="text-sm text-gray-500 -mt-1">Načítám uživatelské jméno...</p>
-          )}
-          <p className="text-sm text-gray-500 -mt-1">Uživatelské jméno nelze změnit - je určeno vaším registračním tokenem</p>
-          <PasswordInput
-            id="password"
-            name="password"
-            label="Heslo"
-            required
-            value={password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-            placeholder="Heslo"
-            disabled={isLoading || isLoadingUsername}
-          />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 p-8">
+          <div>
+            <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
+              Dokončení registrace
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+              Vytvořte si své přihlašovací údaje pro přístup do aplikace
+            </p>
+          </div>
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            <div>
+              <div className="mb-5">
+                <Input
+                  id="username"
+                  name="username"
+                  type="text"
+                  label="Uživatelské jméno"
+                  required
+                  value={isLoadingUsername ? 'Načítám...' : username}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
+                  placeholder="Uživatelské jméno"
+                  disabled={true}
+                />
+              </div>
+              {isLoadingUsername && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Načítám uživatelské jméno...</p>
+              )}
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">Uživatelské jméno nelze změnit - je určeno vaším registračním tokenem</p>
+              <div>
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  label="Heslo"
+                  required
+                  value={password}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                  placeholder="Heslo"
+                  disabled={isLoading || isLoadingUsername}
+                />
+              </div>
+            </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading || isLoadingUsername}
-          >
-            {isLoading ? 'Dokončuji registraci...' : 'Dokončit registraci'}
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading || isLoadingUsername}
+            >
+              {isLoading ? 'Dokončuji registraci...' : 'Dokončit registraci'}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -84,6 +84,7 @@ model User {
   id                     String    @id @default(uuid()) @db.Uuid
   username               String?   @unique
   password               String?
+  email                  String?
   name                   String?
   firstName              String?
   lastName               String?
@@ -122,10 +123,12 @@ model User {
   beerPongGameBeers          BeerPongGameBeer[]
   startedBeerPongGames       BeerPongGame[]
   matchedRegistrations       EventRegistration[]
+  twoFactorCodes             TwoFactorCode[]
 
   creator User? @relation("UserCreator", fields: [createdBy], references: [id])
 
   @@index([createdBy])
+  @@index([email])
 }
 
 model RefreshToken {
@@ -503,4 +506,19 @@ model BeerPongGameBeer {
   @@index([beerPongGameId])
   @@index([userId])
   @@index([eventBeerId])
+}
+
+model TwoFactorCode {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  code      String
+  expiresAt DateTime @db.Timestamptz(6)
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([code])
+  @@index([expiresAt])
 }
