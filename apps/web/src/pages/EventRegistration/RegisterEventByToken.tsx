@@ -1,25 +1,69 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { usePageTitle } from '../../hooks/usePageTitle';
+import { useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Input, Button } from '@demonicka/ui';
+import {
+  Input,
+  Button,
+  Stepper,
+  Step,
+  StepLabel,
+  StepContent,
+  Box,
+  Typography,
+  FormControl,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Paper,
+  TextField,
+} from '@demonicka/ui';
 import { eventRegistrationService, type CreateRegistrationDto } from '../../services/eventRegistrationService';
-import { DateTimePicker } from '@mui/x-date-pickers';
+import {
+  getArrivalTimeSlots,
+  getLeaveTimeSlots,
+  timeSlotToDateTime,
+  type TimeSlot,
+  type TimeSlotOption,
+} from '../../utils/timeBlocking';
+import { useAppTheme } from '../../contexts/ThemeContext';
 
-type Step = 'name' | 'arrival' | 'leave' | 'complete';
+type StepIndex = 0 | 1 | 2 | 3;
+
+const STEPS = ['Jméno a účast', 'Čas příjezdu', 'Čas odjezdu', 'Dokončení'] as const;
 
 export function RegisterEventByToken() {
-  usePageTitle('Registrace na událost');
   const { token } = useParams<{ token: string }>();
-  const navigate = useNavigate();
+  const { setMode } = useAppTheme();
 
-  const [step, setStep] = useState<Step>('name');
+  // Force light mode for public registration page
+  useEffect(() => {
+    setMode('light', { persistToServer: false });
+    // Restore previous mode when component unmounts
+    return () => {
+      const stored = localStorage.getItem('app_theme');
+      if (stored === 'light' || stored === 'dark') {
+        setMode(stored, { persistToServer: false });
+      }
+    };
+  }, [setMode]);
+
+  const [activeStep, setActiveStep] = useState<StepIndex>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [eventName, setEventName] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
   const [rawName, setRawName] = useState('');
   const [participating, setParticipating] = useState<boolean | null>(null);
-  const [arrivalTime, setArrivalTime] = useState<Date | null>(null);
-  const [leaveTime, setLeaveTime] = useState<Date | null>(null);
+  
+  // Arrival time selection
+  const [arrivalDate, setArrivalDate] = useState<string>('');
+  const [arrivalSlot, setArrivalSlot] = useState<TimeSlot | ''>('');
+  const [arrivalManualTime, setArrivalManualTime] = useState<string>('');
+  
+  // Leave time selection
+  const [leaveDate, setLeaveDate] = useState<string>('');
+  const [leaveSlot, setLeaveSlot] = useState<TimeSlot | ''>('');
+  const [leaveManualTime, setLeaveManualTime] = useState<string>('');
 
   useEffect(() => {
     if (!token) {
@@ -32,6 +76,8 @@ export function RegisterEventByToken() {
         setIsLoading(true);
         const info = await eventRegistrationService.getEventByToken(token);
         setEventName(info.eventName);
+        setStartDate(info.startDate);
+        setEndDate(info.endDate);
       } catch (error: any) {
         console.error('Error loading event:', error);
         if (error.response?.status === 404) {
@@ -48,6 +94,9 @@ export function RegisterEventByToken() {
 
     loadEvent();
   }, [token]);
+
+  const arrivalSlots = startDate ? getArrivalTimeSlots(startDate) : [];
+  const leaveSlots = endDate ? getLeaveTimeSlots(endDate) : [];
 
   const handleNameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,26 +120,30 @@ export function RegisterEventByToken() {
     }
 
     // Move to arrival time step
-    setStep('arrival');
+    setActiveStep(1);
   };
 
   const handleArrivalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!arrivalTime) {
-      toast.error('Prosím vyberte čas příjezdu');
+    if (!arrivalDate || !arrivalSlot) {
+      toast.error('Prosím vyberte datum a čas příjezdu');
       return;
     }
-    setStep('leave');
+    setActiveStep(2);
   };
 
   const handleLeaveSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!leaveTime) {
-      toast.error('Prosím vyberte čas odjezdu');
+    if (!leaveDate || !leaveSlot) {
+      toast.error('Prosím vyberte datum a čas odjezdu');
       return;
     }
 
-    if (arrivalTime && leaveTime && arrivalTime >= leaveTime) {
+    // Convert slots to DateTime
+    const arrivalDateTime = timeSlotToDateTime(arrivalDate, arrivalSlot as TimeSlot, arrivalManualTime || undefined);
+    const leaveDateTime = timeSlotToDateTime(leaveDate, leaveSlot as TimeSlot, leaveManualTime || undefined);
+
+    if (arrivalDateTime >= leaveDateTime) {
       toast.error('Čas příjezdu musí být před časem odjezdu');
       return;
     }
@@ -98,8 +151,8 @@ export function RegisterEventByToken() {
     await submitRegistration({
       rawName: rawName.trim(),
       participating: true,
-      arrivalTime: arrivalTime.toISOString(),
-      leaveTime: leaveTime.toISOString(),
+      arrivalTime: arrivalDateTime.toISOString(),
+      leaveTime: leaveDateTime.toISOString(),
     });
   };
 
@@ -109,7 +162,7 @@ export function RegisterEventByToken() {
     try {
       setIsLoading(true);
       await eventRegistrationService.createRegistration(token, data);
-      setStep('complete');
+      setActiveStep(3);
       toast.success('Registrace byla úspěšně odeslána!');
     } catch (error: any) {
       console.error('Error submitting registration:', error);
@@ -123,160 +176,237 @@ export function RegisterEventByToken() {
     }
   };
 
-  if (step === 'complete') {
+  const renderTimeSlotSelection = (
+    slots: TimeSlotOption[],
+    selectedDate: string,
+    selectedSlot: TimeSlot | '',
+    onDateChange: (date: string) => void,
+    onSlotChange: (slot: TimeSlot) => void,
+    manualTime: string,
+    onManualTimeChange: (time: string) => void,
+  ) => {
+    // Group slots by date
+    const slotsByDate = slots.reduce((acc, slot) => {
+      if (!acc[slot.dateString]) {
+        acc[slot.dateString] = [];
+      }
+      acc[slot.dateString].push(slot);
+      return acc;
+    }, {} as Record<string, TimeSlotOption[]>);
+
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 p-8 text-center">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Děkujeme za registraci!
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Vaše registrace byla úspěšně odeslána. Organizátor ji zkontroluje a přidá vás do události.
-            </p>
-          </div>
-        </div>
-      </div>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {/* Horizontal layout for dates */}
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, flexWrap: 'wrap' }}>
+          {Object.entries(slotsByDate).map(([dateString, dateSlots]) => (
+            <Box 
+              key={dateString}
+              sx={{ 
+                flex: '1 1 auto',
+                minWidth: { xs: '100%', sm: '200px' },
+                maxWidth: { sm: '300px' },
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
+                {dateSlots[0].displayDate}
+              </Typography>
+              <FormControl component="fieldset" fullWidth>
+                <RadioGroup
+                  value={selectedDate === dateString ? selectedSlot : ''}
+                  onChange={(e) => {
+                    onDateChange(dateString);
+                    onSlotChange(e.target.value as TimeSlot);
+                  }}
+                  sx={{ display: 'flex', flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}
+                >
+                  {dateSlots.map((slot) => (
+                    <FormControlLabel
+                      key={`${dateString}-${slot.slot}`}
+                      value={slot.slot}
+                      control={<Radio size="small" />}
+                      label={slot.slot === 'dopoledne' ? 'Dopoledne' : 'Odpoledne'}
+                      sx={{ 
+                        mb: 0,
+                        mr: 1,
+                        flex: '1 1 auto',
+                        minWidth: 'fit-content',
+                      }}
+                    />
+                  ))}
+                </RadioGroup>
+              </FormControl>
+            </Box>
+          ))}
+        </Box>
+        
+        {selectedDate && selectedSlot && (
+          <Box sx={{ mt: 2 }}>
+            <TextField
+              label="Přesný čas (volitelné, formát HH:mm)"
+              placeholder="např. 09:30"
+              value={manualTime}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow HH:mm format
+                if (value === '' || /^([0-1]?[0-9]|2[0-3]):?([0-5]?[0-9])?$/.test(value)) {
+                  onManualTimeChange(value);
+                }
+              }}
+              helperText="Pokud chcete zadat přesnější čas než dopoledne/odpoledne"
+              fullWidth
+              size="small"
+            />
+          </Box>
+        )}
+      </Box>
+    );
+  };
+
+  if (activeStep === 3) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default' }}>
+        <Paper sx={{ p: 4, maxWidth: 500, width: '100%', textAlign: 'center' }}>
+          <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>
+            Děkujeme za registraci!
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Vaše registrace byla úspěšně odeslána. Organizátor ji zkontroluje a přidá vás do události.
+          </Typography>
+        </Paper>
+      </Box>
     );
   }
 
   return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 p-8">
-          {eventName && (
-            <div>
-              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Registrace na událost
-              </h2>
-              <p className="mt-2 text-center text-sm text-gray-600">{eventName}</p>
-            </div>
-          )}
+    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', py: 8 }}>
+      <Paper sx={{ p: 4, maxWidth: 900, width: '100%' }}>
+        {eventName && (
+          <Box sx={{ mb: 4, textAlign: 'center' }}>
+            <Typography variant="h4" sx={{ mb: 1, fontWeight: 600 }}>
+              Registrace na událost
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {eventName}
+            </Typography>
+          </Box>
+        )}
 
-          {step === 'name' && (
-            <form className="mt-8 space-y-6" onSubmit={handleNameSubmit}>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                label="Vaše jméno"
-                required
-                placeholder="Zadejte vaše jméno"
-                value={rawName}
-                onChange={(e) => setRawName(e.target.value)}
-                disabled={isLoading}
-              />
+        <Stepper activeStep={activeStep} orientation="vertical">
+          <Step>
+            <StepLabel>Jméno a účast</StepLabel>
+            <StepContent>
+              <form onSubmit={handleNameSubmit}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    label="Vaše jméno"
+                    required
+                    placeholder="Zadejte vaše jméno"
+                    value={rawName}
+                    onChange={(e) => setRawName(e.target.value)}
+                    disabled={isLoading}
+                  />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Zúčastníte se?
-                </label>
-                <div className="space-y-2">
-                  <label className="flex items-center text-gray-900">
-                    <input
-                      type="radio"
-                      name="participating"
-                      value="yes"
-                      checked={participating === true}
-                      onChange={() => setParticipating(true)}
-                      className="mr-2"
+                  <FormControl component="fieldset">
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                      Zúčastníte se?
+                    </Typography>
+                    <RadioGroup
+                      value={participating === null ? '' : participating ? 'yes' : 'no'}
+                      onChange={(e) => setParticipating(e.target.value === 'yes')}
+                    >
+                      <FormControlLabel
+                        value="yes"
+                        control={<Radio />}
+                        label="Ano, zúčastním se"
+                        disabled={isLoading}
+                      />
+                      <FormControlLabel
+                        value="no"
+                        control={<Radio />}
+                        label="Ne, nezúčastním se"
+                        disabled={isLoading}
+                      />
+                    </RadioGroup>
+                  </FormControl>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+                    <Button type="submit" disabled={isLoading}>
+                      {isLoading ? 'Zpracovávám...' : 'Pokračovat'}
+                    </Button>
+                  </Box>
+                </Box>
+              </form>
+            </StepContent>
+          </Step>
+
+          <Step>
+            <StepLabel>Čas příjezdu</StepLabel>
+            <StepContent>
+              <form onSubmit={handleArrivalSubmit}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {renderTimeSlotSelection(
+                    arrivalSlots,
+                    arrivalDate,
+                    arrivalSlot,
+                    setArrivalDate,
+                    setArrivalSlot,
+                    arrivalManualTime,
+                    setArrivalManualTime,
+                  )}
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => setActiveStep(0)}
                       disabled={isLoading}
-                    />
-                    Ano, zúčastním se
-                  </label>
-                  <label className="flex items-center text-gray-900">
-                    <input
-                      type="radio"
-                      name="participating"
-                      value="no"
-                      checked={participating === false}
-                      onChange={() => setParticipating(false)}
-                      className="mr-2"
+                    >
+                      Zpět
+                    </Button>
+                    <Button type="submit" disabled={isLoading}>
+                      Pokračovat
+                    </Button>
+                  </Box>
+                </Box>
+              </form>
+            </StepContent>
+          </Step>
+
+          <Step>
+            <StepLabel>Čas odjezdu</StepLabel>
+            <StepContent>
+              <form onSubmit={handleLeaveSubmit}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {renderTimeSlotSelection(
+                    leaveSlots,
+                    leaveDate,
+                    leaveSlot,
+                    setLeaveDate,
+                    setLeaveSlot,
+                    leaveManualTime,
+                    setLeaveManualTime,
+                  )}
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => setActiveStep(1)}
                       disabled={isLoading}
-                    />
-                    Ne, nezúčastním se
-                  </label>
-                </div>
-              </div>
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Zpracovávám...' : 'Pokračovat'}
-              </Button>
-            </form>
-          )}
-
-          {step === 'arrival' && (
-            <form className="mt-8 space-y-6" onSubmit={handleArrivalSubmit}>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Čas příjezdu
-                </label>
-                <DateTimePicker
-                  value={arrivalTime}
-                  onChange={(newValue) => setArrivalTime(newValue)}
-                  disabled={isLoading}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      required: true,
-                    },
-                  }}
-                />
-              </div>
-
-              <div className="flex space-x-4">
-                <Button
-                  type="button"
-                  variant="outlined"
-                  className="flex-1"
-                  onClick={() => setStep('name')}
-                  disabled={isLoading}
-                >
-                  Zpět
-                </Button>
-                <Button type="submit" className="flex-1" disabled={isLoading}>
-                  Pokračovat
-                </Button>
-              </div>
-            </form>
-          )}
-
-          {step === 'leave' && (
-            <form className="mt-8 space-y-6" onSubmit={handleLeaveSubmit}>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Čas odjezdu
-                </label>
-                <DateTimePicker
-                  value={leaveTime}
-                  onChange={(newValue) => setLeaveTime(newValue)}
-                  minDateTime={arrivalTime || undefined}
-                  disabled={isLoading}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      required: true,
-                    },
-                  }}
-                />
-              </div>
-
-              <div className="flex space-x-4">
-                <Button
-                  type="button"
-                  variant="outlined"
-                  className="flex-1"
-                  onClick={() => setStep('arrival')}
-                  disabled={isLoading}
-                >
-                  Zpět
-                </Button>
-                <Button type="submit" className="flex-1" disabled={isLoading}>
-                  {isLoading ? 'Odesílám...' : 'Odeslat registraci'}
-                </Button>
-              </div>
-            </form>
-          )}
-        </div>
-      </div>
+                    >
+                      Zpět
+                    </Button>
+                    <Button type="submit" disabled={isLoading}>
+                      {isLoading ? 'Odesílám...' : 'Odeslat registraci'}
+                    </Button>
+                  </Box>
+                </Box>
+              </form>
+            </StepContent>
+          </Step>
+        </Stepper>
+      </Paper>
+    </Box>
   );
 }

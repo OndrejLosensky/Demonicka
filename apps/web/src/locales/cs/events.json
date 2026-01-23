@@ -50,7 +50,7 @@
             "name": "Název události",
             "description": "Popis",
             "startDate": "Datum začátku",
-            "endDate": "Datum konce (volitelné)"
+            "endDate": "Datum konce"
         },
         "common": {
             "cancel": "Zrušit",

@@ -201,7 +201,7 @@ model Event {
   name                 String
   description          String?
   startDate            DateTime  @db.Timestamptz(6)
-  endDate              DateTime? @db.Timestamptz(6)
+  endDate              DateTime  @db.Timestamptz(6)
   isActive             Boolean   @default(false)
   registrationEnabled  Boolean   @default(false)
   registrationToken    String?   @unique

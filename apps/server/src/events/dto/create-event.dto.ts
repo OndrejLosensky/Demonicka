@@ -12,6 +12,5 @@ export class CreateEventDto {
   startDate: string;
 
   @IsDateString()
-  @IsOptional()
-  endDate?: string;
+  endDate: string;
 }

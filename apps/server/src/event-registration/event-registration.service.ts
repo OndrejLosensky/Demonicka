@@ -72,10 +72,10 @@ export class EventRegistrationService {
   /**
    * Get event by registration token (public)
    */
-  async getEventByToken(token: string): Promise<{ eventName: string; registrationEnabled: boolean }> {
+  async getEventByToken(token: string): Promise<{ eventName: string; registrationEnabled: boolean; startDate: string; endDate: string }> {
     const event = await this.prisma.event.findUnique({
       where: { registrationToken: token },
-      select: { name: true, registrationEnabled: true },
+      select: { name: true, registrationEnabled: true, startDate: true, endDate: true },
     });
 
     if (!event) {
@@ -86,9 +86,15 @@ export class EventRegistrationService {
       throw new ForbiddenException('Registration is currently closed');
     }
 
+    if (!event.endDate) {
+      throw new BadRequestException('Event must have an end date for registration');
+    }
+
     return {
       eventName: event.name,
       registrationEnabled: event.registrationEnabled,
+      startDate: event.startDate.toISOString(),
+      endDate: event.endDate.toISOString(),
     };
   }
 

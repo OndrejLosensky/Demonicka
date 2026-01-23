@@ -6,7 +6,7 @@ export interface Event {
     name: string;
     description?: string;
     startDate: string;
-    endDate?: string;
+    endDate: string;
     isActive: boolean;
     registrationEnabled?: boolean;
     registrationToken?: string | null;
@@ -22,5 +22,5 @@ export interface CreateEventDto {
     name: string;
     description?: string;
     startDate: string;
-    endDate?: string;
+    endDate: string;
 }

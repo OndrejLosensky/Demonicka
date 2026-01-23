@@ -41,7 +41,7 @@ export const Events: React.FC = () => {
         name: '',
         description: '',
         startDate: new Date(),
-        endDate: null as Date | null,
+        endDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Default to tomorrow
     });
     const { loadActiveEvent } = useActiveEvent();
     const navigate = useNavigate();
@@ -106,7 +106,7 @@ export const Events: React.FC = () => {
                   name: newEvent.name,
                   description: newEvent.description,
                   startDate: newEvent.startDate.toISOString(),
-                  ...(newEvent.endDate && { endDate: newEvent.endDate.toISOString() }),
+                  endDate: newEvent.endDate.toISOString(),
                 }),
             );
             setOpen(false);
@@ -319,9 +319,11 @@ export const Events: React.FC = () => {
                             onChange={(date) => date && setNewEvent(prev => ({ ...prev, startDate: date }))}
                         />
                         <DateTimePicker
-                            label="Konec (volitelné)"
+                            label="Konec"
                             value={newEvent.endDate}
-                            onChange={(date) => setNewEvent(prev => ({ ...prev, endDate: date }))}
+                            onChange={(date) => date && setNewEvent(prev => ({ ...prev, endDate: date }))}
+                            minDateTime={newEvent.startDate}
+                            required
                         />
                     </Box>
                 </DialogContent>
@@ -331,7 +333,7 @@ export const Events: React.FC = () => {
                         variant="contained" 
                         color="primary" 
                         onClick={handleCreateEvent}
-                        disabled={!newEvent.name || !newEvent.startDate}
+                        disabled={!newEvent.name || !newEvent.startDate || !newEvent.endDate}
                     >
                         Vytvořit
                     </Button>

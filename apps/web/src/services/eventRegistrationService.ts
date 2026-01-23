@@ -3,6 +3,8 @@ import { api } from './api';
 export interface EventRegistrationInfo {
   eventName: string;
   registrationEnabled: boolean;
+  startDate: string;
+  endDate: string;
 }
 
 export interface CreateRegistrationDto {

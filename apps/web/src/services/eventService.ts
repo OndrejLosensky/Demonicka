@@ -12,7 +12,7 @@ export const eventService = {
         return response.data;
     },
 
-    async createEvent(data: { name: string; description?: string; startDate: string; endDate?: string }): Promise<Event> {
+    async createEvent(data: { name: string; description?: string; startDate: string; endDate: string }): Promise<Event> {
         const response = await api.post('/events', data);
         return response.data;
     },
