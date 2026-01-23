@@ -12,6 +12,7 @@ import { randomBytes } from 'node:crypto';
 import { ExcelRenderer } from '../exports/excel/ExcelRenderer';
 import type { StreamableFile } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
+import { isEventCompleted } from '../events/utils/event-completion.util';
 
 @Injectable()
 export class EventRegistrationService {
@@ -120,6 +121,13 @@ export class EventRegistrationService {
       throw new ForbiddenException('Registration is currently closed');
     }
 
+    // Check if event is completed
+    if (isEventCompleted(event)) {
+      throw new BadRequestException(
+        `Cannot create registration for completed event "${event.name}"`,
+      );
+    }
+
     // Validate times if participating
     if (createDto.participating) {
       if (!createDto.arrivalTime || !createDto.leaveTime) {
@@ -175,6 +183,19 @@ export class EventRegistrationService {
     registrationId: string,
     updateDto: UpdateRegistrationDto,
   ): Promise<EventRegistration> {
+    // Check if event is completed
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
+    if (isEventCompleted(event)) {
+      throw new BadRequestException(
+        `Cannot update registration for completed event "${event.name}"`,
+      );
+    }
+
     const registration = await this.prisma.eventRegistration.findFirst({
       where: { id: registrationId, eventId },
     });
@@ -224,6 +245,19 @@ export class EventRegistrationService {
    * Apply approved registrations to event (add users to EventUsers)
    */
   async applyRegistrations(eventId: string): Promise<{ applied: number }> {
+    // Check if event is completed
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
+    if (isEventCompleted(event)) {
+      throw new BadRequestException(
+        `Cannot apply registrations for completed event "${event.name}"`,
+      );
+    }
+
     const approvedRegistrations = await this.prisma.eventRegistration.findMany({
       where: {
         eventId,

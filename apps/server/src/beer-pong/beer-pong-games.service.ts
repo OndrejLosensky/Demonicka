@@ -13,6 +13,7 @@ import {
 } from '@prisma/client';
 import { EventBeersService } from '../events/services/event-beers.service';
 import { CreateTeamDto } from './dto/create-team.dto';
+import { isEventCompleted } from '../events/utils/event-completion.util';
 
 @Injectable()
 export class BeerPongGamesService {
@@ -380,6 +381,13 @@ export class BeerPongGamesService {
     if (game.status !== 'PENDING') {
       throw new BadRequestException(
         `Game is not in PENDING status. Current status: ${game.status}`,
+      );
+    }
+
+    // Check if parent event is completed
+    if (isEventCompleted(game.beerPongEvent.event)) {
+      throw new BadRequestException(
+        `Cannot start game for completed event "${game.beerPongEvent.event.name}"`,
       );
     }
 

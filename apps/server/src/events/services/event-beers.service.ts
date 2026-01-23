@@ -2,6 +2,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  BadRequestException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
@@ -11,6 +12,7 @@ import { BeersService } from '../../beers/beers.service';
 import { BarrelsService } from '../../barrels/barrels.service';
 import { LeaderboardGateway } from '../../leaderboard/leaderboard.gateway';
 import { LoggingService } from '../../logging/logging.service';
+import { isEventCompleted } from '../utils/event-completion.util';
 
 @Injectable()
 export class EventBeersService {
@@ -40,6 +42,13 @@ export class EventBeersService {
 
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
+
+    // Check if event is completed
+    if (isEventCompleted(event)) {
+      throw new BadRequestException(
+        `Cannot create beer for completed event "${event.name}"`,
+      );
     }
 
     const user = await this.prisma.user.findUnique({
@@ -101,6 +110,19 @@ export class EventBeersService {
     userId: string,
     actorUserId?: string,
   ): Promise<void> {
+    // Check if event is completed
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
+    if (isEventCompleted(event)) {
+      throw new BadRequestException(
+        `Cannot remove beer from completed event "${event.name}"`,
+      );
+    }
+
     const lastBeer = await this.prisma.eventBeer.findFirst({
       where: { eventId, userId, deletedAt: null },
       orderBy: { consumedAt: 'desc' },
@@ -170,6 +192,19 @@ export class EventBeersService {
   }
 
   async removeAllForEvent(eventId: string): Promise<void> {
+    // Check if event is completed
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
+    if (isEventCompleted(event)) {
+      throw new BadRequestException(
+        `Cannot remove beers from completed event "${event.name}"`,
+      );
+    }
+
     const eventBeers = await this.prisma.eventBeer.findMany({
       where: { eventId, deletedAt: null },
     });

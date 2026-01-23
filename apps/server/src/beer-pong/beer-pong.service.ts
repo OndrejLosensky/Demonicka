@@ -10,6 +10,7 @@ import { CreateBeerPongEventDto } from './dto/create-beer-pong-event.dto';
 import { UpdateBeerPongEventDto } from './dto/update-beer-pong-event.dto';
 import { BeerPongDefaultsService } from '../beer-pong-defaults/beer-pong-defaults.service';
 import { LoggingService } from '../logging/logging.service';
+import { isEventCompleted } from '../events/utils/event-completion.util';
 
 type BeerPongEventWithRelations = Prisma.BeerPongEventGetPayload<{
   include: {
@@ -73,6 +74,13 @@ export class BeerPongService {
     if (event.deletedAt) {
       throw new BadRequestException(
         'Cannot create beer pong event for deleted event',
+      );
+    }
+
+    // Check if event is completed
+    if (isEventCompleted(event)) {
+      throw new BadRequestException(
+        `Cannot create beer pong tournament for completed event "${event.name}"`,
       );
     }
 
@@ -272,6 +280,13 @@ export class BeerPongService {
     if (event.status !== 'DRAFT') {
       throw new BadRequestException(
         'Tournament can only be started when in DRAFT status',
+      );
+    }
+
+    // Check if parent event is completed
+    if (isEventCompleted(event.event)) {
+      throw new BadRequestException(
+        `Cannot start tournament for completed event "${event.event.name}"`,
       );
     }
 

@@ -15,6 +15,7 @@ import { LoggingService } from '../logging/logging.service';
 import { UsersService } from '../users/users.service';
 import { EventRegistrationService } from '../event-registration/event-registration.service';
 import { userCanAccessEvent } from '../auth/guards/permissions.guard';
+import { isEventCompleted } from './utils/event-completion.util';
 
 @Injectable()
 export class EventsService {
@@ -150,6 +151,16 @@ export class EventsService {
     user?: User,
   ): Promise<Event> {
     const event = await this.findOne(id, user); // Verify event exists and check access
+
+    // Check if event is completed
+    const eventFromDb = await this.prisma.event.findUnique({
+      where: { id },
+    });
+    if (eventFromDb && isEventCompleted(eventFromDb)) {
+      throw new BadRequestException(
+        `Cannot update completed event "${eventFromDb.name}"`,
+      );
+    }
 
     // Check ownership for OPERATOR (SUPER_ADMIN can update any event)
     if (
@@ -303,7 +314,18 @@ export class EventsService {
     userId: string,
     actorUserId?: string,
   ): Promise<Event> {
-    await this.findOne(id);
+    const event = await this.findOne(id);
+    
+    // Check if event is completed
+    const eventFromDb = await this.prisma.event.findUnique({
+      where: { id },
+    });
+    if (eventFromDb && isEventCompleted(eventFromDb)) {
+      throw new BadRequestException(
+        `Cannot add user to completed event "${eventFromDb.name}"`,
+      );
+    }
+
     await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
 
     // Check if user is already in event
@@ -327,7 +349,18 @@ export class EventsService {
   }
 
   async removeUser(id: string, userId: string): Promise<Event> {
-    await this.findOne(id);
+    const event = await this.findOne(id);
+    
+    // Check if event is completed
+    const eventFromDb = await this.prisma.event.findUnique({
+      where: { id },
+    });
+    if (eventFromDb && isEventCompleted(eventFromDb)) {
+      throw new BadRequestException(
+        `Cannot remove user from completed event "${eventFromDb.name}"`,
+      );
+    }
+
     await this.prisma.eventUsers.deleteMany({
       where: { eventId: id, userId },
     });
@@ -351,7 +384,18 @@ export class EventsService {
     barrelId: string,
     actorUserId?: string,
   ): Promise<Event> {
-    await this.findOne(id);
+    const event = await this.findOne(id);
+    
+    // Check if event is completed
+    const eventFromDb = await this.prisma.event.findUnique({
+      where: { id },
+    });
+    if (eventFromDb && isEventCompleted(eventFromDb)) {
+      throw new BadRequestException(
+        `Cannot add barrel to completed event "${eventFromDb.name}"`,
+      );
+    }
+
     await this.prisma.barrel.findUniqueOrThrow({ where: { id: barrelId } });
 
     // Check if barrel is already in event
@@ -375,7 +419,18 @@ export class EventsService {
   }
 
   async removeBarrel(id: string, barrelId: string): Promise<Event> {
-    await this.findOne(id);
+    const event = await this.findOne(id);
+    
+    // Check if event is completed
+    const eventFromDb = await this.prisma.event.findUnique({
+      where: { id },
+    });
+    if (eventFromDb && isEventCompleted(eventFromDb)) {
+      throw new BadRequestException(
+        `Cannot remove barrel from completed event "${eventFromDb.name}"`,
+      );
+    }
+
     await this.prisma.eventBarrels.deleteMany({
       where: { eventId: id, barrelId },
     });
@@ -421,7 +476,18 @@ export class EventsService {
     volumeLitres: number = 0.5,
   ): Promise<void> {
     try {
-      await this.findOne(eventId);
+      const event = await this.findOne(eventId);
+      
+      // Check if event is completed
+      const eventFromDb = await this.prisma.event.findUnique({
+        where: { id: eventId },
+      });
+      if (eventFromDb && isEventCompleted(eventFromDb)) {
+        throw new BadRequestException(
+          `Cannot add beer to completed event "${eventFromDb.name}"`,
+        );
+      }
+
       await this.usersService.findOne(userId);
 
       // Get active barrel
@@ -477,12 +543,34 @@ export class EventsService {
   }
 
   async openRegistration(eventId: string): Promise<{ token: string; link: string }> {
-    await this.findOne(eventId);
+    const event = await this.findOne(eventId);
+    
+    // Check if event is completed
+    const eventFromDb = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+    if (eventFromDb && isEventCompleted(eventFromDb)) {
+      throw new BadRequestException(
+        `Cannot open registration for completed event "${eventFromDb.name}"`,
+      );
+    }
+
     return this.eventRegistrationService.openRegistration(eventId);
   }
 
   async closeRegistration(eventId: string): Promise<void> {
-    await this.findOne(eventId);
+    const event = await this.findOne(eventId);
+    
+    // Check if event is completed
+    const eventFromDb = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+    if (eventFromDb && isEventCompleted(eventFromDb)) {
+      throw new BadRequestException(
+        `Cannot close registration for completed event "${eventFromDb.name}"`,
+      );
+    }
+
     return this.eventRegistrationService.closeRegistration(eventId);
   }
 }
