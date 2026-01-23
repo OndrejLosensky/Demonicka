@@ -9,6 +9,7 @@ import { AuthProvider } from '../../contexts/AuthContext';
 import { AppThemeProvider } from '../../contexts/ThemeContext';
 import { ActiveEventProvider } from '../../contexts/ActiveEventContext';
 import { HeaderVisibilityProvider } from '../../contexts/HeaderVisibilityContext';
+import { OnboardingProvider } from '../onboarding/OnboardingProvider';
 
 const queryClient = new QueryClient();
 
@@ -25,7 +26,9 @@ export function CoreProviders({ children }: CoreProvidersProps) {
             <AuthProvider>
               <ActiveEventProvider>
                 <HeaderVisibilityProvider>
-                  {children}
+                  <OnboardingProvider>
+                    {children}
+                  </OnboardingProvider>
                   <Toaster
                     position="bottom-right"
                     gutter={10}

@@ -308,6 +308,22 @@ export class AuthController {
   }
 
   /**
+   * Mark onboarding as completed for current user
+   * @param user Current authenticated user
+   * @returns Success message
+   */
+  @Post('onboarding/complete')
+  @UseGuards(JwtAuthGuard)
+  async completeOnboarding(@GetUser() user: User): Promise<{ message: string }> {
+    await this.usersService.update(user.id, {
+      onboarded: true,
+    });
+    return {
+      message: 'Onboarding dokončeno',
+    };
+  }
+
+  /**
    * Initiate Google OAuth login flow
    * Redirects user to Google OAuth consent screen
    */

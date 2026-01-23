@@ -97,4 +97,12 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   googleId?: string | null;
+
+  @IsString()
+  @IsOptional()
+  preferredTheme?: string | null;
+
+  @IsBoolean()
+  @IsOptional()
+  onboarded?: boolean;
 }

@@ -1,0 +1,56 @@
+{
+  "id": "dashboard-tour",
+  "version": "1.0.0",
+  "entryRoute": "/dashboard",
+  "allowedRoutes": ["/dashboard"],
+  "steps": [
+    {
+      "id": "welcome",
+      "target": "welcome",
+      "title": "Vítejte na dashboardu",
+      "description": "Toto je hlavní přehled vašeho systému. Zde uvidíte všechny důležité informace na jednom místě.",
+      "placement": "bottom",
+      "route": "/dashboard"
+    },
+    {
+      "id": "kpis",
+      "target": "kpis",
+      "title": "Klíčové ukazatele výkonu",
+      "description": "Tyto karty zobrazují nejdůležitější metriky: celkový počet piv, účastníky, průměry a efektivitu. Kliknutím na některé z nich můžete zobrazit detailní analýzu.",
+      "placement": "bottom",
+      "route": "/dashboard"
+    },
+    {
+      "id": "consumption-chart",
+      "target": "consumption-chart",
+      "title": "Graf spotřeby",
+      "description": "Tento graf zobrazuje spotřebu piv v čase. Můžete vidět trendy a špičky během události.",
+      "placement": "right",
+      "route": "/dashboard"
+    },
+    {
+      "id": "barrel",
+      "target": "barrel",
+      "title": "Vizuální přehled sudu",
+      "description": "Zde vidíte aktuální stav aktivního sudu včetně předpovědi, kdy dojde. Vizuální reprezentace vám pomůže rychle pochopit stav zásob.",
+      "placement": "left",
+      "route": "/dashboard"
+    },
+    {
+      "id": "top-users",
+      "target": "top-users",
+      "title": "Nejlepší pijáci",
+      "description": "Tato tabulka zobrazuje nejaktivnější účastníky události. Můžete vidět, kdo vypil nejvíce piv a jejich statistiky.",
+      "placement": "top",
+      "route": "/dashboard"
+    },
+    {
+      "id": "insights",
+      "target": "insights",
+      "title": "Insighty a analýzy",
+      "description": "Zde najdete zajímavé poznatky o události: špičkovou hodinu, nejlepšího pijáka a další užitečné informace pro analýzu.",
+      "placement": "left",
+      "route": "/dashboard"
+    }
+  ]
+}

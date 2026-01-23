@@ -52,25 +52,27 @@ export const Dashboard: React.FC = () => {
     }
 
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <DashboardKpis
-          totalBeers={dash.kpis.totalBeers}
-          participantsCount={dash.kpis.participantsCount}
-          avgPerPerson={dash.kpis.avgPerPerson}
-          avgPerHourValue={dash.kpis.avgPerHourValue}
-          avgPerHourSubtitle={dash.kpis.avgPerHourSubtitle}
-          activeBarrelsCount={dash.kpis.activeBarrelsCount}
-          efficiencyPercent={dash.kpis.efficiencyPercent}
-        />
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }} data-onboard="welcome">
+        <div data-onboard="kpis">
+          <DashboardKpis
+            totalBeers={dash.kpis.totalBeers}
+            participantsCount={dash.kpis.participantsCount}
+            avgPerPerson={dash.kpis.avgPerPerson}
+            avgPerHourValue={dash.kpis.avgPerHourValue}
+            avgPerHourSubtitle={dash.kpis.avgPerHourSubtitle}
+            activeBarrelsCount={dash.kpis.activeBarrelsCount}
+            efficiencyPercent={dash.kpis.efficiencyPercent}
+          />
+        </div>
 
         <Grid container spacing={3} alignItems="stretch">
           <Grid item xs={12} lg={8}>
-            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }} data-onboard="consumption-chart">
               <DashboardConsumptionChart hourly={dash.hourly} />
             </Box>
           </Grid>
           <Grid item xs={12} lg={4}>
-            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }} data-onboard="barrel">
               <ActiveBarrelSvg
                 barrel={dash.activeBarrel}
                 prediction={dash.dashboardStats.barrelPrediction}
@@ -81,15 +83,19 @@ export const Dashboard: React.FC = () => {
 
         <Grid container spacing={3}>
           <Grid item xs={12} lg={8}>
-            <DashboardTopUsers users={dash.dashboardStats.topUsers} />
+            <div data-onboard="top-users">
+              <DashboardTopUsers users={dash.dashboardStats.topUsers} />
+            </div>
           </Grid>
           <Grid item xs={12} lg={4}>
-            <DashboardInsights
-              eventStartedAtLabel={dash.kpis.eventStartedAtLabel}
-              peakHourLabel={dash.insights.peakHourLabel}
-              peakHourBeers={dash.insights.peakHourBeers}
-              topDrinkerUsername={dash.insights.topDrinkerUsername}
-            />
+            <div data-onboard="insights">
+              <DashboardInsights
+                eventStartedAtLabel={dash.kpis.eventStartedAtLabel}
+                peakHourLabel={dash.insights.peakHourLabel}
+                peakHourBeers={dash.insights.peakHourBeers}
+                topDrinkerUsername={dash.insights.topDrinkerUsername}
+              />
+            </div>
           </Grid>
         </Grid>
       </Box>

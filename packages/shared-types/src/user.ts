@@ -27,6 +27,7 @@ export interface User {
     profilePictureUrl: string | null;
     googleProfilePictureUrl: string | null;
     preferredTheme?: 'light' | 'dark' | null;
+    onboarded: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
