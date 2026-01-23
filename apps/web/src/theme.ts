@@ -107,6 +107,21 @@ export function createAppTheme(mode: PaletteMode) {
           },
         },
       },
+      MuiTextField: {
+        styleOverrides: {
+          root: {
+            '& .MuiInputLabel-root': {
+              color: isDark ? '#b8bcc7' : '#1a1a1a',
+              '&.Mui-focused': {
+                color: isDark ? '#ff6a64' : '#ff3b30',
+              },
+            },
+            '& .MuiInputBase-input': {
+              color: isDark ? '#e6e8ee' : '#1a1a1a',
+            },
+          },
+        },
+      },
       MuiIconButton: {
         styleOverrides: {
           root: {

@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import {
-  Container,
   Box,
   Typography,
   Button,
@@ -16,12 +15,10 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
   Chip,
-  TextField,
+  LinearProgress,
 } from '@demonicka/ui';
 import {
-  ArrowBack as ArrowBackIcon,
   Save as SaveIcon,
   Check as CheckIcon,
   Close as CloseIcon,
@@ -32,15 +29,11 @@ import { eventRegistrationService, type EventRegistration } from '../../../servi
 import { userService } from '../../../services/userService';
 import type { User } from '@demonicka/shared-types';
 import { toast } from 'react-hot-toast';
-import { usePageTitle } from '../../../hooks/usePageTitle';
 import { DateTimePicker } from '@mui/x-date-pickers';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
 export const EventRegistrationReview: React.FC = () => {
-  usePageTitle('Kontrola registrací');
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
 
   const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -95,7 +88,8 @@ export const EventRegistrationReview: React.FC = () => {
   const handleStartEdit = (reg: EventRegistration) => {
     setEditingId(reg.id);
     setEditData({
-      matchedUserId: reg.matchedUserId || undefined,
+      // Auto-select suggested match if no user is already matched
+      matchedUserId: reg.matchedUserId || reg.suggestedMatch?.id || undefined,
       arrivalTime: reg.arrivalTime,
       leaveTime: reg.leaveTime,
       status: reg.status,
@@ -107,7 +101,7 @@ export const EventRegistrationReview: React.FC = () => {
     setEditData({});
   };
 
-  const handleApply = async () => {
+  const handleApply = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -121,7 +115,7 @@ export const EventRegistrationReview: React.FC = () => {
     } finally {
       setIsApplying(false);
     }
-  };
+  }, [id, loadData]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -145,58 +139,65 @@ export const EventRegistrationReview: React.FC = () => {
     }
   };
 
-  const getUserDisplayName = (user?: { name?: string; firstName?: string; lastName?: string; username?: string }) => {
+  const getUserDisplayName = (user?: Pick<User, 'name' | 'firstName' | 'lastName' | 'username'> | null) => {
     if (!user) return '-';
     if (user.name) return user.name;
     if (user.firstName && user.lastName) return `${user.firstName} ${user.lastName}`;
     if (user.firstName) return user.firstName;
     if (user.lastName) return user.lastName;
-    return user.username || '-';
+    return user.username ?? '-';
   };
 
+  const headerAction = useMemo(
+    () => (
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<CheckIcon />}
+        onClick={handleApply}
+        disabled={isApplying || registrations.filter((r) => r.status === 'APPROVED' && r.matchedUserId).length === 0}
+      >
+        {isApplying ? 'Aplikuji…' : 'Aplikovat schválené registrace'}
+      </Button>
+    ),
+    [handleApply, isApplying, registrations],
+  );
+
+  useDashboardHeaderSlots({ action: headerAction });
+
+  if (isLoading) {
+    return (
+      <Box>
+        <Box sx={{ width: '100%', mt: 2 }}>
+          <LinearProgress />
+        </Box>
+      </Box>
+    );
+  }
+
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={cs}>
-      <Container maxWidth="xl">
-        <Box sx={{ py: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <IconButton onClick={() => navigate(`/dashboard/events/${id}`)} sx={{ mr: 2 }}>
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="h4">Kontrola registrací</Typography>
-          </Box>
+      <Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Celkem registrací: {registrations.length}
+        </Typography>
 
-          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="body1" color="text.secondary">
-              Celkem registrací: {registrations.length}
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<CheckIcon />}
-              onClick={handleApply}
-              disabled={isApplying || registrations.filter((r) => r.status === 'APPROVED' && r.matchedUserId).length === 0}
-            >
-              {isApplying ? 'Aplikuji...' : 'Aplikovat schválené registrace'}
-            </Button>
-          </Box>
-
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Jméno</TableCell>
-                  <TableCell>Zúčastní se</TableCell>
-                  <TableCell>Příjezd</TableCell>
-                  <TableCell>Odjezd</TableCell>
-                  <TableCell>Párovaný uživatel</TableCell>
-                  <TableCell>Návrh párování</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Akce</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {registrations.map((reg) => (
-                  <TableRow key={reg.id}>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Jméno</TableCell>
+                <TableCell>Zúčastní se</TableCell>
+                <TableCell>Příjezd</TableCell>
+                <TableCell>Odjezd</TableCell>
+                <TableCell>Párovaný uživatel</TableCell>
+                <TableCell>Návrh párování</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Akce</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {registrations.map((reg) => (
+                <TableRow key={reg.id}>
                     <TableCell>{reg.rawName}</TableCell>
                     <TableCell>{reg.participating ? 'Ano' : 'Ne'}</TableCell>
                     <TableCell>
@@ -314,9 +315,7 @@ export const EventRegistrationReview: React.FC = () => {
                 ))}
               </TableBody>
             </Table>
-          </TableContainer>
-        </Box>
-      </Container>
-    </LocalizationProvider>
+        </TableContainer>
+      </Box>
   );
 };

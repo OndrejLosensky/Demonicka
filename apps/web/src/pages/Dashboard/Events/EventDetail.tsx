@@ -14,12 +14,12 @@ import {
     InputLabel,
     Select,
     MenuItem,
+    Menu,
     LinearProgress,
     Chip,
     Paper,
     FilterAlt as FilterIcon,
     Add as AddIcon,
-    ArrowBack as ArrowBackIcon,
     TrendingUp as TrendingUpIcon,
     LocalBar as BeerIcon,
     Group as GroupIcon,
@@ -35,6 +35,7 @@ import {
     ContentCopy as ContentCopyIcon,
     LinkIcon,
 } from '@demonicka/ui';
+import { MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { eventService } from '../../../services/eventService';
@@ -68,6 +69,7 @@ export const EventDetail: React.FC = () => {
     const [isManagingRegistration, setIsManagingRegistration] = useState(false);
     const [registrationLink, setRegistrationLink] = useState<string | null>(null);
     const [showLinkDialog, setShowLinkDialog] = useState(false);
+    const [moreMenuAnchor, setMoreMenuAnchor] = useState<null | HTMLElement>(null);
     const [teamForm, setTeamForm] = useState<CreateTeamDto>({
         name: '',
         player1Id: '',
@@ -423,102 +425,22 @@ export const EventDetail: React.FC = () => {
         [event?.isActive],
     );
 
+    const hasMoreMenuItems =
+        hasPermission([Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS]) ||
+        hasPermission([Permission.VIEW_BEERS, Permission.VIEW_LEADERBOARD]) ||
+        hasPermission([Permission.DELETE_EVENT]);
+
     const headerAction = useMemo(
         () => (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Button
-                    startIcon={<ArrowBackIcon />}
-                    onClick={() => navigate('/dashboard/events')}
-                    sx={{
-                        color: 'text.secondary',
-                        textTransform: 'none',
-                        minWidth: 'auto',
-                        px: 1,
-                    }}
-                >
-                    Zpět
-                </Button>
                 {hasPermission([Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS]) && (
-                    <>
-                        <Button
-                            variant="outlined"
-                            startIcon={<HowToRegIcon />}
-                            onClick={() => navigate(`/dashboard/events/${id}/registration`)}
-                            sx={{
-                                borderRadius: tokens.borderRadius.md,
-                            }}
-                        >
-                            Kontrola registrací
-                        </Button>
-                        {event?.registrationEnabled ? (
-                            <Button
-                                variant="outlined"
-                                color="error"
-                                startIcon={<LinkIcon />}
-                                onClick={handleCloseRegistration}
-                                disabled={isManagingRegistration}
-                                sx={{
-                                    borderRadius: tokens.borderRadius.md,
-                                }}
-                            >
-                                {isManagingRegistration ? 'Uzavírám...' : 'Uzavřít registraci'}
-                            </Button>
-                        ) : (
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                startIcon={<LinkIcon />}
-                                onClick={handleOpenRegistration}
-                                disabled={isManagingRegistration}
-                                sx={{
-                                    borderRadius: tokens.borderRadius.md,
-                                }}
-                            >
-                                {isManagingRegistration ? 'Otevírám...' : 'Otevřít registraci'}
-                            </Button>
-                        )}
-                        {event?.registrationEnabled && event?.registrationToken && (
-                            <Button
-                                variant="outlined"
-                                startIcon={<ContentCopyIcon />}
-                                onClick={() => {
-                                    const link = `${window.location.origin}/register/event/${event.registrationToken}`;
-                                    setRegistrationLink(link);
-                                    setShowLinkDialog(true);
-                                }}
-                                sx={{
-                                    borderRadius: tokens.borderRadius.md,
-                                }}
-                            >
-                                Zkopírovat odkaz
-                            </Button>
-                        )}
-                    </>
-                )}
-                {hasPermission([Permission.VIEW_BEERS, Permission.VIEW_LEADERBOARD]) && (
                     <Button
                         variant="outlined"
-                        startIcon={<SaveIcon />}
-                        onClick={handleExportEventDetailExcel}
-                        disabled={isExportingExcel}
-                        sx={{
-                            borderRadius: tokens.borderRadius.md,
-                        }}
+                        startIcon={<HowToRegIcon />}
+                        onClick={() => navigate(`/dashboard/events/${id}/registration`)}
+                        sx={{ borderRadius: tokens.borderRadius.md }}
                     >
-                        {isExportingExcel ? 'Exportuji…' : 'Excel export'}
-                    </Button>
-                )}
-                {hasPermission([Permission.DELETE_EVENT]) && (
-                    <Button
-                        variant="outlined"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                        onClick={() => setDeleteEventOpen(true)}
-                        sx={{
-                            borderRadius: tokens.borderRadius.md,
-                        }}
-                    >
-                        Smazat událost
+                        Kontrola registrací
                     </Button>
                 )}
                 <Button
@@ -526,9 +448,7 @@ export const EventDetail: React.FC = () => {
                     color={event?.isActive ? 'error' : 'primary'}
                     startIcon={event?.isActive ? undefined : <AddIcon />}
                     onClick={event?.isActive ? handleDeactivate : handleSetActive}
-                    sx={{
-                        borderRadius: tokens.borderRadius.md,
-                    }}
+                    sx={{ borderRadius: tokens.borderRadius.md }}
                     disabled={!event}
                 >
                     {event?.isActive ? 'Deaktivovat' : 'Aktivovat'}
@@ -539,24 +459,109 @@ export const EventDetail: React.FC = () => {
                         color="primary"
                         startIcon={<TrendingUpIcon />}
                         onClick={handleEvaluateEvent}
-                        sx={{
-                            borderRadius: tokens.borderRadius.md,
-                        }}
+                        sx={{ borderRadius: tokens.borderRadius.md }}
                     >
                         Vyhodnotit
                     </Button>
+                )}
+                {hasMoreMenuItems && (
+                    <>
+                        <IconButton
+                            aria-label="Další akce"
+                            onClick={(e) => setMoreMenuAnchor(e.currentTarget)}
+                            sx={{ borderRadius: 1 }}
+                        >
+                            <MoreVertIcon />
+                        </IconButton>
+                        <Menu
+                            anchorEl={moreMenuAnchor}
+                            open={Boolean(moreMenuAnchor)}
+                            onClose={() => setMoreMenuAnchor(null)}
+                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                        >
+                            {hasPermission([Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS]) && (
+                                <>
+                                    {event?.registrationEnabled ? (
+                                        <MenuItem
+                                            onClick={() => {
+                                                handleCloseRegistration();
+                                                setMoreMenuAnchor(null);
+                                            }}
+                                            disabled={isManagingRegistration}
+                                        >
+                                            Uzavřít registraci
+                                        </MenuItem>
+                                    ) : (
+                                        <MenuItem
+                                            onClick={() => {
+                                                handleOpenRegistration();
+                                                setMoreMenuAnchor(null);
+                                            }}
+                                            disabled={isManagingRegistration}
+                                        >
+                                            Otevřít registraci
+                                        </MenuItem>
+                                    )}
+                                    {event?.registrationEnabled && event?.registrationToken && (
+                                        <MenuItem
+                                            onClick={() => {
+                                                setRegistrationLink(
+                                                    `${window.location.origin}/register/event/${event.registrationToken}`,
+                                                );
+                                                setShowLinkDialog(true);
+                                                setMoreMenuAnchor(null);
+                                            }}
+                                        >
+                                            Zkopírovat odkaz
+                                        </MenuItem>
+                                    )}
+                                </>
+                            )}
+                            {hasPermission([Permission.VIEW_BEERS, Permission.VIEW_LEADERBOARD]) && (
+                                <MenuItem
+                                    onClick={() => {
+                                        handleExportEventDetailExcel();
+                                        setMoreMenuAnchor(null);
+                                    }}
+                                    disabled={isExportingExcel}
+                                >
+                                    {isExportingExcel ? 'Exportuji…' : 'Excel export'}
+                                </MenuItem>
+                            )}
+                            {hasPermission([Permission.DELETE_EVENT]) && (
+                                <MenuItem
+                                    onClick={() => {
+                                        setDeleteEventOpen(true);
+                                        setMoreMenuAnchor(null);
+                                    }}
+                                    sx={{ color: 'error.main' }}
+                                >
+                                    Smazat událost
+                                </MenuItem>
+                            )}
+                        </Menu>
+                    </>
                 )}
             </Box>
         ),
         [
             navigate,
+            id,
             event?.isActive,
+            event?.registrationEnabled,
+            event?.registrationToken,
             isExportingExcel,
+            isManagingRegistration,
             hasPermission,
+            hasMoreMenuItems,
+            handleOpenRegistration,
+            handleCloseRegistration,
             handleExportEventDetailExcel,
             handleDeactivate,
             handleSetActive,
             handleEvaluateEvent,
+            moreMenuAnchor,
         ],
     );
 

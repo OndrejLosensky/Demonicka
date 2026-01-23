@@ -5,9 +5,6 @@ import { toast } from 'react-hot-toast';
 import { Input, Button } from '@demonicka/ui';
 import { eventRegistrationService, type CreateRegistrationDto } from '../../services/eventRegistrationService';
 import { DateTimePicker } from '@mui/x-date-pickers';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { cs } from 'date-fns/locale';
 
 type Step = 'name' | 'arrival' | 'leave' | 'complete';
 
@@ -144,7 +141,6 @@ export function RegisterEventByToken() {
   }
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={cs}>
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="max-w-md w-full space-y-8 p-8">
           {eventName && (
@@ -171,11 +167,11 @@ export function RegisterEventByToken() {
               />
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-900 mb-2">
                   Zúčastníte se?
                 </label>
                 <div className="space-y-2">
-                  <label className="flex items-center">
+                  <label className="flex items-center text-gray-900">
                     <input
                       type="radio"
                       name="participating"
@@ -187,7 +183,7 @@ export function RegisterEventByToken() {
                     />
                     Ano, zúčastním se
                   </label>
-                  <label className="flex items-center">
+                  <label className="flex items-center text-gray-900">
                     <input
                       type="radio"
                       name="participating"
@@ -282,6 +278,5 @@ export function RegisterEventByToken() {
           )}
         </div>
       </div>
-    </LocalizationProvider>
   );
 }

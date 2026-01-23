@@ -117,6 +117,13 @@ export const dashboardRouteMeta: RouteObject[] = [
                   title: 'Výsledky',
                 } satisfies DashboardChromeHandle,
               },
+              {
+                path: 'registration',
+                handle: {
+                  crumb: 'Kontrola registrací',
+                  title: 'Kontrola registrací',
+                } satisfies DashboardChromeHandle,
+              },
             ],
           },
         ],

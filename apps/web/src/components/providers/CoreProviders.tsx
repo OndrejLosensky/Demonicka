@@ -3,6 +3,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { cs } from 'date-fns/locale';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '../../contexts/AuthContext';
 import { AppThemeProvider } from '../../contexts/ThemeContext';
@@ -20,7 +21,7 @@ export function CoreProviders({ children }: CoreProvidersProps) {
     <Router>
       <QueryClientProvider client={queryClient}>
         <AppThemeProvider>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={cs}>
             <AuthProvider>
               <ActiveEventProvider>
                 <HeaderVisibilityProvider>
