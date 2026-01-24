@@ -3,6 +3,9 @@
     "name": "Démonická",
     "slug": "demonicka-mobile",
     "version": "3.5.0",
+    "experiments": {
+      "autolinkingModuleResolution": true
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",

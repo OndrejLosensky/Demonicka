@@ -4,6 +4,12 @@
   "private": true,
   "description": "Démonická monorepo",
   "packageManager": "pnpm@10.17.1",
+  "pnpm": {
+    "overrides": {
+      "react": "19.1.0",
+      "react-dom": "19.1.0"
+    }
+  },
   "scripts": {
     "build": "turbo run build",
     "build:server": "turbo run build --filter=demonicka-server",
