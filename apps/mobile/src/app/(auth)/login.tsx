@@ -4,15 +4,16 @@ import {
   View,
   Image,
   Text,
-  TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
-import { login } from '../api/auth';
+import { useRouter } from 'expo-router';
+import { useAuthStore } from '../../store/auth.store';
+import { FormInput } from '../../components/forms/FormInput';
+import { FormButton } from '../../components/forms/FormButton';
 
-const logo = require('../../assets/logo.png');
+const logo = require('../../../assets/logo.png');
 
 const COPY = {
   title: 'Vítejte zpět!',
@@ -22,13 +23,15 @@ const COPY = {
   signIn: 'Přihlásit se',
   signingIn: 'Přihlašování...',
   errorDefault: 'Přihlášení se nezdařilo',
+  twoFactorRequired: 'Vyžadováno dvoufázové ověření. Zatím není v aplikaci podporováno.',
 };
 
-interface LoginScreenProps {
-  onLoginSuccess: (username: string) => void;
-}
+export default function LoginScreen() {
+  const router = useRouter();
+  const login = useAuthStore((state) => state.login);
+  const storeError = useAuthStore((state) => state.error);
+  const clearError = useAuthStore((state) => state.clearError);
 
-export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -36,18 +39,24 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
 
   const handleSubmit = async () => {
     setError('');
+    clearError();
+
     if (!username.trim() || !password) {
       setError('Vyplňte uživatelské jméno a heslo');
       return;
     }
+
     setIsLoading(true);
     try {
       const result = await login(username.trim(), password);
+
       if ('requiresTwoFactor' in result && result.requiresTwoFactor) {
-        setError(result.message || 'Vyžadováno dvoufázové ověření. Zatím není v aplikaci podporováno.');
+        setError(result.message || COPY.twoFactorRequired);
         return;
       }
-      onLoginSuccess(result.user.username);
+
+      // Navigate to app on success
+      router.replace('/(app)/(tabs)');
     } catch (e: unknown) {
       const err = e as { status?: number; data?: { message?: string }; message?: string };
       const msg = err?.data?.message ?? err?.message ?? COPY.errorDefault;
@@ -57,11 +66,12 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     }
   };
 
+  const displayError = error || storeError;
+
   return (
     <KeyboardAvoidingView
       style={styles.keyboard}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -75,47 +85,46 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         <Text style={styles.subtitle}>{COPY.subtitle}</Text>
 
         <View style={styles.form}>
-          {error ? (
+          {displayError ? (
             <View style={styles.errorBox}>
-              <Text style={styles.errorText}>{error}</Text>
+              <Text style={styles.errorText}>{displayError}</Text>
             </View>
           ) : null}
-          <Text style={styles.label}>{COPY.username}</Text>
-          <TextInput
-            style={styles.input}
+
+          <FormInput
+            label={COPY.username}
             value={username}
-            onChangeText={(t) => { setUsername(t); setError(''); }}
+            onChangeText={(t) => {
+              setUsername(t);
+              setError('');
+            }}
             placeholder={COPY.username}
-            placeholderTextColor="#9ca3af"
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="username"
             editable={!isLoading}
           />
 
-          <Text style={[styles.label, styles.labelTop]}>{COPY.password}</Text>
-          <TextInput
-            style={styles.input}
+          <FormInput
+            label={COPY.password}
             value={password}
-            onChangeText={(t) => { setPassword(t); setError(''); }}
+            onChangeText={(t) => {
+              setPassword(t);
+              setError('');
+            }}
             placeholder={COPY.password}
-            placeholderTextColor="#9ca3af"
             secureTextEntry
             autoCapitalize="none"
             autoComplete="password"
             editable={!isLoading}
           />
 
-          <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
+          <FormButton
+            title={isLoading ? COPY.signingIn : COPY.signIn}
             onPress={handleSubmit}
-            disabled={isLoading}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.buttonText}>
-              {isLoading ? COPY.signingIn : COPY.signIn}
-            </Text>
-          </TouchableOpacity>
+            loading={isLoading}
+            style={styles.button}
+          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -130,7 +139,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 48,
+    paddingTop: 80,
     paddingBottom: 32,
     alignItems: 'stretch',
   },
@@ -172,39 +181,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#dc2626',
   },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
-    marginBottom: 6,
-  },
-  labelTop: {
-    marginTop: 16,
-  },
-  input: {
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#111',
-  },
   button: {
-    backgroundColor: '#FF0000',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 28,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
+    marginTop: 12,
   },
 });

@@ -3,6 +3,7 @@
     "name": "Démonická",
     "slug": "demonicka-mobile",
     "version": "3.5.0",
+    "scheme": "demonicka",
     "experiments": {
       "autolinkingModuleResolution": true
     },
@@ -16,7 +17,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.demonicka.mobile"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,10 +26,16 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.demonicka.mobile"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ]
   }
 }
