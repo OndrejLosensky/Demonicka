@@ -46,9 +46,6 @@ export default function AppLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="participants" />
-      <Stack.Screen name="barrels" />
-      <Stack.Screen name="system" />
     </Stack>
   );
 }

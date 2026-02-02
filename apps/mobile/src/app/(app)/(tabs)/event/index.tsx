@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useActiveEvent } from '../../../hooks/useActiveEvent';
-import { Icon } from '../../../components/icons';
-import { LoadingScreen } from '../../../components/ui/LoadingScreen';
-import { EmptyState } from '../../../components/ui/EmptyState';
-import { StatCard } from '../../../components/cards/StatCard';
-import { formatDate } from '../../../utils/format';
+import { useActiveEvent } from '../../../../hooks/useActiveEvent';
+import { Icon } from '../../../../components/icons';
+import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
+import { EmptyState } from '../../../../components/ui/EmptyState';
+import { StatCard } from '../../../../components/cards/StatCard';
+import { formatDate } from '../../../../utils/format';
 import { useState, useCallback } from 'react';
 
 export default function EventScreen() {
@@ -106,90 +106,23 @@ export default function EventScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  header: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111',
-    marginBottom: 8,
-  },
-  description: {
-    fontSize: 15,
-    color: '#6b7280',
-    lineHeight: 22,
-  },
-  dateSection: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  dateLabel: {
-    fontSize: 15,
-    color: '#6b7280',
-  },
-  dateValue: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#111',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  statCard: {
-    flex: 1,
-  },
-  statusSection: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 16,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  statusLabel: {
-    fontSize: 15,
-    color: '#6b7280',
-  },
-  statusBadge: {
-    backgroundColor: '#e5e7eb',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  statusActive: {
-    backgroundColor: '#dcfce7',
-  },
-  statusText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#6b7280',
-  },
-  statusTextActive: {
-    color: '#16a34a',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 32 },
+  header: { marginBottom: 24 },
+  title: { fontSize: 28, fontWeight: '700', color: '#111', marginBottom: 8 },
+  description: { fontSize: 15, color: '#6b7280', lineHeight: 22 },
+  dateSection: { backgroundColor: '#f9fafb', borderRadius: 12, padding: 16, marginBottom: 16 },
+  dateRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4 },
+  dateLabel: { fontSize: 15, color: '#6b7280' },
+  dateValue: { fontSize: 15, fontWeight: '500', color: '#111' },
+  statsRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+  statCard: { flex: 1 },
+  statusSection: { backgroundColor: '#f9fafb', borderRadius: 12, padding: 16 },
+  statusRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4 },
+  statusLabel: { fontSize: 15, color: '#6b7280' },
+  statusBadge: { backgroundColor: '#e5e7eb', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 },
+  statusActive: { backgroundColor: '#dcfce7' },
+  statusText: { fontSize: 13, fontWeight: '500', color: '#6b7280' },
+  statusTextActive: { color: '#16a34a' },
 });

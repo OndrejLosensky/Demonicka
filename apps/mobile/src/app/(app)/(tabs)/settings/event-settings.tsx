@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useActiveEvent } from '../../../hooks/useActiveEvent';
-import { useRole } from '../../../hooks/useRole';
-import { Header } from '../../../components/layout/Header';
-import { Icon } from '../../../components/icons';
-import { LoadingScreen } from '../../../components/ui/LoadingScreen';
-import { EmptyState } from '../../../components/ui/EmptyState';
-import { formatDate } from '../../../utils/format';
+import { useActiveEvent } from '../../../../hooks/useActiveEvent';
+import { useRole } from '../../../../hooks/useRole';
+import { Header } from '../../../../components/layout/Header';
+import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
+import { EmptyState } from '../../../../components/ui/EmptyState';
+import { Icon } from '../../../../components/icons';
+import { formatDate } from '../../../../utils/format';
 
 export default function EventSettingsScreen() {
   const { activeEvent, isLoading } = useActiveEvent();
@@ -77,9 +77,7 @@ export default function EventSettingsScreen() {
             <View style={styles.switchRow}>
               <View>
                 <Text style={styles.switchLabel}>Aktivní událost</Text>
-                <Text style={styles.switchDescription}>
-                  Událost je právě aktivní a probíhá
-                </Text>
+                <Text style={styles.switchDescription}>Událost je právě aktivní a probíhá</Text>
               </View>
               <Switch
                 value={activeEvent.isActive}
@@ -91,9 +89,7 @@ export default function EventSettingsScreen() {
             <View style={styles.switchRow}>
               <View>
                 <Text style={styles.switchLabel}>Registrace otevřená</Text>
-                <Text style={styles.switchDescription}>
-                  Noví účastníci se mohou registrovat
-                </Text>
+                <Text style={styles.switchDescription}>Noví účastníci se mohou registrovat</Text>
               </View>
               <Switch
                 value={activeEvent.registrationEnabled ?? false}
@@ -128,78 +124,18 @@ export default function EventSettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scroll: {
-    flex: 1,
-  },
-  section: {
-    padding: 16,
-    paddingBottom: 0,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6b7280',
-    textTransform: 'uppercase',
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  card: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 16,
-  },
-  field: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  fieldLabel: {
-    fontSize: 13,
-    color: '#6b7280',
-    marginBottom: 4,
-  },
-  fieldValue: {
-    fontSize: 15,
-    color: '#111',
-    fontWeight: '500',
-  },
-  fieldValueMono: {
-    fontSize: 15,
-    color: '#111',
-    fontWeight: '500',
-    fontFamily: 'monospace',
-  },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  switchLabel: {
-    fontSize: 15,
-    color: '#111',
-    fontWeight: '500',
-  },
-  switchDescription: {
-    fontSize: 13,
-    color: '#6b7280',
-    marginTop: 2,
-    maxWidth: 240,
-  },
-  infoNote: {
-    padding: 16,
-    paddingTop: 24,
-  },
-  infoNoteText: {
-    fontSize: 13,
-    color: '#9ca3af',
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  scroll: { flex: 1 },
+  section: { padding: 16, paddingBottom: 0 },
+  sectionTitle: { fontSize: 13, fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', marginBottom: 8, marginLeft: 4 },
+  card: { backgroundColor: '#f9fafb', borderRadius: 12, padding: 16 },
+  field: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
+  fieldLabel: { fontSize: 13, color: '#6b7280', marginBottom: 4 },
+  fieldValue: { fontSize: 15, color: '#111', fontWeight: '500' },
+  fieldValueMono: { fontSize: 15, color: '#111', fontWeight: '500', fontFamily: 'monospace' },
+  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
+  switchLabel: { fontSize: 15, color: '#111', fontWeight: '500' },
+  switchDescription: { fontSize: 13, color: '#6b7280', marginTop: 2, maxWidth: 240 },
+  infoNote: { padding: 16, paddingTop: 24 },
+  infoNoteText: { fontSize: 13, color: '#9ca3af', textAlign: 'center', fontStyle: 'italic' },
 });

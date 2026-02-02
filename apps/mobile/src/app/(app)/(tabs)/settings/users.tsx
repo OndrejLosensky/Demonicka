@@ -9,13 +9,13 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '../../../store/auth.store';
-import { useRole } from '../../../hooks/useRole';
-import { api } from '../../../services/api';
-import { Header } from '../../../components/layout/Header';
-import { Icon } from '../../../components/icons';
-import { LoadingScreen } from '../../../components/ui/LoadingScreen';
-import { EmptyState } from '../../../components/ui/EmptyState';
+import { useAuthStore } from '../../../../store/auth.store';
+import { useRole } from '../../../../hooks/useRole';
+import { api } from '../../../../services/api';
+import { Header } from '../../../../components/layout/Header';
+import { Icon } from '../../../../components/icons';
+import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
+import { EmptyState } from '../../../../components/ui/EmptyState';
 import type { User } from '@demonicka/shared-types';
 
 export default function UsersManagementScreen() {
@@ -30,7 +30,6 @@ export default function UsersManagementScreen() {
 
   const fetchUsers = useCallback(async () => {
     if (!token) return;
-
     try {
       const data = await api.get<User[]>('/users', token);
       setUsers(data);
@@ -69,16 +68,11 @@ export default function UsersManagementScreen() {
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case 'SUPER_ADMIN':
-        return 'Super Admin';
-      case 'OPERATOR':
-        return 'Operátor';
-      case 'USER':
-        return 'Uživatel';
-      case 'PARTICIPANT':
-        return 'Účastník';
-      default:
-        return role;
+      case 'SUPER_ADMIN': return 'Super Admin';
+      case 'OPERATOR': return 'Operátor';
+      case 'USER': return 'Uživatel';
+      case 'PARTICIPANT': return 'Účastník';
+      default: return role;
     }
   };
 
@@ -156,14 +150,8 @@ export default function UsersManagementScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  searchContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  searchContainer: { paddingHorizontal: 16, paddingVertical: 12 },
   searchInput: {
     backgroundColor: '#f9fafb',
     borderWidth: 1,
@@ -174,12 +162,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#111',
   },
-  listContent: {
-    padding: 16,
-    paddingTop: 4,
-    paddingBottom: 32,
-    flexGrow: 1,
-  },
+  listContent: { padding: 16, paddingTop: 4, paddingBottom: 32, flexGrow: 1 },
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -197,31 +180,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#111',
-  },
-  userMeta: {
-    fontSize: 13,
-    color: '#6b7280',
-    marginTop: 2,
-  },
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#e5e7eb',
-  },
-  statusActive: {
-    backgroundColor: '#16a34a',
-  },
+  avatarText: { fontSize: 18, fontWeight: '600', color: '#fff' },
+  userInfo: { flex: 1 },
+  userName: { fontSize: 16, fontWeight: '500', color: '#111' },
+  userMeta: { fontSize: 13, color: '#6b7280', marginTop: 2 },
+  statusDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#e5e7eb' },
+  statusActive: { backgroundColor: '#16a34a' },
 });

@@ -2,15 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '../../../store/auth.store';
-import { useActiveEvent } from '../../../hooks/useActiveEvent';
-import { api } from '../../../services/api';
-import { Header } from '../../../components/layout/Header';
-import { LoadingScreen } from '../../../components/ui/LoadingScreen';
-import { ErrorView } from '../../../components/ui/ErrorView';
-import { StatCard } from '../../../components/cards/StatCard';
-import { Icon } from '../../../components/icons';
-import { formatRelativeTime } from '../../../utils/format';
+import { useAuthStore } from '../../../../store/auth.store';
+import { useActiveEvent } from '../../../../hooks/useActiveEvent';
+import { api } from '../../../../services/api';
+import { Header } from '../../../../components/layout/Header';
+import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
+import { ErrorView } from '../../../../components/ui/ErrorView';
+import { StatCard } from '../../../../components/cards/StatCard';
+import { Icon } from '../../../../components/icons';
+import { formatRelativeTime } from '../../../../utils/format';
 import type { User } from '@demonicka/shared-types';
 
 export default function ParticipantDetailScreen() {

@@ -1,21 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { useActiveEvent } from '../../../hooks/useActiveEvent';
-import { useAuthStore } from '../../../store/auth.store';
-import { useRole } from '../../../hooks/useRole';
-import { api } from '../../../services/api';
-import { Icon } from '../../../components/icons';
-import { LoadingScreen } from '../../../components/ui/LoadingScreen';
-import { EmptyState } from '../../../components/ui/EmptyState';
+import { useActiveEvent } from '../../../../hooks/useActiveEvent';
+import { useAuthStore } from '../../../../store/auth.store';
+import { api } from '../../../../services/api';
+import { Icon } from '../../../../components/icons';
+import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
+import { EmptyState } from '../../../../components/ui/EmptyState';
 import type { BeerPongEvent, BeerPongEventStatus } from '@demonicka/shared-types';
 
 export default function BeerPongScreen() {
-  const router = useRouter();
   const { activeEvent, isLoading: eventLoading } = useActiveEvent();
   const token = useAuthStore((state) => state.token);
-  const { isOperator } = useRole();
 
   const [tournaments, setTournaments] = useState<BeerPongEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,12 +19,8 @@ export default function BeerPongScreen() {
 
   const fetchTournaments = useCallback(async () => {
     if (!activeEvent?.id || !token) return;
-
     try {
-      const data = await api.get<BeerPongEvent[]>(
-        `/events/${activeEvent.id}/beer-pong`,
-        token
-      );
+      const data = await api.get<BeerPongEvent[]>(`/events/${activeEvent.id}/beer-pong`, token);
       setTournaments(data);
     } catch (error) {
       console.error('Failed to fetch beer pong tournaments:', error);
@@ -50,27 +42,19 @@ export default function BeerPongScreen() {
 
   const getStatusLabel = (status: BeerPongEventStatus) => {
     switch (status) {
-      case 'DRAFT':
-        return 'Příprava';
-      case 'ACTIVE':
-        return 'Probíhá';
-      case 'COMPLETED':
-        return 'Dokončeno';
-      default:
-        return status;
+      case 'DRAFT': return 'Příprava';
+      case 'ACTIVE': return 'Probíhá';
+      case 'COMPLETED': return 'Dokončeno';
+      default: return status;
     }
   };
 
   const getStatusColor = (status: BeerPongEventStatus) => {
     switch (status) {
-      case 'DRAFT':
-        return '#6b7280';
-      case 'ACTIVE':
-        return '#16a34a';
-      case 'COMPLETED':
-        return '#3b82f6';
-      default:
-        return '#6b7280';
+      case 'DRAFT': return '#6b7280';
+      case 'ACTIVE': return '#16a34a';
+      case 'COMPLETED': return '#3b82f6';
+      default: return '#6b7280';
     }
   };
 
@@ -113,41 +97,22 @@ export default function BeerPongScreen() {
           />
         ) : (
           tournaments.map((tournament) => (
-            <TouchableOpacity
-              key={tournament.id}
-              style={styles.tournamentCard}
-              activeOpacity={0.7}
-            >
+            <TouchableOpacity key={tournament.id} style={styles.tournamentCard} activeOpacity={0.7}>
               <View style={styles.tournamentHeader}>
                 <Text style={styles.tournamentName}>{tournament.name}</Text>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    { backgroundColor: getStatusColor(tournament.status) + '20' },
-                  ]}
-                >
-                  <Text
-                    style={[styles.statusText, { color: getStatusColor(tournament.status) }]}
-                  >
+                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(tournament.status) + '20' }]}>
+                  <Text style={[styles.statusText, { color: getStatusColor(tournament.status) }]}>
                     {getStatusLabel(tournament.status)}
                   </Text>
                 </View>
               </View>
-
               {tournament.description && (
                 <Text style={styles.tournamentDescription}>{tournament.description}</Text>
               )}
-
               <View style={styles.tournamentMeta}>
-                <Text style={styles.metaText}>
-                  {tournament.beersPerPlayer} piv/hráč
-                </Text>
-                <Text style={styles.metaText}>
-                  {tournament.timeWindowMinutes} min
-                </Text>
-                <Text style={styles.metaText}>
-                  {tournament.teams?.length ?? 0} týmů
-                </Text>
+                <Text style={styles.metaText}>{tournament.beersPerPlayer} piv/hráč</Text>
+                <Text style={styles.metaText}>{tournament.timeWindowMinutes} min</Text>
+                <Text style={styles.metaText}>{tournament.teams?.length ?? 0} týmů</Text>
               </View>
             </TouchableOpacity>
           ))
@@ -158,72 +123,18 @@ export default function BeerPongScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  header: {
-    padding: 16,
-    paddingBottom: 8,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111',
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#6b7280',
-    marginTop: 4,
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingTop: 8,
-    paddingBottom: 32,
-  },
-  tournamentCard: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-  },
-  tournamentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  tournamentName: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#111',
-    flex: 1,
-    marginRight: 12,
-  },
-  statusBadge: {
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  tournamentDescription: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 12,
-  },
-  tournamentMeta: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  metaText: {
-    fontSize: 13,
-    color: '#6b7280',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  header: { padding: 16, paddingBottom: 8 },
+  title: { fontSize: 28, fontWeight: '700', color: '#111' },
+  subtitle: { fontSize: 15, color: '#6b7280', marginTop: 4 },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingTop: 8, paddingBottom: 32 },
+  tournamentCard: { backgroundColor: '#f9fafb', borderRadius: 12, padding: 16, marginBottom: 12 },
+  tournamentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  tournamentName: { fontSize: 17, fontWeight: '600', color: '#111', flex: 1, marginRight: 12 },
+  statusBadge: { borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 },
+  statusText: { fontSize: 12, fontWeight: '600' },
+  tournamentDescription: { fontSize: 14, color: '#6b7280', marginBottom: 12 },
+  tournamentMeta: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  metaText: { fontSize: 13, color: '#6b7280' },
 });

@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useActiveEvent } from '../../../hooks/useActiveEvent';
-import { useAuthStore } from '../../../store/auth.store';
-import { api } from '../../../services/api';
-import { websocketService } from '../../../services/websocket.service';
-import { StatCard } from '../../../components/cards/StatCard';
-import { Icon } from '../../../components/icons';
-import { LoadingScreen } from '../../../components/ui/LoadingScreen';
-import { EmptyState } from '../../../components/ui/EmptyState';
+import { useActiveEvent } from '../../../../hooks/useActiveEvent';
+import { useAuthStore } from '../../../../store/auth.store';
+import { api } from '../../../../services/api';
+import { websocketService } from '../../../../services/websocket.service';
+import { StatCard } from '../../../../components/cards/StatCard';
+import { Icon } from '../../../../components/icons';
+import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
+import { EmptyState } from '../../../../components/ui/EmptyState';
 import type { DashboardStats } from '@demonicka/shared-types';
 
 export default function DashboardScreen() {
@@ -41,12 +41,10 @@ export default function DashboardScreen() {
     }
   }, [activeEvent?.id, fetchStats]);
 
-  // Subscribe to WebSocket updates
   useEffect(() => {
     const unsubscribe = websocketService.subscribe('dashboard:stats:update', (data) => {
       setStats(data as DashboardStats);
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -103,7 +101,6 @@ export default function DashboardScreen() {
                 style={styles.statCard}
               />
             </View>
-
             <View style={styles.statsRow}>
               <StatCard
                 icon={<Icon name="group" size={24} color="#3b82f6" />}
@@ -120,7 +117,6 @@ export default function DashboardScreen() {
                 style={styles.statCard}
               />
             </View>
-
             <View style={styles.statsRow}>
               <StatCard
                 icon={<Icon name="chart" size={24} color="#10b981" />}
@@ -130,7 +126,6 @@ export default function DashboardScreen() {
                 style={styles.statCardFull}
               />
             </View>
-
             {stats.topUsers && stats.topUsers.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Top účastníci</Text>
@@ -151,50 +146,17 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  header: {
-    marginBottom: 24,
-  },
-  greeting: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111',
-    marginBottom: 4,
-  },
-  eventName: {
-    fontSize: 15,
-    color: '#6b7280',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  statCard: {
-    flex: 1,
-  },
-  statCardFull: {
-    flex: 1,
-  },
-  section: {
-    marginTop: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111',
-    marginBottom: 12,
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 32 },
+  header: { marginBottom: 24 },
+  greeting: { fontSize: 24, fontWeight: '700', color: '#111', marginBottom: 4 },
+  eventName: { fontSize: 15, color: '#6b7280' },
+  statsRow: { flexDirection: 'row', gap: 12, marginBottom: 12 },
+  statCard: { flex: 1 },
+  statCardFull: { flex: 1 },
+  section: { marginTop: 24 },
+  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#111', marginBottom: 12 },
   leaderItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -203,20 +165,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
   },
-  leaderRank: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6b7280',
-    width: 30,
-  },
-  leaderName: {
-    flex: 1,
-    fontSize: 15,
-    color: '#111',
-  },
-  leaderValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FF0000',
-  },
+  leaderRank: { fontSize: 16, fontWeight: '600', color: '#6b7280', width: 30 },
+  leaderName: { flex: 1, fontSize: 15, color: '#111' },
+  leaderValue: { fontSize: 15, fontWeight: '600', color: '#FF0000' },
 });

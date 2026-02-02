@@ -8,16 +8,18 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useActiveEvent } from '../../../hooks/useActiveEvent';
-import { useAuthStore } from '../../../store/auth.store';
-import { api } from '../../../services/api';
-import { Icon } from '../../../components/icons';
-import { LoadingScreen } from '../../../components/ui/LoadingScreen';
-import { EmptyState } from '../../../components/ui/EmptyState';
+import { useActiveEvent } from '../../../../hooks/useActiveEvent';
+import { useAuthStore } from '../../../../store/auth.store';
+import { api } from '../../../../services/api';
+import { Icon } from '../../../../components/icons';
+import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
+import { EmptyState } from '../../../../components/ui/EmptyState';
 import type { User } from '@demonicka/shared-types';
 
 export default function ParticipantsScreen() {
+  const router = useRouter();
   const { activeEvent, isLoading: eventLoading } = useActiveEvent();
   const token = useAuthStore((state) => state.token);
 
@@ -73,7 +75,11 @@ export default function ParticipantsScreen() {
   }, [fetchParticipants]);
 
   const renderParticipant = ({ item }: { item: User }) => (
-    <TouchableOpacity style={styles.participantCard} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.participantCard}
+      activeOpacity={0.7}
+      onPress={() => router.push(`/(app)/(tabs)/participants/${item.id}`)}
+    >
       <View style={styles.avatar}>
         <Text style={styles.avatarText}>
           {(item.name || item.username || '?').charAt(0).toUpperCase()}
