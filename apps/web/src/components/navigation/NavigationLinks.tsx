@@ -154,10 +154,8 @@ export function NavigationLinks() {
   }) => {
     const active = isActive(to, {
       includeSubRoutes:
-        to === '/dashboard' ||
         to === '/dashboard/events' ||
         to === '/dashboard/beer-pong' ||
-        to.endsWith('/dashboard') ||
         to.endsWith('/dashboard/events') ||
         to.endsWith('/dashboard/beer-pong'),
     });
@@ -188,10 +186,8 @@ export function NavigationLinks() {
     const hasItems = items.length > 0;
     const active = isActive(to, {
       includeSubRoutes:
-        to === '/dashboard' ||
         to === '/dashboard/events' ||
         to === '/dashboard/beer-pong' ||
-        to.endsWith('/dashboard') ||
         to.endsWith('/dashboard/events') ||
         to.endsWith('/dashboard/beer-pong'),
     });
