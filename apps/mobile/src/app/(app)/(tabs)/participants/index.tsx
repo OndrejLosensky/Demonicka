@@ -18,13 +18,15 @@ import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../components/ui/EmptyState';
 import type { User } from '@demonicka/shared-types';
 
+type EventUser = User & { eventBeerCount?: number };
+
 export default function ParticipantsScreen() {
   const router = useRouter();
   const { activeEvent, isLoading: eventLoading } = useActiveEvent();
   const token = useAuthStore((state) => state.token);
 
-  const [participants, setParticipants] = useState<User[]>([]);
-  const [filteredParticipants, setFilteredParticipants] = useState<User[]>([]);
+  const [participants, setParticipants] = useState<EventUser[]>([]);
+  const [filteredParticipants, setFilteredParticipants] = useState<EventUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,7 +35,7 @@ export default function ParticipantsScreen() {
     if (!activeEvent?.id || !token) return;
 
     try {
-      const data = await api.get<User[]>(
+      const data = await api.get<EventUser[]>(
         `/events/${activeEvent.id}/users`,
         token
       );
@@ -74,29 +76,32 @@ export default function ParticipantsScreen() {
     setRefreshing(false);
   }, [fetchParticipants]);
 
-  const renderParticipant = ({ item }: { item: User }) => (
-    <TouchableOpacity
-      style={styles.participantCard}
-      activeOpacity={0.7}
-      onPress={() => router.push(`/(app)/(tabs)/participants/${item.id}`)}
-    >
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>
-          {(item.name || item.username || '?').charAt(0).toUpperCase()}
-        </Text>
-      </View>
-      <View style={styles.participantInfo}>
-        <Text style={styles.participantName}>{item.name || item.username}</Text>
-        <Text style={styles.participantMeta}>
-          {item.beerCount} piv • {item.role}
-        </Text>
-      </View>
-      <View style={styles.beerCountWrap}>
-        <Icon name="beer" size={16} color="#FF0000" />
-        <Text style={styles.beerCount}>{item.beerCount}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderParticipant = ({ item }: { item: EventUser }) => {
+    const beerCount = item.eventBeerCount ?? 0;
+    return (
+      <TouchableOpacity
+        style={styles.participantCard}
+        activeOpacity={0.7}
+        onPress={() => router.push(`/(app)/(tabs)/participants/${item.id}`)}
+      >
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {(item.name || item.username || '?').charAt(0).toUpperCase()}
+          </Text>
+        </View>
+        <View style={styles.participantInfo}>
+          <Text style={styles.participantName}>{item.name || item.username}</Text>
+          <Text style={styles.participantMeta}>
+            {beerCount} piv • {item.role}
+          </Text>
+        </View>
+        <View style={styles.beerCountWrap}>
+          <Icon name="beer" size={16} color="#FF0000" />
+          <Text style={styles.beerCount}>{beerCount}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   if (eventLoading || isLoading) {
     return <LoadingScreen showLogo={false} />;

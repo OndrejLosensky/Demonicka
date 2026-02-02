@@ -10,6 +10,9 @@ import { EmptyState } from '../../../../components/ui/EmptyState';
 import { formatLitres, formatNumber } from '../../../../utils/format';
 import type { Barrel } from '@demonicka/shared-types';
 
+/** Beer volume in litres for display (large = 0.5L, we use large for count) */
+const BEER_VOLUME_LITRES = 0.5;
+
 export default function BarrelsScreen() {
   const { activeEvent, isLoading: eventLoading } = useActiveEvent();
   const token = useAuthStore((state) => state.token);
@@ -46,9 +49,12 @@ export default function BarrelsScreen() {
   }, [fetchBarrels]);
 
   const renderBarrel = ({ item }: { item: Barrel }) => {
-    const progress = item.totalBeers > 0
-      ? ((item.totalBeers - item.remainingBeers) / item.totalBeers) * 100
-      : 0;
+    const totalLitres = Number(item.totalLitres ?? 0);
+    const remainingLitres = Number(item.remainingLitres ?? 0);
+    const progress =
+      totalLitres > 0 ? ((totalLitres - remainingLitres) / totalLitres) * 100 : 0;
+    const totalBeers = Math.round(totalLitres / BEER_VOLUME_LITRES);
+    const remainingBeers = Math.floor(remainingLitres / BEER_VOLUME_LITRES);
 
     return (
       <View style={styles.barrelCard}>
@@ -74,7 +80,7 @@ export default function BarrelsScreen() {
         <View style={styles.barrelStats}>
           <View style={styles.barrelStat}>
             <Text style={styles.statLabel}>Zbývá piv</Text>
-            <Text style={styles.statValue}>{formatNumber(item.remainingBeers)}</Text>
+            <Text style={styles.statValue}>{formatNumber(remainingBeers)}</Text>
           </View>
           <View style={styles.barrelStat}>
             <Text style={styles.statLabel}>Zbývá litrů</Text>
@@ -82,7 +88,7 @@ export default function BarrelsScreen() {
           </View>
           <View style={styles.barrelStat}>
             <Text style={styles.statLabel}>Celkem piv</Text>
-            <Text style={styles.statValue}>{formatNumber(item.totalBeers)}</Text>
+            <Text style={styles.statValue}>{formatNumber(totalBeers)}</Text>
           </View>
         </View>
       </View>

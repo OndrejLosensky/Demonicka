@@ -13,12 +13,14 @@ import { Icon } from '../../../../components/icons';
 import { formatRelativeTime } from '../../../../utils/format';
 import type { User } from '@demonicka/shared-types';
 
+type EventUser = User & { eventBeerCount?: number };
+
 export default function ParticipantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const token = useAuthStore((state) => state.token);
   const { activeEvent } = useActiveEvent();
 
-  const [participant, setParticipant] = useState<User | null>(null);
+  const [participant, setParticipant] = useState<EventUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export default function ParticipantDetailScreen() {
 
     try {
       setError(null);
-      const users = await api.get<User[]>(
+      const users = await api.get<EventUser[]>(
         `/events/${activeEvent.id}/users`,
         token
       );
@@ -109,7 +111,7 @@ export default function ParticipantDetailScreen() {
           <StatCard
             icon={<Icon name="beer" size={24} color="#FF0000" />}
             label="Počet piv"
-            value={participant.beerCount}
+            value={participant.eventBeerCount ?? 0}
             style={styles.statCard}
           />
           <StatCard
