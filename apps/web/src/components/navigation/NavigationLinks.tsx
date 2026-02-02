@@ -128,6 +128,21 @@ export function NavigationLinks() {
     [beerPongTournaments]
   );
 
+  const dashboardItems = useMemo(
+    () => {
+      if (!user) return [];
+      const userBase = `/u/${encodeURIComponent(user.username)}`;
+      return [
+        {
+          key: 'my-overview',
+          label: 'Můj přehled',
+          to: `${userBase}/dashboard`,
+        },
+      ];
+    },
+    [user]
+  );
+
   const NavLink = ({
     to,
     icon,
@@ -139,8 +154,10 @@ export function NavigationLinks() {
   }) => {
     const active = isActive(to, {
       includeSubRoutes:
+        to === '/dashboard' ||
         to === '/dashboard/events' ||
         to === '/dashboard/beer-pong' ||
+        to.endsWith('/dashboard') ||
         to.endsWith('/dashboard/events') ||
         to.endsWith('/dashboard/beer-pong'),
     });
@@ -171,8 +188,10 @@ export function NavigationLinks() {
     const hasItems = items.length > 0;
     const active = isActive(to, {
       includeSubRoutes:
+        to === '/dashboard' ||
         to === '/dashboard/events' ||
         to === '/dashboard/beer-pong' ||
+        to.endsWith('/dashboard') ||
         to.endsWith('/dashboard/events') ||
         to.endsWith('/dashboard/beer-pong'),
     });
@@ -265,9 +284,9 @@ export function NavigationLinks() {
     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 0.5 }}>
       {canSeeAdminNav && (
         <>
-          <NavLink to="/dashboard" icon={<DashboardIcon sx={{ fontSize: 18 }} />}>
+          <DropdownNavLink to="/dashboard" icon={<DashboardIcon sx={{ fontSize: 18 }} />} items={dashboardItems}>
             {translations.navigation.dashboard}
-          </NavLink>
+          </DropdownNavLink>
           {activeEvent && (
             <>
               <NavLink
