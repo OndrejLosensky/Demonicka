@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveEvent } from '../../../hooks/useActiveEvent';
 import { useAuthStore } from '../../../store/auth.store';
 import { api } from '../../../services/api';
+import { Icon } from '../../../components/icons';
 import { LoadingScreen } from '../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { formatLitres, formatNumber } from '../../../utils/format';
@@ -96,7 +97,7 @@ export default function BarrelsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <EmptyState
-          icon="📅"
+          icon={<Icon name="calendar" size={48} color="#9ca3af" />}
           title="Žádná aktivní událost"
           message="Momentálně není aktivní žádná událost."
         />
@@ -126,7 +127,7 @@ export default function BarrelsScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            icon="🛢️"
+            icon={<Icon name="barrel" size={48} color="#9ca3af" />}
             title="Žádné sudy"
             message="Tato událost zatím nemá žádné sudy."
           />

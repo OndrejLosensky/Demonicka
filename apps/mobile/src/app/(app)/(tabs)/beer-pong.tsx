@@ -6,6 +6,7 @@ import { useActiveEvent } from '../../../hooks/useActiveEvent';
 import { useAuthStore } from '../../../store/auth.store';
 import { useRole } from '../../../hooks/useRole';
 import { api } from '../../../services/api';
+import { Icon } from '../../../components/icons';
 import { LoadingScreen } from '../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import type { BeerPongEvent, BeerPongEventStatus } from '@demonicka/shared-types';
@@ -81,7 +82,7 @@ export default function BeerPongScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <EmptyState
-          icon="📅"
+          icon={<Icon name="calendar" size={48} color="#9ca3af" />}
           title="Žádná aktivní událost"
           message="Momentálně není aktivní žádná událost."
         />
@@ -106,7 +107,7 @@ export default function BeerPongScreen() {
       >
         {tournaments.length === 0 ? (
           <EmptyState
-            icon="🏓"
+            icon={<Icon name="beer-pong" size={48} color="#9ca3af" />}
             title="Žádné turnaje"
             message="Pro tuto událost zatím nebyly vytvořeny žádné Beer Pong turnaje."
           />
@@ -139,13 +140,13 @@ export default function BeerPongScreen() {
 
               <View style={styles.tournamentMeta}>
                 <Text style={styles.metaText}>
-                  🍺 {tournament.beersPerPlayer} piv/hráč
+                  {tournament.beersPerPlayer} piv/hráč
                 </Text>
                 <Text style={styles.metaText}>
-                  ⏱️ {tournament.timeWindowMinutes} min
+                  {tournament.timeWindowMinutes} min
                 </Text>
                 <Text style={styles.metaText}>
-                  👥 {tournament.teams?.length ?? 0} týmů
+                  {tournament.teams?.length ?? 0} týmů
                 </Text>
               </View>
             </TouchableOpacity>

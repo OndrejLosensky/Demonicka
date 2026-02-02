@@ -6,6 +6,7 @@ import { useAuthStore } from '../../../store/auth.store';
 import { api } from '../../../services/api';
 import { websocketService } from '../../../services/websocket.service';
 import { StatCard } from '../../../components/cards/StatCard';
+import { Icon } from '../../../components/icons';
 import { LoadingScreen } from '../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import type { DashboardStats } from '@demonicka/shared-types';
@@ -24,7 +25,7 @@ export default function DashboardScreen() {
 
     try {
       const data = await api.get<DashboardStats>(
-        `/events/${activeEvent.id}/dashboard`,
+        `/dashboard/overview?eventId=${activeEvent.id}`,
         token
       );
       setStats(data);
@@ -63,7 +64,7 @@ export default function DashboardScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <EmptyState
-          icon="📅"
+          icon={<Icon name="calendar" size={48} color="#9ca3af" />}
           title="Žádná aktivní událost"
           message="Momentálně není aktivní žádná událost."
         />
@@ -90,31 +91,31 @@ export default function DashboardScreen() {
           <>
             <View style={styles.statsRow}>
               <StatCard
-                icon="🍺"
+                icon={<Icon name="beer" size={24} color="#FF0000" />}
                 label="Celkem piv"
-                value={stats.totalBeers}
+                value={stats.totalBeers ?? 0}
                 style={styles.statCard}
               />
               <StatCard
-                icon="📊"
+                icon={<Icon name="chart" size={24} color="#FF0000" />}
                 label="Litrů"
-                value={stats.totalLitres.toFixed(1)}
+                value={stats.totalLitres != null ? Number(stats.totalLitres).toFixed(1) : '0.0'}
                 style={styles.statCard}
               />
             </View>
 
             <View style={styles.statsRow}>
               <StatCard
-                icon="👥"
+                icon={<Icon name="group" size={24} color="#3b82f6" />}
                 label="Účastníků"
-                value={stats.totalUsers}
+                value={stats.totalUsers ?? 0}
                 color="#3b82f6"
                 style={styles.statCard}
               />
               <StatCard
-                icon="🛢️"
+                icon={<Icon name="barrel" size={24} color="#f59e0b" />}
                 label="Sudů"
-                value={stats.totalBarrels}
+                value={stats.totalBarrels ?? 0}
                 color="#f59e0b"
                 style={styles.statCard}
               />
@@ -122,9 +123,9 @@ export default function DashboardScreen() {
 
             <View style={styles.statsRow}>
               <StatCard
-                icon="📈"
+                icon={<Icon name="chart" size={24} color="#10b981" />}
                 label="Průměr na osobu"
-                value={stats.averageBeersPerUser.toFixed(1)}
+                value={stats.averageBeersPerUser != null ? Number(stats.averageBeersPerUser).toFixed(1) : '0.0'}
                 color="#10b981"
                 style={styles.statCardFull}
               />
@@ -137,7 +138,7 @@ export default function DashboardScreen() {
                   <View key={user.id} style={styles.leaderItem}>
                     <Text style={styles.leaderRank}>{index + 1}.</Text>
                     <Text style={styles.leaderName}>{user.name || user.username}</Text>
-                    <Text style={styles.leaderValue}>{user.beerCount} 🍺</Text>
+                    <Text style={styles.leaderValue}>{user.beerCount ?? 0} piv</Text>
                   </View>
                 ))}
               </View>

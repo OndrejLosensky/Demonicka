@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveEvent } from '../../../hooks/useActiveEvent';
 import { useAuthStore } from '../../../store/auth.store';
 import { api } from '../../../services/api';
+import { Icon } from '../../../components/icons';
 import { LoadingScreen } from '../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import type { User } from '@demonicka/shared-types';
@@ -31,7 +32,7 @@ export default function ParticipantsScreen() {
 
     try {
       const data = await api.get<User[]>(
-        `/events/${activeEvent.id}/participants`,
+        `/events/${activeEvent.id}/users`,
         token
       );
       setParticipants(data);
@@ -84,7 +85,10 @@ export default function ParticipantsScreen() {
           {item.beerCount} piv • {item.role}
         </Text>
       </View>
-      <Text style={styles.beerCount}>🍺 {item.beerCount}</Text>
+      <View style={styles.beerCountWrap}>
+        <Icon name="beer" size={16} color="#FF0000" />
+        <Text style={styles.beerCount}>{item.beerCount}</Text>
+      </View>
     </TouchableOpacity>
   );
 
@@ -96,7 +100,7 @@ export default function ParticipantsScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <EmptyState
-          icon="📅"
+          icon={<Icon name="calendar" size={48} color="#9ca3af" />}
           title="Žádná aktivní událost"
           message="Momentálně není aktivní žádná událost."
         />
@@ -134,7 +138,7 @@ export default function ParticipantsScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            icon="👥"
+            icon={<Icon name="group" size={48} color="#9ca3af" />}
             title="Žádní účastníci"
             message={
               searchQuery
@@ -221,6 +225,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6b7280',
     marginTop: 2,
+  },
+  beerCountWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   beerCount: {
     fontSize: 15,

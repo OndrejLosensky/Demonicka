@@ -1,3 +1,6 @@
+// Icons (Material-style, same as web)
+export * from './icons';
+
 // UI Components
 export * from './ui/LoadingScreen';
 export * from './ui/ErrorView';

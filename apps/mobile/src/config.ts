@@ -8,3 +8,13 @@ export const config = {
   apiPrefix,
   apiBaseUrl: `${apiUrl}${apiPrefix}`,
 } as const;
+
+// When running on a physical device or emulator, "localhost" is the device itself,
+// not your dev machine. Set EXPO_PUBLIC_API_URL to your machine's IP (e.g. http://192.168.1.5:3000).
+if (__DEV__ && typeof apiUrl === 'string' && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'))) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    '[Config] API URL uses localhost. On device/emulator this will not reach your server. ' +
+      'Set EXPO_PUBLIC_API_URL to your computer IP (e.g. http://192.168.1.x:3000).'
+  );
+}

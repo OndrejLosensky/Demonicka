@@ -22,16 +22,35 @@ async function request<T>(
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 30_000);
 
-  const res = await fetch(`${BASE}${path}`, {
-    ...init,
-    headers: { ...headers, ...(init.headers as Record<string, string>) },
-    signal: ctrl.signal,
-  });
+  const url = `${BASE}${path}`;
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log('[API]', init.method ?? 'GET', url);
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...init,
+      headers: { ...headers, ...(init.headers as Record<string, string>) },
+      signal: ctrl.signal,
+    });
+  } catch (e) {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn('[API] Network error:', url, e);
+    }
+    throw e;
+  }
   clearTimeout(t);
 
   const data = (await res.json().catch(() => ({}))) as T & { message?: string };
 
   if (!res.ok) {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn('[API] Error response:', res.status, url, data);
+    }
     const err = new Error((data as { message?: string }).message ?? 'Request failed') as ApiError;
     err.status = res.status;
     err.data = data;

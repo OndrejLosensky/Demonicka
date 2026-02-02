@@ -9,6 +9,7 @@ import { Header } from '../../../components/layout/Header';
 import { LoadingScreen } from '../../../components/ui/LoadingScreen';
 import { ErrorView } from '../../../components/ui/ErrorView';
 import { StatCard } from '../../../components/cards/StatCard';
+import { Icon } from '../../../components/icons';
 import { formatRelativeTime } from '../../../utils/format';
 import type { User } from '@demonicka/shared-types';
 
@@ -27,11 +28,13 @@ export default function ParticipantDetailScreen() {
 
     try {
       setError(null);
-      const data = await api.get<User>(
-        `/events/${activeEvent.id}/participants/${id}`,
+      const users = await api.get<User[]>(
+        `/events/${activeEvent.id}/users`,
         token
       );
-      setParticipant(data);
+      const found = Array.isArray(users) ? users.find((u) => u.id === id) : null;
+      setParticipant(found ?? null);
+      if (!found) setError('Účastník nenalezen');
     } catch (e: unknown) {
       const err = e as { message?: string };
       setError(err?.message ?? 'Nepodařilo se načíst účastníka');
@@ -104,13 +107,13 @@ export default function ParticipantDetailScreen() {
 
         <View style={styles.statsRow}>
           <StatCard
-            icon="🍺"
+            icon={<Icon name="beer" size={24} color="#FF0000" />}
             label="Počet piv"
             value={participant.beerCount}
             style={styles.statCard}
           />
           <StatCard
-            icon="⏱️"
+            icon={<Icon name="clock" size={24} color="#3b82f6" />}
             label="Poslední pivo"
             value={participant.lastBeerTime ? formatRelativeTime(participant.lastBeerTime) : '-'}
             color="#3b82f6"

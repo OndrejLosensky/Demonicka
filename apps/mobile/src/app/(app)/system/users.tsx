@@ -13,6 +13,7 @@ import { useAuthStore } from '../../../store/auth.store';
 import { useRole } from '../../../hooks/useRole';
 import { api } from '../../../services/api';
 import { Header } from '../../../components/layout/Header';
+import { Icon } from '../../../components/icons';
 import { LoadingScreen } from '../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import type { User } from '@demonicka/shared-types';
@@ -103,7 +104,7 @@ export default function UsersManagementScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header title="Správa uživatelů" showBack />
         <EmptyState
-          icon="🔒"
+          icon={<Icon name="lock" size={48} color="#9ca3af" />}
           title="Přístup odepřen"
           message="Nemáte oprávnění k této sekci."
         />
@@ -140,7 +141,7 @@ export default function UsersManagementScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            icon="👥"
+            icon={<Icon name="group" size={48} color="#9ca3af" />}
             title="Žádní uživatelé"
             message={
               searchQuery

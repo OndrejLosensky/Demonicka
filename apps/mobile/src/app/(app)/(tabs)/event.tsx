@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveEvent } from '../../../hooks/useActiveEvent';
+import { Icon } from '../../../components/icons';
 import { LoadingScreen } from '../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { StatCard } from '../../../components/cards/StatCard';
@@ -25,7 +26,7 @@ export default function EventScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <EmptyState
-          icon="📅"
+          icon={<Icon name="calendar" size={48} color="#9ca3af" />}
           title="Žádná aktivní událost"
           message="Momentálně není aktivní žádná událost."
         />
@@ -66,14 +67,14 @@ export default function EventScreen() {
 
         <View style={styles.statsRow}>
           <StatCard
-            icon="👥"
+            icon={<Icon name="group" size={24} color="#3b82f6" />}
             label="Účastníků"
             value={participantCount}
             color="#3b82f6"
             style={styles.statCard}
           />
           <StatCard
-            icon="🛢️"
+            icon={<Icon name="barrel" size={24} color="#f59e0b" />}
             label="Sudů"
             value={barrelCount}
             color="#f59e0b"

@@ -1,9 +1,10 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Icon } from '../icons';
 
 interface EmptyStateProps {
   title: string;
   message?: string;
-  icon?: string;
+  icon?: React.ReactNode;
   actionLabel?: string;
   onAction?: () => void;
 }
@@ -11,13 +12,14 @@ interface EmptyStateProps {
 export function EmptyState({
   title,
   message,
-  icon = '📭',
+  icon,
   actionLabel,
   onAction,
 }: EmptyStateProps) {
+  const iconNode = icon ?? <Icon name="inbox" size={48} color="#9ca3af" />;
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>{icon}</Text>
+      <View style={styles.iconWrap}>{iconNode}</View>
       <Text style={styles.title}>{title}</Text>
       {message && <Text style={styles.message}>{message}</Text>}
       {actionLabel && onAction && (
@@ -37,9 +39,10 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: '#fff',
   },
-  icon: {
-    fontSize: 48,
+  iconWrap: {
     marginBottom: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 18,

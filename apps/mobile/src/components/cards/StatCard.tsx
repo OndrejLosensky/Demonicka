@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 interface StatCardProps {
   label: string;
   value: string | number;
-  icon?: string;
+  icon?: React.ReactNode;
   color?: string;
   style?: ViewStyle;
 }
@@ -11,7 +11,7 @@ interface StatCardProps {
 export function StatCard({ label, value, icon, color = '#FF0000', style }: StatCardProps) {
   return (
     <View style={[styles.container, style]}>
-      {icon && <Text style={styles.icon}>{icon}</Text>}
+      {icon && <View style={styles.iconWrap}>{icon}</View>}
       <Text style={[styles.value, { color }]}>{value}</Text>
       <Text style={styles.label}>{label}</Text>
     </View>
@@ -26,9 +26,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 100,
   },
-  icon: {
-    fontSize: 24,
+  iconWrap: {
     marginBottom: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   value: {
     fontSize: 28,

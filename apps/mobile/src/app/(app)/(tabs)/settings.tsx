@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Icon } from '../../../components/icons';
 import { useAuthStore } from '../../../store/auth.store';
 import { useRole } from '../../../hooks/useRole';
 
@@ -86,13 +87,17 @@ export default function SettingsScreen() {
             <View style={styles.card}>
               {isAdmin && (
                 <TouchableOpacity style={styles.menuItem}>
-                  <Text style={styles.menuIcon}>👥</Text>
+                  <View style={styles.menuIconWrap}>
+                    <Icon name="group" size={22} color="#6b7280" />
+                  </View>
                   <Text style={styles.menuLabel}>Správa uživatelů</Text>
                   <Text style={styles.menuArrow}>→</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity style={styles.menuItem}>
-                <Text style={styles.menuIcon}>📅</Text>
+                <View style={styles.menuIconWrap}>
+                  <Icon name="calendar" size={22} color="#6b7280" />
+                </View>
                 <Text style={styles.menuLabel}>Nastavení události</Text>
                 <Text style={styles.menuArrow}>→</Text>
               </TouchableOpacity>
@@ -105,7 +110,9 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>Aplikace</Text>
           <View style={styles.card}>
             <View style={styles.menuItem}>
-              <Text style={styles.menuIcon}>📱</Text>
+              <View style={styles.menuIconWrap}>
+                <Icon name="info" size={22} color="#6b7280" />
+              </View>
               <Text style={styles.menuLabel}>Verze</Text>
               <Text style={styles.menuValue}>3.5.0</Text>
             </View>
@@ -215,9 +222,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
-  menuIcon: {
-    fontSize: 20,
+  menuIconWrap: {
     marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   menuLabel: {
     flex: 1,

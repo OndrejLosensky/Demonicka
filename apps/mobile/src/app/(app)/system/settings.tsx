@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveEvent } from '../../../hooks/useActiveEvent';
 import { useRole } from '../../../hooks/useRole';
 import { Header } from '../../../components/layout/Header';
+import { Icon } from '../../../components/icons';
 import { LoadingScreen } from '../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../components/ui/EmptyState';
 import { formatDate } from '../../../utils/format';
@@ -16,7 +17,7 @@ export default function EventSettingsScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header title="Nastavení události" showBack />
         <EmptyState
-          icon="🔒"
+          icon={<Icon name="lock" size={48} color="#9ca3af" />}
           title="Přístup odepřen"
           message="Nemáte oprávnění k této sekci."
         />
@@ -33,7 +34,7 @@ export default function EventSettingsScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header title="Nastavení události" showBack />
         <EmptyState
-          icon="📅"
+          icon={<Icon name="calendar" size={48} color="#9ca3af" />}
           title="Žádná aktivní událost"
           message="Momentálně není aktivní žádná událost."
         />

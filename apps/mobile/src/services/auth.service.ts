@@ -1,8 +1,11 @@
 import * as SecureStore from 'expo-secure-store';
 import { api } from './api';
+import { config } from '../config';
 import type { User } from '@demonicka/shared-types';
 
 const TOKEN_KEY = 'access_token';
+
+const LOGIN_URL = `${config.apiBaseUrl}/auth/login`;
 
 export interface LoginSuccess {
   access_token: string;
@@ -34,18 +37,31 @@ export const authService = {
   },
 
   async login(username: string, password: string): Promise<LoginResult> {
-    const data = await api.post<LoginSuccess | LoginRequires2FA>('/auth/login', {
-      username,
-      password,
-    });
-
-    if ('requiresTwoFactor' in data && data.requiresTwoFactor) {
-      return { requiresTwoFactor: true, message: data.message ?? '' };
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log('[Auth] Login request to', LOGIN_URL);
     }
+    try {
+      const data = await api.post<LoginSuccess | LoginRequires2FA>('/auth/login', {
+        username,
+        password,
+      });
 
-    const success = data as LoginSuccess;
-    await this.setStoredToken(success.access_token);
-    return success;
+      if ('requiresTwoFactor' in data && data.requiresTwoFactor) {
+        return { requiresTwoFactor: true, message: data.message ?? '' };
+      }
+
+      const success = data as LoginSuccess;
+      await this.setStoredToken(success.access_token);
+      return success;
+    } catch (e: unknown) {
+      const err = e as { status?: number; message?: string; data?: unknown };
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn('[Auth] Login failed:', err.status, err.message, err.data);
+      }
+      throw e;
+    }
   },
 
   async fetchMe(token: string): Promise<User | null> {

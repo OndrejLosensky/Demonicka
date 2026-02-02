@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
-import { Text, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Icon } from '../../../components/icons';
 import { useRole } from '../../../hooks/useRole';
 import { canAccess } from '../../../utils/permissions';
 import { useAuthStore } from '../../../store/auth.store';
@@ -22,28 +23,28 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Přehled',
-          tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>🏠</Text>,
+          tabBarIcon: ({ color }) => <Icon name="home" size={20} color={color} />,
         }}
       />
       <Tabs.Screen
         name="event"
         options={{
           title: 'Událost',
-          tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>📅</Text>,
+          tabBarIcon: ({ color }) => <Icon name="calendar" size={20} color={color} />,
         }}
       />
       <Tabs.Screen
         name="beer-pong"
         options={{
           title: 'Beer Pong',
-          tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>🏓</Text>,
+          tabBarIcon: ({ color }) => <Icon name="beer-pong" size={20} color={color} />,
         }}
       />
       <Tabs.Screen
         name="participants"
         options={{
           title: 'Účastníci',
-          tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>👥</Text>,
+          tabBarIcon: ({ color }) => <Icon name="group" size={20} color={color} />,
           href: canAccess('participants', user) ? undefined : null,
         }}
       />
@@ -51,7 +52,7 @@ export default function TabsLayout() {
         name="barrels"
         options={{
           title: 'Sudy',
-          tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>🍺</Text>,
+          tabBarIcon: ({ color }) => <Icon name="barrel" size={20} color={color} />,
           href: canAccess('barrels', user) ? undefined : null,
         }}
       />
@@ -59,7 +60,7 @@ export default function TabsLayout() {
         name="settings"
         options={{
           title: 'Nastavení',
-          tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>⚙️</Text>,
+          tabBarIcon: ({ color }) => <Icon name="settings" size={20} color={color} />,
         }}
       />
     </Tabs>
@@ -77,8 +78,5 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: 11,
     fontWeight: '500',
-  },
-  icon: {
-    fontSize: 20,
   },
 });
