@@ -1,13 +1,17 @@
 import { Tabs } from 'expo-router';
 import { StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../../../components/icons';
 import { useRole } from '../../../hooks/useRole';
 import { canAccess } from '../../../utils/permissions';
 import { useAuthStore } from '../../../store/auth.store';
 
+const TAB_BAR_HEIGHT = 45;
+
 export default function TabsLayout() {
   const { isOperator, isAdmin } = useRole();
   const user = useAuthStore((state) => state.user);
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -15,7 +19,13 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: '#FF0000',
         tabBarInactiveTintColor: '#6b7280',
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            height: TAB_BAR_HEIGHT + insets.bottom,
+            paddingBottom: insets.bottom,
+          },
+        ],
         tabBarLabelStyle: styles.tabLabel,
       }}
     >
@@ -73,7 +83,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
     paddingTop: 4,
-    height: 60,
   },
   tabLabel: {
     fontSize: 11,
