@@ -4,12 +4,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../../../components/icons';
 import { canAccess } from '../../../utils/permissions';
 import { useAuthStore } from '../../../store/auth.store';
+import { useRole } from '../../../hooks/useRole';
 
 const TAB_BAR_HEIGHT = 45;
 
 export default function TabsLayout() {
   const user = useAuthStore((state) => state.user);
   const insets = useSafeAreaInsets();
+  const { isOperator } = useRole();
 
   return (
     <Tabs
@@ -37,15 +39,17 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="event"
         options={{
-          title: 'Událost',
+          title: 'Přehled události',
           tabBarIcon: ({ color }) => <Icon name="calendar" size={20} color={color} />,
+          href: isOperator ? null : undefined,
         }}
       />
       <Tabs.Screen
-        name="beer-pong"
+        name="events"
         options={{
-          title: 'Beer Pong',
-          tabBarIcon: ({ color }) => <Icon name="beer-pong" size={20} color={color} />,
+          title: 'Události',
+          tabBarIcon: ({ color }) => <Icon name="chart" size={20} color={color} />,
+          href: isOperator ? null : undefined,
         }}
       />
       <Tabs.Screen
@@ -62,6 +66,14 @@ export default function TabsLayout() {
           title: 'Sudy',
           tabBarIcon: ({ color }) => <Icon name="barrel" size={20} color={color} />,
           href: canAccess('barrels', user) ? undefined : null,
+        }}
+      />
+      <Tabs.Screen
+        name="beer-pong"
+        options={{
+          title: 'Beer Pong',
+          tabBarIcon: ({ color }) => <Icon name="beer-pong" size={20} color={color} />,
+          href: canAccess('beerPong', user) ? undefined : null,
         }}
       />
       <Tabs.Screen
