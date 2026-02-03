@@ -19,7 +19,8 @@ export type IconName =
   | 'clock'
   | 'person'
   | 'inbox'
-  | 'info';
+  | 'info'
+  | 'refresh';
 
 const ICON_MAP: Record<IconName, React.ComponentProps<typeof MaterialCommunityIcons>['name']> = {
   beer: 'glass-mug',
@@ -35,6 +36,7 @@ const ICON_MAP: Record<IconName, React.ComponentProps<typeof MaterialCommunityIc
   person: 'account',
   inbox: 'inbox',
   info: 'information-outline',
+  refresh: 'refresh',
 };
 
 interface IconProps {
