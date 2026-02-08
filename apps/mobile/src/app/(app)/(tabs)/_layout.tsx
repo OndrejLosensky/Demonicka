@@ -6,7 +6,7 @@ import { canAccess } from '../../../utils/permissions';
 import { useAuthStore } from '../../../store/auth.store';
 import { useRole } from '../../../hooks/useRole';
 
-const TAB_BAR_HEIGHT = 45;
+const TAB_BAR_HEIGHT = 75;
 
 export default function TabsLayout() {
   const user = useAuthStore((state) => state.user);
