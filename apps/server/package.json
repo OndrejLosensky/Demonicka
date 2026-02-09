@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "npx prisma generate && nest build && node scripts/fix-dist.js",
+    "build": "npx prisma generate && nest build",
     "fix-dist": "node scripts/fix-dist.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
