@@ -1,0 +1,29 @@
+# Use official Node.js 20 image
+FROM node:20
+
+# Set the working directory to root of the project
+WORKDIR /root
+
+# Copy package.json and pnpm lockfile first (for caching installs)
+COPY package.json pnpm-lock.yaml* ./
+
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy the rest of the project
+COPY . .
+
+# Set working directory to server folder for build/start commands
+WORKDIR /root/apps/server
+
+# Build the server
+RUN pnpm build:server
+
+# Expose the port your server uses
+EXPOSE 3000
+
+# Start the server
+CMD ["pnpm", "start:server"]
