@@ -66,8 +66,6 @@ data/database.sqlite
 *.sqlite
 *.sqlite3
 
-# Local scripts 
-/scripts/
 
 /generated/prisma
 
