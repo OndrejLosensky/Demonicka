@@ -1,19 +1,21 @@
-# Use Node 20
 FROM node:20
 
 WORKDIR /root
 ENV CI=true
 
 COPY package.json pnpm-lock.yaml* ./
+
+# Copy tsconfig files
+COPY tsconfig.base.json ./
+COPY tsconfig.json ./
+
 RUN npm install -g pnpm
 
-# Copy workspace packages
 COPY packages/shared ./packages/shared
 COPY packages/shared-types ./packages/shared-types
 COPY packages/shared-utils ./packages/shared-utils
 COPY apps/server ./apps/server
 
-# Install deps
 RUN pnpm install --recursive --no-frozen-lockfile
 
 # Build workspace packages
@@ -21,10 +23,8 @@ RUN pnpm --filter @demonicka/shared build
 RUN pnpm --filter @demonicka/shared-types build
 RUN pnpm --filter @demonicka/shared-utils build
 
-# Build server
 WORKDIR /root/apps/server
 RUN pnpm build
 
 EXPOSE 3000
-
 CMD ["pnpm", "start:prod"]
