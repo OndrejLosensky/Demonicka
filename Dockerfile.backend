@@ -1,26 +1,30 @@
 # Use Node 20
 FROM node:20
 
-# Set working directory to root
+# Set working directory
 WORKDIR /root
 
-# Copy root package.json and lockfile
+# Copy root package.json + lockfile (for workspace awareness)
 COPY package.json pnpm-lock.yaml* ./
 
 # Install pnpm globally
 RUN npm install -g pnpm
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile --recursive
+# Copy only server + shared packages
+COPY packages/shared ./packages/shared
+COPY packages/shared-types ./packages/shared-types
+COPY packages/shared-utils ./packages/shared-utils
+COPY apps/server ./apps/server
 
-# Copy the rest of the repo
-COPY . .
+# Install dependencies (workspace-aware)
+RUN pnpm install --recursive --no-frozen-lockfile
 
-# Build only the server
-RUN pnpm build:server
+# Build the server
+WORKDIR /root/apps/server
+RUN pnpm build
 
-# Expose the port the server uses
+# Expose server port
 EXPOSE 3000
 
-# Start the server
-CMD ["pnpm", "start:server"]
+# Run the compiled production server
+CMD ["pnpm", "start:prod"]
