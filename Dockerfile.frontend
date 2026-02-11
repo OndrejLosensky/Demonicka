@@ -1,0 +1,40 @@
+# Stage 1: Build
+FROM node:20-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy only package files first (for caching)
+COPY package.json package-lock.json ./ 
+COPY apps/web/package.json ./apps/web/package.json
+COPY apps/web/tsconfig.json ./apps/web/tsconfig.json
+COPY apps/web/vite.config.ts ./apps/web/vite.config.ts
+
+# Copy shared packages if needed
+COPY packages ./packages
+
+# Install dependencies
+RUN npm install --legacy-peer-deps
+
+# Copy full frontend source
+COPY apps/web ./apps/web
+
+# Build frontend
+RUN npm run --prefix apps/web build
+
+# Stage 2: Serve
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# Install lightweight static server
+RUN npm install -g serve
+
+# Copy build from builder
+COPY --from=builder /app/apps/web/dist ./dist
+
+# Expose port for frontend
+EXPOSE 4173
+
+# Run the frontend
+CMD ["serve", "-s", "dist", "-l", "4173"]
