@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { participantsApi } from './api';
 import type { Participant } from './types';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
+import { websocketService } from '../../../services/websocketService';
 import { notify } from '../../../notifications/notify';
 import translations from '../../../locales/cs/dashboard.participants.json';
 import toastTranslations from '../../../locales/cs/toasts.json';
@@ -292,6 +293,23 @@ export const useParticipants = (includeDeleted = false) => {
   useEffect(() => {
     fetchParticipants();
   }, [fetchParticipants]);
+
+  // Refetch participants when beers change elsewhere (e.g. mobile app)
+  useEffect(() => {
+    if (!activeEvent?.id) return;
+
+    const refreshOnBeerUpdate = () => {
+      void fetchParticipants();
+    };
+
+    websocketService.subscribe('dashboard:stats:update', refreshOnBeerUpdate);
+    websocketService.subscribe('leaderboard:update', refreshOnBeerUpdate);
+
+    return () => {
+      websocketService.unsubscribe('dashboard:stats:update', refreshOnBeerUpdate);
+      websocketService.unsubscribe('leaderboard:update', refreshOnBeerUpdate);
+    };
+  }, [activeEvent?.id, fetchParticipants]);
 
   return {
     participants,

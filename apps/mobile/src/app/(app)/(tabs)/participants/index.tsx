@@ -16,9 +16,12 @@ import { api } from '../../../../services/api';
 import { Icon } from '../../../../components/icons';
 import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../components/ui/EmptyState';
+import { AddParticipantModal } from '../../../../components/participants/AddParticipantModal';
 import type { User } from '@demonicka/shared-types';
 
 type EventUser = User & { eventBeerCount?: number };
+
+type Gender = 'MALE' | 'FEMALE';
 
 export default function ParticipantsScreen() {
   const router = useRouter();
@@ -30,6 +33,8 @@ export default function ParticipantsScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [smallBeerForUser, setSmallBeerForUser] = useState<Record<string, boolean>>({});
 
   const fetchParticipants = useCallback(async () => {
     if (!activeEvent?.id || !token) return;
@@ -76,30 +81,113 @@ export default function ParticipantsScreen() {
     setRefreshing(false);
   }, [fetchParticipants]);
 
+  const handleAddParticipant = useCallback(
+    async (username: string, gender: Gender) => {
+      if (!token || !activeEvent?.id) return;
+      const user = await api.post<EventUser>(
+        '/users/participant',
+        { username, gender },
+        token
+      );
+      await api.put(`/events/${activeEvent.id}/users/${user.id}`, {}, token);
+      await fetchParticipants();
+    },
+    [token, activeEvent?.id, fetchParticipants]
+  );
+
+  const handleAddBeer = useCallback(
+    async (userId: string) => {
+      if (!token || !activeEvent?.id) return;
+      const isSmall = smallBeerForUser[userId];
+      await api.post(
+        `/events/${activeEvent.id}/users/${userId}/beers`,
+        isSmall ? { beerSize: 'SMALL' } : {},
+        token
+      );
+      await fetchParticipants();
+    },
+    [token, activeEvent?.id, smallBeerForUser, fetchParticipants]
+  );
+
+  const handleRemoveBeer = useCallback(
+    async (userId: string) => {
+      if (!token || !activeEvent?.id) return;
+      await api.delete(`/events/${activeEvent.id}/users/${userId}/beers`, token);
+      await fetchParticipants();
+    },
+    [token, activeEvent?.id, fetchParticipants]
+  );
+
+  const handleAddSpilledBeer = useCallback(
+    async (userId: string) => {
+      if (!token || !activeEvent?.id) return;
+      await api.post(
+        `/events/${activeEvent.id}/users/${userId}/beers`,
+        { spilled: true },
+        token
+      );
+      await fetchParticipants();
+    },
+    [token, activeEvent?.id, fetchParticipants]
+  );
+
+  const toggleSmallBeer = useCallback((userId: string) => {
+    setSmallBeerForUser((prev) => ({ ...prev, [userId]: !prev[userId] }));
+  }, []);
+
   const renderParticipant = ({ item }: { item: EventUser }) => {
     const beerCount = item.eventBeerCount ?? 0;
+    const isSmall = smallBeerForUser[item.id];
     return (
-      <TouchableOpacity
-        style={styles.participantCard}
-        activeOpacity={0.7}
-        onPress={() => router.push(`/(app)/(tabs)/participants/${item.id}`)}
-      >
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {(item.name || item.username || '?').charAt(0).toUpperCase()}
-          </Text>
+      <View style={styles.participantCard}>
+        <TouchableOpacity
+          style={styles.participantMain}
+          activeOpacity={0.7}
+          onPress={() => router.push(`/(app)/(tabs)/participants/${item.id}`)}
+        >
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {(item.name || item.username || '?').charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.participantInfo}>
+            <Text style={styles.participantName}>{item.name || item.username}</Text>
+            <Text style={styles.participantMeta}>{beerCount} piv</Text>
+          </View>
+          <View style={styles.beerCountWrap}>
+            <Icon name="beer" size={16} color="#FF0000" />
+            <Text style={styles.beerCount}>{beerCount}</Text>
+          </View>
+        </TouchableOpacity>
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => handleAddBeer(item.id)}
+          >
+            <Icon name="add" size={20} color="#111" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => handleRemoveBeer(item.id)}
+          >
+            <Icon name="remove" size={20} color="#111" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.actionBtnSpill]}
+            onPress={() => handleAddSpilledBeer(item.id)}
+          >
+            <Icon name="spill" size={18} color="#b45309" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.sizeBtn, isSmall && styles.sizeBtnActive]}
+            onPress={() => toggleSmallBeer(item.id)}
+          >
+            <Text style={[styles.sizeBtnText, isSmall && styles.sizeBtnTextActive]}>
+              {isSmall ? 'S' : 'L'}
+            </Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.participantInfo}>
-          <Text style={styles.participantName}>{item.name || item.username}</Text>
-          <Text style={styles.participantMeta}>
-            {beerCount} piv • {item.role}
-          </Text>
-        </View>
-        <View style={styles.beerCountWrap}>
-          <Icon name="beer" size={16} color="#FF0000" />
-          <Text style={styles.beerCount}>{beerCount}</Text>
-        </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -122,11 +210,26 @@ export default function ParticipantsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Účastníci</Text>
-        <Text style={styles.subtitle}>
-          {participants.length} účastníků
-        </Text>
+        <View>
+          <Text style={styles.title}>Účastníci</Text>
+          <Text style={styles.subtitle}>
+            {participants.length} účastníků
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => setAddModalVisible(true)}
+        >
+          <Icon name="add" size={20} color="#fff" />
+          <Text style={styles.addBtnText}>Přidat</Text>
+        </TouchableOpacity>
       </View>
+
+      <AddParticipantModal
+        visible={addModalVisible}
+        onClose={() => setAddModalVisible(false)}
+        onSubmit={handleAddParticipant}
+      />
 
       <View style={styles.searchContainer}>
         <TextInput
@@ -169,6 +272,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 16,
     paddingBottom: 8,
   },
@@ -181,6 +287,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#6b7280',
     marginTop: 4,
+  },
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#FF0000',
+  },
+  addBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
   },
   searchContainer: {
     paddingHorizontal: 16,
@@ -209,6 +329,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
+  },
+  participantMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   avatar: {
     width: 44,
@@ -246,5 +371,41 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#FF0000',
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  actionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#e5e7eb',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionBtnSpill: {
+    backgroundColor: '#fef3c7',
+  },
+  sizeBtn: {
+    minWidth: 28,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#e5e7eb',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  sizeBtnActive: {
+    backgroundColor: '#FF0000',
+  },
+  sizeBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#6b7280',
+  },
+  sizeBtnTextActive: {
+    color: '#fff',
   },
 });
