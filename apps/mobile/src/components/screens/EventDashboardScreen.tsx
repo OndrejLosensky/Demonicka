@@ -234,6 +234,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    padding: 16,
+    paddingBottom: 8,
     marginBottom: 16,
   },
   title: { fontSize: 24, fontWeight: '700', color: '#111' },
