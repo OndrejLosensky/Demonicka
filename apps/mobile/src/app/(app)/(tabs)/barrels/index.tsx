@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  RefreshControl,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
 import { useAuthStore } from '../../../../store/auth.store';
@@ -7,6 +14,7 @@ import { api } from '../../../../services/api';
 import { Icon } from '../../../../components/icons';
 import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../components/ui/EmptyState';
+import { AddBarrelModal, type BarrelSize } from '../../../../components/barrels/AddBarrelModal';
 import { formatLitres, formatNumber } from '../../../../utils/format';
 import type { Barrel } from '@demonicka/shared-types';
 
@@ -20,6 +28,7 @@ export default function BarrelsScreen() {
   const [barrels, setBarrels] = useState<Barrel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [addModalVisible, setAddModalVisible] = useState(false);
 
   const fetchBarrels = useCallback(async () => {
     if (!activeEvent?.id || !token) return;
@@ -47,6 +56,34 @@ export default function BarrelsScreen() {
     await fetchBarrels();
     setRefreshing(false);
   }, [fetchBarrels]);
+
+  const handleAddBarrel = useCallback(
+    async (size: BarrelSize) => {
+      if (!token || !activeEvent?.id) return;
+
+      const eventBarrels = await api.get<Barrel[]>(
+        `/events/${activeEvent.id}/barrels`,
+        token
+      );
+      const usedNumbers = new Set(eventBarrels.map((b) => b.orderNumber));
+      let orderNumber = 1;
+      while (usedNumbers.has(orderNumber)) orderNumber++;
+
+      const barrel = await api.post<Barrel>(
+        '/barrels',
+        { size, orderNumber },
+        token
+      );
+      await api.put(
+        `/events/${activeEvent.id}/barrels/${barrel.id}`,
+        {},
+        token
+      );
+      await api.patch(`/barrels/${barrel.id}/activate`, {}, token);
+      await fetchBarrels();
+    },
+    [token, activeEvent?.id, fetchBarrels]
+  );
 
   const renderBarrel = ({ item }: { item: Barrel }) => {
     const totalLitres = Number(item.totalLitres ?? 0);
@@ -116,11 +153,26 @@ export default function BarrelsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Sudy</Text>
-        <Text style={styles.subtitle}>
-          {barrels.length} sudů • {activeBarrel ? `Aktivní: #${activeBarrel.orderNumber}` : 'Žádný aktivní'}
-        </Text>
+        <View>
+          <Text style={styles.title}>Sudy</Text>
+          <Text style={styles.subtitle}>
+            {barrels.length} sudů • {activeBarrel ? `Aktivní: #${activeBarrel.orderNumber}` : 'Žádný aktivní'}
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => setAddModalVisible(true)}
+        >
+          <Icon name="add" size={20} color="#fff" />
+          <Text style={styles.addBtnText}>Přidat</Text>
+        </TouchableOpacity>
       </View>
+
+      <AddBarrelModal
+        visible={addModalVisible}
+        onClose={() => setAddModalVisible(false)}
+        onSubmit={handleAddBarrel}
+      />
 
       <FlatList
         data={barrels}
@@ -149,6 +201,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 16,
     paddingBottom: 8,
   },
@@ -161,6 +216,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#6b7280',
     marginTop: 4,
+  },
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#FF0000',
+  },
+  addBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
   },
   listContent: {
     padding: 16,
