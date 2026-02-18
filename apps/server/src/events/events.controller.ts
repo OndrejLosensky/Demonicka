@@ -87,8 +87,9 @@ export class EventsController {
   getEventUserBeers(
     @Param('id', ParseUUIDPipe) eventId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
+    @Query('includeDeleted', new DefaultValuePipe(false), ParseBoolPipe) includeDeleted: boolean,
   ): Promise<EventBeer[]> {
-    return this.eventBeersService.findByEventAndUser(eventId, userId);
+    return this.eventBeersService.findByEventAndUser(eventId, userId, includeDeleted);
   }
 
   @Post(':id/users/:userId/beers')

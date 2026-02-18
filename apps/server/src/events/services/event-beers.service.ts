@@ -160,10 +160,19 @@ export class EventBeersService {
   async findByEventAndUser(
     eventId: string,
     userId: string,
+    includeDeleted = false,
   ): Promise<EventBeer[]> {
+    const where: { eventId: string; userId: string; deletedAt?: null } = {
+      eventId,
+      userId,
+    };
+    if (!includeDeleted) {
+      where.deletedAt = null;
+    }
     return this.prisma.eventBeer.findMany({
-      where: { eventId, userId, deletedAt: null },
+      where,
       include: { barrel: true },
+      orderBy: { consumedAt: 'desc' },
     });
   }
 

@@ -53,6 +53,18 @@ export function formatDateTime(dateString: string | null | undefined): string {
 }
 
 /**
+ * Format date and time for lists (full locale string)
+ */
+export function formatDateTimeLong(dateString: string | null | undefined): string {
+  if (!dateString) return '-';
+  try {
+    return new Date(dateString).toLocaleString('cs-CZ');
+  } catch {
+    return '-';
+  }
+}
+
+/**
  * Format a date to relative time (e.g., "2 hours ago")
  */
 export function formatRelativeTime(dateString: string | null | undefined): string {

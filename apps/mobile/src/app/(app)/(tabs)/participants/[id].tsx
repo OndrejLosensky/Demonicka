@@ -1,6 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../../store/auth.store';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
@@ -10,17 +18,30 @@ import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { ErrorView } from '../../../../components/ui/ErrorView';
 import { StatCard } from '../../../../components/cards/StatCard';
 import { Icon } from '../../../../components/icons';
-import { formatRelativeTime } from '../../../../utils/format';
+import { formatRelativeTime, formatDateTimeLong, formatLitres } from '../../../../utils/format';
 import type { User } from '@demonicka/shared-types';
 
-type EventUser = User & { eventBeerCount?: number };
+type EventUser = User & { eventBeerCount?: number; lastBeerTime?: string };
+
+type BeerEntry = {
+  id: string;
+  consumedAt: string;
+  spilled?: boolean;
+  deletedAt?: string | null;
+  beerSize?: 'SMALL' | 'LARGE';
+  volumeLitres?: number | string;
+};
 
 export default function ParticipantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const token = useAuthStore((state) => state.token);
   const { activeEvent } = useActiveEvent();
 
   const [participant, setParticipant] = useState<EventUser | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const [beerHistory, setBeerHistory] = useState<BeerEntry[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,16 +64,66 @@ export default function ParticipantDetailScreen() {
     }
   }, [activeEvent?.id, token, id]);
 
+  const fetchBeerHistory = useCallback(async () => {
+    if (!activeEvent?.id || !token || !id) return;
+    setHistoryLoading(true);
+    try {
+      const beers = await api.get<BeerEntry[]>(
+        `/events/${activeEvent.id}/users/${id}/beers?includeDeleted=true`,
+        token
+      );
+      const list = Array.isArray(beers) ? beers : [];
+      list.sort((a, b) => new Date(b.consumedAt).getTime() - new Date(a.consumedAt).getTime());
+      setBeerHistory(list);
+    } catch {
+      setBeerHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [activeEvent?.id, token, id]);
+
   useEffect(() => {
     setIsLoading(true);
     fetchParticipant().finally(() => setIsLoading(false));
   }, [fetchParticipant]);
 
+  useEffect(() => {
+    if (participant?.id && activeEvent?.id) fetchBeerHistory();
+  }, [participant?.id, activeEvent?.id, fetchBeerHistory]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchParticipant();
+    await Promise.all([fetchParticipant(), fetchBeerHistory()]);
     setRefreshing(false);
-  }, [fetchParticipant]);
+  }, [fetchParticipant, fetchBeerHistory]);
+
+  const handleRemoveFromEvent = useCallback(() => {
+    if (!activeEvent?.id || !token || !id) return;
+
+    Alert.alert(
+      'Odebrat z události',
+      'Opravdu chcete tohoto účastníka odebrat z události? Účet uživatele zůstane zachován, pouze bude odpojen od této události.',
+      [
+        { text: 'Zrušit', style: 'cancel' },
+        {
+          text: 'Odebrat',
+          style: 'destructive',
+          onPress: async () => {
+            setRemoving(true);
+            try {
+              await api.delete(`/events/${activeEvent.id}/users/${id}`, token);
+              router.back();
+            } catch (e: unknown) {
+              const err = e as { message?: string };
+              Alert.alert('Chyba', err?.message ?? 'Účastníka se nepodařilo odebrat.');
+            } finally {
+              setRemoving(false);
+            }
+          },
+        },
+      ]
+    );
+  }, [activeEvent?.id, token, id, router]);
 
   if (isLoading) {
     return <LoadingScreen showLogo={false} />;
@@ -109,16 +180,17 @@ export default function ParticipantDetailScreen() {
 
         <View style={styles.statsRow}>
           <StatCard
-            icon={<Icon name="beer" size={24} color="#FF0000" />}
+            icon={<Icon name="beer" size={22} color="#78716c" />}
             label="Počet piv"
             value={participant.eventBeerCount ?? 0}
+            color="#44403c"
             style={styles.statCard}
           />
           <StatCard
-            icon={<Icon name="clock" size={24} color="#3b82f6" />}
+            icon={<Icon name="clock" size={22} color="#78716c" />}
             label="Poslední pivo"
-            value={participant.lastBeerTime ? formatRelativeTime(participant.lastBeerTime) : '-'}
-            color="#3b82f6"
+            value={participant.lastBeerTime ? formatRelativeTime(participant.lastBeerTime) : '–'}
+            color="#44403c"
             style={styles.statCard}
           />
         </View>
@@ -144,13 +216,76 @@ export default function ParticipantDetailScreen() {
                 <Text style={styles.detailValue}>{participant.email}</Text>
               </View>
             )}
-            <View style={styles.detailRow}>
+            <View style={[styles.detailRow, styles.detailRowLast]}>
               <Text style={styles.detailLabel}>Pohlaví</Text>
               <Text style={styles.detailValue}>
                 {participant.gender === 'MALE' ? 'Muž' : 'Žena'}
               </Text>
             </View>
           </View>
+        </View>
+
+        <View style={styles.detailsSection}>
+          <Text style={styles.sectionTitle}>Historie piv</Text>
+          <View style={styles.historyCard}>
+            {historyLoading ? (
+              <Text style={styles.historyPlaceholder}>Načítání…</Text>
+            ) : beerHistory.length === 0 ? (
+              <Text style={styles.historyPlaceholder}>Žádná data</Text>
+            ) : (
+              beerHistory.map((b, idx) => {
+                const isRemoved = !!b.deletedAt;
+                const vol = b.volumeLitres != null ? Number(b.volumeLitres) : 0.5;
+                return (
+                  <View
+                    key={b.id}
+                    style={[
+                      styles.historyRow,
+                      idx === beerHistory.length - 1 && styles.historyRowLast,
+                      isRemoved && styles.historyRowRemoved,
+                    ]}
+                  >
+                    <View style={styles.historyLeft}>
+                      <View style={styles.historyAddRemove}>
+                        {isRemoved ? (
+                          <Icon name="remove" size={16} color="#dc2626" />
+                        ) : (
+                          <Icon name="add" size={16} color="#16a34a" />
+                        )}
+                      </View>
+                      <Text style={[styles.historyTime, isRemoved && styles.historyTimeMuted]}>
+                        {formatDateTimeLong(b.consumedAt)}
+                      </Text>
+                    </View>
+                    <View style={styles.historyRight}>
+                      <Text style={[styles.historySize, isRemoved && styles.historyTimeMuted]}>
+                        {formatLitres(vol)}
+                      </Text>
+                      {b.spilled && (
+                        <View style={styles.spilledBadge}>
+                          <Icon name="spill" size={12} color="#b45309" />
+                          <Text style={styles.spilledText}>rozlití</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                );
+              })
+            )}
+          </View>
+        </View>
+
+        <View style={styles.actionsSection}>
+          <TouchableOpacity
+            style={[styles.removeFromEventBtn, removing && styles.removeFromEventBtnDisabled]}
+            onPress={handleRemoveFromEvent}
+            disabled={removing}
+          >
+            <Icon name="remove" size={20} color="#fff" />
+            <Text style={styles.removeFromEventBtnText}>
+              {removing ? 'Odebírání…' : 'Odebrat z události'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -160,7 +295,7 @@ export default function ParticipantDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fafaf9',
   },
   scroll: {
     flex: 1,
@@ -171,43 +306,43 @@ const styles = StyleSheet.create({
   },
   profileSection: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FF0000',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#57534e',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   avatarText: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '600',
     color: '#fff',
   },
   name: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#111',
-    marginBottom: 4,
+    color: '#1c1917',
+    marginBottom: 2,
   },
   username: {
-    fontSize: 15,
-    color: '#6b7280',
-    marginBottom: 12,
+    fontSize: 14,
+    color: '#78716c',
+    marginBottom: 8,
   },
   roleBadge: {
-    backgroundColor: '#f3f4f6',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: '#f5f5f4',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
   roleText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
-    color: '#6b7280',
+    color: '#78716c',
   },
   statsRow: {
     flexDirection: 'row',
@@ -216,35 +351,138 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e7e5e4',
+    borderRadius: 12,
   },
   detailsSection: {
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#111',
-    marginBottom: 12,
+    color: '#57534e',
+    marginBottom: 8,
+    letterSpacing: 0.15,
   },
   detailsCard: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
+    borderWidth: 1,
+    borderColor: '#e7e5e4',
   },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    alignItems: 'center',
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
+  detailRowLast: {
+    borderBottomWidth: 0,
+  },
   detailLabel: {
     fontSize: 15,
-    color: '#6b7280',
+    color: '#78716c',
   },
   detailValue: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#111',
+    color: '#1c1917',
+  },
+  historyCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    minHeight: 80,
+    borderWidth: 1,
+    borderColor: '#e7e5e4',
+  },
+  historyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e7e5e4',
+  },
+  historyRowLast: {
+    borderBottomWidth: 0,
+  },
+  historyRowRemoved: {
+    opacity: 0.7,
+  },
+  historyLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  historyRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  historyAddRemove: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 24,
+  },
+  historyTime: {
+    fontSize: 14,
+    color: '#1c1917',
+    fontWeight: '500',
+  },
+  historyTimeMuted: {
+    color: '#a8a29e',
+  },
+  historySize: {
+    fontSize: 14,
+    color: '#57534e',
+    fontWeight: '500',
+  },
+  historyPlaceholder: {
+    fontSize: 14,
+    color: '#a8a29e',
+    textAlign: 'center',
+    paddingVertical: 16,
+  },
+  spilledBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  spilledText: {
+    fontSize: 11,
+    color: '#b45309',
+    fontWeight: '500',
+  },
+  actionsSection: {
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+  removeFromEventBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#dc2626',
+  },
+  removeFromEventBtnDisabled: {
+    opacity: 0.6,
+  },
+  removeFromEventBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
   },
 });

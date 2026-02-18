@@ -7,6 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
 import { useAuthStore } from '../../../../store/auth.store';
@@ -22,6 +23,7 @@ import type { Barrel } from '@demonicka/shared-types';
 const BEER_VOLUME_LITRES = 0.5;
 
 export default function BarrelsScreen() {
+  const router = useRouter();
   const { activeEvent, isLoading: eventLoading } = useActiveEvent();
   const token = useAuthStore((state) => state.token);
 
@@ -94,7 +96,11 @@ export default function BarrelsScreen() {
     const remainingBeers = Math.floor(remainingLitres / BEER_VOLUME_LITRES);
 
     return (
-      <View style={styles.barrelCard}>
+      <TouchableOpacity
+        style={styles.barrelCard}
+        onPress={() => router.push(`/(app)/(tabs)/barrels/${item.id}`)}
+        activeOpacity={0.8}
+      >
         <View style={styles.barrelHeader}>
           <View style={styles.barrelTitle}>
             <Text style={styles.barrelNumber}>Sud #{item.orderNumber}</Text>
@@ -128,7 +134,7 @@ export default function BarrelsScreen() {
             <Text style={styles.statValue}>{formatNumber(totalBeers)}</Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

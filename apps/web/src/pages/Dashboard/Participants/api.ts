@@ -26,14 +26,17 @@ export const participantsApi = {
     return response.data;
   },
 
-  getEventBeers: async (eventId: string, userId: string) => {
-    const response = await api.get(`/events/${eventId}/users/${userId}/beers`);
+  getEventBeers: async (eventId: string, userId: string, includeDeleted = false) => {
+    const params = includeDeleted ? { includeDeleted: 'true' } : undefined;
+    const response = await api.get(`/events/${eventId}/users/${userId}/beers`, { params });
     return response.data as Array<{
       id: string;
       consumedAt: string;
       spilled: boolean;
       barrelId: string | null;
       deletedAt: string | null;
+      beerSize?: 'SMALL' | 'LARGE';
+      volumeLitres?: number | string;
     }>;
   },
 

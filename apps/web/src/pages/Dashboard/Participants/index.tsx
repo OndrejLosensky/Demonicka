@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { 
   Add as AddIcon, 
+  Remove as RemoveIcon,
   ViewList as ViewListIcon, 
   ViewModule as ViewModuleIcon,
   Male as MaleIcon,
@@ -60,7 +61,14 @@ const ParticipantsPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyUsername, setHistoryUsername] = useState<string>('');
-  const [historyBeers, setHistoryBeers] = useState<Array<{ id: string; consumedAt: string }>>([]);
+  const [historyBeers, setHistoryBeers] = useState<Array<{
+    id: string;
+    consumedAt: string;
+    deletedAt?: string | null;
+    spilled?: boolean;
+    volumeLitres?: number | string;
+    beerSize?: 'SMALL' | 'LARGE';
+  }>>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
   const openHistory = async (userId: string, username: string) => {
@@ -69,12 +77,8 @@ const ParticipantsPage: React.FC = () => {
     setHistoryOpen(true);
     setHistoryLoading(true);
     try {
-      const beers = await participantsApi.getEventBeers(activeEvent.id, userId);
-      const visible = beers
-        .filter((b) => !b.deletedAt)
-        .sort((a, b) => new Date(b.consumedAt).getTime() - new Date(a.consumedAt).getTime())
-        .map((b) => ({ id: b.id, consumedAt: b.consumedAt }));
-      setHistoryBeers(visible);
+      const beers = await participantsApi.getEventBeers(activeEvent.id, userId, true);
+      setHistoryBeers(beers);
     } catch (error) {
       console.error('Failed to load participant history:', error);
       setHistoryBeers([]);
@@ -245,16 +249,40 @@ const ParticipantsPage: React.FC = () => {
             </Typography>
           ) : (
             <List dense>
-              {historyBeers.map((b, idx) => (
-                <React.Fragment key={b.id}>
-                  <ListItem>
-                    <ListItemText
-                      primary={new Date(b.consumedAt).toLocaleString('cs-CZ')}
-                    />
-                  </ListItem>
-                  {idx < historyBeers.length - 1 && <Divider component="li" />}
-                </React.Fragment>
-              ))}
+              {historyBeers.map((b, idx) => {
+                const isRemoved = !!b.deletedAt;
+                const vol = b.volumeLitres != null ? Number(b.volumeLitres) : 0.5;
+                const sizeLabel = `${typeof vol === 'number' ? vol.toLocaleString('cs-CZ', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : vol} l`;
+                return (
+                  <React.Fragment key={b.id}>
+                    <ListItem sx={{ opacity: isRemoved ? 0.8 : 1 }}>
+                      <ListItemText
+                        primary={
+                          <Box display="flex" alignItems="center" gap={1.5} flexWrap="wrap">
+                            {isRemoved ? (
+                              <RemoveIcon sx={{ fontSize: 18, color: 'error.main' }} />
+                            ) : (
+                              <AddIcon sx={{ fontSize: 18, color: 'success.main' }} />
+                            )}
+                            <Typography component="span" variant="body2">
+                              {new Date(b.consumedAt).toLocaleString('cs-CZ')}
+                            </Typography>
+                            <Typography component="span" variant="body2" color="text.secondary">
+                              {sizeLabel}
+                            </Typography>
+                            {b.spilled && (
+                              <Typography component="span" variant="caption" sx={{ bgcolor: 'warning.light', px: 0.75, py: 0.25, borderRadius: 1 }}>
+                                rozlití
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+                    </ListItem>
+                    {idx < historyBeers.length - 1 && <Divider component="li" />}
+                  </React.Fragment>
+                );
+              })}
             </List>
           )}
         </DialogContent>
