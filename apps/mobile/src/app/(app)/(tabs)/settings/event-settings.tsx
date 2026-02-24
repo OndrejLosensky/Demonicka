@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
 import { useRole } from '../../../../hooks/useRole';
 import { Header } from '../../../../components/layout/Header';
@@ -9,6 +10,7 @@ import { Icon } from '../../../../components/icons';
 import { formatDate } from '../../../../utils/format';
 
 export default function EventSettingsScreen() {
+  const router = useRouter();
   const { activeEvent, isLoading } = useActiveEvent();
   const { isOperator } = useRole();
 
@@ -47,6 +49,23 @@ export default function EventSettingsScreen() {
       <Header title="Nastavení události" showBack />
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Rychlé akce</Text>
+          <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.linkRow}
+              onPress={() => router.push('/leaderboard')}
+              activeOpacity={0.8}
+            >
+              <View style={styles.linkLeft}>
+                <Icon name="chart" size={20} color="#6b7280" />
+                <Text style={styles.linkLabel}>Žebříček (rychlá kontrola)</Text>
+              </View>
+              <Text style={styles.linkArrow}>→</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Základní informace</Text>
           <View style={styles.card}>
@@ -136,6 +155,10 @@ const styles = StyleSheet.create({
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
   switchLabel: { fontSize: 15, color: '#111', fontWeight: '500' },
   switchDescription: { fontSize: 13, color: '#6b7280', marginTop: 2, maxWidth: 240 },
+  linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  linkLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  linkLabel: { fontSize: 15, color: '#111', fontWeight: '500' },
+  linkArrow: { fontSize: 16, color: '#9ca3af' },
   infoNote: { padding: 16, paddingTop: 24 },
   infoNoteText: { fontSize: 13, color: '#9ca3af', textAlign: 'center', fontStyle: 'italic' },
 });

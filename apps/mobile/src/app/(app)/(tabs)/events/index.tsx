@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../../../store/auth.store';
 import { api } from '../../../../services/api';
 import { Icon } from '../../../../components/icons';
@@ -26,6 +27,7 @@ type UserDashboardEventList = {
 };
 
 export default function EventsHistoryScreen() {
+  const router = useRouter();
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
 
@@ -66,10 +68,22 @@ export default function EventsHistoryScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Události</Text>
-        <Text style={styles.subtitle}>
-          {data?.user ? `@${data.user.username} — přehled účasti` : ''}
-        </Text>
+        <View style={styles.headerTop}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.title}>Události</Text>
+            <Text style={styles.subtitle}>
+              {data?.user ? `@${data.user.username} — přehled účasti` : ''}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.leaderboardButton}
+            onPress={() => router.push('/leaderboard')}
+            activeOpacity={0.8}
+          >
+            <Icon name="chart" size={18} color="#111" />
+            <Text style={styles.leaderboardButtonText}>Žebříček</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -122,8 +136,22 @@ export default function EventsHistoryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   header: { padding: 16, paddingBottom: 8 },
+  headerTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
+  headerLeft: { flex: 1 },
   title: { fontSize: 28, fontWeight: '700', color: '#111' },
   subtitle: { fontSize: 15, color: '#6b7280', marginTop: 4 },
+  leaderboardButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#f3f4f6',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  leaderboardButtonText: { fontSize: 14, fontWeight: '600', color: '#111' },
   listContent: { padding: 16, paddingBottom: 32, flexGrow: 1 },
   card: {
     backgroundColor: '#f9fafb',
