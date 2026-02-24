@@ -23,7 +23,8 @@ export type IconName =
   | 'refresh'
   | 'add'
   | 'remove'
-  | 'spill';
+  | 'spill'
+  | 'copy';
 
 const ICON_MAP: Record<IconName, React.ComponentProps<typeof MaterialCommunityIcons>['name']> = {
   beer: 'glass-mug',
@@ -43,6 +44,7 @@ const ICON_MAP: Record<IconName, React.ComponentProps<typeof MaterialCommunityIc
   add: 'plus',
   remove: 'minus',
   spill: 'cup-water',
+  copy: 'content-copy',
 };
 
 interface IconProps {

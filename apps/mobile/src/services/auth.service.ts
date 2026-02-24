@@ -80,4 +80,23 @@ export const authService = {
   async logout(): Promise<void> {
     await this.clearStoredToken();
   },
+
+  async getUsernameFromToken(token: string): Promise<{ username: string }> {
+    const data = await api.get<{ username: string }>(`/users/token/${encodeURIComponent(token)}/username`);
+    return data;
+  },
+
+  async completeRegistration(
+    registrationToken: string,
+    username: string,
+    password: string
+  ): Promise<LoginSuccess> {
+    const data = await api.post<LoginSuccess>('/auth/complete-registration', {
+      registrationToken: registrationToken.trim(),
+      username: username.trim(),
+      password,
+    });
+    await this.setStoredToken(data.access_token);
+    return data;
+  },
 };

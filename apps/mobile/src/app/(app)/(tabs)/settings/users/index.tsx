@@ -8,17 +8,19 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '../../../../store/auth.store';
-import { useRole } from '../../../../hooks/useRole';
-import { api } from '../../../../services/api';
-import { Header } from '../../../../components/layout/Header';
-import { Icon } from '../../../../components/icons';
-import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
-import { EmptyState } from '../../../../components/ui/EmptyState';
+import { useAuthStore } from '../../../../../store/auth.store';
+import { useRole } from '../../../../../hooks/useRole';
+import { api } from '../../../../../services/api';
+import { Header } from '../../../../../components/layout/Header';
+import { Icon } from '../../../../../components/icons';
+import { LoadingScreen } from '../../../../../components/ui/LoadingScreen';
+import { EmptyState } from '../../../../../components/ui/EmptyState';
 import type { User } from '@demonicka/shared-types';
 
 export default function UsersManagementScreen() {
+  const router = useRouter();
   const token = useAuthStore((state) => state.token);
   const { isAdmin } = useRole();
 
@@ -76,8 +78,16 @@ export default function UsersManagementScreen() {
     }
   };
 
+  const openUserDetail = (user: User) => {
+    router.push(`/settings/users/${user.id}`);
+  };
+
   const renderUser = ({ item }: { item: User }) => (
-    <TouchableOpacity style={styles.userCard} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.userCard}
+      activeOpacity={0.7}
+      onPress={() => openUserDetail(item)}
+    >
       <View style={styles.avatar}>
         <Text style={styles.avatarText}>
           {(item.name || item.username || '?').charAt(0).toUpperCase()}

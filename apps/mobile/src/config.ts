@@ -1,12 +1,15 @@
 const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 const wsUrl = process.env.EXPO_PUBLIC_WS_URL ?? 'http://localhost:3000';
 const apiPrefix = process.env.EXPO_PUBLIC_API_PREFIX ?? '/api';
+/** Web app origin for registration links (complete-registration page). Set EXPO_PUBLIC_WEB_APP_URL if different from API. */
+const webAppUrl = process.env.EXPO_PUBLIC_WEB_APP_URL ?? apiUrl;
 
 export const config = {
   apiUrl,
   wsUrl,
   apiPrefix,
   apiBaseUrl: `${apiUrl}${apiPrefix}`,
+  webAppUrl,
 } as const;
 
 // When running on a physical device or emulator, "localhost" is the device itself,

@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/auth.store';
@@ -24,6 +25,7 @@ const COPY = {
   signingIn: 'Přihlašování...',
   errorDefault: 'Přihlášení se nezdařilo',
   twoFactorRequired: 'Vyžadováno dvoufázové ověření. Zatím není v aplikaci podporováno.',
+  hasToken: 'Mám registrační token',
 };
 
 export default function LoginScreen() {
@@ -125,6 +127,14 @@ export default function LoginScreen() {
             loading={isLoading}
             style={styles.button}
           />
+
+          <TouchableOpacity
+            style={styles.tokenLink}
+            onPress={() => router.push('/(auth)/complete-registration')}
+            disabled={isLoading}
+          >
+            <Text style={styles.tokenLinkText}>{COPY.hasToken}</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -183,5 +193,15 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 12,
+  },
+  tokenLink: {
+    alignSelf: 'center',
+    marginTop: 20,
+    padding: 8,
+  },
+  tokenLinkText: {
+    fontSize: 15,
+    color: '#3b82f6',
+    fontWeight: '500',
   },
 });

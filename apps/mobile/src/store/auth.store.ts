@@ -11,6 +11,11 @@ interface AuthState {
 
   // Actions
   login: (username: string, password: string) => Promise<LoginResult>;
+  completeRegistration: (
+    registrationToken: string,
+    username: string,
+    password: string
+  ) => Promise<void>;
   logout: () => Promise<void>;
   bootstrap: () => Promise<void>;
   clearError: () => void;
@@ -48,6 +53,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (e: unknown) {
       const err = e as { message?: string; data?: { message?: string } };
       const message = err?.data?.message ?? err?.message ?? 'Login failed';
+      set({ error: message, isLoading: false });
+      throw e;
+    }
+  },
+
+  completeRegistration: async (
+    registrationToken: string,
+    username: string,
+    password: string
+  ) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const result = await authService.completeRegistration(
+        registrationToken,
+        username,
+        password
+      );
+
+      set({
+        user: result.user,
+        token: result.access_token,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (e: unknown) {
+      const err = e as { message?: string; data?: { message?: string } };
+      const message = err?.data?.message ?? err?.message ?? 'Registrace se nezdařila';
       set({ error: message, isLoading: false });
       throw e;
     }
