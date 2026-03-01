@@ -8,11 +8,14 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
+  Switch,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/auth.store';
 import { FormInput } from '../../components/forms/FormInput';
 import { FormButton } from '../../components/forms/FormButton';
+import { config } from '../../config';
 
 const logo = require('../../../assets/logo.png');
 
@@ -23,9 +26,13 @@ const COPY = {
   password: 'Heslo',
   signIn: 'Přihlásit se',
   signingIn: 'Přihlašování...',
+  rememberMe: 'Zapamatovat přihlášení',
   errorDefault: 'Přihlášení se nezdařilo',
-  twoFactorRequired: 'Vyžadováno dvoufázové ověření. Zatím není v aplikaci podporováno.',
+  twoFactorRequired:
+    'Vyžadováno dvoufázové ověření. Zatím není v aplikaci podporováno.',
   hasToken: 'Mám registrační token',
+  or: 'nebo',
+  signInWithGoogle: 'Přihlásit se přes Google',
 };
 
 export default function LoginScreen() {
@@ -36,6 +43,7 @@ export default function LoginScreen() {
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -50,22 +58,30 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     try {
-      const result = await login(username.trim(), password);
+      const result = await login(username.trim(), password, rememberMe);
 
       if ('requiresTwoFactor' in result && result.requiresTwoFactor) {
         setError(result.message || COPY.twoFactorRequired);
         return;
       }
 
-      // Navigate to app on success
       router.replace('/(app)/(tabs)');
     } catch (e: unknown) {
-      const err = e as { status?: number; data?: { message?: string }; message?: string };
-      const msg = err?.data?.message ?? err?.message ?? COPY.errorDefault;
+      const err = e as {
+        status?: number;
+        data?: { message?: string };
+        message?: string;
+      };
+      const msg =
+        err?.data?.message ?? err?.message ?? COPY.errorDefault;
       setError(msg);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    Linking.openURL(config.googleAuthUrl);
   };
 
   const displayError = error || storeError;
@@ -116,10 +132,22 @@ export default function LoginScreen() {
             }}
             placeholder={COPY.password}
             secureTextEntry
+            showPasswordToggle
             autoCapitalize="none"
             autoComplete="password"
             editable={!isLoading}
           />
+
+          <View style={styles.rememberRow}>
+            <Text style={styles.rememberLabel}>{COPY.rememberMe}</Text>
+            <Switch
+              value={rememberMe}
+              onValueChange={setRememberMe}
+              trackColor={{ false: '#d1d5db', true: '#93c5fd' }}
+              thumbColor={rememberMe ? '#2563eb' : '#f3f4f6'}
+              disabled={isLoading}
+            />
+          </View>
 
           <FormButton
             title={isLoading ? COPY.signingIn : COPY.signIn}
@@ -127,6 +155,23 @@ export default function LoginScreen() {
             loading={isLoading}
             style={styles.button}
           />
+
+          <View style={styles.dividerWrap}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>{COPY.or}</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <TouchableOpacity
+            style={styles.googleButton}
+            onPress={handleGoogleLogin}
+            disabled={isLoading}
+          >
+            <Text style={styles.googleIcon}>G</Text>
+            <Text style={styles.googleButtonText}>
+              {COPY.signInWithGoogle}
+            </Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.tokenLink}
@@ -191,8 +236,55 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#dc2626',
   },
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  rememberLabel: {
+    fontSize: 15,
+    color: '#374151',
+  },
   button: {
-    marginTop: 12,
+    marginTop: 0,
+  },
+  dividerWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e5e7eb',
+  },
+  dividerText: {
+    marginHorizontal: 12,
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#fff',
+    gap: 10,
+  },
+  googleIcon: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#4285f4',
+  },
+  googleButtonText: {
+    fontSize: 16,
+    color: '#374151',
+    fontWeight: '500',
   },
   tokenLink: {
     alignSelf: 'center',

@@ -21,6 +21,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { GetUser } from './decorators/get-user.decorator';
 import { AuthGuard } from '@nestjs/passport';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { UsersService } from '../users/users.service';
@@ -325,11 +326,12 @@ export class AuthController {
 
   /**
    * Initiate Google OAuth login flow
-   * Redirects user to Google OAuth consent screen
+   * Redirects user to Google OAuth consent screen.
+   * Add ?mobile=1 to redirect back to the mobile app after login.
    */
   @Public()
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   async googleAuth() {
     // Guard redirects to Google
   }
@@ -342,11 +344,10 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthCallback(
-    @Req() req: RequestWithUser,
+    @Req() req: RequestWithUser & { query: { state?: string } },
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
     const { user } = req;
-    const fullUser = await this.usersService.findOne(user.id);
 
     // Generate tokens
     const { access_token, refresh_token } = await this.authService.login(user);
@@ -358,7 +359,24 @@ export class AuthController {
       this.authService.getCookieOptions(true),
     );
 
-    // Redirect to frontend with access token
+    // Redirect to mobile app if state indicated mobile client
+    // Set MOBILE_APP_GOOGLE_REDIRECT_URL=e.g. demonicka://google/callback so the app opens with the token.
+    const state = req.query?.state;
+    const mobileRedirectUrl = this.configService.get<string>(
+      'MOBILE_APP_GOOGLE_REDIRECT_URL',
+    );
+    if (
+      state?.startsWith('mobile-') &&
+      mobileRedirectUrl &&
+      mobileRedirectUrl.startsWith('demonicka://')
+    ) {
+      response.redirect(
+        `${mobileRedirectUrl}?token=${encodeURIComponent(access_token)}`,
+      );
+      return;
+    }
+
+    // Redirect to web frontend with access token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     response.redirect(
       `${frontendUrl}/auth/google/callback?token=${access_token}`,

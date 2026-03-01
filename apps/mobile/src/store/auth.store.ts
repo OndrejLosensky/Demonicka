@@ -10,7 +10,11 @@ interface AuthState {
   error: string | null;
 
   // Actions
-  login: (username: string, password: string) => Promise<LoginResult>;
+  login: (
+    username: string,
+    password: string,
+    rememberMe?: boolean,
+  ) => Promise<LoginResult>;
   completeRegistration: (
     registrationToken: string,
     username: string,
@@ -19,6 +23,8 @@ interface AuthState {
   logout: () => Promise<void>;
   bootstrap: () => Promise<void>;
   clearError: () => void;
+  /** Set user from Google OAuth callback token (deep link). */
+  setTokenFromGoogle: (token: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -28,11 +34,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   error: null,
 
-  login: async (username: string, password: string) => {
+  login: async (
+    username: string,
+    password: string,
+    rememberMe = true,
+  ) => {
     set({ isLoading: true, error: null });
 
     try {
-      const result = await authService.login(username, password);
+      const result = await authService.login(
+        username,
+        password,
+        rememberMe,
+      );
 
       if ('requiresTwoFactor' in result && result.requiresTwoFactor) {
         set({ isLoading: false });
@@ -135,4 +149,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  setTokenFromGoogle: async (token: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const user = await authService.setTokenFromGoogleCallback(token);
+      if (user) {
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+      } else {
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: 'Přihlášení přes Google se nezdařilo',
+        });
+      }
+    } catch {
+      set({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: 'Přihlášení přes Google se nezdařilo',
+      });
+    }
+  },
 }));

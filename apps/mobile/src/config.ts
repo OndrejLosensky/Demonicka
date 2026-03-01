@@ -10,6 +10,8 @@ export const config = {
   apiPrefix,
   apiBaseUrl: `${apiUrl}${apiPrefix}`,
   webAppUrl,
+  /** URL to open for Google OAuth; add ?mobile=1 so backend redirects back to app */
+  googleAuthUrl: `${apiUrl}${apiPrefix}/auth/google?mobile=1`,
 } as const;
 
 // When running on a physical device or emulator, "localhost" is the device itself,

@@ -36,7 +36,18 @@ export const authService = {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
   },
 
-  async login(username: string, password: string): Promise<LoginResult> {
+  /** Apply token from Google OAuth callback (e.g. deep link). Stores token and returns user. */
+  async setTokenFromGoogleCallback(token: string): Promise<User | null> {
+    await this.setStoredToken(token);
+    const user = await this.fetchMe(token);
+    return user;
+  },
+
+  async login(
+    username: string,
+    password: string,
+    persist = true,
+  ): Promise<LoginResult> {
     if (__DEV__) {
       // eslint-disable-next-line no-console
       console.log('[Auth] Login request to', LOGIN_URL);
@@ -52,7 +63,9 @@ export const authService = {
       }
 
       const success = data as LoginSuccess;
-      await this.setStoredToken(success.access_token);
+      if (persist) {
+        await this.setStoredToken(success.access_token);
+      }
       return success;
     } catch (e: unknown) {
       const err = e as { status?: number; message?: string; data?: unknown };

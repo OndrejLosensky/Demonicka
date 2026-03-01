@@ -7,13 +7,15 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
-  Alert,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/auth.store';
 import { authService } from '../../services/auth.service';
 import { FormInput } from '../../components/forms/FormInput';
 import { FormButton } from '../../components/forms/FormButton';
+
+const logo = require('../../../assets/logo.png');
 
 const COPY = {
   title: 'Dokončení registrace',
@@ -121,6 +123,9 @@ export default function CompleteRegistrationScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.logoWrap}>
+          <Image source={logo} style={styles.logo} resizeMode="contain" />
+        </View>
         <Text style={styles.title}>{COPY.title}</Text>
         <Text style={styles.subtitle}>{COPY.subtitle}</Text>
 
@@ -166,6 +171,7 @@ export default function CompleteRegistrationScreen() {
             }}
             placeholder={COPY.passwordPlaceholder}
             secureTextEntry
+            showPasswordToggle
             autoCapitalize="none"
             autoComplete="new-password"
             editable={!isSubmitting}
@@ -200,7 +206,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 80,
     paddingBottom: 32,
     alignItems: 'stretch',
   },
@@ -221,6 +227,14 @@ const styles = StyleSheet.create({
     maxWidth: 360,
     width: '100%',
     alignSelf: 'center',
+  },
+  logoWrap: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logo: {
+    width: 200,
+    height: 45,
   },
   errorBox: {
     backgroundColor: '#fef2f2',

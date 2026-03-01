@@ -12,6 +12,7 @@ import { TwoFactorService } from './two-factor.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { PassportModule } from '@nestjs/passport';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -43,6 +44,7 @@ import { RolesService } from '../roles/roles.service';
     JwtStrategy,
     LocalStrategy,
     GoogleStrategy,
+    GoogleAuthGuard,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
