@@ -89,6 +89,16 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             <TouchableOpacity
               style={styles.menuItem}
+              onPress={() => router.push('/(app)/(tabs)/settings/status')}
+            >
+              <View style={styles.menuIconWrap}>
+                <Icon name="info" size={22} color="#6b7280" />
+              </View>
+              <Text style={styles.menuLabel}>Stav služeb</Text>
+              <Text style={styles.menuArrow}>→</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuItem}
               onPress={() => router.push('/(app)/(tabs)/settings/sync-log')}
             >
               <View style={styles.menuIconWrap}>
