@@ -28,7 +28,8 @@ const LeaderboardComponent: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<number | ''>('');
   const { settings } = useLeaderboardViewSettings();
   const { activeEvent } = useActiveEvent();
-  
+  const beerPongAllowed = activeEvent?.beerPongEnabled === true;
+
   // View state
   const [currentView, setCurrentView] = useState<'LEADERBOARD' | 'BEER_PONG'>('LEADERBOARD');
   const switchTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -134,16 +135,18 @@ const LeaderboardComponent: React.FC = () => {
       autoSwitchEnabled: settings.autoSwitchEnabled,
     });
     
-    if (settings.currentView === 'BEER_PONG') {
+    if (settings.currentView === 'BEER_PONG' && beerPongAllowed) {
       setCurrentView('BEER_PONG');
     } else if (settings.currentView === 'LEADERBOARD') {
       setCurrentView('LEADERBOARD');
     } else if (settings.currentView === 'AUTO') {
       setCurrentView('LEADERBOARD'); // Start with leaderboard in AUTO mode
+    } else if (settings.currentView === 'BEER_PONG' && !beerPongAllowed) {
+      setCurrentView('LEADERBOARD'); // Beer pong disabled for this event
     }
     
     hasInitializedView.current = true;
-  }, [settings]);
+  }, [settings, beerPongAllowed]);
 
   // Auto-switch logic - separate effect that only runs when settings change
   useEffect(() => {
@@ -165,15 +168,17 @@ const LeaderboardComponent: React.FC = () => {
       // Set view based on settings
       if (settings.currentView === 'LEADERBOARD') {
         setCurrentView('LEADERBOARD');
-      } else if (settings.currentView === 'BEER_PONG') {
+      } else if (settings.currentView === 'BEER_PONG' && beerPongAllowed) {
         setCurrentView('BEER_PONG');
+      } else {
+        setCurrentView('LEADERBOARD');
       }
       return;
     }
 
     // Handle AUTO mode or manual mode
     if (settings.currentView === 'AUTO') {
-      // Start auto-switching
+      // Start auto-switching (only to BEER_PONG if beer pong is enabled for event)
       const interval = Math.max(5000, settings.switchIntervalSeconds * 1000); // Minimum 5 seconds
       
       // Only restart timer if settings actually changed
@@ -207,12 +212,18 @@ const LeaderboardComponent: React.FC = () => {
         mode: 'AUTO',
       };
 
-      // Start the timer - it will switch views at the specified interval
+      // Start the timer - switch to BEER_PONG only when allowed for this event
       switchTimerRef.current = setInterval(() => {
         setCurrentView((prev) => {
-          const next = prev === 'LEADERBOARD' ? 'BEER_PONG' : 'LEADERBOARD';
-          console.log('[Leaderboard] Auto-switching view:', prev, '->', next);
-          return next;
+          if (prev === 'LEADERBOARD' && beerPongAllowed) {
+            console.log('[Leaderboard] Auto-switching view: LEADERBOARD -> BEER_PONG');
+            return 'BEER_PONG';
+          }
+          if (prev === 'BEER_PONG') {
+            console.log('[Leaderboard] Auto-switching view: BEER_PONG -> LEADERBOARD');
+            return 'LEADERBOARD';
+          }
+          return prev;
         });
       }, interval);
     } else if (settings.currentView === 'LEADERBOARD') {
@@ -228,7 +239,7 @@ const LeaderboardComponent: React.FC = () => {
         switchTimerRef.current = null;
       }
       timerSettingsRef.current = null;
-      setCurrentView('BEER_PONG');
+      setCurrentView(beerPongAllowed ? 'BEER_PONG' : 'LEADERBOARD');
     }
 
     return () => {
@@ -237,7 +248,7 @@ const LeaderboardComponent: React.FC = () => {
         switchTimerRef.current = null;
       }
     };
-  }, [showAutoSwitch, settings?.autoSwitchEnabled, settings?.currentView, settings?.switchIntervalSeconds]);
+  }, [showAutoSwitch, settings?.autoSwitchEnabled, settings?.currentView, settings?.switchIntervalSeconds, beerPongAllowed]);
   
   // Use real-time stats from WebSocket, fallback to calculated values
   const metricStats = {
@@ -307,12 +318,14 @@ const LeaderboardComponent: React.FC = () => {
                 >
                   Žebříček
                 </Button>
+                {beerPongAllowed && (
                 <Button
                   variant={currentView === 'BEER_PONG' ? 'contained' : 'outlined'}
                   onClick={() => setCurrentView('BEER_PONG')}
                 >
                   Beer Pong
                 </Button>
+                )}
               </ButtonGroup>
             )}
             {showYearFilter && availableYears.length > 0 && (
@@ -417,7 +430,7 @@ const LeaderboardComponent: React.FC = () => {
           </Grid>
         </Grid>
 
-        {showAutoSwitch && settings && settings.autoSwitchEnabled && currentView === 'BEER_PONG' ? (
+        {showAutoSwitch && settings && settings.autoSwitchEnabled && currentView === 'BEER_PONG' && beerPongAllowed ? (
           <Grid container spacing={isHeaderVisible ? 4 : 3}>
             <Grid item xs={12}>
               <BeerPongStandings 

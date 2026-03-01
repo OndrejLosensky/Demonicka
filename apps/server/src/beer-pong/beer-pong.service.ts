@@ -84,6 +84,12 @@ export class BeerPongService {
       );
     }
 
+    if (event.beerPongEnabled === false) {
+      throw new BadRequestException(
+        'Beer pong není pro tuto událost povolen',
+      );
+    }
+
     const globalDefaults =
       (await this.defaults.getOrCreate()) as BeerPongDefaultsLike;
 

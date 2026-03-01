@@ -308,7 +308,7 @@ export function NavigationLinks() {
           <DropdownNavLink to="/dashboard/events" icon={<EventIcon sx={{ fontSize: 18 }} />} items={eventItems}>
             {translations.navigation.events}
           </DropdownNavLink>
-          {activeEvent && (
+          {activeEvent && activeEvent.beerPongEnabled === true && (
             <DropdownNavLink
               to="/dashboard/beer-pong"
               icon={<BeerPongIcon sx={{ fontSize: 18 }} />}

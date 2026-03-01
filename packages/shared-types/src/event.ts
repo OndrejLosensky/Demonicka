@@ -10,6 +10,9 @@ export interface Event {
     isActive: boolean;
     registrationEnabled?: boolean;
     registrationToken?: string | null;
+    beerPongEnabled?: boolean;
+    beerSizesEnabled?: boolean;
+    beerPrice?: number;
     createdBy: string | null;
     users: User[];
     barrels: Barrel[];

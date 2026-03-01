@@ -25,7 +25,7 @@ function baseStyle(kind: NotifyKind): React.CSSProperties {
 }
 
 function normalizeErrorMessage(err: unknown): string {
-  // Axios shape: err.response?.data?.message
+  // Axios shape: err.response?.data?.message (Nest sends string or string[] for validation)
   let msg: unknown;
 
   if (typeof err === 'object' && err !== null) {
@@ -37,6 +37,7 @@ function normalizeErrorMessage(err: unknown): string {
       if (typeof data === 'object' && data !== null) {
         const d = data as Record<string, unknown>;
         msg = d.message;
+        if (Array.isArray(msg) && msg.length > 0) msg = msg[0];
       }
     }
 

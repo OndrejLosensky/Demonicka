@@ -43,6 +43,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   deletedParticipants,
   showDeleted,
   showUserHistory,
+  beerSizesEnabled = true,
   onAddBeer,
   onAddSpilledBeer,
   onRemoveBeer,
@@ -238,13 +239,12 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                           <IconButton
                             size="small"
                             onClick={() => {
-                              // Quick add large beer (default)
                               onAddBeer(participant.id, 'LARGE', 0.5);
                             }}
                             sx={{
                               bgcolor: 'primary.main',
                               color: 'white',
-                              borderRadius: '4px 0 0 4px',
+                              borderRadius: beerSizesEnabled ? '4px 0 0 4px' : '4px',
                               '&:hover': {
                                 bgcolor: 'primary.dark',
                               },
@@ -253,6 +253,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                             <AddIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
+                        {beerSizesEnabled && (
                         <Tooltip title="Vybrat velikost piva">
                           <IconButton
                             size="small"
@@ -272,6 +273,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                             <ArrowDropDownIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
+                        )}
                       </ButtonGroup>
                       {onAddSpilledBeer && (
                         <Tooltip title={translations.table.actions.addSpilledBeer ?? 'Rozlít pivo'}>
@@ -348,6 +350,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
           </ListItemIcon>
           <ListItemText primary="Velké (0.5 L)" secondary="Standardní velikost" />
         </MenuItem>
+        {beerSizesEnabled && (
         <MenuItem
           onClick={() => {
             if (beerSizeMenuAnchor) {
@@ -361,13 +364,15 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
           </ListItemIcon>
           <ListItemText primary="Malé (0.3 L)" secondary="Menší velikost" />
         </MenuItem>
+        )}
+        {beerSizesEnabled && (
         <MenuItem
           onClick={() => {
             if (beerSizeMenuAnchor) {
               const participant = participants.find(p => p.id === beerSizeMenuAnchor.participantId);
-              setBeerDialogParticipant({ 
-                id: beerSizeMenuAnchor.participantId, 
-                username: participant?.username || '' 
+              setBeerDialogParticipant({
+                id: beerSizeMenuAnchor.participantId,
+                username: participant?.username || ''
               });
               setAddBeerDialogOpen(true);
               setBeerSizeMenuAnchor(null);
@@ -379,6 +384,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
           </ListItemIcon>
           <ListItemText primary="Vlastní výběr..." />
         </MenuItem>
+        )}
       </Menu>
 
       <DeleteConfirmDialog
@@ -399,6 +405,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
           }
         }}
         participantName={beerDialogParticipant?.username}
+        beerSizesEnabled={beerSizesEnabled}
       />
     </>
   );

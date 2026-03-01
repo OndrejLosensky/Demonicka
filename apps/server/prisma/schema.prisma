@@ -221,6 +221,9 @@ model Event {
   isActive             Boolean   @default(false)
   registrationEnabled  Boolean   @default(false)
   registrationToken    String?   @unique
+  beerPongEnabled      Boolean   @default(true)
+  beerSizesEnabled     Boolean   @default(true)
+  beerPrice            Int       @default(30)
   createdBy            String?   @db.Uuid
   createdAt            DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt            DateTime  @updatedAt @db.Timestamptz(6)

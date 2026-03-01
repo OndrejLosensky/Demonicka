@@ -1,0 +1,4 @@
+-- AlterTable: Add event config columns to Event
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "beerPongEnabled" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "beerSizesEnabled" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "beerPrice" INTEGER NOT NULL DEFAULT 30;

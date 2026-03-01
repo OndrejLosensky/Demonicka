@@ -33,6 +33,9 @@ export class EventsService {
       data: {
         ...createEventDto,
         createdBy: userId,
+        beerPongEnabled: false,
+        beerSizesEnabled: false,
+        beerPrice: 30,
       },
       include: {
         users: { include: { user: true } },
@@ -152,13 +155,18 @@ export class EventsService {
   ): Promise<Event> {
     const event = await this.findOne(id, user); // Verify event exists and check access
 
-    // Check if event is completed
+    // Check if event is completed or active - do not allow config changes when active
     const eventFromDb = await this.prisma.event.findUnique({
       where: { id },
     });
     if (eventFromDb && isEventCompleted(eventFromDb)) {
       throw new BadRequestException(
         `Cannot update completed event "${eventFromDb.name}"`,
+      );
+    }
+    if (eventFromDb?.isActive) {
+      throw new BadRequestException(
+        'Nelze měnit nastavení aktivní události',
       );
     }
 

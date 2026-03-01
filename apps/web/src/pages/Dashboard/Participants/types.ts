@@ -20,6 +20,8 @@ export interface ParticipantTableProps {
   deletedParticipants: Participant[];
   showDeleted: boolean;
   showUserHistory?: boolean;
+  /** When false, small beer option is hidden (event does not allow small beers). */
+  beerSizesEnabled?: boolean;
   onAddBeer: (participantId: string, beerSize?: 'SMALL' | 'LARGE', volumeLitres?: number) => Promise<void>;
   onAddSpilledBeer?: (participantId: string) => Promise<void>;
   onRemoveBeer: (participantId: string) => Promise<void>;

@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { Icon } from '../icons';
 
 const SETTINGS_USERS = '/(app)/(tabs)/settings/users';
-const SETTINGS_EVENT = '/(app)/(tabs)/settings/event-settings';
+const SETTINGS_EVENT = '/(app)/(tabs)/settings/events';
 
 interface AdminMenuLinksProps {
   isAdmin?: boolean;

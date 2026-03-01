@@ -75,6 +75,10 @@ export const EventDetail: React.FC = () => {
         player1Id: '',
         player2Id: '',
     });
+    const [isUpdatingConfig, setIsUpdatingConfig] = useState(false);
+    const [editStartDate, setEditStartDate] = useState<string | null>(null);
+    const [editEndDate, setEditEndDate] = useState<string | null>(null);
+    const [editBeerPrice, setEditBeerPrice] = useState<number | null>(null);
     const { loadActiveEvent } = useActiveEvent();
     const { hasPermission } = useAuth();
 
@@ -222,10 +226,58 @@ export const EventDetail: React.FC = () => {
         } catch (error: any) {
             console.error('Failed to delete team:', error);
             notify.error(notify.fromError(error) || 'Nepodařilo se smazat tým', {
-              id: `team:delete:${id}:${deleteTeamId}`,
+                id: `team:delete:${id}:${deleteTeamId}`,
             });
         }
     };
+
+    const handleToggleEventConfig = useCallback(
+        async (field: 'beerPongEnabled' | 'beerSizesEnabled', value: boolean) => {
+            if (!id || !event || event.isActive) return;
+            setIsUpdatingConfig(true);
+            try {
+                await notify.action(
+                    {
+                        id: `event:config:${id}:${field}`,
+                        success: 'Nastavení bylo uloženo',
+                        error: (err) => notify.fromError(err),
+                    },
+                    () => eventService.updateEvent(id, { [field]: value }),
+                );
+                await loadEventData();
+                await loadActiveEvent();
+            } catch {
+                // Error already shown by notify.action
+            } finally {
+                setIsUpdatingConfig(false);
+            }
+        },
+        [id, event?.isActive, loadEventData, loadActiveEvent]
+    );
+
+    const handleUpdateEvent = useCallback(
+        async (payload: Partial<Event>) => {
+            if (!id || !event || event.isActive) return;
+            try {
+                await notify.action(
+                    {
+                        id: `event:update:${id}`,
+                        success: 'Změny byly uloženy',
+                        error: (err) => notify.fromError(err),
+                    },
+                    () => eventService.updateEvent(id, payload),
+                );
+                await loadEventData();
+                await loadActiveEvent();
+                setEditStartDate(null);
+                setEditEndDate(null);
+                setEditBeerPrice(null);
+            } catch {
+                // Error already shown
+            }
+        },
+        [id, event?.isActive, loadEventData, loadActiveEvent]
+    );
 
     const handleDeleteEvent = async () => {
         if (!id) return;
@@ -480,43 +532,40 @@ export const EventDetail: React.FC = () => {
                             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                         >
-                            {hasPermission([Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS]) && (
-                                <>
-                                    {event?.registrationEnabled ? (
-                                        <MenuItem
-                                            onClick={() => {
-                                                handleCloseRegistration();
-                                                setMoreMenuAnchor(null);
-                                            }}
-                                            disabled={isManagingRegistration}
-                                        >
-                                            Uzavřít registraci
-                                        </MenuItem>
-                                    ) : (
-                                        <MenuItem
-                                            onClick={() => {
-                                                handleOpenRegistration();
-                                                setMoreMenuAnchor(null);
-                                            }}
-                                            disabled={isManagingRegistration}
-                                        >
-                                            Otevřít registraci
-                                        </MenuItem>
-                                    )}
-                                    {event?.registrationEnabled && event?.registrationToken && (
-                                        <MenuItem
-                                            onClick={() => {
-                                                setRegistrationLink(
-                                                    `${window.location.origin}/register/event/${event.registrationToken}`,
-                                                );
-                                                setShowLinkDialog(true);
-                                                setMoreMenuAnchor(null);
-                                            }}
-                                        >
-                                            Zkopírovat odkaz
-                                        </MenuItem>
-                                    )}
-                                </>
+                            {hasPermission([Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS]) && !event?.registrationEnabled && (
+                                <MenuItem
+                                    onClick={() => {
+                                        handleOpenRegistration();
+                                        setMoreMenuAnchor(null);
+                                    }}
+                                    disabled={isManagingRegistration}
+                                >
+                                    Otevřít registraci
+                                </MenuItem>
+                            )}
+                            {hasPermission([Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS]) && event?.registrationEnabled && (
+                                <MenuItem
+                                    onClick={() => {
+                                        handleCloseRegistration();
+                                        setMoreMenuAnchor(null);
+                                    }}
+                                    disabled={isManagingRegistration}
+                                >
+                                    Uzavřít registraci
+                                </MenuItem>
+                            )}
+                            {hasPermission([Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS]) && event?.registrationEnabled && event?.registrationToken && (
+                                <MenuItem
+                                    onClick={() => {
+                                        setRegistrationLink(
+                                            `${window.location.origin}/register/event/${event.registrationToken}`,
+                                        );
+                                        setShowLinkDialog(true);
+                                        setMoreMenuAnchor(null);
+                                    }}
+                                >
+                                    Zkopírovat odkaz
+                                </MenuItem>
                             )}
                             {hasPermission([Permission.VIEW_BEERS, Permission.VIEW_LEADERBOARD]) && (
                                 <MenuItem
@@ -598,18 +647,176 @@ export const EventDetail: React.FC = () => {
                             {event.description}
                         </Typography>
                     )}
-                    <Box sx={{ display: 'flex', gap: 3, mt: 1, flexWrap: 'wrap' }}>
+                    <Box sx={{ display: 'flex', gap: 3, mt: 1, flexWrap: 'wrap', alignItems: 'center' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <TimeIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-                            <Typography variant="body2" color="text.secondary">
-                                {format(new Date(event.startDate), 'PPp', { locale: cs })}
-                            </Typography>
+                            {editStartDate !== null ? (
+                                <TextField
+                                    type="datetime-local"
+                                    size="small"
+                                    value={editStartDate}
+                                    onChange={(e) => setEditStartDate(e.target.value)}
+                                    onBlur={() => {
+                                        if (editStartDate) {
+                                            const iso = new Date(editStartDate).toISOString();
+                                            if (iso !== event.startDate) handleUpdateEvent({ startDate: iso });
+                                        }
+                                        setEditStartDate(null);
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Escape') setEditStartDate(null);
+                                    }}
+                                    inputProps={{ style: { fontSize: 14 } }}
+                                />
+                            ) : (
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    onClick={() => !event.isActive && setEditStartDate(new Date(event.startDate).toISOString().slice(0, 16))}
+                                    sx={{
+                                        cursor: event.isActive ? 'default' : 'pointer',
+                                        '&:hover': event.isActive ? {} : { textDecoration: 'underline' },
+                                    }}
+                                >
+                                    {format(new Date(event.startDate), 'PPp', { locale: cs })}
+                                </Typography>
+                            )}
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <TimeIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                            {editEndDate !== null ? (
+                                <TextField
+                                    type="datetime-local"
+                                    size="small"
+                                    value={editEndDate}
+                                    onChange={(e) => setEditEndDate(e.target.value)}
+                                    onBlur={() => {
+                                        if (editEndDate) {
+                                            const iso = new Date(editEndDate).toISOString();
+                                            if (iso !== event.endDate) handleUpdateEvent({ endDate: iso });
+                                        }
+                                        setEditEndDate(null);
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Escape') setEditEndDate(null);
+                                    }}
+                                    inputProps={{ style: { fontSize: 14 } }}
+                                />
+                            ) : (
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    onClick={() => !event.isActive && setEditEndDate(new Date(event.endDate).toISOString().slice(0, 16))}
+                                    sx={{
+                                        cursor: event.isActive ? 'default' : 'pointer',
+                                        '&:hover': event.isActive ? {} : { textDecoration: 'underline' },
+                                    }}
+                                >
+                                    Konec: {format(new Date(event.endDate), 'PPp', { locale: cs })}
+                                </Typography>
+                            )}
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <GroupIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                             <Typography variant="body2" color="text.secondary">
                                 {users.length || 0} účastníků
                             </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <SportsBarIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                            <Typography variant="body2" color="text.secondary">
+                                Beer pong:{' '}
+                            </Typography>
+                            {event.isActive ? (
+                                <Typography variant="body2" color="text.secondary">
+                                    {event.beerPongEnabled !== false ? 'ano' : 'ne'}
+                                </Typography>
+                            ) : (
+                                <Typography
+                                    component="button"
+                                    variant="body2"
+                                    onClick={() => handleToggleEventConfig('beerPongEnabled', event.beerPongEnabled === false)}
+                                    disabled={isUpdatingConfig}
+                                    sx={{
+                                        border: 0,
+                                        background: 'none',
+                                        cursor: isUpdatingConfig ? 'default' : 'pointer',
+                                        color: 'primary.main',
+                                        textDecoration: 'underline',
+                                        p: 0,
+                                        font: 'inherit',
+                                    }}
+                                >
+                                    {event.beerPongEnabled !== false ? 'ano' : 'ne'}
+                                </Typography>
+                            )}
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <BeerIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                            <Typography variant="body2" color="text.secondary">
+                                Malé piva:{' '}
+                            </Typography>
+                            {event.isActive ? (
+                                <Typography variant="body2" color="text.secondary">
+                                    {event.beerSizesEnabled !== false ? 'ano' : 'ne'}
+                                </Typography>
+                            ) : (
+                                <Typography
+                                    component="button"
+                                    variant="body2"
+                                    onClick={() => handleToggleEventConfig('beerSizesEnabled', event.beerSizesEnabled === false)}
+                                    disabled={isUpdatingConfig}
+                                    sx={{
+                                        border: 0,
+                                        background: 'none',
+                                        cursor: isUpdatingConfig ? 'default' : 'pointer',
+                                        color: 'primary.main',
+                                        textDecoration: 'underline',
+                                        p: 0,
+                                        font: 'inherit',
+                                    }}
+                                >
+                                    {event.beerSizesEnabled !== false ? 'ano' : 'ne'}
+                                </Typography>
+                            )}
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body2" color="text.secondary">
+                                Cena piva:{' '}
+                            </Typography>
+                            {editBeerPrice !== null ? (
+                                <TextField
+                                    type="number"
+                                    size="small"
+                                    inputProps={{ min: 0, step: 1, style: { fontSize: 14 } }}
+                                    value={editBeerPrice}
+                                    onChange={(e) => setEditBeerPrice(parseInt(e.target.value, 10) || 0)}
+                                    onBlur={() => {
+                                        const num = editBeerPrice ?? event.beerPrice ?? 30;
+                                        if (num >= 0 && num !== (event.beerPrice ?? 30)) {
+                                            handleUpdateEvent({ beerPrice: num });
+                                        }
+                                        setEditBeerPrice(null);
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                        if (e.key === 'Escape') setEditBeerPrice(null);
+                                    }}
+                                    sx={{ width: 72 }}
+                                />
+                            ) : (
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    onClick={() => !event.isActive && setEditBeerPrice(event.beerPrice ?? 30)}
+                                    sx={{
+                                        cursor: event.isActive ? 'default' : 'pointer',
+                                        '&:hover': event.isActive ? {} : { textDecoration: 'underline' },
+                                    }}
+                                >
+                                    {event.beerPrice ?? 30} ,-
+                                </Typography>
+                            )}
                         </Box>
                     </Box>
                 </Box>
@@ -825,7 +1032,8 @@ export const EventDetail: React.FC = () => {
                         </Paper>
                     </Grid>
 
-                    {/* Beer Pong Teams Section */}
+                    {/* Beer Pong Teams Section - only when beer pong is enabled for this event */}
+                    {event.beerPongEnabled === true && (
                     <Grid item xs={12} md={6} lg={4}>
                         <Paper 
                             sx={{ 
@@ -944,6 +1152,7 @@ export const EventDetail: React.FC = () => {
                             </Box>
                         </Paper>
                     </Grid>
+                    )}
                 </Grid>
             </Box>
 

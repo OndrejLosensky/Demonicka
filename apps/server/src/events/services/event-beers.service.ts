@@ -51,6 +51,13 @@ export class EventBeersService {
       );
     }
 
+    // Small beer only when event allows it
+    if (event.beerSizesEnabled === false && beerSize === 'SMALL') {
+      throw new BadRequestException(
+        'Malé pivo není pro tuto událost povoleno',
+      );
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });

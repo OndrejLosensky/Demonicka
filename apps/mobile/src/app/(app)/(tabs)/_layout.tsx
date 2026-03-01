@@ -5,6 +5,7 @@ import { Icon } from '../../../components/icons';
 import { canAccess } from '../../../utils/permissions';
 import { useAuthStore } from '../../../store/auth.store';
 import { useRole } from '../../../hooks/useRole';
+import { useActiveEvent } from '../../../hooks/useActiveEvent';
 
 const TAB_BAR_HEIGHT = 75;
 
@@ -12,6 +13,7 @@ export default function TabsLayout() {
   const user = useAuthStore((state) => state.user);
   const insets = useSafeAreaInsets();
   const { isOperator } = useRole();
+  const { activeEvent } = useActiveEvent();
 
   return (
     <Tabs
@@ -73,7 +75,7 @@ export default function TabsLayout() {
         options={{
           title: 'Beer Pong',
           tabBarIcon: ({ color }) => <Icon name="beer-pong" size={20} color={color} />,
-          href: canAccess('beerPong', user) ? undefined : null,
+          href: canAccess('beerPong', user) && activeEvent?.beerPongEnabled ? undefined : null,
         }}
       />
       <Tabs.Screen

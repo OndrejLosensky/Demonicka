@@ -176,6 +176,7 @@ const ParticipantsPage: React.FC = () => {
           deletedParticipants={deletedParticipants}
           showDeleted={showDeleted}
           showUserHistory={showUserHistory}
+          beerSizesEnabled={activeEvent?.beerSizesEnabled !== false}
           onDelete={handleDelete}
           onRestore={handleRestore}
           onAddBeer={handleAddBeer}
@@ -195,6 +196,7 @@ const ParticipantsPage: React.FC = () => {
               deletedParticipants={[]}
               showDeleted={showDeleted}
               showUserHistory={showUserHistory}
+              beerSizesEnabled={activeEvent?.beerSizesEnabled !== false}
               onDelete={handleDelete}
               onRestore={handleRestore}
               onAddBeer={handleAddBeer}
@@ -213,6 +215,7 @@ const ParticipantsPage: React.FC = () => {
               deletedParticipants={[]}
               showDeleted={showDeleted}
               showUserHistory={showUserHistory}
+              beerSizesEnabled={activeEvent?.beerSizesEnabled !== false}
               onDelete={handleDelete}
               onRestore={handleRestore}
               onAddBeer={handleAddBeer}
