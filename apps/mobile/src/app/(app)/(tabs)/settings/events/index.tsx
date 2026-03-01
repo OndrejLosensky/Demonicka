@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useRole } from '../../../../../hooks/useRole';
 import { useAuthStore } from '../../../../../store/auth.store';
 import { api } from '../../../../../services/api';
+import { logBackgroundError } from '../../../../../utils/errorHandler';
 import { Header } from '../../../../../components/layout/Header';
 import { LoadingScreen } from '../../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../../components/ui/EmptyState';
@@ -26,7 +27,7 @@ export default function EventListScreen() {
       const list = await api.get<Event[]>('/events', token);
       setEvents(list ?? []);
     } catch (e) {
-      console.error('Failed to fetch events:', e);
+      logBackgroundError(e, 'FetchEvents');
     } finally {
       setLoading(false);
       setRefreshing(false);

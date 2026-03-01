@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../../store/auth.store';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
 import { api } from '../../../../services/api';
+import { parseError, logBackgroundError } from '../../../../utils/errorHandler';
 import { Header } from '../../../../components/layout/Header';
 import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { ErrorView } from '../../../../components/ui/ErrorView';
@@ -47,8 +48,12 @@ export default function BarrelDetailScreen() {
       setBarrel(found ?? null);
       if (!found) setError('Sud v této události nenalezen');
     } catch (e: unknown) {
-      const err = e as { message?: string };
-      setError(err?.message ?? 'Nepodařilo se načíst sud');
+      if (parseError(e).isNetworkError) {
+        logBackgroundError(e, 'FetchBarrel');
+      } else {
+        const err = e as { message?: string };
+        setError(err?.message ?? 'Nepodařilo se načíst sud');
+      }
     }
   }, [activeEvent?.id, token, id]);
 
@@ -83,8 +88,12 @@ export default function BarrelDetailScreen() {
               );
               router.back();
             } catch (e: unknown) {
-              const err = e as { message?: string };
-              Alert.alert('Chyba', err?.message ?? 'Sud se nepodařilo odebrat.');
+              if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+                logBackgroundError(e, 'RemoveBarrelFromEvent');
+              } else {
+                const err = e as { message?: string };
+                Alert.alert('Chyba', err?.message ?? 'Sud se nepodařilo odebrat.');
+              }
             } finally {
               setRemoving(false);
             }

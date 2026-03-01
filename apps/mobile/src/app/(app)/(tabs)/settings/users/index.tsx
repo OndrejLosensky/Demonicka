@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../../../store/auth.store';
 import { useRole } from '../../../../../hooks/useRole';
 import { api } from '../../../../../services/api';
+import { logBackgroundError } from '../../../../../utils/errorHandler';
 import { Header } from '../../../../../components/layout/Header';
 import { Icon } from '../../../../../components/icons';
 import { LoadingScreen } from '../../../../../components/ui/LoadingScreen';
@@ -37,7 +38,7 @@ export default function UsersManagementScreen() {
       setUsers(data);
       setFilteredUsers(data);
     } catch (error) {
-      console.error('Failed to fetch users:', error);
+      logBackgroundError(error, 'FetchUsers');
     }
   }, [token]);
 

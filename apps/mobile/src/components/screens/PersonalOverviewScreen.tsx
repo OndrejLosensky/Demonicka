@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../store/auth.store';
 import { api } from '../../services/api';
+import { logBackgroundError } from '../../utils/errorHandler';
 import { StatCard } from '../cards/StatCard';
 import { Icon } from '../icons';
 import { LoadingScreen } from '../ui/LoadingScreen';
@@ -47,7 +48,7 @@ export function PersonalOverviewScreen() {
       );
       setData(res);
     } catch (error) {
-      console.error('Failed to fetch personal overview:', error);
+      logBackgroundError(error, 'FetchPersonalOverview');
     }
   }, [token, user?.username]);
 

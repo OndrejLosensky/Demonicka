@@ -13,6 +13,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../../store/auth.store';
 import { api } from '../../../../services/api';
+import { parseError, logBackgroundError } from '../../../../utils/errorHandler';
 import { Header } from '../../../../components/layout/Header';
 import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { BeerPongTeamModal } from '../../../../components/beer-pong/BeerPongTeamModal';
@@ -115,8 +116,12 @@ export default function BeerPongDetailScreen() {
       const data = await api.get<BeerPongEvent>(`/beer-pong/${id}`, token);
       setTournament(data);
     } catch (e: unknown) {
-      const err = e as { message?: string };
-      setError(err?.message ?? 'Nepodařilo se načíst turnaj');
+      if (parseError(e).isNetworkError) {
+        logBackgroundError(e, 'FetchBeerPongTournament');
+      } else {
+        const err = e as { message?: string };
+        setError(err?.message ?? 'Nepodařilo se načíst turnaj');
+      }
       setTournament(null);
     }
   }, [token, id]);
@@ -142,7 +147,11 @@ export default function BeerPongDetailScreen() {
       setStartConfirmOpen(false);
       await fetchTournament();
     } catch (e) {
-      setError((e as { message?: string })?.message ?? 'Spuštění se nepovedlo');
+      if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+        logBackgroundError(e, 'BeerPongStart');
+      } else {
+        setError((e as { message?: string })?.message ?? 'Spuštění se nepovedlo');
+      }
     } finally {
       setActionLoading(false);
     }
@@ -156,7 +165,11 @@ export default function BeerPongDetailScreen() {
       setCompleteConfirmOpen(false);
       await fetchTournament();
     } catch (e) {
-      setError((e as { message?: string })?.message ?? 'Dokončení se nepovedlo');
+      if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+        logBackgroundError(e, 'BeerPongComplete');
+      } else {
+        setError((e as { message?: string })?.message ?? 'Dokončení se nepovedlo');
+      }
     } finally {
       setActionLoading(false);
     }
@@ -169,7 +182,11 @@ export default function BeerPongDetailScreen() {
       setDeleteTeamId(null);
       await fetchTournament();
     } catch (e) {
-      setError((e as { message?: string })?.message ?? 'Smazání se nepovedlo');
+      if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+        logBackgroundError(e, 'BeerPongDeleteTeam');
+      } else {
+        setError((e as { message?: string })?.message ?? 'Smazání se nepovedlo');
+      }
     }
   }, [id, token, deleteTeamId, fetchTournament]);
 

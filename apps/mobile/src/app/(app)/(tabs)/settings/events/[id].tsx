@@ -17,6 +17,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '../../../../../store/auth.store';
 import { useEventStore } from '../../../../../store/event.store';
 import { api } from '../../../../../services/api';
+import { parseError, logBackgroundError } from '../../../../../utils/errorHandler';
 import { Header } from '../../../../../components/layout/Header';
 import { LoadingScreen } from '../../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../../components/ui/EmptyState';
@@ -63,7 +64,7 @@ export default function EventDetailScreen() {
       const data = await api.get<Event>(`/events/${id}`, token);
       setEvent(data);
     } catch (e) {
-      console.error('Failed to fetch event:', e);
+      logBackgroundError(e, 'FetchEvent');
       setEvent(null);
     } finally {
       setLoading(false);
@@ -81,8 +82,12 @@ export default function EventDetailScreen() {
       await api.put(`/events/${id}/active`, {}, token);
       await Promise.all([refetchActiveEvent(), fetchEvent()]);
     } catch (e: unknown) {
-      const err = e as { message?: string };
-      Alert.alert('Chyba', err?.message ?? 'Nepodařilo se aktivovat');
+      if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+        logBackgroundError(e, 'EventActivate');
+      } else {
+        const err = e as { message?: string };
+        Alert.alert('Chyba', err?.message ?? 'Nepodařilo se aktivovat');
+      }
     } finally {
       setSaving(false);
     }
@@ -104,8 +109,12 @@ export default function EventDetailScreen() {
               await api.delete(`/events/${event.id}/active`, token);
               await Promise.all([refetchActiveEvent(), fetchEvent()]);
             } catch (e: unknown) {
-              const err = e as { message?: string };
-              Alert.alert('Chyba', err?.message ?? 'Nepodařilo se deaktivovat');
+              if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+                logBackgroundError(e, 'EventDeactivate');
+              } else {
+                const err = e as { message?: string };
+                Alert.alert('Chyba', err?.message ?? 'Nepodařilo se deaktivovat');
+              }
             } finally {
               setSaving(false);
             }
@@ -127,8 +136,12 @@ export default function EventDetailScreen() {
         setEditEndDate(null);
         setEditBeerPrice(null);
       } catch (e: unknown) {
-        const err = e as { message?: string };
-        Alert.alert('Chyba', err?.message ?? 'Nepodařilo se uložit');
+        if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+          logBackgroundError(e, 'EventSave');
+        } else {
+          const err = e as { message?: string };
+          Alert.alert('Chyba', err?.message ?? 'Nepodařilo se uložit');
+        }
       } finally {
         setSaving(false);
       }
@@ -143,8 +156,12 @@ export default function EventDetailScreen() {
       await api.put(`/events/${event.id}/registration/open`, {}, token);
       await fetchEvent();
     } catch (e: unknown) {
-      const err = e as { message?: string };
-      Alert.alert('Chyba', err?.message ?? 'Nepodařilo se otevřít registraci');
+      if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+        logBackgroundError(e, 'EventRegistrationOpen');
+      } else {
+        const err = e as { message?: string };
+        Alert.alert('Chyba', err?.message ?? 'Nepodařilo se otevřít registraci');
+      }
     } finally {
       setSaving(false);
     }
@@ -157,8 +174,12 @@ export default function EventDetailScreen() {
       await api.put(`/events/${event.id}/registration/close`, {}, token);
       await fetchEvent();
     } catch (e: unknown) {
-      const err = e as { message?: string };
-      Alert.alert('Chyba', err?.message ?? 'Nepodařilo se uzavřít registraci');
+      if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+        logBackgroundError(e, 'EventRegistrationClose');
+      } else {
+        const err = e as { message?: string };
+        Alert.alert('Chyba', err?.message ?? 'Nepodařilo se uzavřít registraci');
+      }
     } finally {
       setSaving(false);
     }

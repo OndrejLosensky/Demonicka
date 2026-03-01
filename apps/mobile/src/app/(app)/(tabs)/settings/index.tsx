@@ -87,12 +87,22 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Aplikace</Text>
           <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/(app)/(tabs)/settings/sync-log')}
+            >
+              <View style={styles.menuIconWrap}>
+                <Icon name="refresh" size={22} color="#6b7280" />
+              </View>
+              <Text style={styles.menuLabel}>Offline sync / Sync log</Text>
+              <Text style={styles.menuArrow}>→</Text>
+            </TouchableOpacity>
             <View style={styles.menuItem}>
               <View style={styles.menuIconWrap}>
                 <Icon name="info" size={22} color="#6b7280" />
               </View>
               <Text style={styles.menuLabel}>Verze</Text>
-              <Text style={styles.menuValue}>3.5.0</Text>
+              <Text style={styles.menuValue}>3.6.0</Text>
             </View>
           </View>
         </View>

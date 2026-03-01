@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Event } from '@demonicka/shared-types';
 import { api } from '../services/api';
 import { useAuthStore } from './auth.store';
+import { parseError, logBackgroundError } from '../utils/errorHandler';
 
 interface EventState {
   activeEvent: Event | null;
@@ -32,6 +33,9 @@ export const useEventStore = create<EventState>((set) => ({
       // 404 means no active event, which is valid
       if (err?.status === 404) {
         set({ activeEvent: null, isLoading: false });
+      } else if (parseError(e).isNetworkError) {
+        logBackgroundError(e, 'FetchActiveEvent');
+        set({ isLoading: false });
       } else {
         set({
           error: err?.message ?? 'Failed to fetch active event',

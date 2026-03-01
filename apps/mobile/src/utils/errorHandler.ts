@@ -1,4 +1,5 @@
 import type { ApiError } from '../services/api';
+import { OfflineQueuedError } from '../services/api';
 
 export interface AppError {
   message: string;
@@ -6,12 +7,21 @@ export interface AppError {
   status?: number;
   isNetworkError?: boolean;
   isAuthError?: boolean;
+  isOfflineQueued?: boolean;
 }
 
 /**
  * Parse and normalize errors from various sources
  */
 export function parseError(error: unknown): AppError {
+  // Handle offline-queued (mutation saved locally, will sync when online)
+  if (error instanceof OfflineQueuedError) {
+    return {
+      message: error.message,
+      isOfflineQueued: true,
+    };
+  }
+
   // Handle fetch/network errors
   if (error instanceof TypeError && error.message.includes('Network')) {
     return {
@@ -25,6 +35,7 @@ export function parseError(error: unknown): AppError {
     return {
       message: 'Požadavek vypršel. Zkuste to prosím znovu.',
       code: 'TIMEOUT',
+      isNetworkError: true,
     };
   }
 
@@ -100,6 +111,15 @@ export function logError(error: unknown, context?: string): void {
     status: parsed.status,
     original: error,
   });
+}
+
+/**
+ * Log background / non-user-facing failures (e.g. fetch or WebSocket).
+ * Use stable prefix for Grafana; do not show Alert or set UI state.
+ */
+export function logBackgroundError(error: unknown, context: string): void {
+  // eslint-disable-next-line no-console
+  console.warn('[App]', context, error);
 }
 
 /**

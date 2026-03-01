@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../../store/auth.store';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
 import { api } from '../../../../services/api';
+import { parseError, logBackgroundError } from '../../../../utils/errorHandler';
 import { Header } from '../../../../components/layout/Header';
 import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { ErrorView } from '../../../../components/ui/ErrorView';
@@ -59,8 +60,12 @@ export default function ParticipantDetailScreen() {
       setParticipant(found ?? null);
       if (!found) setError('Účastník nenalezen');
     } catch (e: unknown) {
-      const err = e as { message?: string };
-      setError(err?.message ?? 'Nepodařilo se načíst účastníka');
+      if (parseError(e).isNetworkError) {
+        logBackgroundError(e, 'FetchParticipant');
+      } else {
+        const err = e as { message?: string };
+        setError(err?.message ?? 'Nepodařilo se načíst účastníka');
+      }
     }
   }, [activeEvent?.id, token, id]);
 
@@ -75,7 +80,8 @@ export default function ParticipantDetailScreen() {
       const list = Array.isArray(beers) ? beers : [];
       list.sort((a, b) => new Date(b.consumedAt).getTime() - new Date(a.consumedAt).getTime());
       setBeerHistory(list);
-    } catch {
+    } catch (e) {
+      logBackgroundError(e, 'FetchBeerHistory');
       setBeerHistory([]);
     } finally {
       setHistoryLoading(false);
@@ -114,8 +120,12 @@ export default function ParticipantDetailScreen() {
               await api.delete(`/events/${activeEvent.id}/users/${id}`, token);
               router.back();
             } catch (e: unknown) {
-              const err = e as { message?: string };
-              Alert.alert('Chyba', err?.message ?? 'Účastníka se nepodařilo odebrat.');
+              if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+                logBackgroundError(e, 'RemoveParticipantFromEvent');
+              } else {
+                const err = e as { message?: string };
+                Alert.alert('Chyba', err?.message ?? 'Účastníka se nepodařilo odebrat.');
+              }
             } finally {
               setRemoving(false);
             }

@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
 import { useAuthStore } from '../../../../store/auth.store';
 import { api } from '../../../../services/api';
+import { logBackgroundError } from '../../../../utils/errorHandler';
 import { Icon } from '../../../../components/icons';
 import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../components/ui/EmptyState';
@@ -42,7 +43,7 @@ export default function BarrelsScreen() {
       );
       setBarrels(data);
     } catch (error) {
-      console.error('Failed to fetch barrels:', error);
+      logBackgroundError(error, 'FetchBarrels');
     }
   }, [activeEvent?.id, token]);
 

@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { config } from '../config';
+import { logBackgroundError } from '../utils/errorHandler';
 
 type EventCallback = (data: unknown) => void;
 
@@ -27,11 +28,11 @@ class WebSocketService {
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('[WS] Disconnected:', reason);
+      logBackgroundError(new Error(reason), 'WebSocketDisconnect');
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('[WS] Connection error:', error.message);
+      logBackgroundError(error, 'WebSocketConnect');
     });
 
     // Set up event forwarding to subscribers

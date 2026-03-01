@@ -17,6 +17,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { useAuthStore } from '../../../../../store/auth.store';
 import { useRole } from '../../../../../hooks/useRole';
 import { api } from '../../../../../services/api';
+import { parseError, logBackgroundError } from '../../../../../utils/errorHandler';
 import { config } from '../../../../../config';
 import { Header } from '../../../../../components/layout/Header';
 import { Icon } from '../../../../../components/icons';
@@ -57,8 +58,12 @@ export default function UserDetailScreen() {
       const data = await api.get<User>(`/users/${id}`, token);
       setUser(data);
     } catch (e: unknown) {
-      const err = e as { message?: string };
-      setError(err?.message ?? 'Nepodařilo se načíst uživatele');
+      if (parseError(e).isNetworkError) {
+        logBackgroundError(e, 'FetchUser');
+      } else {
+        const err = e as { message?: string };
+        setError(err?.message ?? 'Nepodařilo se načíst uživatele');
+      }
       setUser(null);
     }
   }, [token, id]);
@@ -79,8 +84,12 @@ export default function UserDetailScreen() {
       );
       setRegistrationToken(res.token);
     } catch (e: unknown) {
-      const err = e as { message?: string };
-      Alert.alert('Chyba', err?.message ?? 'Nepodařilo se vygenerovat token');
+      if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+        logBackgroundError(e, 'GenerateRegisterToken');
+      } else {
+        const err = e as { message?: string };
+        Alert.alert('Chyba', err?.message ?? 'Nepodařilo se vygenerovat token');
+      }
     } finally {
       setGeneratingToken(false);
     }

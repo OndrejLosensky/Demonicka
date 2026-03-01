@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveEvent } from '../../hooks/useActiveEvent';
 import { useAuthStore } from '../../store/auth.store';
 import { api } from '../../services/api';
+import { logBackgroundError } from '../../utils/errorHandler';
 import { websocketService } from '../../services/websocket.service';
 import { LoadingScreen } from '../ui/LoadingScreen';
 import { EmptyState } from '../ui/EmptyState';
@@ -60,7 +61,7 @@ export function EventDashboardScreen() {
       setHourly(Array.isArray(hourlyData) ? hourlyData : []);
       setBarrels(Array.isArray(barrelsData) ? barrelsData : []);
     } catch (error) {
-      console.error('Failed to fetch dashboard:', error);
+      logBackgroundError(error, 'FetchDashboard');
     }
   }, [activeEvent?.id, token]);
 

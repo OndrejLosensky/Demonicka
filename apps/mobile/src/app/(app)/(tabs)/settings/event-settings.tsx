@@ -19,6 +19,7 @@ import { useRole } from '../../../../hooks/useRole';
 import { useAuthStore } from '../../../../store/auth.store';
 import { useEventStore } from '../../../../store/event.store';
 import { api } from '../../../../services/api';
+import { logBackgroundError, parseError } from '../../../../utils/errorHandler';
 import { Header } from '../../../../components/layout/Header';
 import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../components/ui/EmptyState';
@@ -67,7 +68,7 @@ export default function EventSettingsScreen() {
       const list = await api.get<Event[]>('/events', token);
       setEvents(list ?? []);
     } catch (e) {
-      console.error('Failed to fetch events:', e);
+      logBackgroundError(e, 'FetchEvents');
     } finally {
       setEventsLoading(false);
     }
@@ -87,8 +88,12 @@ export default function EventSettingsScreen() {
         await api.put(`/events/${eventId}/active`, {}, token);
         await refetchActiveEvent();
       } catch (e: unknown) {
-        const err = e as { message?: string };
-        Alert.alert('Chyba', err?.message ?? 'Nepodařilo se aktivovat událost');
+        if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+          logBackgroundError(e, 'EventActivate');
+        } else {
+          const err = e as { message?: string };
+          Alert.alert('Chyba', err?.message ?? 'Nepodařilo se aktivovat událost');
+        }
       } finally {
         setSaving(false);
       }
@@ -112,8 +117,12 @@ export default function EventSettingsScreen() {
               await api.delete(`/events/${activeEvent.id}/active`, token);
               await refetchActiveEvent();
             } catch (e: unknown) {
-              const err = e as { message?: string };
-              Alert.alert('Chyba', err?.message ?? 'Nepodařilo se deaktivovat');
+              if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+                logBackgroundError(e, 'EventDeactivate');
+              } else {
+                const err = e as { message?: string };
+                Alert.alert('Chyba', err?.message ?? 'Nepodařilo se deaktivovat');
+              }
             } finally {
               setSaving(false);
             }
@@ -135,8 +144,12 @@ export default function EventSettingsScreen() {
         setEditEndDate(null);
         setEditBeerPrice(null);
       } catch (e: unknown) {
-        const err = e as { message?: string };
-        Alert.alert('Chyba', err?.message ?? 'Nepodařilo se uložit');
+        if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+          logBackgroundError(e, 'EventSave');
+        } else {
+          const err = e as { message?: string };
+          Alert.alert('Chyba', err?.message ?? 'Nepodařilo se uložit');
+        }
       } finally {
         setSaving(false);
       }
@@ -155,8 +168,12 @@ export default function EventSettingsScreen() {
       );
       await refetchActiveEvent();
     } catch (e: unknown) {
-      const err = e as { message?: string };
-      Alert.alert('Chyba', err?.message ?? 'Nepodařilo se otevřít registraci');
+      if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+        logBackgroundError(e, 'EventRegistrationOpen');
+      } else {
+        const err = e as { message?: string };
+        Alert.alert('Chyba', err?.message ?? 'Nepodařilo se otevřít registraci');
+      }
     } finally {
       setSaving(false);
     }
@@ -169,8 +186,12 @@ export default function EventSettingsScreen() {
       await api.put(`/events/${activeEvent.id}/registration/close`, {}, token);
       await refetchActiveEvent();
     } catch (e: unknown) {
-      const err = e as { message?: string };
-      Alert.alert('Chyba', err?.message ?? 'Nepodařilo se uzavřít registraci');
+      if (parseError(e).isNetworkError || parseError(e).isOfflineQueued) {
+        logBackgroundError(e, 'EventRegistrationClose');
+      } else {
+        const err = e as { message?: string };
+        Alert.alert('Chyba', err?.message ?? 'Nepodařilo se uzavřít registraci');
+      }
     } finally {
       setSaving(false);
     }

@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
 import { useAuthStore } from '../../../../store/auth.store';
 import { api } from '../../../../services/api';
+import { logBackgroundError } from '../../../../utils/errorHandler';
 import { Icon } from '../../../../components/icons';
 import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../components/ui/EmptyState';
@@ -38,7 +39,7 @@ export default function BeerPongScreen() {
       const data = await api.get<BeerPongEvent[]>(`/events/${activeEvent.id}/beer-pong`, token);
       setTournaments(data);
     } catch (error) {
-      console.error('Failed to fetch beer pong tournaments:', error);
+      logBackgroundError(error, 'FetchBeerPongTournaments');
     }
   }, [activeEvent?.id, token]);
 
