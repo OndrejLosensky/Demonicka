@@ -29,8 +29,8 @@ export class AuthService {
       path: '/', // Cookie is available for all paths
       expires: new Date(
         Date.now() +
-          (isRefreshToken ? 7 * 24 * 60 * 60 * 1000 : 15 * 60 * 1000),
-      ), // 7 days for refresh, 15 mins for access
+          (isRefreshToken ? 7 * 24 * 60 * 60 * 1000 : 12 * 60 * 60 * 1000),
+      ), // 7 days for refresh, 12 hours for access
     };
   }
 

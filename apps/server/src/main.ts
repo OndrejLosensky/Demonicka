@@ -122,8 +122,9 @@ async function bootstrap() {
   // Note: JWT auth guard is registered as APP_GUARD in AuthModule
   // No need to register it globally here to avoid conflicts
 
-  // Listen on port 3000 or the port specified in the environment
-  await app.listen(process.env.PORT ?? 3000);
+  // Listen on port 3000 or the port specified in the environment.
+  // Bind to 0.0.0.0 so the server is reachable from other devices on the network (e.g. Expo on phone).
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 
   const url = await app.getUrl();
   loggingService.info('Application started', { url });
