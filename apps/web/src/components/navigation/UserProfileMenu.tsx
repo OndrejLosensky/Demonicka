@@ -117,43 +117,41 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
           }}
         />
       </MenuItem>
-      {hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]) && (
-        <>
-          <MenuItem onClick={handlePersonalStatsClick} sx={{ py: 1, px: 2 }}>
-            <ListItemIcon>
-              <TrendingUpIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Moje statistiky"
-              primaryTypographyProps={{
-                sx: { fontWeight: 500 },
-              }}
-            />
-          </MenuItem>
-          <MenuItem onClick={handleSettingsClick} sx={{ py: 1, px: 2 }}>
-            <ListItemIcon>
-              <SettingsIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Nastavení"
-              primaryTypographyProps={{
-                sx: { fontWeight: 500 },
-              }}
-            />
-          </MenuItem>
-          <MenuItem onClick={handleAchievementsClick} sx={{ py: 1, px: 2 }}>
-            <ListItemIcon>
-              <EmojiEventsIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Úspěchy"
-              primaryTypographyProps={{
-                sx: { fontWeight: 500 },
-              }}
-            />
-          </MenuItem>
-        </>
-      )}
+      {hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]) && [
+        <MenuItem key="stats" onClick={handlePersonalStatsClick} sx={{ py: 1, px: 2 }}>
+          <ListItemIcon>
+            <TrendingUpIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Moje statistiky"
+            primaryTypographyProps={{
+              sx: { fontWeight: 500 },
+            }}
+          />
+        </MenuItem>,
+        <MenuItem key="settings" onClick={handleSettingsClick} sx={{ py: 1, px: 2 }}>
+          <ListItemIcon>
+            <SettingsIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Nastavení"
+            primaryTypographyProps={{
+              sx: { fontWeight: 500 },
+            }}
+          />
+        </MenuItem>,
+        <MenuItem key="achievements" onClick={handleAchievementsClick} sx={{ py: 1, px: 2 }}>
+          <ListItemIcon>
+            <EmojiEventsIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Úspěchy"
+            primaryTypographyProps={{
+              sx: { fontWeight: 500 },
+            }}
+          />
+        </MenuItem>,
+      ]}
       <Divider sx={{ opacity: 0.6 }} />
       <MenuItem
         onClick={handleLogout}

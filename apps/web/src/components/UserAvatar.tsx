@@ -4,7 +4,7 @@ import type { ComponentProps } from 'react';
 import { config } from '../config/index';
 
 interface UserAvatarProps extends Omit<ComponentProps<typeof Avatar>, 'src' | 'children'> {
-  user: User | { username: string; profilePictureUrl?: string | null; googleProfilePictureUrl?: string | null; name?: string };
+  user: User | { username: string; id?: string; profilePictureUrl?: string | null; googleProfilePictureUrl?: string | null; name?: string; updatedAt?: string };
   getInitials?: (user: { username: string; name?: string }) => string;
 }
 
@@ -33,12 +33,13 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   const googleProfilePictureUrl = 'googleProfilePictureUrl' in user ? user.googleProfilePictureUrl : null;
   const pictureUrl = profilePictureUrl || googleProfilePictureUrl;
 
-  // Construct full URL if pictureUrl is relative
-  // Use API URL instead of window.location.origin since API runs on different port
+  // Private S3: key (demonicka/...) → use API proxy URL with cache buster so new uploads show immediately.
   const imageSrc = pictureUrl
-    ? pictureUrl.startsWith('http')
-      ? pictureUrl
-      : `${config.apiUrl}${pictureUrl}`
+    ? pictureUrl.startsWith('demonicka/') && 'id' in user && user.id
+      ? `${config.apiUrl}${config.apiPrefix}/users/${user.id}/profile-picture${'updatedAt' in user && user.updatedAt ? `?v=${user.updatedAt}` : ''}`
+      : pictureUrl.startsWith('http')
+        ? pictureUrl
+        : `${config.apiUrl}${pictureUrl}`
     : undefined;
 
   return (

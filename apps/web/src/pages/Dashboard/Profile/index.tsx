@@ -389,6 +389,7 @@ const ProfilePageComponent: React.FC = () => {
                   className: "text-text-secondary font-medium"
                 }}
                 secondaryTypographyProps={{
+                  component: 'div',
                   className: "text-text-primary"
                 }}
               />

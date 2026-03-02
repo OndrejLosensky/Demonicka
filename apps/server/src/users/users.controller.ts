@@ -11,6 +11,7 @@ import {
   UploadedFile,
   BadRequestException,
   NotFoundException,
+  Res,
   // ForbiddenException,
   Query,
   ParseUUIDPipe,
@@ -18,6 +19,7 @@ import {
   ParseBoolPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -38,6 +40,8 @@ import { UserStatsService } from './user-stats.service';
 import { RoleGuard } from '../auth/guards/role.guard';
 import { ProfilePictureService } from './profile-picture.service';
 import { LoggingService } from '../logging/logging.service';
+import { Inject } from '@nestjs/common';
+import { STORAGE_SERVICE, type IStorageService } from '../storage/storage.interface';
 /**
  * Users controller handling user profile management.
  * All routes are prefixed with '/users', protected by JWT authentication, and support API versioning.
@@ -51,6 +55,7 @@ export class UsersController {
     private readonly userStatsService: UserStatsService,
     private readonly profilePictureService: ProfilePictureService,
     private readonly loggingService: LoggingService,
+    @Inject(STORAGE_SERVICE) private readonly storage: IStorageService,
   ) {}
 
   @Post()
@@ -179,6 +184,48 @@ export class UsersController {
     await this.usersService.update(user.id, { profilePictureUrl });
 
     return { profilePictureUrl };
+  }
+
+  @Get(':id/profile-picture')
+  @Public()
+  async getProfilePicture(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res() res: Response,
+  ) {
+    const user = await this.usersService.findOne(id);
+    if (!user?.profilePictureUrl) {
+      throw new NotFoundException('Profilový obrázek nenalezen');
+    }
+    const urlOrKey = user.profilePictureUrl;
+
+    // Resolve to S3 key if stored as key or as full S3 URL (legacy)
+    let s3Key: string | null = null;
+    if (urlOrKey.startsWith('demonicka/')) {
+      s3Key = urlOrKey;
+    } else if (urlOrKey.startsWith('http') && urlOrKey.includes('demonicka/')) {
+      s3Key = urlOrKey.substring(urlOrKey.indexOf('demonicka/'));
+    }
+
+    if (s3Key) {
+      try {
+        const { stream, contentType } =
+          await this.storage.getObjectStream(s3Key);
+        res.setHeader('Content-Type', contentType ?? 'image/webp');
+        res.setHeader('Cache-Control', 'private, max-age=3600');
+        return stream.pipe(res);
+      } catch (err: unknown) {
+        const code = err && typeof err === 'object' && 'name' in err ? (err as { name: string }).name : '';
+        if (code === 'NoSuchKey') {
+          throw new NotFoundException('Profilový obrázek nenalezen');
+        }
+        throw err;
+      }
+    }
+
+    if (urlOrKey.startsWith('http')) {
+      return res.redirect(302, urlOrKey);
+    }
+    throw new NotFoundException('Profilový obrázek nenalezen');
   }
 
   @Get(':id')

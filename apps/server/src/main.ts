@@ -14,7 +14,6 @@ import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
 import { AppLogger } from './logging/app-logger.service';
 import { LoggingService } from './logging/logging.service';
 import { requestIdMiddleware } from './logging/request-id.middleware';
@@ -101,11 +100,6 @@ async function bootstrap() {
 
   // Set global prefix for all routes
   app.setGlobalPrefix('api');
-
-  // Serve static files for profile pictures
-  app.useStaticAssets(join(process.cwd(), 'uploads', 'profile-pictures'), {
-    prefix: '/api/uploads/profile-pictures',
-  });
 
   // Use global validation pipe
   app.useGlobalPipes(

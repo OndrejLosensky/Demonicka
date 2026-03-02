@@ -132,6 +132,7 @@ model User {
   startedBeerPongGames       BeerPongGame[]
   matchedRegistrations       EventRegistration[]
   twoFactorCodes             TwoFactorCode[]
+  galleryPhotos              GalleryPhoto[]
 
   creator User? @relation("UserCreator", fields: [createdBy], references: [id])
 
@@ -237,6 +238,7 @@ model Event {
   eventBeerPongTeams  EventBeerPongTeam[]
   eventRegistrations  EventRegistration[]
   creator             User?      @relation(fields: [createdBy], references: [id])
+  galleryPhotos       GalleryPhoto[]
 
   @@index([createdBy])
 }
@@ -367,6 +369,23 @@ model EventRegistration {
 
   @@index([eventId])
   @@index([status])
+}
+
+/// Gallery photos for events. S3 key format: demonicka/gallery/{eventId}/{photoId}.webp
+model GalleryPhoto {
+  id        String   @id @default(uuid()) @db.Uuid
+  eventId   String   @db.Uuid
+  userId    String   @db.Uuid
+  s3Key     String
+  caption   String?
+  order     Int?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([userId])
 }
 
 model Role {
