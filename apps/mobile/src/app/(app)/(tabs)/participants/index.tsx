@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
 import { useAuthStore } from '../../../../store/auth.store';
@@ -38,6 +39,7 @@ export default function ParticipantsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [smallBeerForUser, setSmallBeerForUser] = useState<Record<string, boolean>>({});
+  const isFirstFocus = useRef(true);
 
   const fetchParticipants = useCallback(async () => {
     if (!activeEvent?.id || !token) return;
@@ -60,6 +62,19 @@ export default function ParticipantsScreen() {
       fetchParticipants().finally(() => setIsLoading(false));
     }
   }, [activeEvent?.id, fetchParticipants]);
+
+  // Refetch when returning to this screen (e.g. after deleting a participant in detail)
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      if (activeEvent?.id && token) {
+        fetchParticipants();
+      }
+    }, [activeEvent?.id, token, fetchParticipants])
+  );
 
   useEffect(() => {
     if (searchQuery.trim() === '') {

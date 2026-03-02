@@ -30,8 +30,12 @@ export function parseError(error: unknown): AppError {
     };
   }
 
-  // Handle AbortError (timeout)
-  if (error instanceof DOMException && error.name === 'AbortError') {
+  // Handle AbortError (timeout) – use name check for React Native (no DOMException)
+  if (
+    error != null &&
+    typeof error === 'object' &&
+    (error as { name?: string }).name === 'AbortError'
+  ) {
     return {
       message: 'Požadavek vypršel. Zkuste to prosím znovu.',
       code: 'TIMEOUT',

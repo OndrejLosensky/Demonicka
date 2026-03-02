@@ -25,9 +25,13 @@ export type SyncLogEntry = {
 
 type SyncExecutor = (item: OfflineQueueItem) => Promise<void>;
 
+function isAbortError(e: unknown): boolean {
+  return e != null && typeof e === 'object' && (e as { name?: string }).name === 'AbortError';
+}
+
 function isNetworkError(e: unknown): boolean {
   if (e instanceof TypeError && e.message?.includes('Network')) return true;
-  if (e instanceof DOMException && e.name === 'AbortError') return true;
+  if (isAbortError(e)) return true;
   return false;
 }
 

@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { getErrorMessage } from '../../utils/errorHandler';
 
 type Gender = 'MALE' | 'FEMALE';
 
@@ -51,8 +52,7 @@ export function AddParticipantModal({
       await onSubmit(trimmed, gender);
       onClose();
     } catch (e) {
-      const msg = (e as { message?: string })?.message ?? 'Nepodařilo se přidat účastníka';
-      setError(msg);
+      setError(getErrorMessage(e));
     } finally {
       setIsSubmitting(false);
     }

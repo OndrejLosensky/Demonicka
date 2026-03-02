@@ -77,20 +77,40 @@ export class UsersService {
     createParticipantDto: CreateParticipantDto,
     createdBy?: string,
   ): Promise<UserWithoutPassword> {
+    // Check if a participant with this name already exists
+    const existing = await this.findByUsername(createParticipantDto.username);
+    if (existing) {
+      throw new BadRequestException('Účastník s tímto jménem již existuje');
+    }
+
     // Generate username-based token with random number
     const randomNumber = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
     const registrationToken = `${createParticipantDto.username}-${randomNumber}`;
 
-    const savedUser = await this.prisma.user.create({
-      data: {
-        ...createParticipantDto,
-        registrationToken,
-        isRegistrationComplete: false,
-        role: UserRole.PARTICIPANT,
-        canLogin: false, // PARTICIPANT cannot login
-        createdBy: createdBy || null,
-      },
-    });
+    let savedUser: User;
+    try {
+      savedUser = await this.prisma.user.create({
+        data: {
+          ...createParticipantDto,
+          registrationToken,
+          isRegistrationComplete: false,
+          role: UserRole.PARTICIPANT,
+          canLogin: false, // PARTICIPANT cannot login
+          createdBy: createdBy || null,
+        },
+      });
+    } catch (error: unknown) {
+      // Prisma unique constraint (e.g. duplicate username, or DB case-insensitive unique)
+      const prismaError = error as { code?: string; meta?: { target?: string[] } };
+      if (
+        prismaError?.code === 'P2002' &&
+        Array.isArray(prismaError?.meta?.target) &&
+        prismaError.meta.target.includes('username')
+      ) {
+        throw new BadRequestException('Účastník s tímto jménem již existuje');
+      }
+      throw error;
+    }
 
     // Log user creation
     this.loggingService.logUserCreated(
