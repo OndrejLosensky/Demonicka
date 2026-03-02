@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useAuthStore } from '../../store/auth.store';
+import { useThemeColors } from '../../hooks/useThemeColors';
 import { api } from '../../services/api';
 import type {
   BeerPongGame,
@@ -54,6 +55,7 @@ export function BeerPongAssignTeamModal({
   eventId,
 }: BeerPongAssignTeamModalProps) {
   const token = useAuthStore((state) => state.token);
+  const colors = useThemeColors();
   const [mode, setMode] = useState<Mode>('select');
   const [selectedTeamId, setSelectedTeamId] = useState('');
   const [selectedEventTeamId, setSelectedEventTeamId] = useState('');
@@ -189,6 +191,71 @@ export function BeerPongAssignTeamModal({
     (mode === 'fromEvent' && selectedEventTeamId) ||
     (mode === 'create' && name.trim() && player1Id && player2Id && player1Id !== player2Id);
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        overlay: {
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          padding: 24,
+        },
+        card: { backgroundColor: colors.card, borderRadius: 16, maxHeight: '85%' },
+        title: { fontSize: 20, fontWeight: '700', color: colors.text, padding: 20, paddingBottom: 8 },
+        tabs: { flexDirection: 'row' as const, paddingHorizontal: 20, gap: 8, marginBottom: 12 },
+        tab: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, backgroundColor: colors.bgSecondary },
+        tabActive: { backgroundColor: colors.primary },
+        tabText: { fontSize: 13, fontWeight: '500', color: colors.textMuted },
+        tabTextActive: { color: '#fff' },
+        scroll: { maxHeight: 320 },
+        scrollContent: { padding: 20, paddingBottom: 16 },
+        label: { fontSize: 14, fontWeight: '600', color: colors.textSecondary, marginBottom: 6, marginTop: 12 },
+        input: {
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 10,
+          paddingHorizontal: 14,
+          paddingVertical: 12,
+          fontSize: 16,
+          color: colors.text,
+          backgroundColor: colors.inputBg,
+        },
+        pickerWrap: { maxHeight: 160, borderWidth: 1, borderColor: colors.border, borderRadius: 10, overflow: 'hidden' as const },
+        pickerItem: {
+          paddingVertical: 12,
+          paddingHorizontal: 14,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        pickerItemActive: { backgroundColor: 'rgba(255, 0, 0, 0.1)' },
+        pickerItemText: { fontSize: 15, color: colors.text },
+        pickerItemTextActive: { color: colors.primary, fontWeight: '600' },
+        emptyHint: { fontSize: 14, color: colors.textSecondary, padding: 12 },
+        errorText: { fontSize: 13, color: colors.red, marginTop: 12 },
+        actions: {
+          flexDirection: 'row' as const,
+          justifyContent: 'flex-end',
+          gap: 12,
+          padding: 20,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+        },
+        cancelBtn: { paddingVertical: 10, paddingHorizontal: 16 },
+        cancelText: { fontSize: 16, color: colors.textMuted, fontWeight: '500' },
+        submitBtn: {
+          backgroundColor: colors.primary,
+          paddingVertical: 10,
+          paddingHorizontal: 20,
+          borderRadius: 10,
+          minWidth: 100,
+          alignItems: 'center',
+        },
+        submitBtnDisabled: { opacity: 0.7 },
+        submitText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+      }),
+    [colors]
+  );
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
@@ -269,9 +336,9 @@ export function BeerPongAssignTeamModal({
                   style={styles.input}
                   value={name}
                   onChangeText={setName}
-                  placeholder="Název"
-                  placeholderTextColor="#9ca3af"
-                  editable={!isSubmitting}
+                placeholder="Název"
+                placeholderTextColor={colors.textMuted}
+                editable={!isSubmitting}
                 />
                 <Text style={styles.label}>Hráč 1 *</Text>
                 <View style={styles.pickerWrap}>
@@ -371,63 +438,3 @@ export function BeerPongAssignTeamModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  card: { backgroundColor: '#fff', borderRadius: 16, maxHeight: '85%' },
-  title: { fontSize: 20, fontWeight: '700', color: '#111', padding: 20, paddingBottom: 8 },
-  tabs: { flexDirection: 'row', paddingHorizontal: 20, gap: 8, marginBottom: 12 },
-  tab: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, backgroundColor: '#f3f4f6' },
-  tabActive: { backgroundColor: '#FF0000' },
-  tabText: { fontSize: 13, fontWeight: '500', color: '#6b7280' },
-  tabTextActive: { color: '#fff' },
-  scroll: { maxHeight: 320 },
-  scrollContent: { padding: 20, paddingBottom: 16 },
-  label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6, marginTop: 12 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#111',
-  },
-  pickerWrap: { maxHeight: 160, borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, overflow: 'hidden' },
-  pickerItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  pickerItemActive: { backgroundColor: 'rgba(255, 0, 0, 0.1)' },
-  pickerItemText: { fontSize: 15, color: '#111' },
-  pickerItemTextActive: { color: '#FF0000', fontWeight: '600' },
-  emptyHint: { fontSize: 14, color: '#6b7280', padding: 12 },
-  errorText: { fontSize: 13, color: '#ef4444', marginTop: 12 },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
-  },
-  cancelBtn: { paddingVertical: 10, paddingHorizontal: 16 },
-  cancelText: { fontSize: 16, color: '#6b7280', fontWeight: '500' },
-  submitBtn: {
-    backgroundColor: '#FF0000',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  submitBtnDisabled: { opacity: 0.7 },
-  submitText: { fontSize: 16, fontWeight: '600', color: '#fff' },
-});

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/auth.store';
+import { useThemeColors } from '../../hooks/useThemeColors';
 import { authService } from '../../services/auth.service';
 import { FormInput } from '../../components/forms/FormInput';
 import { FormButton } from '../../components/forms/FormButton';
@@ -36,6 +37,7 @@ const COPY = {
 
 export default function CompleteRegistrationScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const completeRegistration = useAuthStore((state) => state.completeRegistration);
   const storeError = useAuthStore((state) => state.error);
   const clearError = useAuthStore((state) => state.clearError);
@@ -112,6 +114,56 @@ export default function CompleteRegistrationScreen() {
   };
 
   const displayError = error || storeError;
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        keyboard: { flex: 1, backgroundColor: colors.bg },
+        scrollContent: {
+          flexGrow: 1,
+          paddingHorizontal: 24,
+          paddingTop: 80,
+          paddingBottom: 32,
+          alignItems: 'stretch',
+        },
+        title: {
+          fontSize: 24,
+          fontWeight: '700',
+          color: colors.text,
+          textAlign: 'center',
+          marginBottom: 4,
+        },
+        subtitle: {
+          fontSize: 15,
+          color: colors.textSecondary,
+          textAlign: 'center',
+          marginBottom: 32,
+        },
+        form: { maxWidth: 360, width: '100%', alignSelf: 'center' },
+        logoWrap: { alignItems: 'center', marginBottom: 20 },
+        logo: { width: 200, height: 45 },
+        errorBox: {
+          backgroundColor: colors.redBg,
+          borderWidth: 1,
+          borderColor: colors.red,
+          borderRadius: 10,
+          padding: 12,
+          marginBottom: 16,
+        },
+        errorText: { fontSize: 14, color: colors.red },
+        usernameField: { opacity: 0.9 },
+        hint: {
+          fontSize: 13,
+          color: colors.textSecondary,
+          marginTop: -8,
+          marginBottom: 12,
+        },
+        button: { marginTop: 12 },
+        backLink: { alignSelf: 'center', marginTop: 24, padding: 8 },
+        backLinkText: { fontSize: 15, color: colors.primary, fontWeight: '500' },
+      }),
+    [colors]
+  );
 
   return (
     <KeyboardAvoidingView
@@ -197,77 +249,3 @@ export default function CompleteRegistrationScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  keyboard: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 32,
-    alignItems: 'stretch',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#6b7280',
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  form: {
-    maxWidth: 360,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  logoWrap: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logo: {
-    width: 200,
-    height: 45,
-  },
-  errorBox: {
-    backgroundColor: '#fef2f2',
-    borderWidth: 1,
-    borderColor: '#fecaca',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#dc2626',
-  },
-  usernameField: {
-    opacity: 0.9,
-  },
-  hint: {
-    fontSize: 13,
-    color: '#6b7280',
-    marginTop: -8,
-    marginBottom: 12,
-  },
-  button: {
-    marginTop: 12,
-  },
-  backLink: {
-    alignSelf: 'center',
-    marginTop: 24,
-    padding: 8,
-  },
-  backLinkText: {
-    fontSize: 15,
-    color: '#3b82f6',
-    fontWeight: '500',
-  },
-});

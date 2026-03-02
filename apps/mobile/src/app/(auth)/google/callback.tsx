@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '../../../store/auth.store';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 /**
  * Handles deep link: demonicka://auth/google/callback?token=...
@@ -9,6 +10,7 @@ import { useAuthStore } from '../../../store/auth.store';
  */
 export default function GoogleCallbackScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const { token, error: errorParam } = useLocalSearchParams<{
     token?: string;
     error?: string;
@@ -36,8 +38,8 @@ export default function GoogleCallbackScreen() {
   }, [token, errorParam, setTokenFromGoogle, router]);
 
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#dc2626" />
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
+      <ActivityIndicator size="large" color={colors.primary} />
     </View>
   );
 }
@@ -47,6 +49,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
   },
 });

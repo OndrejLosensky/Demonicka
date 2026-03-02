@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../../../store/auth.store';
 import { useRole } from '../../../../../hooks/useRole';
+import { useThemeColors } from '../../../../../hooks/useThemeColors';
 import { api } from '../../../../../services/api';
 import { logBackgroundError } from '../../../../../utils/errorHandler';
 import { Header } from '../../../../../components/layout/Header';
@@ -22,6 +23,7 @@ import type { User } from '@demonicka/shared-types';
 
 export default function UsersManagementScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const token = useAuthStore((state) => state.token);
   const { isAdmin } = useRole();
 
@@ -104,12 +106,55 @@ export default function UsersManagementScreen() {
     </TouchableOpacity>
   );
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.bg },
+        searchContainer: { paddingHorizontal: 16, paddingVertical: 12 },
+        searchInput: {
+          backgroundColor: colors.inputBg,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 10,
+          paddingHorizontal: 14,
+          paddingVertical: 10,
+          fontSize: 15,
+          color: colors.text,
+        },
+        listContent: { padding: 16, paddingTop: 4, paddingBottom: 32, flexGrow: 1 },
+        userCard: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: colors.card,
+          borderRadius: 12,
+          padding: 12,
+          marginBottom: 8,
+        },
+        avatar: {
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          backgroundColor: colors.primary,
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginRight: 12,
+        },
+        avatarText: { fontSize: 18, fontWeight: '600', color: '#fff' },
+        userInfo: { flex: 1 },
+        userName: { fontSize: 16, fontWeight: '500', color: colors.text },
+        userMeta: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
+        statusDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.border },
+        statusActive: { backgroundColor: colors.green },
+      }),
+    [colors]
+  );
+
   if (!isAdmin) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header title="Správa uživatelů" showBack />
         <EmptyState
-          icon={<Icon name="lock" size={48} color="#9ca3af" />}
+          icon={<Icon name="lock" size={48} color={colors.textMuted} />}
           title="Přístup odepřen"
           message="Nemáte oprávnění k této sekci."
         />
@@ -131,7 +176,7 @@ export default function UsersManagementScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Hledat uživatele..."
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={colors.textMuted}
         />
       </View>
 
@@ -142,11 +187,11 @@ export default function UsersManagementScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF0000" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
         ListEmptyComponent={
           <EmptyState
-            icon={<Icon name="group" size={48} color="#9ca3af" />}
+            icon={<Icon name="group" size={48} color={colors.textMuted} />}
             title="Žádní uživatelé"
             message={
               searchQuery
@@ -159,42 +204,3 @@ export default function UsersManagementScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  searchContainer: { paddingHorizontal: 16, paddingVertical: 12 },
-  searchInput: {
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: '#111',
-  },
-  listContent: { padding: 16, paddingTop: 4, paddingBottom: 32, flexGrow: 1 },
-  userCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#3b82f6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  avatarText: { fontSize: 18, fontWeight: '600', color: '#fff' },
-  userInfo: { flex: 1 },
-  userName: { fontSize: 16, fontWeight: '500', color: '#111' },
-  userMeta: { fontSize: 13, color: '#6b7280', marginTop: 2 },
-  statusDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#e5e7eb' },
-  statusActive: { backgroundColor: '#16a34a' },
-});

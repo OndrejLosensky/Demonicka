@@ -5,15 +5,18 @@ import { Header } from '../../../../components/layout/Header';
 import { config } from '../../../../config';
 import { useAuthStore } from '../../../../store/auth.store';
 import { websocketService } from '../../../../services/websocket.service';
+import { useThemeColors } from '../../../../hooks/useThemeColors';
 
 type Status = 'online' | 'offline' | 'checking';
 
 function StatusRow({
   label,
   status,
+  colors,
 }: {
   label: string;
   status: Status;
+  colors: ReturnType<typeof useThemeColors>;
 }) {
   const statusLabel =
     status === 'checking'
@@ -21,12 +24,12 @@ function StatusRow({
       : status === 'online'
         ? 'Online'
         : 'Offline';
-  const statusColor = status === 'online' ? '#16a34a' : status === 'offline' ? '#dc2626' : '#6b7280';
+  const statusColor = status === 'online' ? colors.green : status === 'offline' ? colors.red : colors.textMuted;
 
   return (
     <View style={styles.row}>
       <View style={[styles.dot, { backgroundColor: statusColor }]} />
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
       <Text style={[styles.status, { color: statusColor }]}>{statusLabel}</Text>
     </View>
   );
@@ -34,6 +37,7 @@ function StatusRow({
 
 export default function StatusScreen() {
   const token = useAuthStore((state) => state.token);
+  const colors = useThemeColors();
   const [refreshing, setRefreshing] = useState(false);
   const [serverStatus, setServerStatus] = useState<Status>('checking');
   const [wsStatus, setWsStatus] = useState<Status>(() =>
@@ -78,24 +82,24 @@ export default function StatusScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
       <Header title="Stav služeb" showBack />
 
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#FF0000" />
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} />
         }
       >
-        <View style={styles.card}>
-          <StatusRow label="Server (API)" status={serverStatus} />
-          <View style={styles.separator} />
-          <StatusRow label="Aplikace" status="online" />
-          <View style={styles.separator} />
-          <StatusRow label="WebSocket" status={wsStatus} />
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <StatusRow label="Server (API)" status={serverStatus} colors={colors} />
+          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+          <StatusRow label="Aplikace" status="online" colors={colors} />
+          <View style={[styles.separator, { backgroundColor: colors.border }]} />
+          <StatusRow label="WebSocket" status={wsStatus} colors={colors} />
         </View>
-        <Text style={styles.hint}>
+        <Text style={[styles.hint, { color: colors.textMuted }]}>
           Server a WebSocket se kontrolují podle aktuálního připojení. Obnovení stránky znovu provede kontrolu.
         </Text>
       </ScrollView>
@@ -104,15 +108,13 @@ export default function StatusScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   scroll: { flex: 1 },
   content: { padding: 16, paddingBottom: 32 },
   card: {
-    backgroundColor: '#f9fafb',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
   },
   row: {
     flexDirection: 'row',
@@ -125,13 +127,12 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginRight: 12,
   },
-  label: { flex: 1, fontSize: 16, color: '#111', fontWeight: '500' },
+  label: { flex: 1, fontSize: 16, fontWeight: '500' },
   status: { fontSize: 15, fontWeight: '500' },
-  separator: { height: 1, backgroundColor: '#e5e7eb', marginLeft: 22 },
+  separator: { height: 1, marginLeft: 22 },
   hint: {
     marginTop: 16,
     fontSize: 13,
-    color: '#6b7280',
     lineHeight: 18,
   },
 });

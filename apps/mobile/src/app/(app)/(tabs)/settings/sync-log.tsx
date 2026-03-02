@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Header } from '../../../../components/layout/Header';
 import { offlineSync, type SyncLogEntry } from '../../../../services/offlineSync';
 import { useSyncStatus } from '../../../../hooks/useSyncStatus';
+import { useThemeColors } from '../../../../hooks/useThemeColors';
 
 function formatTime(ts: number): string {
   const d = new Date(ts);
@@ -29,6 +30,7 @@ function logKindLabel(kind: SyncLogEntry['kind']): string {
 
 export default function SyncLogScreen() {
   const { queueLength, statusLabel, runSync } = useSyncStatus();
+  const colors = useThemeColors();
   const [entries, setEntries] = useState<SyncLogEntry[]>(() => offlineSync.getLogEntries());
 
   const refresh = useCallback(() => {
@@ -41,11 +43,11 @@ export default function SyncLogScreen() {
   }, [runSync, refresh]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
       <Header title="Sync log" showBack />
 
-      <View style={styles.statusBar}>
-        <Text style={styles.statusText}>
+      <View style={[styles.statusBar, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+        <Text style={[styles.statusText, { color: colors.text }]}>
           Stav: {statusLabel} {queueLength > 0 ? `(${queueLength} v frontě)` : ''}
         </Text>
         {queueLength > 0 && (
@@ -62,27 +64,27 @@ export default function SyncLogScreen() {
         refreshing={false}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <View style={styles.entry}>
-            <Text style={styles.entryTime}>{formatTime(item.at)}</Text>
-            <Text style={styles.entryKind}>{logKindLabel(item.kind)}</Text>
+          <View style={[styles.entry, { backgroundColor: colors.card, borderLeftColor: colors.border }]}>
+            <Text style={[styles.entryTime, { color: colors.textMuted }]}>{formatTime(item.at)}</Text>
+            <Text style={[styles.entryKind, { color: colors.text }]}>{logKindLabel(item.kind)}</Text>
             {item.path != null && (
-              <Text style={styles.entryPath} numberOfLines={2}>
+              <Text style={[styles.entryPath, { color: colors.textSecondary }]} numberOfLines={2}>
                 {item.method ?? ''} {item.path}
               </Text>
             )}
             {item.message != null && (
-              <Text style={styles.entryMessage} numberOfLines={2}>
+              <Text style={[styles.entryMessage, { color: colors.red }]} numberOfLines={2}>
                 {item.message}
               </Text>
             )}
             {item.queueLength != null && (
-              <Text style={styles.entryMeta}>Fronta: {item.queueLength}</Text>
+              <Text style={[styles.entryMeta, { color: colors.textMuted }]}>Fronta: {item.queueLength}</Text>
             )}
           </View>
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>Žádné záznamy</Text>
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>Žádné záznamy</Text>
           </View>
         }
       />
@@ -91,33 +93,29 @@ export default function SyncLogScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   statusBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 12,
-    backgroundColor: '#f9fafb',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
-  statusText: { fontSize: 14, color: '#374151' },
+  statusText: { fontSize: 14 },
   syncButton: { backgroundColor: '#FF0000', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
   syncButtonText: { fontSize: 14, fontWeight: '600', color: '#fff' },
   list: { padding: 16, paddingBottom: 32 },
   entry: {
-    backgroundColor: '#f9fafb',
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#d1d5db',
   },
-  entryTime: { fontSize: 12, color: '#6b7280', marginBottom: 2 },
-  entryKind: { fontSize: 14, fontWeight: '600', color: '#111', marginBottom: 2 },
-  entryPath: { fontSize: 12, color: '#374151', fontFamily: 'monospace', marginBottom: 2 },
-  entryMessage: { fontSize: 12, color: '#dc2626', marginBottom: 2 },
-  entryMeta: { fontSize: 11, color: '#9ca3af' },
+  entryTime: { fontSize: 12, marginBottom: 2 },
+  entryKind: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
+  entryPath: { fontSize: 12, fontFamily: 'monospace', marginBottom: 2 },
+  entryMessage: { fontSize: 12, marginBottom: 2 },
+  entryMeta: { fontSize: 11 },
   empty: { padding: 24, alignItems: 'center' },
-  emptyText: { fontSize: 15, color: '#6b7280' },
+  emptyText: { fontSize: 15 },
 });

@@ -18,6 +18,7 @@ import { Icon } from '../../../../components/icons';
 import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../components/ui/EmptyState';
 import { AddParticipantModal } from '../../../../components/participants/AddParticipantModal';
+import { useThemeColors } from '../../../../hooks/useThemeColors';
 import type { User } from '@demonicka/shared-types';
 
 type EventUser = User & { eventBeerCount?: number };
@@ -28,6 +29,7 @@ export default function ParticipantsScreen() {
   const router = useRouter();
   const { activeEvent, isLoading: eventLoading } = useActiveEvent();
   const token = useAuthStore((state) => state.token);
+  const colors = useThemeColors();
 
   const [participants, setParticipants] = useState<EventUser[]>([]);
   const [filteredParticipants, setFilteredParticipants] = useState<EventUser[]>([]);
@@ -141,7 +143,7 @@ export default function ParticipantsScreen() {
     const isSmall = smallBeerForUser[item.id];
     const beerSizesEnabled = activeEvent?.beerSizesEnabled !== false;
     return (
-      <View style={styles.participantCard}>
+      <View style={[styles.participantCard, { backgroundColor: colors.card }]}>
         <TouchableOpacity
           style={styles.participantMain}
           activeOpacity={0.7}
@@ -153,39 +155,39 @@ export default function ParticipantsScreen() {
             </Text>
           </View>
           <View style={styles.participantInfo}>
-            <Text style={styles.participantName}>{item.name || item.username}</Text>
-            <Text style={styles.participantMeta}>{beerCount} piv</Text>
+            <Text style={[styles.participantName, { color: colors.text }]}>{item.name || item.username}</Text>
+            <Text style={[styles.participantMeta, { color: colors.textMuted }]}>{beerCount} piv</Text>
           </View>
           <View style={styles.beerCountWrap}>
-            <Icon name="beer" size={16} color="#FF0000" />
+            <Icon name="beer" size={16} color={colors.primary} />
             <Text style={styles.beerCount}>{beerCount}</Text>
           </View>
         </TouchableOpacity>
         <View style={styles.actionsRow}>
           <TouchableOpacity
-            style={styles.actionBtn}
+            style={[styles.actionBtn, { backgroundColor: colors.border }]}
             onPress={() => handleAddBeer(item.id)}
           >
-            <Icon name="add" size={20} color="#111" />
+            <Icon name="add" size={20} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.actionBtn}
+            style={[styles.actionBtn, { backgroundColor: colors.border }]}
             onPress={() => handleRemoveBeer(item.id)}
           >
-            <Icon name="remove" size={20} color="#111" />
+            <Icon name="remove" size={20} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionBtn, styles.actionBtnSpill]}
+            style={[styles.actionBtn, styles.actionBtnSpill, { backgroundColor: colors.amberBg }]}
             onPress={() => handleAddSpilledBeer(item.id)}
           >
-            <Icon name="spill" size={18} color="#b45309" />
+            <Icon name="spill" size={18} color={colors.amber} />
           </TouchableOpacity>
           {beerSizesEnabled && (
           <TouchableOpacity
-            style={[styles.sizeBtn, isSmall && styles.sizeBtnActive]}
+            style={[styles.sizeBtn, { backgroundColor: colors.border }, isSmall && styles.sizeBtnActive]}
             onPress={() => toggleSmallBeer(item.id)}
           >
-            <Text style={[styles.sizeBtnText, isSmall && styles.sizeBtnTextActive]}>
+            <Text style={[styles.sizeBtnText, { color: colors.textMuted }, isSmall && styles.sizeBtnTextActive]}>
               {isSmall ? 'S' : 'L'}
             </Text>
           </TouchableOpacity>
@@ -201,9 +203,9 @@ export default function ParticipantsScreen() {
 
   if (!activeEvent) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
         <EmptyState
-          icon={<Icon name="calendar" size={48} color="#9ca3af" />}
+          icon={<Icon name="calendar" size={48} color={colors.textMuted} />}
           title="Žádná aktivní událost"
           message="Momentálně není aktivní žádná událost."
         />
@@ -212,11 +214,11 @@ export default function ParticipantsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Účastníci</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: colors.text }]}>Účastníci</Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
             {participants.length} účastníků
           </Text>
         </View>
@@ -237,11 +239,11 @@ export default function ParticipantsScreen() {
 
       <View style={styles.searchContainer}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Hledat účastníka..."
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={colors.textMuted}
         />
       </View>
 
@@ -252,11 +254,11 @@ export default function ParticipantsScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF0000" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
         ListEmptyComponent={
           <EmptyState
-            icon={<Icon name="group" size={48} color="#9ca3af" />}
+            icon={<Icon name="group" size={48} color={colors.textMuted} />}
             title="Žádní účastníci"
             message={
               searchQuery
@@ -271,10 +273,7 @@ export default function ParticipantsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -282,16 +281,8 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 8,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111',
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#6b7280',
-    marginTop: 4,
-  },
+  title: { fontSize: 28, fontWeight: '700' },
+  subtitle: { fontSize: 15, marginTop: 4 },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -301,24 +292,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#FF0000',
   },
-  addBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  searchContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
+  addBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+  searchContainer: { paddingHorizontal: 16, paddingBottom: 12 },
   searchInput: {
-    backgroundColor: '#f9fafb',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 15,
-    color: '#111',
   },
   listContent: {
     padding: 16,
@@ -329,7 +310,6 @@ const styles = StyleSheet.create({
   participantCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9fafb',
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
@@ -348,68 +328,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  participantInfo: {
-    flex: 1,
-  },
-  participantName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#111',
-  },
-  participantMeta: {
-    fontSize: 13,
-    color: '#6b7280',
-    marginTop: 2,
-  },
-  beerCountWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  beerCount: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FF0000',
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
+  avatarText: { fontSize: 18, fontWeight: '600', color: '#fff' },
+  participantInfo: { flex: 1 },
+  participantName: { fontSize: 16, fontWeight: '500' },
+  participantMeta: { fontSize: 13, marginTop: 2 },
+  beerCountWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  beerCount: { fontSize: 15, fontWeight: '600', color: '#FF0000' },
+  actionsRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   actionBtn: {
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: '#e5e7eb',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  actionBtnSpill: {
-    backgroundColor: '#fef3c7',
-  },
+  actionBtnSpill: {},
   sizeBtn: {
     minWidth: 28,
     height: 36,
     borderRadius: 8,
-    backgroundColor: '#e5e7eb',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 6,
   },
-  sizeBtnActive: {
-    backgroundColor: '#FF0000',
-  },
-  sizeBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#6b7280',
-  },
-  sizeBtnTextActive: {
-    color: '#fff',
-  },
+  sizeBtnActive: { backgroundColor: '#FF0000' },
+  sizeBtnText: { fontSize: 13, fontWeight: '700' },
+  sizeBtnTextActive: { color: '#fff' },
 });

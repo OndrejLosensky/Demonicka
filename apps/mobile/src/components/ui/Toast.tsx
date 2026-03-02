@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -18,8 +19,37 @@ export function Toast({
   onHide,
   visible,
 }: ToastProps) {
+  const colors = useThemeColors();
   const translateY = useRef(new Animated.Value(-100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
+
+  const getBackgroundColor = () => {
+    switch (type) {
+      case 'success':
+        return colors.green;
+      case 'error':
+        return colors.red;
+      case 'warning':
+        return colors.amber;
+      case 'info':
+      default:
+        return colors.primary;
+    }
+  };
+
+  const getIcon = () => {
+    switch (type) {
+      case 'success':
+        return '✓';
+      case 'error':
+        return '✕';
+      case 'warning':
+        return '⚠';
+      case 'info':
+      default:
+        return 'ℹ';
+    }
+  };
 
   useEffect(() => {
     if (visible) {
@@ -62,34 +92,6 @@ export function Toast({
   };
 
   if (!visible) return null;
-
-  const getBackgroundColor = () => {
-    switch (type) {
-      case 'success':
-        return '#16a34a';
-      case 'error':
-        return '#dc2626';
-      case 'warning':
-        return '#f59e0b';
-      case 'info':
-      default:
-        return '#3b82f6';
-    }
-  };
-
-  const getIcon = () => {
-    switch (type) {
-      case 'success':
-        return '✓';
-      case 'error':
-        return '✕';
-      case 'warning':
-        return '⚠';
-      case 'info':
-      default:
-        return 'ℹ';
-    }
-  };
 
   return (
     <Animated.View

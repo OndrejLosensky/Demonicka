@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 export type BarrelSize = 15 | 30 | 50;
 
@@ -23,9 +24,100 @@ export function AddBarrelModal({
   onClose,
   onSubmit,
 }: AddBarrelModalProps) {
+  const colors = useThemeColors();
   const [size, setSize] = useState<BarrelSize>(30);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        overlay: {
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          padding: 24,
+        },
+        card: {
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          padding: 20,
+        },
+        title: {
+          fontSize: 20,
+          fontWeight: '700',
+          color: colors.text,
+          marginBottom: 20,
+        },
+        label: {
+          fontSize: 14,
+          fontWeight: '600',
+          color: colors.textSecondary,
+          marginBottom: 10,
+        },
+        sizeRow: {
+          flexDirection: 'row',
+          gap: 12,
+          marginBottom: 24,
+        },
+        sizeBtn: {
+          flex: 1,
+          paddingVertical: 14,
+          borderRadius: 10,
+          borderWidth: 1,
+          borderColor: colors.border,
+          alignItems: 'center',
+        },
+        sizeBtnActive: {
+          borderColor: colors.primary,
+          backgroundColor: 'rgba(255, 0, 0, 0.08)',
+        },
+        sizeBtnText: {
+          fontSize: 16,
+          fontWeight: '600',
+          color: colors.textMuted,
+        },
+        sizeBtnTextActive: {
+          color: colors.primary,
+        },
+        errorText: {
+          fontSize: 13,
+          color: colors.red,
+          marginBottom: 12,
+        },
+        actions: {
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
+          gap: 12,
+        },
+        cancelBtn: {
+          paddingVertical: 10,
+          paddingHorizontal: 16,
+        },
+        cancelText: {
+          fontSize: 16,
+          color: colors.textMuted,
+          fontWeight: '500',
+        },
+        submitBtn: {
+          backgroundColor: colors.primary,
+          paddingVertical: 10,
+          paddingHorizontal: 20,
+          borderRadius: 10,
+          minWidth: 100,
+          alignItems: 'center',
+        },
+        submitBtnDisabled: {
+          opacity: 0.7,
+        },
+        submitText: {
+          fontSize: 16,
+          fontWeight: '600',
+          color: '#fff',
+        },
+      }),
+    [colors]
+  );
 
   useEffect(() => {
     if (visible) {
@@ -100,89 +192,3 @@ export function AddBarrelModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111',
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 10,
-  },
-  sizeRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
-  sizeBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    alignItems: 'center',
-  },
-  sizeBtnActive: {
-    borderColor: '#FF0000',
-    backgroundColor: 'rgba(255, 0, 0, 0.08)',
-  },
-  sizeBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6b7280',
-  },
-  sizeBtnTextActive: {
-    color: '#FF0000',
-  },
-  errorText: {
-    fontSize: 13,
-    color: '#ef4444',
-    marginBottom: 12,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-  },
-  cancelBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-  },
-  cancelText: {
-    fontSize: 16,
-    color: '#6b7280',
-    fontWeight: '500',
-  },
-  submitBtn: {
-    backgroundColor: '#FF0000',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  submitBtnDisabled: {
-    opacity: 0.7,
-  },
-  submitText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-});

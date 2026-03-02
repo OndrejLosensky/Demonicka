@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface StatCardProps {
   label: string;
@@ -9,18 +10,20 @@ interface StatCardProps {
 }
 
 export function StatCard({ label, value, icon, color = '#FF0000', style }: StatCardProps) {
+  const colors = useThemeColors();
+  const valueColor = color ?? colors.primary;
+
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, { backgroundColor: colors.card }, style]}>
       {icon && <View style={styles.iconWrap}>{icon}</View>}
-      <Text style={[styles.value, { color }]}>{value}</Text>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.value, { color: valueColor }]}>{value}</Text>
+      <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f9fafb',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -37,7 +40,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    color: '#6b7280',
     marginTop: 4,
     textAlign: 'center',
   },

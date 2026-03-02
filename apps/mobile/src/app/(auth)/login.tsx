@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/auth.store';
+import { useThemeColors } from '../../hooks/useThemeColors';
 import { FormInput } from '../../components/forms/FormInput';
 import { FormButton } from '../../components/forms/FormButton';
 import { config } from '../../config';
@@ -37,6 +38,7 @@ const COPY = {
 
 export default function LoginScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const login = useAuthStore((state) => state.login);
   const storeError = useAuthStore((state) => state.error);
   const clearError = useAuthStore((state) => state.clearError);
@@ -86,9 +88,76 @@ export default function LoginScreen() {
 
   const displayError = error || storeError;
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        keyboard: { flex: 1 },
+        scrollContent: {
+          flexGrow: 1,
+          paddingHorizontal: 24,
+          paddingTop: 80,
+          paddingBottom: 32,
+          alignItems: 'stretch',
+        },
+        logoWrap: { alignItems: 'center', marginBottom: 24 },
+        logo: { width: 220, height: 50 },
+        title: {
+          fontSize: 24,
+          fontWeight: '700',
+          color: colors.text,
+          textAlign: 'center',
+          marginBottom: 4,
+        },
+        subtitle: {
+          fontSize: 15,
+          color: colors.textSecondary,
+          textAlign: 'center',
+          marginBottom: 32,
+        },
+        form: { maxWidth: 360, width: '100%', alignSelf: 'center' },
+        errorBox: {
+          backgroundColor: colors.redBg,
+          borderWidth: 1,
+          borderColor: colors.red,
+          borderRadius: 10,
+          padding: 12,
+          marginBottom: 16,
+        },
+        errorText: { fontSize: 14, color: colors.red },
+        rememberRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 16,
+        },
+        rememberLabel: { fontSize: 15, color: colors.textSecondary },
+        button: { marginTop: 0 },
+        dividerWrap: { flexDirection: 'row', alignItems: 'center', marginVertical: 20 },
+        dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
+        dividerText: { marginHorizontal: 12, fontSize: 14, color: colors.textSecondary },
+        googleButton: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingVertical: 12,
+          paddingHorizontal: 16,
+          borderRadius: 10,
+          borderWidth: 1,
+          borderColor: colors.border,
+          backgroundColor: colors.card,
+          gap: 10,
+        },
+        googleIcon: { fontSize: 18, fontWeight: '700', color: '#4285f4' },
+        googleButtonText: { fontSize: 16, color: colors.text, fontWeight: '500' },
+        tokenLink: { alignSelf: 'center', marginTop: 20, padding: 8 },
+        tokenLinkText: { fontSize: 15, color: colors.primary, fontWeight: '500' },
+      }),
+    [colors]
+  );
+
   return (
     <KeyboardAvoidingView
-      style={styles.keyboard}
+      style={[styles.keyboard, { backgroundColor: colors.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
@@ -143,8 +212,8 @@ export default function LoginScreen() {
             <Switch
               value={rememberMe}
               onValueChange={setRememberMe}
-              trackColor={{ false: '#d1d5db', true: '#93c5fd' }}
-              thumbColor={rememberMe ? '#2563eb' : '#f3f4f6'}
+              trackColor={{ false: colors.border, true: colors.greenBg }}
+              thumbColor={rememberMe ? colors.green : colors.textMuted}
               disabled={isLoading}
             />
           </View>
@@ -185,115 +254,3 @@ export default function LoginScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  keyboard: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 32,
-    alignItems: 'stretch',
-  },
-  logoWrap: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  logo: {
-    width: 220,
-    height: 50,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#6b7280',
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  form: {
-    maxWidth: 360,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  errorBox: {
-    backgroundColor: '#fef2f2',
-    borderWidth: 1,
-    borderColor: '#fecaca',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#dc2626',
-  },
-  rememberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  rememberLabel: {
-    fontSize: 15,
-    color: '#374151',
-  },
-  button: {
-    marginTop: 0,
-  },
-  dividerWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#e5e7eb',
-  },
-  dividerText: {
-    marginHorizontal: 12,
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#fff',
-    gap: 10,
-  },
-  googleIcon: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#4285f4',
-  },
-  googleButtonText: {
-    fontSize: 16,
-    color: '#374151',
-    fontWeight: '500',
-  },
-  tokenLink: {
-    alignSelf: 'center',
-    marginTop: 20,
-    padding: 8,
-  },
-  tokenLinkText: {
-    fontSize: 15,
-    color: '#3b82f6',
-    fontWeight: '500',
-  },
-});

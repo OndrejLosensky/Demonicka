@@ -9,6 +9,7 @@ export default function SettingsLayout() {
       <Stack.Screen name="event-settings" />
       <Stack.Screen name="sync-log" />
       <Stack.Screen name="status" />
+      <Stack.Screen name="appearance" />
     </Stack>
   );
 }

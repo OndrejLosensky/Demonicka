@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '../../../../../store/auth.store';
 import { useEventStore } from '../../../../../store/event.store';
+import { useThemeColors } from '../../../../../hooks/useThemeColors';
 import { api } from '../../../../../services/api';
 import { parseError, logBackgroundError } from '../../../../../utils/errorHandler';
 import { Header } from '../../../../../components/layout/Header';
@@ -47,6 +48,7 @@ function fromLocalDateTimeInput(value: string): string {
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const colors = useThemeColors();
   const token = useAuthStore((state) => state.token);
   const refetchActiveEvent = useEventStore((state) => state.fetchActiveEvent);
 
@@ -188,10 +190,10 @@ export default function EventDetailScreen() {
   if (loading) return <LoadingScreen showLogo={false} />;
   if (!id || !event) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
         <Header title="Událost" showBack />
         <EmptyState
-          icon={<Icon name="calendar" size={48} color="#9ca3af" />}
+          icon={<Icon name="calendar" size={48} color={colors.textMuted} />}
           title="Událost nenalezena"
           message="Událost neexistuje nebo k ní nemáte přístup."
         />
@@ -203,7 +205,7 @@ export default function EventDetailScreen() {
   const regEnabled = event.registrationEnabled ?? false;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
       <Header title={event.name} showBack />
       <KeyboardAvoidingView
         style={styles.flex}
@@ -216,7 +218,7 @@ export default function EventDetailScreen() {
             <View style={styles.card}>
               <TouchableOpacity style={styles.linkRow} onPress={() => router.push('/leaderboard')} activeOpacity={0.8}>
                 <View style={styles.linkLeft}>
-                  <Icon name="chart" size={20} color="#6b7280" />
+                  <Icon name="chart" size={20} color={colors.textSecondary} />
                   <Text style={styles.linkLabel}>Žebříček</Text>
                 </View>
                 <Text style={styles.linkArrow}>→</Text>
@@ -359,8 +361,8 @@ export default function EventDetailScreen() {
                   value={event.beerPongEnabled !== false}
                   onValueChange={(v) => handleUpdateEvent({ beerPongEnabled: v })}
                   disabled={!canEdit || saving}
-                  trackColor={{ false: '#e5e7eb', true: '#dcfce7' }}
-                  thumbColor={event.beerPongEnabled !== false ? '#16a34a' : '#9ca3af'}
+                  trackColor={{ false: colors.border, true: colors.greenBg }}
+                  thumbColor={event.beerPongEnabled !== false ? colors.green : colors.textMuted}
                 />
               </View>
               <View style={styles.switchRow}>
@@ -371,8 +373,8 @@ export default function EventDetailScreen() {
                   value={event.beerSizesEnabled !== false}
                   onValueChange={(v) => handleUpdateEvent({ beerSizesEnabled: v })}
                   disabled={!canEdit || saving}
-                  trackColor={{ false: '#e5e7eb', true: '#dcfce7' }}
-                  thumbColor={event.beerSizesEnabled !== false ? '#16a34a' : '#9ca3af'}
+                  trackColor={{ false: colors.border, true: colors.greenBg }}
+                  thumbColor={event.beerSizesEnabled !== false ? colors.green : colors.textMuted}
                 />
               </View>
               <View style={styles.field}>

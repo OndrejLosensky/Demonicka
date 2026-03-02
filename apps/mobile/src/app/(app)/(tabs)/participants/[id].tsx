@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../../store/auth.store';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
+import { useThemeColors } from '../../../../hooks/useThemeColors';
 import { api } from '../../../../services/api';
 import { parseError, logBackgroundError } from '../../../../utils/errorHandler';
 import { Header } from '../../../../components/layout/Header';
@@ -36,6 +37,7 @@ type BeerEntry = {
 export default function ParticipantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const colors = useThemeColors();
   const token = useAuthStore((state) => state.token);
   const { activeEvent } = useActiveEvent();
 
@@ -135,6 +137,117 @@ export default function ParticipantDetailScreen() {
     );
   }, [activeEvent?.id, token, id, router]);
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.bg },
+        scroll: { flex: 1 },
+        scrollContent: { padding: 16, paddingBottom: 32 },
+        profileSection: { alignItems: 'center', marginBottom: 20 },
+        avatar: {
+          width: 72,
+          height: 72,
+          borderRadius: 36,
+          backgroundColor: colors.textSecondary,
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginBottom: 12,
+        },
+        avatarText: { fontSize: 28, fontWeight: '600', color: '#fff' },
+        name: { fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 2 },
+        username: { fontSize: 14, color: colors.textSecondary, marginBottom: 8 },
+        roleBadge: {
+          backgroundColor: colors.bgSecondary,
+          borderRadius: 20,
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+        },
+        roleText: { fontSize: 12, fontWeight: '500', color: colors.textSecondary },
+        statsRow: { flexDirection: 'row' as const, gap: 12, marginBottom: 24 },
+        statCard: {
+          flex: 1,
+          backgroundColor: colors.card,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+          borderRadius: 12,
+        },
+        detailsSection: { marginBottom: 24 },
+        sectionTitle: {
+          fontSize: 15,
+          fontWeight: '600',
+          color: colors.textSecondary,
+          marginBottom: 8,
+          letterSpacing: 0.15,
+        },
+        detailsCard: {
+          backgroundColor: colors.card,
+          borderRadius: 12,
+          padding: 16,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+        },
+        detailRow: {
+          flexDirection: 'row' as const,
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingVertical: 10,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        detailRowLast: { borderBottomWidth: 0 },
+        detailLabel: { fontSize: 15, color: colors.textSecondary },
+        detailValue: { fontSize: 15, fontWeight: '500', color: colors.text },
+        historyCard: {
+          backgroundColor: colors.card,
+          borderRadius: 12,
+          padding: 16,
+          minHeight: 80,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+        },
+        historyRow: {
+          flexDirection: 'row' as const,
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingVertical: 10,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        historyRowLast: { borderBottomWidth: 0 },
+        historyRowRemoved: { opacity: 0.7 },
+        historyLeft: { flexDirection: 'row' as const, alignItems: 'center', gap: 10, flex: 1 },
+        historyRight: { flexDirection: 'row' as const, alignItems: 'center', gap: 8 },
+        historyAddRemove: { alignItems: 'center', justifyContent: 'center', minWidth: 24 },
+        historyTime: { fontSize: 14, color: colors.text, fontWeight: '500' },
+        historyTimeMuted: { color: colors.textMuted },
+        historySize: { fontSize: 14, color: colors.textSecondary, fontWeight: '500' },
+        historyPlaceholder: { fontSize: 14, color: colors.textMuted, textAlign: 'center' as const, paddingVertical: 16 },
+        spilledBadge: {
+          flexDirection: 'row' as const,
+          alignItems: 'center',
+          gap: 4,
+          backgroundColor: colors.amberBg,
+          paddingHorizontal: 6,
+          paddingVertical: 3,
+          borderRadius: 6,
+        },
+        spilledText: { fontSize: 11, color: colors.amber, fontWeight: '500' },
+        actionsSection: { marginTop: 8, paddingHorizontal: 4 },
+        removeFromEventBtn: {
+          flexDirection: 'row' as const,
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          paddingVertical: 14,
+          borderRadius: 12,
+          backgroundColor: colors.red,
+        },
+        removeFromEventBtnDisabled: { opacity: 0.6 },
+        removeFromEventBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+      }),
+    [colors]
+  );
+
   if (isLoading) {
     return <LoadingScreen showLogo={false} />;
   }
@@ -172,7 +285,7 @@ export default function ParticipantDetailScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF0000" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
       >
         <View style={styles.profileSection}>
@@ -190,17 +303,17 @@ export default function ParticipantDetailScreen() {
 
         <View style={styles.statsRow}>
           <StatCard
-            icon={<Icon name="beer" size={22} color="#78716c" />}
+            icon={<Icon name="beer" size={22} color={colors.textMuted} />}
             label="Počet piv"
             value={participant.eventBeerCount ?? 0}
-            color="#44403c"
+            color={colors.text}
             style={styles.statCard}
           />
           <StatCard
-            icon={<Icon name="clock" size={22} color="#78716c" />}
+            icon={<Icon name="clock" size={22} color={colors.textMuted} />}
             label="Poslední pivo"
             value={participant.lastBeerTime ? formatRelativeTime(participant.lastBeerTime) : '–'}
-            color="#44403c"
+            color={colors.text}
             style={styles.statCard}
           />
         </View>
@@ -258,9 +371,9 @@ export default function ParticipantDetailScreen() {
                     <View style={styles.historyLeft}>
                       <View style={styles.historyAddRemove}>
                         {isRemoved ? (
-                          <Icon name="remove" size={16} color="#dc2626" />
+                          <Icon name="remove" size={16} color={colors.red} />
                         ) : (
-                          <Icon name="add" size={16} color="#16a34a" />
+                          <Icon name="add" size={16} color={colors.green} />
                         )}
                       </View>
                       <Text style={[styles.historyTime, isRemoved && styles.historyTimeMuted]}>
@@ -273,7 +386,7 @@ export default function ParticipantDetailScreen() {
                       </Text>
                       {b.spilled && (
                         <View style={styles.spilledBadge}>
-                          <Icon name="spill" size={12} color="#b45309" />
+                          <Icon name="spill" size={12} color={colors.amber} />
                           <Text style={styles.spilledText}>rozlití</Text>
                         </View>
                       )}
@@ -301,198 +414,3 @@ export default function ParticipantDetailScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fafaf9',
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  profileSection: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#57534e',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  avatarText: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1c1917',
-    marginBottom: 2,
-  },
-  username: {
-    fontSize: 14,
-    color: '#78716c',
-    marginBottom: 8,
-  },
-  roleBadge: {
-    backgroundColor: '#f5f5f4',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  roleText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#78716c',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e7e5e4',
-    borderRadius: 12,
-  },
-  detailsSection: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#57534e',
-    marginBottom: 8,
-    letterSpacing: 0.15,
-  },
-  detailsCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e7e5e4',
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  detailRowLast: {
-    borderBottomWidth: 0,
-  },
-  detailLabel: {
-    fontSize: 15,
-    color: '#78716c',
-  },
-  detailValue: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#1c1917',
-  },
-  historyCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    minHeight: 80,
-    borderWidth: 1,
-    borderColor: '#e7e5e4',
-  },
-  historyRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e7e5e4',
-  },
-  historyRowLast: {
-    borderBottomWidth: 0,
-  },
-  historyRowRemoved: {
-    opacity: 0.7,
-  },
-  historyLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
-  },
-  historyRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  historyAddRemove: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 24,
-  },
-  historyTime: {
-    fontSize: 14,
-    color: '#1c1917',
-    fontWeight: '500',
-  },
-  historyTimeMuted: {
-    color: '#a8a29e',
-  },
-  historySize: {
-    fontSize: 14,
-    color: '#57534e',
-    fontWeight: '500',
-  },
-  historyPlaceholder: {
-    fontSize: 14,
-    color: '#a8a29e',
-    textAlign: 'center',
-    paddingVertical: 16,
-  },
-  spilledBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#fef3c7',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  spilledText: {
-    fontSize: 11,
-    color: '#b45309',
-    fontWeight: '500',
-  },
-  actionsSection: {
-    marginTop: 8,
-    paddingHorizontal: 4,
-  },
-  removeFromEventBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#dc2626',
-  },
-  removeFromEventBtnDisabled: {
-    opacity: 0.6,
-  },
-  removeFromEventBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-});

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../../store/auth.store';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
+import { useThemeColors } from '../../../../hooks/useThemeColors';
 import { api } from '../../../../services/api';
 import { parseError, logBackgroundError } from '../../../../utils/errorHandler';
 import { Header } from '../../../../components/layout/Header';
@@ -26,6 +27,7 @@ const BEER_VOLUME_LITRES = 0.5;
 export default function BarrelDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const colors = useThemeColors();
   const token = useAuthStore((state) => state.token);
   const { activeEvent } = useActiveEvent();
 
@@ -103,6 +105,75 @@ export default function BarrelDetailScreen() {
     );
   }, [activeEvent?.id, token, id, router]);
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.bg },
+        scroll: { flex: 1 },
+        scrollContent: { padding: 16, paddingBottom: 32 },
+        headerSection: { alignItems: 'center', marginBottom: 24 },
+        barrelIconWrap: {
+          width: 80,
+          height: 80,
+          borderRadius: 40,
+          backgroundColor: colors.card,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginBottom: 12,
+        },
+        title: { fontSize: 24, fontWeight: '700', color: colors.text, marginBottom: 8 },
+        statusBadge: {
+          backgroundColor: colors.bgSecondary,
+          borderRadius: 20,
+          paddingHorizontal: 12,
+          paddingVertical: 5,
+          marginBottom: 4,
+        },
+        statusActive: { backgroundColor: colors.greenBg },
+        statusText: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
+        statusTextActive: { color: colors.green },
+        sizeLabel: { fontSize: 15, color: colors.textSecondary },
+        card: {
+          backgroundColor: colors.card,
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 24,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+        },
+        sectionTitle: { fontSize: 15, fontWeight: '600', color: colors.textSecondary, marginBottom: 12 },
+        progressContainer: { marginBottom: 16 },
+        progressBar: {
+          height: 8,
+          backgroundColor: colors.border,
+          borderRadius: 4,
+          overflow: 'hidden',
+          marginBottom: 6,
+        },
+        progressFill: { height: '100%', backgroundColor: colors.textSecondary, borderRadius: 4 },
+        progressText: { fontSize: 13, color: colors.textSecondary, textAlign: 'right' as const },
+        statsRow: { flexDirection: 'row' as const, justifyContent: 'space-between' },
+        statBlock: { alignItems: 'center', flex: 1 },
+        statLabel: { fontSize: 12, color: colors.textSecondary, marginBottom: 4 },
+        statValue: { fontSize: 17, fontWeight: '600', color: colors.text },
+        actionsSection: { paddingHorizontal: 8 },
+        removeBtn: {
+          flexDirection: 'row' as const,
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          paddingVertical: 14,
+          borderRadius: 12,
+          backgroundColor: colors.red,
+        },
+        removeBtnDisabled: { opacity: 0.6 },
+        removeBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+      }),
+    [colors]
+  );
+
   if (isLoading) {
     return <LoadingScreen showLogo={false} />;
   }
@@ -132,12 +203,12 @@ export default function BarrelDetailScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF0000" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
       >
         <View style={styles.headerSection}>
           <View style={styles.barrelIconWrap}>
-            <Icon name="barrel" size={40} color="#57534e" />
+            <Icon name="barrel" size={40} color={colors.textSecondary} />
           </View>
           <Text style={styles.title}>Sud #{barrel.orderNumber}</Text>
           <View style={[styles.statusBadge, barrel.isActive && styles.statusActive]}>
@@ -188,132 +259,3 @@ export default function BarrelDetailScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fafaf9',
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  headerSection: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  barrelIconWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e7e5e4',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1c1917',
-    marginBottom: 8,
-  },
-  statusBadge: {
-    backgroundColor: '#e7e5e4',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    marginBottom: 4,
-  },
-  statusActive: {
-    backgroundColor: '#dcfce7',
-  },
-  statusText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#78716c',
-  },
-  statusTextActive: {
-    color: '#16a34a',
-  },
-  sizeLabel: {
-    fontSize: 15,
-    color: '#78716c',
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#e7e5e4',
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#57534e',
-    marginBottom: 12,
-  },
-  progressContainer: {
-    marginBottom: 16,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#e7e5e4',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 6,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#57534e',
-    borderRadius: 4,
-  },
-  progressText: {
-    fontSize: 13,
-    color: '#78716c',
-    textAlign: 'right',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statBlock: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#78716c',
-    marginBottom: 4,
-  },
-  statValue: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#1c1917',
-  },
-  actionsSection: {
-    paddingHorizontal: 8,
-  },
-  removeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#dc2626',
-  },
-  removeBtnDisabled: {
-    opacity: 0.6,
-  },
-  removeBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-});

@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Rect, Defs, LinearGradient, Stop, ClipPath, G, Text as SvgText } from 'react-native-svg';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 const W = 240;
 const H = 220;
@@ -36,11 +37,13 @@ export function DashboardActiveBarrel({
   historicalEta,
   status,
 }: Props) {
+  const colors = useThemeColors();
+
   if (!barrel) {
     return (
-      <View style={styles.card}>
-        <Text style={styles.title}>Aktivní sud</Text>
-        <Text style={styles.empty}>Není aktivní žádný sud.</Text>
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Aktivní sud</Text>
+        <Text style={[styles.empty, { color: colors.textMuted }]}>Není aktivní žádný sud.</Text>
       </View>
     );
   }
@@ -62,12 +65,12 @@ export function DashboardActiveBarrel({
     : '—';
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Aktivní sud</Text>
-        <Text style={styles.pct}>{pctLabel}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Aktivní sud</Text>
+        <Text style={[styles.pct, { color: colors.textMuted }]}>{pctLabel}</Text>
       </View>
-      <Text style={styles.subtitle}>Sud #{barrel.orderNumber} · {barrel.size}L</Text>
+      <Text style={[styles.subtitle, { color: colors.textMuted }]}>Sud #{barrel.orderNumber} · {barrel.size}L</Text>
 
       <View style={styles.svgWrap}>
         <Svg viewBox={`0 0 ${W} ${H}`} width="100%" height={240}>
@@ -122,10 +125,10 @@ export function DashboardActiveBarrel({
             />
           ))}
 
-          <SvgText x={W / 2} y={98} textAnchor="middle" fill="#111" fontSize={34} fontWeight="800">
+          <SvgText x={W / 2} y={98} textAnchor="middle" fill={colors.text} fontSize={34} fontWeight="800">
             {remaining.toFixed(1)}
           </SvgText>
-          <SvgText x={W / 2} y={124} textAnchor="middle" fill="#6b7280" fontSize={14} fontWeight="600">
+          <SvgText x={W / 2} y={124} textAnchor="middle" fill={colors.textMuted} fontSize={14} fontWeight="600">
             z {total.toFixed(1)} L
           </SvgText>
         </Svg>
@@ -133,12 +136,12 @@ export function DashboardActiveBarrel({
 
       <View style={styles.eta}>
         <View style={styles.etaRow}>
-          <Text style={styles.etaLabel}>Bude prázdný za:</Text>
-          <Text style={styles.etaValue}>{currentLabel}</Text>
+          <Text style={[styles.etaLabel, { color: colors.textMuted }]}>Bude prázdný za:</Text>
+          <Text style={[styles.etaValue, { color: colors.text }]}>{currentLabel}</Text>
         </View>
         <View style={styles.etaRow}>
-          <Text style={styles.etaLabel}>Bude prázdný za (historicky):</Text>
-          <Text style={styles.etaValue}>{historicalLabel}</Text>
+          <Text style={[styles.etaLabel, { color: colors.textMuted }]}>Bude prázdný za (historicky):</Text>
+          <Text style={[styles.etaValue, { color: colors.text }]}>{historicalLabel}</Text>
         </View>
       </View>
     </View>
@@ -147,21 +150,19 @@ export function DashboardActiveBarrel({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 },
-  title: { fontSize: 16, fontWeight: '700', color: '#111' },
-  pct: { fontSize: 14, fontWeight: '700', color: '#6b7280' },
-  subtitle: { fontSize: 13, color: '#6b7280', marginBottom: 12 },
-  empty: { fontSize: 14, color: '#6b7280' },
+  title: { fontSize: 16, fontWeight: '700' },
+  pct: { fontSize: 14, fontWeight: '700' },
+  subtitle: { fontSize: 13, marginBottom: 12 },
+  empty: { fontSize: 14 },
   svgWrap: { alignItems: 'center', marginVertical: 8 },
   eta: { marginTop: 12, gap: 8 },
   etaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  etaLabel: { fontSize: 13, color: '#6b7280', flex: 1 },
-  etaValue: { fontSize: 13, fontWeight: '700', color: '#111' },
+  etaLabel: { fontSize: 13, flex: 1 },
+  etaValue: { fontSize: 13, fontWeight: '700' },
 });

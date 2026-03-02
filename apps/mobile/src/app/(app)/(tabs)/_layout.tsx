@@ -6,6 +6,8 @@ import { canAccess } from '../../../utils/permissions';
 import { useAuthStore } from '../../../store/auth.store';
 import { useRole } from '../../../hooks/useRole';
 import { useActiveEvent } from '../../../hooks/useActiveEvent';
+import { useTheme } from '../../../hooks/useTheme';
+import { useThemeColors } from '../../../hooks/useThemeColors';
 
 const TAB_BAR_HEIGHT = 75;
 
@@ -14,18 +16,22 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const { isOperator } = useRole();
   const { activeEvent } = useActiveEvent();
+  const { isDark } = useTheme();
+  const colors = useThemeColors();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#FF0000',
-        tabBarInactiveTintColor: '#6b7280',
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: [
           styles.tabBar,
           {
             height: TAB_BAR_HEIGHT + insets.bottom,
             paddingBottom: insets.bottom,
+            backgroundColor: colors.tabBarBg,
+            borderTopColor: colors.tabBarBorder,
           },
         ],
         tabBarLabelStyle: styles.tabLabel,
@@ -91,9 +97,7 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
     paddingTop: 4,
   },
   tabLabel: {

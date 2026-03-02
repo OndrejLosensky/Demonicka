@@ -18,6 +18,7 @@ import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../components/ui/EmptyState';
 import { AddBarrelModal, type BarrelSize } from '../../../../components/barrels/AddBarrelModal';
 import { formatLitres, formatNumber } from '../../../../utils/format';
+import { useThemeColors } from '../../../../hooks/useThemeColors';
 import type { Barrel } from '@demonicka/shared-types';
 
 /** Beer volume in litres for display (large = 0.5L, we use large for count) */
@@ -27,6 +28,7 @@ export default function BarrelsScreen() {
   const router = useRouter();
   const { activeEvent, isLoading: eventLoading } = useActiveEvent();
   const token = useAuthStore((state) => state.token);
+  const colors = useThemeColors();
 
   const [barrels, setBarrels] = useState<Barrel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -98,41 +100,41 @@ export default function BarrelsScreen() {
 
     return (
       <TouchableOpacity
-        style={styles.barrelCard}
+        style={[styles.barrelCard, { backgroundColor: colors.card }]}
         onPress={() => router.push(`/(app)/(tabs)/barrels/${item.id}`)}
         activeOpacity={0.8}
       >
         <View style={styles.barrelHeader}>
           <View style={styles.barrelTitle}>
-            <Text style={styles.barrelNumber}>Sud #{item.orderNumber}</Text>
-            <View style={[styles.statusBadge, item.isActive && styles.statusActive]}>
-              <Text style={[styles.statusText, item.isActive && styles.statusTextActive]}>
+            <Text style={[styles.barrelNumber, { color: colors.text }]}>Sud #{item.orderNumber}</Text>
+            <View style={[styles.statusBadge, { backgroundColor: colors.border }, item.isActive && { backgroundColor: colors.greenBg }]}>
+              <Text style={[styles.statusText, { color: colors.textMuted }, item.isActive && { color: colors.green }]}>
                 {item.isActive ? 'Aktivní' : 'Prázdný'}
               </Text>
             </View>
           </View>
-          <Text style={styles.barrelSize}>{item.size}L</Text>
+          <Text style={[styles.barrelSize, { color: colors.textMuted }]}>{item.size}L</Text>
         </View>
 
         <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
+          <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
             <View style={[styles.progressFill, { width: `${progress}%` }]} />
           </View>
-          <Text style={styles.progressText}>{progress.toFixed(0)}% vypito</Text>
+          <Text style={[styles.progressText, { color: colors.textMuted }]}>{progress.toFixed(0)}% vypito</Text>
         </View>
 
         <View style={styles.barrelStats}>
           <View style={styles.barrelStat}>
-            <Text style={styles.statLabel}>Zbývá piv</Text>
-            <Text style={styles.statValue}>{formatNumber(remainingBeers)}</Text>
+            <Text style={[styles.statLabel, { color: colors.textMuted }]}>Zbývá piv</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{formatNumber(remainingBeers)}</Text>
           </View>
           <View style={styles.barrelStat}>
-            <Text style={styles.statLabel}>Zbývá litrů</Text>
-            <Text style={styles.statValue}>{formatLitres(item.remainingLitres)}</Text>
+            <Text style={[styles.statLabel, { color: colors.textMuted }]}>Zbývá litrů</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{formatLitres(item.remainingLitres)}</Text>
           </View>
           <View style={styles.barrelStat}>
-            <Text style={styles.statLabel}>Celkem piv</Text>
-            <Text style={styles.statValue}>{formatNumber(totalBeers)}</Text>
+            <Text style={[styles.statLabel, { color: colors.textMuted }]}>Celkem piv</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{formatNumber(totalBeers)}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -145,9 +147,9 @@ export default function BarrelsScreen() {
 
   if (!activeEvent) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
         <EmptyState
-          icon={<Icon name="calendar" size={48} color="#9ca3af" />}
+          icon={<Icon name="calendar" size={48} color={colors.textMuted} />}
           title="Žádná aktivní událost"
           message="Momentálně není aktivní žádná událost."
         />
@@ -158,11 +160,11 @@ export default function BarrelsScreen() {
   const activeBarrel = barrels.find((b) => b.isActive);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Sudy</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: colors.text }]}>Sudy</Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
             {barrels.length} sudů • {activeBarrel ? `Aktivní: #${activeBarrel.orderNumber}` : 'Žádný aktivní'}
           </Text>
         </View>
@@ -188,11 +190,11 @@ export default function BarrelsScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF0000" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
         ListEmptyComponent={
           <EmptyState
-            icon={<Icon name="barrel" size={48} color="#9ca3af" />}
+            icon={<Icon name="barrel" size={48} color={colors.textMuted} />}
             title="Žádné sudy"
             message="Tato událost zatím nemá žádné sudy."
           />
@@ -203,10 +205,7 @@ export default function BarrelsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -214,16 +213,8 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 8,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111',
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#6b7280',
-    marginTop: 4,
-  },
+  title: { fontSize: 28, fontWeight: '700' },
+  subtitle: { fontSize: 15, marginTop: 4 },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -233,67 +224,23 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#FF0000',
   },
-  addBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  listContent: {
-    padding: 16,
-    paddingTop: 8,
-    paddingBottom: 32,
-    flexGrow: 1,
-  },
-  barrelCard: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-  },
+  addBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+  listContent: { padding: 16, paddingTop: 8, paddingBottom: 32, flexGrow: 1 },
+  barrelCard: { borderRadius: 12, padding: 16, marginBottom: 12 },
   barrelHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
   },
-  barrelTitle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  barrelNumber: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#111',
-  },
-  barrelSize: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#6b7280',
-  },
-  statusBadge: {
-    backgroundColor: '#e5e7eb',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  statusActive: {
-    backgroundColor: '#dcfce7',
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#6b7280',
-  },
-  statusTextActive: {
-    color: '#16a34a',
-  },
-  progressContainer: {
-    marginBottom: 12,
-  },
+  barrelTitle: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  barrelNumber: { fontSize: 17, fontWeight: '600' },
+  barrelSize: { fontSize: 15, fontWeight: '600' },
+  statusBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  statusText: { fontSize: 11, fontWeight: '600' },
+  progressContainer: { marginBottom: 12 },
   progressBar: {
     height: 8,
-    backgroundColor: '#e5e7eb',
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 4,
@@ -303,26 +250,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF0000',
     borderRadius: 4,
   },
-  progressText: {
-    fontSize: 12,
-    color: '#6b7280',
-    textAlign: 'right',
-  },
-  barrelStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  barrelStat: {
-    alignItems: 'center',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginBottom: 2,
-  },
-  statValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#111',
-  },
+  progressText: { fontSize: 12, textAlign: 'right' },
+  barrelStats: { flexDirection: 'row', justifyContent: 'space-between' },
+  barrelStat: { alignItems: 'center' },
+  statLabel: { fontSize: 12, marginBottom: 2 },
+  statValue: { fontSize: 15, fontWeight: '600' },
 });

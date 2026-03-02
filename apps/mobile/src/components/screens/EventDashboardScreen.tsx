@@ -12,6 +12,7 @@ import { Icon } from '../icons';
 import { DashboardKpiRow } from '../dashboard/DashboardKpiRow';
 import { DashboardHourlyChart } from '../dashboard/DashboardHourlyChart';
 import { DashboardActiveBarrel } from '../dashboard/DashboardActiveBarrel';
+import { useThemeColors } from '../../hooks/useThemeColors';
 import type { DashboardStats } from '@demonicka/shared-types';
 
 type HourlyPoint = { hour: number; count: number };
@@ -37,6 +38,7 @@ export function EventDashboardScreen() {
   const { activeEvent, isLoading: eventLoading } = useActiveEvent();
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
+  const colors = useThemeColors();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [hourly, setHourly] = useState<HourlyPoint[]>([]);
@@ -92,9 +94,9 @@ export function EventDashboardScreen() {
 
   if (!activeEvent) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
         <EmptyState
-          icon={<Icon name="calendar" size={48} color="#9ca3af" />}
+          icon={<Icon name="calendar" size={48} color={colors.textMuted} />}
           title="Žádná aktivní událost"
           message="Momentálně není aktivní žádná událost."
         />
@@ -149,15 +151,15 @@ export function EventDashboardScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Přehled</Text>
-          <Text style={styles.subtitle}>{activeEvent.name}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Přehled</Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>{activeEvent.name}</Text>
         </View>
-        <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh} disabled={refreshing}>
-          <Icon name="refresh" size={18} color="#111" />
-          <Text style={styles.refreshText}>Obnovit</Text>
+        <TouchableOpacity style={[styles.refreshBtn, { borderColor: colors.border, backgroundColor: colors.card }]} onPress={onRefresh} disabled={refreshing}>
+          <Icon name="refresh" size={18} color={colors.text} />
+          <Text style={[styles.refreshText, { color: colors.text }]}>Obnovit</Text>
         </TouchableOpacity>
       </View>
 
@@ -166,7 +168,7 @@ export function EventDashboardScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ff3b30" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
       >
         <DashboardKpiRow items={kpiItems} />
@@ -186,39 +188,39 @@ export function EventDashboardScreen() {
         </View>
 
         <View style={styles.bottomRow}>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Nejlepší uživatelé</Text>
+          <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Nejlepší uživatelé</Text>
             {stats?.topUsers && stats.topUsers.length > 0 ? (
               stats.topUsers.slice(0, 4).map((u, idx) => (
-                <View key={u.id} style={[styles.userItem, idx === 0 && styles.userItemFirst]}>
-                  <View style={[styles.userRankWrap, idx === 0 && styles.userRankFirst]}>
-                    <Text style={[styles.userRank, idx === 0 && styles.userRankTextFirst]}>{idx + 1}</Text>
+                <View key={u.id} style={[styles.userItem, { borderBottomColor: colors.border }, idx === 0 && styles.userItemFirst]}>
+                  <View style={[styles.userRankWrap, { backgroundColor: colors.border }, idx === 0 && styles.userRankFirst]}>
+                    <Text style={[styles.userRank, { color: colors.textMuted }, idx === 0 && styles.userRankTextFirst]}>{idx + 1}</Text>
                   </View>
-                  <Text style={styles.userName}>{u.username}</Text>
-                  <Text style={styles.userBeers}>{u.beerCount} piv</Text>
+                  <Text style={[styles.userName, { color: colors.text }]}>{u.username}</Text>
+                  <Text style={[styles.userBeers, { color: colors.textMuted }]}>{u.beerCount} piv</Text>
                 </View>
               ))
             ) : (
-              <Text style={styles.empty}>Zatím žádná data.</Text>
+              <Text style={[styles.empty, { color: colors.textMuted }]}>Zatím žádná data.</Text>
             )}
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Insights</Text>
-            <View style={styles.insightItem}>
-              <Text style={styles.insightLabel}>Začátek</Text>
-              <Text style={styles.insightValue}>{eventStartedAt || '—'}</Text>
+          <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Insights</Text>
+            <View style={[styles.insightItem, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.insightLabel, { color: colors.textMuted }]}>Začátek</Text>
+              <Text style={[styles.insightValue, { color: colors.text }]}>{eventStartedAt || '—'}</Text>
             </View>
-            <View style={styles.insightItem}>
-              <Text style={styles.insightLabel}>Peak</Text>
-              <Text style={styles.insightValue}>
+            <View style={[styles.insightItem, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.insightLabel, { color: colors.textMuted }]}>Peak</Text>
+              <Text style={[styles.insightValue, { color: colors.text }]}>
                 {peakHourLabel}
                 {peak.count > 0 && ` (${peak.count} piv)`}
               </Text>
             </View>
-            <View style={styles.insightItem}>
-              <Text style={styles.insightLabel}>Top uživatel</Text>
-              <Text style={styles.insightValue}>{topDrinkerUsername}</Text>
+            <View style={[styles.insightItem, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.insightLabel, { color: colors.textMuted }]}>Top uživatel</Text>
+              <Text style={[styles.insightValue, { color: colors.text }]}>{topDrinkerUsername}</Text>
             </View>
           </View>
         </View>
@@ -228,7 +230,7 @@ export function EventDashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
+  container: { flex: 1 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 },
   header: {
@@ -239,8 +241,8 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     marginBottom: 16,
   },
-  title: { fontSize: 24, fontWeight: '700', color: '#111' },
-  subtitle: { fontSize: 14, color: '#6b7280', marginTop: 2 },
+  title: { fontSize: 24, fontWeight: '700' },
+  subtitle: { fontSize: 14, marginTop: 2 },
   refreshBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -249,51 +251,44 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#fff',
   },
-  refreshText: { fontSize: 14, fontWeight: '600', color: '#111' },
+  refreshText: { fontSize: 14, fontWeight: '600' },
   chartRow: { flexDirection: 'column', gap: 16, marginBottom: 16 },
   chartCol: { width: '100%' },
   barrelCol: { width: '100%' },
   bottomRow: { flexDirection: 'column', gap: 16 },
   section: {
     width: '100%',
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
   },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#111', marginBottom: 12 },
+  sectionTitle: { fontSize: 14, fontWeight: '700', marginBottom: 12 },
   userItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   userItemFirst: { backgroundColor: 'rgba(255, 59, 48, 0.05)' },
   userRankWrap: {
     width: 24,
     height: 24,
     borderRadius: 6,
-    backgroundColor: '#e5e7eb',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
-  userRank: { fontSize: 12, fontWeight: '700', color: '#6b7280' },
+  userRank: { fontSize: 12, fontWeight: '700' },
   userRankFirst: { backgroundColor: '#ff3b30' },
   userRankTextFirst: { color: '#fff' },
-  userName: { flex: 1, fontSize: 14, fontWeight: '600', color: '#111' },
-  userBeers: { fontSize: 13, color: '#6b7280' },
-  empty: { fontSize: 13, color: '#6b7280' },
+  userName: { flex: 1, fontSize: 14, fontWeight: '600' },
+  userBeers: { fontSize: 13 },
+  empty: { fontSize: 13 },
   insightItem: {
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
-  insightLabel: { fontSize: 11, color: '#6b7280', fontWeight: '500', marginBottom: 2 },
-  insightValue: { fontSize: 13, fontWeight: '600', color: '#111' },
+  insightLabel: { fontSize: 11, fontWeight: '500', marginBottom: 2 },
+  insightValue: { fontSize: 13, fontWeight: '600' },
 });

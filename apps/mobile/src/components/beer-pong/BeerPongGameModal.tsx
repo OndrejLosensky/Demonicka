@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useAuthStore } from '../../store/auth.store';
+import { useThemeColors } from '../../hooks/useThemeColors';
 import { api } from '../../services/api';
 import type { BeerPongGame, BeerPongGameStatus, BeerPongRound } from '@demonicka/shared-types';
 
@@ -65,6 +66,7 @@ export function BeerPongGameModal({
   onRequestAssign,
 }: BeerPongGameModalProps) {
   const token = useAuthStore((state) => state.token);
+  const colors = useThemeColors();
   const [selectedWinner, setSelectedWinner] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [undoSecondsLeft, setUndoSecondsLeft] = useState<number | null>(null);
@@ -146,6 +148,110 @@ export function BeerPongGameModal({
     const sec = s % 60;
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        overlay: {
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          padding: 24,
+        },
+        card: {
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          maxHeight: '85%',
+        },
+        header: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: 20,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        roundTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
+        statusBadge: {
+          backgroundColor: colors.bgSecondary,
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+          borderRadius: 6,
+        },
+        statusBadgeText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
+        body: { padding: 20, maxHeight: 360 },
+        teamCard: {
+          backgroundColor: colors.bgSecondary,
+          padding: 14,
+          borderRadius: 10,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        },
+        teamName: { fontSize: 16, fontWeight: '600', color: colors.text, flex: 1 },
+        winnerBadge: { fontSize: 12, fontWeight: '600', color: colors.green, marginLeft: 8 },
+        vs: { textAlign: 'center' as const, fontSize: 14, color: colors.textSecondary, marginVertical: 8 },
+        undoBanner: {
+          backgroundColor: colors.amberBg,
+          padding: 10,
+          borderRadius: 8,
+          marginTop: 12,
+          alignItems: 'center',
+        },
+        undoText: { fontSize: 13, color: colors.amber },
+        winnerSection: { marginTop: 16 },
+        winnerLabel: { fontSize: 14, fontWeight: '600', color: colors.textSecondary, marginBottom: 8 },
+        winnerOption: {
+          padding: 12,
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: colors.border,
+          marginBottom: 8,
+        },
+        winnerOptionActive: { borderColor: colors.primary, backgroundColor: 'rgba(255,0,0,0.08)' },
+        winnerOptionText: { fontSize: 15, color: colors.text },
+        winnerOptionTextActive: { color: colors.primary, fontWeight: '600' },
+        actions: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'flex-end',
+          gap: 10,
+          padding: 20,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+        },
+        cancelBtn: { paddingVertical: 10, paddingHorizontal: 16 },
+        cancelText: { fontSize: 16, color: colors.textMuted, fontWeight: '500' },
+        primaryBtn: {
+          backgroundColor: colors.primary,
+          paddingVertical: 10,
+          paddingHorizontal: 20,
+          borderRadius: 10,
+          minWidth: 140,
+          alignItems: 'center',
+        },
+        primaryBtnDisabled: { opacity: 0.7 },
+        primaryBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+        outlineBtn: {
+          paddingVertical: 10,
+          paddingHorizontal: 16,
+          borderWidth: 1,
+          borderColor: colors.amber,
+          borderRadius: 10,
+        },
+        outlineBtnText: { fontSize: 15, fontWeight: '500', color: colors.amber },
+        assignSection: { marginTop: 16, gap: 8 },
+        assignBtn: {
+          padding: 12,
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: colors.border,
+          backgroundColor: colors.bgSecondary,
+        },
+        assignBtnText: { fontSize: 15, fontWeight: '500', color: colors.text },
+      }),
+    [colors]
+  );
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -316,98 +422,3 @@ export function BeerPongGameModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    maxHeight: '85%',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  roundTitle: { fontSize: 18, fontWeight: '700', color: '#111' },
-  statusBadge: { backgroundColor: '#e5e7eb', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  statusBadgeText: { fontSize: 12, fontWeight: '600', color: '#6b7280' },
-  body: { padding: 20, maxHeight: 360 },
-  teamCard: {
-    backgroundColor: '#f9fafb',
-    padding: 14,
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  teamName: { fontSize: 16, fontWeight: '600', color: '#111', flex: 1 },
-  winnerBadge: { fontSize: 12, fontWeight: '600', color: '#16a34a', marginLeft: 8 },
-  vs: { textAlign: 'center', fontSize: 14, color: '#6b7280', marginVertical: 8 },
-  undoBanner: {
-    backgroundColor: '#fef3c7',
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 12,
-    alignItems: 'center',
-  },
-  undoText: { fontSize: 13, color: '#92400e' },
-  winnerSection: { marginTop: 16 },
-  winnerLabel: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 },
-  winnerOption: {
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    marginBottom: 8,
-  },
-  winnerOptionActive: { borderColor: '#FF0000', backgroundColor: 'rgba(255,0,0,0.08)' },
-  winnerOptionText: { fontSize: 15, color: '#111' },
-  winnerOptionTextActive: { color: '#FF0000', fontWeight: '600' },
-  actions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-end',
-    gap: 10,
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
-  },
-  cancelBtn: { paddingVertical: 10, paddingHorizontal: 16 },
-  cancelText: { fontSize: 16, color: '#6b7280', fontWeight: '500' },
-  primaryBtn: {
-    backgroundColor: '#FF0000',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    minWidth: 140,
-    alignItems: 'center',
-  },
-  primaryBtnDisabled: { opacity: 0.7 },
-  primaryBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
-  outlineBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#b45309',
-    borderRadius: 10,
-  },
-  outlineBtnText: { fontSize: 15, fontWeight: '500', color: '#b45309' },
-  assignSection: { marginTop: 16, gap: 8 },
-  assignBtn: {
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
-  },
-  assignBtnText: { fontSize: 15, fontWeight: '500', color: '#111' },
-});

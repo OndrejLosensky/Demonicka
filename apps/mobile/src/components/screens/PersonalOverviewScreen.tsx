@@ -8,6 +8,7 @@ import { StatCard } from '../cards/StatCard';
 import { Icon } from '../icons';
 import { LoadingScreen } from '../ui/LoadingScreen';
 import { EmptyState } from '../ui/EmptyState';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 type UserDashboardOverview = {
   user: { id: string; username: string; name: string | null };
@@ -34,6 +35,7 @@ type UserDashboardOverview = {
 export function PersonalOverviewScreen() {
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
+  const colors = useThemeColors();
 
   const [data, setData] = useState<UserDashboardOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,9 +71,9 @@ export function PersonalOverviewScreen() {
 
   if (!data) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
         <EmptyState
-          icon={<Icon name="chart" size={48} color="#9ca3af" />}
+          icon={<Icon name="chart" size={48} color={colors.textMuted} />}
           title="Nepodařilo se načíst statistiky"
           message="Zkuste to prosím znovu později."
         />
@@ -82,23 +84,23 @@ export function PersonalOverviewScreen() {
   const { totals, topEvents, beerPong } = data;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF0000" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
       >
         <View style={styles.header}>
-          <Text style={styles.greeting}>Ahoj, {data.user.name || data.user.username}!</Text>
-          <Text style={styles.subtitle}>Přehled statistik @{data.user.username}</Text>
+          <Text style={[styles.greeting, { color: colors.text }]}>Ahoj, {data.user.name || data.user.username}!</Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>Přehled statistik @{data.user.username}</Text>
         </View>
 
         <View style={styles.statsRow}>
           <StatCard
-            icon={<Icon name="beer" size={24} color="#FF0000" />}
+            icon={<Icon name="beer" size={24} color={colors.primary} />}
             label="Celkem piv"
             value={totals.totalBeers}
             style={styles.statCard}
@@ -113,21 +115,21 @@ export function PersonalOverviewScreen() {
         </View>
         <View style={styles.statsRow}>
           <StatCard
-            icon={<Icon name="beer-pong" size={24} color="#f59e0b" />}
+            icon={<Icon name="beer-pong" size={24} color={colors.amber} />}
             label="Beer Pong (V/P)"
             value={`${beerPong.gamesWon}/${beerPong.gamesPlayed}`}
-            color="#f59e0b"
+            color={colors.amber}
             style={styles.statCardFull}
           />
         </View>
 
         {topEvents.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Top události</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Top události</Text>
             {topEvents.slice(0, 5).map((e) => (
-              <View key={e.eventId} style={styles.eventItem}>
-                <Text style={styles.eventName}>{e.eventName}</Text>
-                <Text style={styles.eventStats}>
+              <View key={e.eventId} style={[styles.eventItem, { backgroundColor: colors.card }]}>
+                <Text style={[styles.eventName, { color: colors.text }]}>{e.eventName}</Text>
+                <Text style={[styles.eventStats, { color: colors.textMuted }]}>
                   {e.userBeers} piv • {e.sharePercent.toFixed(1)}%
                 </Text>
               </View>
@@ -140,26 +142,25 @@ export function PersonalOverviewScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 },
   header: { marginBottom: 24 },
-  greeting: { fontSize: 24, fontWeight: '700', color: '#111', marginBottom: 4 },
-  subtitle: { fontSize: 15, color: '#6b7280' },
+  greeting: { fontSize: 24, fontWeight: '700', marginBottom: 4 },
+  subtitle: { fontSize: 15 },
   statsRow: { flexDirection: 'row', gap: 12, marginBottom: 12 },
   statCard: { flex: 1 },
   statCardFull: { flex: 1 },
   section: { marginTop: 24 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#111', marginBottom: 12 },
+  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 12 },
   eventItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f9fafb',
     borderRadius: 10,
     padding: 12,
     marginBottom: 8,
   },
-  eventName: { fontSize: 15, fontWeight: '500', color: '#111', flex: 1 },
-  eventStats: { fontSize: 14, color: '#6b7280', marginLeft: 12 },
+  eventName: { fontSize: 15, fontWeight: '500', flex: 1 },
+  eventStats: { fontSize: 14, marginLeft: 12 },
 });

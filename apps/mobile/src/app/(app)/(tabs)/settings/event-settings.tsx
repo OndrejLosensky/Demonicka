@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
 import { useRole } from '../../../../hooks/useRole';
+import { useThemeColors } from '../../../../hooks/useThemeColors';
 import { useAuthStore } from '../../../../store/auth.store';
 import { useEventStore } from '../../../../store/event.store';
 import { api } from '../../../../services/api';
@@ -48,6 +49,7 @@ function fromLocalDateTimeInput(value: string): string {
 
 export default function EventSettingsScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const token = useAuthStore((state) => state.token);
   const { activeEvent, isLoading } = useActiveEvent();
   const refetchActiveEvent = useEventStore((state) => state.fetchActiveEvent);
@@ -199,10 +201,10 @@ export default function EventSettingsScreen() {
 
   if (!isOperator) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
         <Header title="Nastavení události" showBack />
         <EmptyState
-          icon={<Icon name="lock" size={48} color="#9ca3af" />}
+          icon={<Icon name="lock" size={48} color={colors.textMuted} />}
           title="Přístup odepřen"
           message="Nemáte oprávnění k této sekci."
         />
@@ -217,11 +219,11 @@ export default function EventSettingsScreen() {
   // No active event: show list of events to activate
   if (!activeEvent) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
         <Header title="Nastavení události" showBack />
         {eventsLoading ? (
           <View style={styles.centered}>
-            <ActivityIndicator size="large" color="#FF0000" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : (
           <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
@@ -249,8 +251,8 @@ export default function EventSettingsScreen() {
             ))}
             {events.length === 0 && !eventsLoading && (
               <EmptyState
-                icon={<Icon name="calendar" size={48} color="#9ca3af" />}
-                title="Žádné události"
+            icon={<Icon name="calendar" size={48} color={colors.textMuted} />}
+            title="Žádné události"
                 message="Nemáte přístup k žádné události k aktivaci."
               />
             )}
@@ -264,7 +266,7 @@ export default function EventSettingsScreen() {
   const regEnabled = activeEvent.registrationEnabled ?? false;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
       <Header title="Nastavení události" showBack />
       <KeyboardAvoidingView
         style={styles.flex}
@@ -282,7 +284,7 @@ export default function EventSettingsScreen() {
                 activeOpacity={0.8}
               >
                 <View style={styles.linkLeft}>
-                  <Icon name="chart" size={20} color="#6b7280" />
+                  <Icon name="chart" size={20} color={colors.textSecondary} />
                   <Text style={styles.linkLabel}>Žebříček (rychlá kontrola)</Text>
                 </View>
                 <Text style={styles.linkArrow}>→</Text>
@@ -477,8 +479,8 @@ export default function EventSettingsScreen() {
                   value={activeEvent.beerPongEnabled !== false}
                   onValueChange={(v) => handleUpdateEvent({ beerPongEnabled: v })}
                   disabled={!canEdit || saving}
-                  trackColor={{ false: '#e5e7eb', true: '#dcfce7' }}
-                  thumbColor={activeEvent.beerPongEnabled !== false ? '#16a34a' : '#9ca3af'}
+                  trackColor={{ false: colors.border, true: colors.greenBg }}
+                  thumbColor={activeEvent.beerPongEnabled !== false ? colors.green : colors.textMuted}
                 />
               </View>
               <View style={styles.switchRow}>
@@ -492,8 +494,8 @@ export default function EventSettingsScreen() {
                   value={activeEvent.beerSizesEnabled !== false}
                   onValueChange={(v) => handleUpdateEvent({ beerSizesEnabled: v })}
                   disabled={!canEdit || saving}
-                  trackColor={{ false: '#e5e7eb', true: '#dcfce7' }}
-                  thumbColor={activeEvent.beerSizesEnabled !== false ? '#16a34a' : '#9ca3af'}
+                  trackColor={{ false: colors.border, true: colors.greenBg }}
+                  thumbColor={activeEvent.beerSizesEnabled !== false ? colors.green : colors.textMuted}
                 />
               </View>
               <View style={styles.field}>

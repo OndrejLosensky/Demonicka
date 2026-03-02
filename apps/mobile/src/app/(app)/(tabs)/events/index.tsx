@@ -9,6 +9,7 @@ import { Icon } from '../../../../components/icons';
 import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../components/ui/EmptyState';
 import { formatDate } from '../../../../utils/format';
+import { useThemeColors } from '../../../../hooks/useThemeColors';
 
 type UserDashboardEvent = {
   eventId: string;
@@ -31,6 +32,7 @@ export default function EventsHistoryScreen() {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
+  const colors = useThemeColors();
 
   const [data, setData] = useState<UserDashboardEventList | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,22 +69,22 @@ export default function EventsHistoryScreen() {
   const events = data?.events ?? [];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
-            <Text style={styles.title}>Události</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: colors.text }]}>Události</Text>
+            <Text style={[styles.subtitle, { color: colors.textMuted }]}>
               {data?.user ? `@${data.user.username} — přehled účasti` : ''}
             </Text>
           </View>
           <TouchableOpacity
-            style={styles.leaderboardButton}
+            style={[styles.leaderboardButton, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => router.push('/leaderboard')}
             activeOpacity={0.8}
           >
-            <Icon name="chart" size={18} color="#111" />
-            <Text style={styles.leaderboardButtonText}>Žebříček</Text>
+            <Icon name="chart" size={18} color={colors.text} />
+            <Text style={[styles.leaderboardButtonText, { color: colors.text }]}>Žebříček</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -93,38 +95,38 @@ export default function EventsHistoryScreen() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF0000" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
             <View style={styles.cardHeader}>
-              <Text style={styles.eventName}>{item.eventName}</Text>
+              <Text style={[styles.eventName, { color: colors.text }]}>{item.eventName}</Text>
               {item.isActive && (
-                <View style={styles.activeBadge}>
-                  <Text style={styles.activeBadgeText}>Aktivní</Text>
+                <View style={[styles.activeBadge, { backgroundColor: colors.greenBg }]}>
+                  <Text style={[styles.activeBadgeText, { color: colors.green }]}>Aktivní</Text>
                 </View>
               )}
             </View>
-            <Text style={styles.dateText}>
+            <Text style={[styles.dateText, { color: colors.textMuted }]}>
               {formatDate(item.startDate)}
               {item.endDate ? ` → ${formatDate(item.endDate)}` : ''}
             </Text>
             <View style={styles.chips}>
-              <View style={styles.chip}>
-                <Text style={styles.chipText}>Moje piva: {item.userBeers}</Text>
+              <View style={[styles.chip, { backgroundColor: colors.bg, borderColor: colors.border }]}>
+                <Text style={[styles.chipText, { color: colors.textMuted }]}>Moje piva: {item.userBeers}</Text>
               </View>
-              <View style={styles.chip}>
-                <Text style={styles.chipText}>Celkem: {item.totalEventBeers}</Text>
+              <View style={[styles.chip, { backgroundColor: colors.bg, borderColor: colors.border }]}>
+                <Text style={[styles.chipText, { color: colors.textMuted }]}>Celkem: {item.totalEventBeers}</Text>
               </View>
-              <View style={styles.chip}>
-                <Text style={styles.chipText}>Podíl: {item.sharePercent.toFixed(1)}%</Text>
+              <View style={[styles.chip, { backgroundColor: colors.bg, borderColor: colors.border }]}>
+                <Text style={[styles.chipText, { color: colors.textMuted }]}>Podíl: {item.sharePercent.toFixed(1)}%</Text>
               </View>
             </View>
           </View>
         )}
         ListEmptyComponent={
           <EmptyState
-            icon={<Icon name="calendar" size={48} color="#9ca3af" />}
+            icon={<Icon name="calendar" size={48} color={colors.textMuted} />}
             title="Zatím žádná účast v událostech"
             message="Vaše historie účasti v událostech se zobrazí zde."
           />
@@ -135,12 +137,12 @@ export default function EventsHistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   header: { padding: 16, paddingBottom: 8 },
   headerTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   headerLeft: { flex: 1 },
-  title: { fontSize: 28, fontWeight: '700', color: '#111' },
-  subtitle: { fontSize: 15, color: '#6b7280', marginTop: 4 },
+  title: { fontSize: 28, fontWeight: '700' },
+  subtitle: { fontSize: 15, marginTop: 4 },
   leaderboardButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -148,24 +150,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: '#f3f4f6',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
   },
-  leaderboardButtonText: { fontSize: 14, fontWeight: '600', color: '#111' },
+  leaderboardButtonText: { fontSize: 14, fontWeight: '600' },
   listContent: { padding: 16, paddingBottom: 32, flexGrow: 1 },
   card: {
-    backgroundColor: '#f9fafb',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  eventName: { fontSize: 17, fontWeight: '600', color: '#111', flex: 1 },
-  activeBadge: { backgroundColor: '#dcfce7', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
-  activeBadgeText: { fontSize: 12, fontWeight: '600', color: '#16a34a' },
-  dateText: { fontSize: 14, color: '#6b7280', marginBottom: 12 },
+  eventName: { fontSize: 17, fontWeight: '600', flex: 1 },
+  activeBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
+  activeBadgeText: { fontSize: 12, fontWeight: '600' },
+  dateText: { fontSize: 14, marginBottom: 12 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { backgroundColor: '#fff', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#e5e7eb' },
-  chipText: { fontSize: 13, color: '#6b7280' },
+  chip: { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1 },
+  chipText: { fontSize: 13 },
 });

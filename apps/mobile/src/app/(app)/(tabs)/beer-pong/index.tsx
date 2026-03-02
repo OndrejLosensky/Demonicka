@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
 import { useAuthStore } from '../../../../store/auth.store';
+import { useThemeColors } from '../../../../hooks/useThemeColors';
 import { api } from '../../../../services/api';
 import { logBackgroundError } from '../../../../utils/errorHandler';
 import { Icon } from '../../../../components/icons';
@@ -25,6 +26,7 @@ import type {
 
 export default function BeerPongScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const { activeEvent, isLoading: eventLoading } = useActiveEvent();
   const token = useAuthStore((state) => state.token);
 
@@ -76,12 +78,75 @@ export default function BeerPongScreen() {
 
   const getStatusColor = (status: BeerPongEventStatus) => {
     switch (status) {
-      case 'DRAFT': return '#6b7280';
-      case 'ACTIVE': return '#16a34a';
-      case 'COMPLETED': return '#3b82f6';
-      default: return '#6b7280';
+      case 'DRAFT': return colors.textMuted;
+      case 'ACTIVE': return colors.green;
+      case 'COMPLETED': return colors.primary;
+      default: return colors.textMuted;
     }
   };
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.bg },
+        header: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: 16,
+          paddingBottom: 8,
+        },
+        title: { fontSize: 28, fontWeight: '700', color: colors.text },
+        subtitle: { fontSize: 15, color: colors.textSecondary, marginTop: 4 },
+        addBtn: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 6,
+          paddingHorizontal: 14,
+          paddingVertical: 8,
+          borderRadius: 10,
+          backgroundColor: colors.primary,
+        },
+        addBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+        scroll: { flex: 1 },
+        scrollContent: { padding: 16, paddingTop: 8, paddingBottom: 32 },
+        tournamentCard: {
+          backgroundColor: colors.card,
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 12,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+        },
+        tournamentHeader: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 8,
+        },
+        tournamentName: { fontSize: 17, fontWeight: '600', color: colors.text, flex: 1, marginRight: 12 },
+        statusBadge: { borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 },
+        statusText: { fontSize: 12, fontWeight: '600' },
+        tournamentDescription: { fontSize: 14, color: colors.textSecondary, marginBottom: 10 },
+        statsRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 16, marginTop: 4 },
+        stat: { minWidth: 64 },
+        statLabel: { fontSize: 11, color: colors.textSecondary, marginBottom: 2 },
+        statValue: { fontSize: 15, fontWeight: '600', color: colors.text },
+        statValuePrimary: { color: colors.primary },
+        statValueSuccess: { color: colors.green },
+        readyChip: {
+          alignSelf: 'flex-start',
+          backgroundColor: colors.greenBg,
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+          borderRadius: 6,
+          marginTop: 10,
+        },
+        readyChipText: { fontSize: 12, fontWeight: '600', color: colors.green },
+        moreTeamsHint: { fontSize: 12, color: colors.amber, marginTop: 6 },
+      }),
+    [colors]
+  );
 
   if (eventLoading || isLoading) {
     return <LoadingScreen showLogo={false} />;
@@ -91,7 +156,7 @@ export default function BeerPongScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <EmptyState
-          icon={<Icon name="calendar" size={48} color="#9ca3af" />}
+          icon={<Icon name="calendar" size={48} color={colors.textMuted} />}
           title="Žádná aktivní událost"
           message="Momentálně není aktivní žádná událost."
         />
@@ -126,12 +191,12 @@ export default function BeerPongScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF0000" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
       >
         {tournaments.length === 0 ? (
           <EmptyState
-            icon={<Icon name="beer-pong" size={48} color="#9ca3af" />}
+            icon={<Icon name="beer-pong" size={48} color={colors.textMuted} />}
             title="Žádné turnaje"
             message="Vytvořte první turnaj tlačítkem Přidat. Každý turnaj potřebuje 8 týmů pro start."
           />
@@ -204,67 +269,3 @@ export default function BeerPongScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    paddingBottom: 8,
-  },
-  title: { fontSize: 28, fontWeight: '700', color: '#111' },
-  subtitle: { fontSize: 15, color: '#6b7280', marginTop: 4 },
-  addBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: '#FF0000',
-  },
-  addBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
-  scroll: { flex: 1 },
-  scrollContent: { padding: 16, paddingTop: 8, paddingBottom: 32 },
-  tournamentCard: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  tournamentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  tournamentName: { fontSize: 17, fontWeight: '600', color: '#111', flex: 1, marginRight: 12 },
-  statusBadge: { borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 },
-  statusText: { fontSize: 12, fontWeight: '600' },
-  tournamentDescription: { fontSize: 14, color: '#6b7280', marginBottom: 10 },
-  statsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    marginTop: 4,
-  },
-  stat: { minWidth: 64 },
-  statLabel: { fontSize: 11, color: '#6b7280', marginBottom: 2 },
-  statValue: { fontSize: 15, fontWeight: '600', color: '#111' },
-  statValuePrimary: { color: '#2563eb' },
-  statValueSuccess: { color: '#16a34a' },
-  readyChip: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#dcfce7',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginTop: 10,
-  },
-  readyChipText: { fontSize: 12, fontWeight: '600', color: '#16a34a' },
-  moreTeamsHint: { fontSize: 12, color: '#b45309', marginTop: 6 },
-});

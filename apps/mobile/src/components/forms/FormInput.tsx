@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ViewStyle,
   TouchableOpacity,
 } from 'react-native';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface FormInputProps extends TextInputProps {
   label?: string;
@@ -26,11 +27,48 @@ export function FormInput({
   secureTextEntry,
   ...props
 }: FormInputProps) {
+  const colors = useThemeColors();
   const [secure, setSecure] = React.useState(!!secureTextEntry);
 
   React.useEffect(() => {
     setSecure(!!secureTextEntry);
   }, [secureTextEntry]);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { marginBottom: 16 },
+        inputWrap: { position: 'relative' as const },
+        label: {
+          fontSize: 14,
+          fontWeight: '500',
+          color: colors.textSecondary,
+          marginBottom: 6,
+        },
+        input: {
+          backgroundColor: colors.inputBg,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 10,
+          paddingHorizontal: 14,
+          paddingVertical: 12,
+          paddingRight: 44,
+          fontSize: 16,
+          color: colors.text,
+        },
+        eyeButton: {
+          position: 'absolute',
+          right: 12,
+          top: 0,
+          bottom: 0,
+          justifyContent: 'center',
+        },
+        eyeText: { fontSize: 18 },
+        inputError: { borderColor: colors.red },
+        error: { fontSize: 13, color: colors.red, marginTop: 4 },
+      }),
+    [colors]
+  );
 
   const isPassword = showPasswordToggle ?? secureTextEntry;
   const showToggle = showPasswordToggle && isPassword;
@@ -41,7 +79,7 @@ export function FormInput({
       <View style={styles.inputWrap}>
         <TextInput
           style={[styles.input, error && styles.inputError, style]}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={colors.textMuted}
           secureTextEntry={showToggle ? secure : secureTextEntry}
           {...props}
         />
@@ -59,47 +97,3 @@ export function FormInput({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-  },
-  inputWrap: {
-    position: 'relative',
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    paddingRight: 44,
-    fontSize: 16,
-    color: '#111',
-  },
-  eyeButton: {
-    position: 'absolute',
-    right: 12,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-  },
-  eyeText: {
-    fontSize: 18,
-  },
-  inputError: {
-    borderColor: '#dc2626',
-  },
-  error: {
-    fontSize: 13,
-    color: '#dc2626',
-    marginTop: 4,
-  },
-});

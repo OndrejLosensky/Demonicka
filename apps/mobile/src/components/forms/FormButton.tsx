@@ -1,4 +1,6 @@
+import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle } from 'react-native';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface FormButtonProps {
   title: string;
@@ -17,15 +19,16 @@ export function FormButton({
   variant = 'primary',
   style,
 }: FormButtonProps) {
+  const colors = useThemeColors();
   const isDisabled = loading || disabled;
 
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        variant === 'primary' && styles.primary,
-        variant === 'secondary' && styles.secondary,
-        variant === 'danger' && styles.danger,
+        variant === 'primary' && { backgroundColor: colors.primary },
+        variant === 'secondary' && { backgroundColor: colors.bgSecondary },
+        variant === 'danger' && { backgroundColor: colors.red },
         isDisabled && styles.disabled,
         style,
       ]}
@@ -34,12 +37,14 @@ export function FormButton({
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'secondary' ? '#111' : '#fff'} />
+        <ActivityIndicator color={variant === 'secondary' ? colors.text : '#fff'} />
       ) : (
         <Text
           style={[
             styles.text,
-            variant === 'secondary' && styles.secondaryText,
+            variant === 'primary' && { color: '#fff' },
+            variant === 'danger' && { color: '#fff' },
+            variant === 'secondary' && { color: colors.text },
           ]}
         >
           {title}
@@ -57,24 +62,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 48,
   },
-  primary: {
-    backgroundColor: '#FF0000',
-  },
-  secondary: {
-    backgroundColor: '#f3f4f6',
-  },
-  danger: {
-    backgroundColor: '#dc2626',
-  },
   disabled: {
     opacity: 0.6,
   },
   text: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
-  },
-  secondaryText: {
-    color: '#111',
   },
 });

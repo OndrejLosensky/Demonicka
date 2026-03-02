@@ -12,6 +12,7 @@ import {
 import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../../store/auth.store';
+import { useThemeColors } from '../../../../hooks/useThemeColors';
 import { api } from '../../../../services/api';
 import { parseError, logBackgroundError } from '../../../../utils/errorHandler';
 import { Header } from '../../../../components/layout/Header';
@@ -37,19 +38,6 @@ function getStatusLabel(status: BeerPongEventStatus): string {
       return 'Dokončeno';
     default:
       return status;
-  }
-}
-
-function getStatusColor(status: BeerPongEventStatus): string {
-  switch (status) {
-    case 'DRAFT':
-      return '#6b7280';
-    case 'ACTIVE':
-      return '#16a34a';
-    case 'COMPLETED':
-      return '#3b82f6';
-    default:
-      return '#6b7280';
   }
 }
 
@@ -95,6 +83,34 @@ function gameStatusLabel(status: string): string {
 export default function BeerPongDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const token = useAuthStore((state) => state.token);
+  const colors = useThemeColors();
+
+  const getStatusColor = (status: BeerPongEventStatus) => {
+    switch (status) {
+      case 'DRAFT':
+        return colors.textMuted;
+      case 'ACTIVE':
+        return colors.green;
+      case 'COMPLETED':
+        return colors.primary;
+      default:
+        return colors.textMuted;
+    }
+  };
+
+  const getStatusBgColor = (status: BeerPongEventStatus) => {
+    switch (status) {
+      case 'DRAFT':
+        return colors.bgSecondary;
+      case 'ACTIVE':
+        return colors.greenBg;
+      case 'COMPLETED':
+        return 'rgba(255,0,0,0.08)';
+      default:
+        return colors.bgSecondary;
+    }
+  };
+
   const [tournament, setTournament] = useState<BeerPongEvent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -198,6 +214,123 @@ export default function BeerPongDetailScreen() {
     return { quarters, semis, final };
   }, [tournament?.games]);
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.bg },
+        tabBar: {
+          flexDirection: 'row',
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+          paddingHorizontal: 16,
+        },
+        tab: {
+          paddingVertical: 14,
+          paddingHorizontal: 16,
+          marginRight: 8,
+          borderBottomWidth: 2,
+          borderBottomColor: 'transparent',
+        },
+        tabActive: { borderBottomColor: colors.primary },
+        tabText: { fontSize: 15, fontWeight: '500', color: colors.textMuted },
+        tabTextActive: { color: colors.primary, fontWeight: '600' },
+        scroll: { flex: 1 },
+        scrollContent: { padding: 16, paddingBottom: 32 },
+        tabContent: {},
+        statusRow: { marginBottom: 16 },
+        statusBadge: {
+          alignSelf: 'flex-start',
+          borderRadius: 6,
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+        },
+        statusText: { fontSize: 12, fontWeight: '600' },
+        actionRow: { flexDirection: 'row' as const, gap: 12, marginBottom: 20 },
+        primaryBtn: {
+          backgroundColor: colors.primary,
+          paddingVertical: 12,
+          paddingHorizontal: 20,
+          borderRadius: 10,
+        },
+        primaryBtnSuccess: { backgroundColor: colors.green },
+        primaryBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+        roundSection: { marginBottom: 24 },
+        roundTitle: { fontSize: 16, fontWeight: '600', color: colors.textSecondary, marginBottom: 10 },
+        gameCard: {
+          backgroundColor: colors.card,
+          padding: 14,
+          borderRadius: 10,
+          marginBottom: 8,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+        },
+        gameRowText: { fontSize: 15, color: colors.text, marginBottom: 4 },
+        gameStatusWrap: {},
+        gameStatusText: { fontSize: 12, color: colors.textSecondary, fontWeight: '500' },
+        sectionHeader: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 16,
+        },
+        sectionTitle: { fontSize: 18, fontWeight: '600', color: colors.text },
+        addTeamBtn: {
+          paddingVertical: 8,
+          paddingHorizontal: 14,
+          borderRadius: 8,
+          backgroundColor: colors.primary,
+        },
+        addTeamBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+        teamCard: {
+          backgroundColor: colors.card,
+          padding: 14,
+          borderRadius: 10,
+          marginBottom: 10,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+        },
+        teamCardMain: { flexDirection: 'row' as const, alignItems: 'center' },
+        teamIndex: { fontSize: 14, color: colors.textSecondary, width: 28 },
+        teamName: { flex: 1, fontSize: 16, fontWeight: '600', color: colors.text },
+        deleteTeamBtn: { padding: 6 },
+        deleteTeamBtnText: { fontSize: 13, color: colors.red, fontWeight: '500' },
+        teamPlayers: { fontSize: 13, color: colors.textSecondary, marginTop: 6, marginLeft: 28 },
+        emptyHint: { fontSize: 14, color: colors.textSecondary, marginTop: 8 },
+        hint: { fontSize: 13, color: colors.textSecondary, marginTop: 16 },
+        settingsRow: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingVertical: 14,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        settingsLabel: { fontSize: 15, color: colors.textSecondary },
+        settingsValue: { fontSize: 15, fontWeight: '600', color: colors.text },
+        errorWrap: { flex: 1, padding: 24, justifyContent: 'center', alignItems: 'center' },
+        errorText: { fontSize: 16, color: colors.red, textAlign: 'center' as const, marginBottom: 16 },
+        retryBtn: { paddingVertical: 10, paddingHorizontal: 20 },
+        retryBtnText: { fontSize: 16, color: colors.primary, fontWeight: '600' },
+        confirmOverlay: {
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          padding: 24,
+        },
+        confirmCard: {
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          padding: 24,
+        },
+        confirmTitle: { fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: 8 },
+        confirmMessage: { fontSize: 15, color: colors.textSecondary, marginBottom: 20 },
+        confirmActions: { flexDirection: 'row' as const, justifyContent: 'flex-end', gap: 16 },
+        confirmCancel: { fontSize: 16, color: colors.textSecondary, fontWeight: '500' },
+        confirmOk: { fontSize: 16, fontWeight: '600', color: colors.primary },
+      }),
+    [colors]
+  );
+
   if (isLoading) return <LoadingScreen showLogo={false} />;
 
   if (error && !tournament) {
@@ -254,14 +387,14 @@ export default function BeerPongDetailScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF0000" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
         showsVerticalScrollIndicator={false}
       >
         {activeTab === 0 && (
           <View style={styles.tabContent}>
             <View style={styles.statusRow}>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(tournament.status) + '20' }]}>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusBgColor(tournament.status) }]}>
                 <Text style={[styles.statusText, { color: getStatusColor(tournament.status) }]}>
                   {getStatusLabel(tournament.status)}
                 </Text>
@@ -522,7 +655,7 @@ export default function BeerPongDetailScreen() {
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleStart()} disabled={actionLoading}>
                 {actionLoading ? (
-                  <ActivityIndicator size="small" color="#FF0000" />
+                  <ActivityIndicator size="small" color={colors.primary} />
                 ) : (
                   <Text style={styles.confirmOk}>Spustit</Text>
                 )}
@@ -546,9 +679,9 @@ export default function BeerPongDetailScreen() {
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleComplete()} disabled={actionLoading}>
                 {actionLoading ? (
-                  <ActivityIndicator size="small" color="#16a34a" />
+                  <ActivityIndicator size="small" color={colors.green} />
                 ) : (
-                  <Text style={[styles.confirmOk, { color: '#16a34a' }]}>Dokončit</Text>
+                  <Text style={[styles.confirmOk, { color: colors.green }]}>Dokončit</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -559,119 +692,3 @@ export default function BeerPongDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  tabBar: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    paddingHorizontal: 16,
-  },
-  tab: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginRight: 8,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabActive: { borderBottomColor: '#FF0000' },
-  tabText: { fontSize: 15, fontWeight: '500', color: '#6b7280' },
-  tabTextActive: { color: '#FF0000', fontWeight: '600' },
-  scroll: { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 32 },
-  tabContent: {},
-  statusRow: { marginBottom: 16 },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  statusText: { fontSize: 12, fontWeight: '600' },
-  actionRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  primaryBtn: {
-    backgroundColor: '#FF0000',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-  },
-  primaryBtnSuccess: { backgroundColor: '#16a34a' },
-  primaryBtnText: { fontSize: 16, fontWeight: '600', color: '#fff' },
-  roundSection: { marginBottom: 24 },
-  roundTitle: { fontSize: 16, fontWeight: '600', color: '#374151', marginBottom: 10 },
-  gameCard: {
-    backgroundColor: '#f9fafb',
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  gameRowText: { fontSize: 15, color: '#111', marginBottom: 4 },
-  gameStatusWrap: {},
-  gameStatusText: { fontSize: 12, color: '#6b7280', fontWeight: '500' },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#111' },
-  addTeamBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-    backgroundColor: '#FF0000',
-  },
-  addTeamBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
-  teamCard: {
-    backgroundColor: '#f9fafb',
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  teamCardMain: { flexDirection: 'row', alignItems: 'center' },
-  teamIndex: { fontSize: 14, color: '#6b7280', width: 28 },
-  teamName: { flex: 1, fontSize: 16, fontWeight: '600', color: '#111' },
-  deleteTeamBtn: { padding: 6 },
-  deleteTeamBtnText: { fontSize: 13, color: '#ef4444', fontWeight: '500' },
-  teamPlayers: { fontSize: 13, color: '#6b7280', marginTop: 6, marginLeft: 28 },
-  emptyHint: { fontSize: 14, color: '#6b7280', marginTop: 8 },
-  hint: { fontSize: 13, color: '#6b7280', marginTop: 16 },
-  settingsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  settingsLabel: { fontSize: 15, color: '#6b7280' },
-  settingsValue: { fontSize: 15, fontWeight: '600', color: '#111' },
-  errorWrap: { flex: 1, padding: 24, justifyContent: 'center', alignItems: 'center' },
-  errorText: { fontSize: 16, color: '#ef4444', textAlign: 'center', marginBottom: 16 },
-  retryBtn: { paddingVertical: 10, paddingHorizontal: 20 },
-  retryBtnText: { fontSize: 16, color: '#FF0000', fontWeight: '600' },
-  confirmOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  confirmCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
-  },
-  confirmTitle: { fontSize: 18, fontWeight: '700', color: '#111', marginBottom: 8 },
-  confirmMessage: { fontSize: 15, color: '#6b7280', marginBottom: 20 },
-  confirmActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 16,
-  },
-  confirmCancel: { fontSize: 16, color: '#6b7280', fontWeight: '500' },
-  confirmOk: { fontSize: 16, fontWeight: '600', color: '#FF0000' },
-});

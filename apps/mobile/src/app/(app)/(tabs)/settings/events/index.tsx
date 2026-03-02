@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useRole } from '../../../../../hooks/useRole';
+import { useThemeColors } from '../../../../../hooks/useThemeColors';
 import { useAuthStore } from '../../../../../store/auth.store';
 import { api } from '../../../../../services/api';
 import { logBackgroundError } from '../../../../../utils/errorHandler';
@@ -15,6 +16,7 @@ import type { Event } from '@demonicka/shared-types';
 
 export default function EventListScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const token = useAuthStore((state) => state.token);
   const { isOperator } = useRole();
   const [events, setEvents] = useState<Event[]>([]);
@@ -38,12 +40,37 @@ export default function EventListScreen() {
     if (isOperator) fetchEvents();
   }, [isOperator, fetchEvents]);
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.bg },
+        listContent: { padding: 12, paddingBottom: 24 },
+        card: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: colors.card,
+          borderRadius: 10,
+          padding: 12,
+          marginBottom: 8,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+        },
+        cardName: { flex: 1, fontSize: 16, fontWeight: '600', color: colors.text, marginRight: 8 },
+        cardRight: { flexDirection: 'row' as const, alignItems: 'center', flexShrink: 0 },
+        cardDate: { fontSize: 13, color: colors.textSecondary, marginRight: 6 },
+        activeBadge: { backgroundColor: colors.greenBg, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, marginRight: 8 },
+        activeBadgeText: { fontSize: 11, fontWeight: '600', color: colors.green },
+        cardArrow: { fontSize: 14, color: colors.textMuted },
+      }),
+    [colors]
+  );
+
   if (!isOperator) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header title="Události" showBack />
         <EmptyState
-          icon={<Icon name="lock" size={48} color="#9ca3af" />}
+          icon={<Icon name="lock" size={48} color={colors.textMuted} />}
           title="Přístup odepřen"
           message="Nemáte oprávnění."
         />
@@ -61,11 +88,11 @@ export default function EventListScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchEvents(); }} tintColor="#FF0000" />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchEvents(); }} tintColor={colors.primary} />
         }
         ListEmptyComponent={
           <EmptyState
-            icon={<Icon name="calendar" size={48} color="#9ca3af" />}
+            icon={<Icon name="calendar" size={48} color={colors.textMuted} />}
             title="Žádné události"
             message="Nemáte přístup k žádné události."
           />
@@ -92,24 +119,3 @@ export default function EventListScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  listContent: { padding: 12, paddingBottom: 24 },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9fafb',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  cardName: { flex: 1, fontSize: 16, fontWeight: '600', color: '#111', marginRight: 8 },
-  cardRight: { flexDirection: 'row', alignItems: 'center', flexShrink: 0 },
-  cardDate: { fontSize: 13, color: '#6b7280', marginRight: 6 },
-  activeBadge: { backgroundColor: '#dcfce7', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, marginRight: 8 },
-  activeBadgeText: { fontSize: 11, fontWeight: '600', color: '#16a34a' },
-  cardArrow: { fontSize: 14, color: '#9ca3af' },
-});

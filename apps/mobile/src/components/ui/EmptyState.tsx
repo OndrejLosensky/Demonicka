@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Icon } from '../icons';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface EmptyStateProps {
   title: string;
@@ -16,12 +17,13 @@ export function EmptyState({
   actionLabel,
   onAction,
 }: EmptyStateProps) {
-  const iconNode = icon ?? <Icon name="inbox" size={48} color="#9ca3af" />;
+  const colors = useThemeColors();
+  const iconNode = icon ?? <Icon name="inbox" size={48} color={colors.textMuted} />;
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <View style={styles.iconWrap}>{iconNode}</View>
-      <Text style={styles.title}>{title}</Text>
-      {message && <Text style={styles.message}>{message}</Text>}
+      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      {message && <Text style={[styles.message, { color: colors.textMuted }]}>{message}</Text>}
       {actionLabel && onAction && (
         <TouchableOpacity style={styles.button} onPress={onAction} activeOpacity={0.8}>
           <Text style={styles.buttonText}>{actionLabel}</Text>
@@ -37,7 +39,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: '#fff',
   },
   iconWrap: {
     marginBottom: 16,
@@ -47,13 +48,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111',
     textAlign: 'center',
     marginBottom: 8,
   },
   message: {
     fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
     marginBottom: 24,
   },

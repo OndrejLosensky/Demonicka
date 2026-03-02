@@ -1,5 +1,6 @@
 import { View, StyleSheet, ScrollView, RefreshControl, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 interface ScreenContainerProps {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ export function ScreenContainer({
   contentStyle,
   edges = ['top'],
 }: ScreenContainerProps) {
+  const colors = useThemeColors();
   const content = scrollable ? (
     <ScrollView
       style={styles.scroll}
@@ -27,7 +29,7 @@ export function ScreenContainer({
       showsVerticalScrollIndicator={false}
       refreshControl={
         onRefresh ? (
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF0000" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         ) : undefined
       }
     >
@@ -38,7 +40,7 @@ export function ScreenContainer({
   );
 
   return (
-    <SafeAreaView style={[styles.container, style]} edges={edges}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }, style]} edges={edges}>
       {content}
     </SafeAreaView>
   );
@@ -47,7 +49,6 @@ export function ScreenContainer({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scroll: {
     flex: 1,

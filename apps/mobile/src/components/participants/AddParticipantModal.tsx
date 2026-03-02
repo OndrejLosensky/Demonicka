@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Keyboard,
   ActivityIndicator,
 } from 'react-native';
+import { useThemeColors } from '../../hooks/useThemeColors';
 
 type Gender = 'MALE' | 'FEMALE';
 
@@ -24,6 +25,7 @@ export function AddParticipantModal({
   onClose,
   onSubmit,
 }: AddParticipantModalProps) {
+  const colors = useThemeColors();
   const [username, setUsername] = useState('');
   const [gender, setGender] = useState<Gender>('MALE');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,6 +58,77 @@ export function AddParticipantModal({
     }
   };
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        overlay: {
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          padding: 24,
+        },
+        card: {
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          padding: 20,
+        },
+        title: {
+          fontSize: 20,
+          fontWeight: '700',
+          color: colors.text,
+          marginBottom: 20,
+        },
+        label: {
+          fontSize: 14,
+          fontWeight: '600',
+          color: colors.textSecondary,
+          marginBottom: 6,
+        },
+        input: {
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 10,
+          paddingHorizontal: 14,
+          paddingVertical: 12,
+          fontSize: 16,
+          color: colors.text,
+          backgroundColor: colors.inputBg,
+          marginBottom: 16,
+        },
+        inputError: { borderColor: colors.red },
+        errorText: { fontSize: 13, color: colors.red, marginBottom: 12 },
+        genderRow: { flexDirection: 'row' as const, gap: 12, marginBottom: 24 },
+        genderBtn: {
+          flex: 1,
+          paddingVertical: 12,
+          borderRadius: 10,
+          borderWidth: 1,
+          borderColor: colors.border,
+          alignItems: 'center',
+        },
+        genderBtnActive: {
+          borderColor: colors.primary,
+          backgroundColor: 'rgba(255, 0, 0, 0.08)',
+        },
+        genderText: { fontSize: 15, fontWeight: '500' as const, color: colors.textMuted },
+        genderTextActive: { color: colors.primary, fontWeight: '600' as const },
+        actions: { flexDirection: 'row' as const, justifyContent: 'flex-end', gap: 12 },
+        cancelBtn: { paddingVertical: 10, paddingHorizontal: 16 },
+        cancelText: { fontSize: 16, color: colors.textMuted, fontWeight: '500' as const },
+        submitBtn: {
+          backgroundColor: colors.primary,
+          paddingVertical: 10,
+          paddingHorizontal: 20,
+          borderRadius: 10,
+          minWidth: 100,
+          alignItems: 'center',
+        },
+        submitBtnDisabled: { opacity: 0.7 },
+        submitText: { fontSize: 16, fontWeight: '600' as const, color: '#fff' },
+      }),
+    [colors]
+  );
+
   return (
     <Modal
       visible={visible}
@@ -78,7 +151,7 @@ export function AddParticipantModal({
                   setError('');
                 }}
                 placeholder="Jméno účastníka"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={colors.textMuted}
                 autoCapitalize="words"
                 editable={!isSubmitting}
               />
@@ -133,104 +206,3 @@ export function AddParticipantModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111',
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 6,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#111',
-    backgroundColor: '#fff',
-    marginBottom: 16,
-  },
-  inputError: {
-    borderColor: '#ef4444',
-  },
-  errorText: {
-    fontSize: 13,
-    color: '#ef4444',
-    marginBottom: 12,
-  },
-  genderRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
-  genderBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    alignItems: 'center',
-  },
-  genderBtnActive: {
-    borderColor: '#FF0000',
-    backgroundColor: 'rgba(255, 0, 0, 0.08)',
-  },
-  genderText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#6b7280',
-  },
-  genderTextActive: {
-    color: '#FF0000',
-    fontWeight: '600',
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-  },
-  cancelBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-  },
-  cancelText: {
-    fontSize: 16,
-    color: '#6b7280',
-    fontWeight: '500',
-  },
-  submitBtn: {
-    backgroundColor: '#FF0000',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  submitBtnDisabled: {
-    opacity: 0.7,
-  },
-  submitText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-});
