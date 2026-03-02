@@ -48,7 +48,9 @@ export function Header({ title, subtitle, showBack = false, rightAction }: Heade
             onPress={rightAction.onPress}
             activeOpacity={0.7}
           >
-            <Text style={[styles.actionText, { color: colors.primary }]}>{rightAction.label}</Text>
+            <Text style={[styles.actionText, { color: colors.primary }]} numberOfLines={1}>
+              {rightAction.label}
+            </Text>
           </TouchableOpacity>
         )}
       </View>

@@ -5,23 +5,30 @@ import { useRouter } from 'expo-router';
 import { useRole } from '../../../../../hooks/useRole';
 import { useThemeColors } from '../../../../../hooks/useThemeColors';
 import { useAuthStore } from '../../../../../store/auth.store';
+import { useEventStore } from '../../../../../store/event.store';
 import { api } from '../../../../../services/api';
 import { logBackgroundError } from '../../../../../utils/errorHandler';
 import { Header } from '../../../../../components/layout/Header';
 import { LoadingScreen } from '../../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../../components/ui/EmptyState';
+import { CreateEventModal } from '../../../../../components/events/CreateEventModal';
 import { Icon } from '../../../../../components/icons';
 import { formatDate } from '../../../../../utils/format';
+import { Permission } from '@demonicka/shared';
 import type { Event } from '@demonicka/shared-types';
+import type { CreateEventDto } from '@demonicka/shared-types';
 
 export default function EventListScreen() {
   const router = useRouter();
   const colors = useThemeColors();
   const token = useAuthStore((state) => state.token);
-  const { isOperator } = useRole();
+  const refetchActiveEvent = useEventStore((state) => state.fetchActiveEvent);
+  const { isOperator, hasPermission } = useRole();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const canCreateEvent = hasPermission(Permission.CREATE_EVENT);
 
   const fetchEvents = useCallback(async () => {
     if (!token) return;
@@ -39,6 +46,16 @@ export default function EventListScreen() {
   useEffect(() => {
     if (isOperator) fetchEvents();
   }, [isOperator, fetchEvents]);
+
+  const handleCreateEvent = useCallback(
+    async (data: CreateEventDto) => {
+      if (!token) return;
+      await api.post<Event>('/events', data, token);
+      await Promise.all([fetchEvents(), refetchActiveEvent()]);
+      setCreateModalVisible(false);
+    },
+    [token, fetchEvents, refetchActiveEvent]
+  );
 
   const styles = useMemo(
     () =>
@@ -82,7 +99,15 @@ export default function EventListScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header title="Události" showBack />
+      <Header
+        title="Události"
+        showBack
+        rightAction={
+          canCreateEvent
+            ? { label: 'Přidat', onPress: () => setCreateModalVisible(true) }
+            : undefined
+        }
+      />
       <FlatList
         data={events}
         keyExtractor={(item) => item.id}
@@ -115,6 +140,11 @@ export default function EventListScreen() {
             </View>
           </TouchableOpacity>
         )}
+      />
+      <CreateEventModal
+        visible={createModalVisible}
+        onClose={() => setCreateModalVisible(false)}
+        onSubmit={handleCreateEvent}
       />
     </SafeAreaView>
   );

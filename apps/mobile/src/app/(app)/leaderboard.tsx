@@ -54,13 +54,6 @@ export default function LeaderboardScreen() {
     }
   }, [fetchLeaderboard]);
 
-  if (eventLoading || isLoading) {
-    return <LoadingScreen showLogo={false} />;
-  }
-
-  const males = leaderboard?.males ?? [];
-  const females = leaderboard?.females ?? [];
-
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -107,6 +100,13 @@ export default function LeaderboardScreen() {
       }),
     [colors]
   );
+
+  if (eventLoading || isLoading) {
+    return <LoadingScreen showLogo={false} />;
+  }
+
+  const males = leaderboard?.males ?? [];
+  const females = leaderboard?.females ?? [];
 
   const Row = ({ item }: { item: UserLeaderboardData }) => (
     <View style={styles.row}>

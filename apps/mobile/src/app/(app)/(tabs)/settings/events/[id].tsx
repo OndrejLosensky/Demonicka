@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -187,10 +187,102 @@ export default function EventDetailScreen() {
     }
   }, [event, token, fetchEvent]);
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.bg },
+        flex: { flex: 1 },
+        scroll: { flex: 1 },
+        scrollContent: { paddingHorizontal: 12, paddingBottom: 24 },
+        section: { marginBottom: 12 },
+        sectionTitle: {
+          fontSize: 12,
+          fontWeight: '600',
+          color: colors.textSecondary,
+          textTransform: 'uppercase',
+          marginBottom: 6,
+          marginLeft: 2,
+        },
+        card: {
+          backgroundColor: colors.card,
+          borderRadius: 10,
+          padding: 12,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+        },
+        field: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
+        fieldLabel: { fontSize: 12, color: colors.textSecondary, marginBottom: 2 },
+        fieldValue: { fontSize: 15, color: colors.text, fontWeight: '500' },
+        fieldMono: { fontSize: 14, fontFamily: 'monospace', color: colors.text },
+        fieldMuted: { color: colors.textMuted },
+        input: {
+          fontSize: 15,
+          color: colors.text,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 8,
+          paddingHorizontal: 10,
+          paddingVertical: 6,
+          backgroundColor: colors.inputBg,
+        },
+        switchRow: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingVertical: 8,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        switchLabel: { fontSize: 15, color: colors.text, fontWeight: '500' },
+        switchDescription: { fontSize: 12, color: colors.textSecondary, marginTop: 1 },
+        badge: {
+          paddingHorizontal: 8,
+          paddingVertical: 4,
+          borderRadius: 6,
+          backgroundColor: colors.border,
+        },
+        badgeActive: { backgroundColor: colors.greenBg },
+        badgeText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
+        badgeTextActive: { color: colors.green },
+        linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+        linkLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+        linkLabel: { fontSize: 15, color: colors.text, fontWeight: '500' },
+        linkArrow: { fontSize: 14, color: colors.textMuted },
+        primaryBtn: {
+          backgroundColor: colors.primary,
+          borderRadius: 8,
+          paddingVertical: 10,
+          alignItems: 'center',
+          marginTop: 8,
+        },
+        primaryBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+        outlineBtn: {
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 8,
+          paddingVertical: 10,
+          alignItems: 'center',
+          marginTop: 8,
+        },
+        outlineBtnText: { fontSize: 14, fontWeight: '600', color: colors.text },
+        dangerBtn: {
+          backgroundColor: colors.red,
+          borderRadius: 8,
+          paddingVertical: 10,
+          alignItems: 'center',
+          marginTop: 8,
+        },
+        dangerBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+        note: { paddingTop: 8, paddingHorizontal: 4 },
+        noteText: { fontSize: 12, color: colors.textMuted, textAlign: 'center', fontStyle: 'italic' },
+      }),
+    [colors]
+  );
+
   if (loading) return <LoadingScreen showLogo={false} />;
   if (!id || !event) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <Header title="Událost" showBack />
         <EmptyState
           icon={<Icon name="calendar" size={48} color={colors.textMuted} />}
@@ -205,7 +297,7 @@ export default function EventDetailScreen() {
   const regEnabled = event.registrationEnabled ?? false;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <Header title={event.name} showBack />
       <KeyboardAvoidingView
         style={styles.flex}
@@ -411,38 +503,3 @@ export default function EventDetailScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  flex: { flex: 1 },
-  scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 12, paddingBottom: 24 },
-  section: { marginBottom: 12 },
-  sectionTitle: { fontSize: 12, fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', marginBottom: 6, marginLeft: 2 },
-  card: { backgroundColor: '#f9fafb', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#e5e7eb' },
-  field: { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
-  fieldLabel: { fontSize: 12, color: '#6b7280', marginBottom: 2 },
-  fieldValue: { fontSize: 15, color: '#111', fontWeight: '500' },
-  fieldMono: { fontSize: 14, fontFamily: 'monospace', color: '#111' },
-  fieldMuted: { color: '#9ca3af' },
-  input: { fontSize: 15, color: '#111', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: '#fff' },
-  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
-  switchLabel: { fontSize: 15, color: '#111', fontWeight: '500' },
-  switchDescription: { fontSize: 12, color: '#6b7280', marginTop: 1 },
-  badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, backgroundColor: '#e5e7eb' },
-  badgeActive: { backgroundColor: '#dcfce7' },
-  badgeText: { fontSize: 12, fontWeight: '600', color: '#6b7280' },
-  badgeTextActive: { color: '#16a34a' },
-  linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  linkLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  linkLabel: { fontSize: 15, color: '#111', fontWeight: '500' },
-  linkArrow: { fontSize: 14, color: '#9ca3af' },
-  primaryBtn: { backgroundColor: '#FF0000', borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 8 },
-  primaryBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
-  outlineBtn: { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 8 },
-  outlineBtnText: { fontSize: 14, fontWeight: '600', color: '#111' },
-  dangerBtn: { backgroundColor: '#dc2626', borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 8 },
-  dangerBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
-  note: { paddingTop: 8, paddingHorizontal: 4 },
-  noteText: { fontSize: 12, color: '#9ca3af', textAlign: 'center', fontStyle: 'italic' },
-});

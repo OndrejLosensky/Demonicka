@@ -15,6 +15,7 @@
   "dependencies": {
     "@demonicka/shared": "workspace:*",
     "@demonicka/shared-types": "workspace:*",
+    "@react-native-community/datetimepicker": "~8.4.4",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "expo": "~54.0.32",
     "expo-build-properties": "~1.0.10",
