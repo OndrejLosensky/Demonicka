@@ -98,7 +98,11 @@ export default function EventsHistoryScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
         renderItem={({ item }) => (
-          <View style={[styles.card, { backgroundColor: colors.card }]}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => router.push(`/(app)/(tabs)/events/${item.eventId}`)}
+          >
+            <View style={[styles.card, { backgroundColor: colors.card }]}>
             <View style={styles.cardHeader}>
               <Text style={[styles.eventName, { color: colors.text }]}>{item.eventName}</Text>
               {item.isActive && (
@@ -122,7 +126,8 @@ export default function EventsHistoryScreen() {
                 <Text style={[styles.chipText, { color: colors.textMuted }]}>Podíl: {item.sharePercent.toFixed(1)}%</Text>
               </View>
             </View>
-          </View>
+            </View>
+          </TouchableOpacity>
         )}
         ListEmptyComponent={
           <EmptyState

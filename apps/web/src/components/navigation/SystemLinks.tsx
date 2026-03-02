@@ -1,7 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Box } from '@demonicka/ui';
 import { Settings as SettingsIcon, History as HistoryIcon } from '@demonicka/ui';
-import { FaBook } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import { USER_ROLE } from '@demonicka/shared-types';
 import { tokens } from '../../theme/tokens';
@@ -83,14 +82,9 @@ export function SystemLinks() {
         Systém
       </SystemLink>
       {isSuperAdmin && (
-        <>
-          <SystemLink to="/dashboard/docs" icon={<FaBook className="text-base" />}>
-            Dokumentace
-          </SystemLink>
-          <SystemLink to="/dashboard/activity" icon={<HistoryIcon sx={{ fontSize: 18 }} />}>
-            Aktivita
-          </SystemLink>
-        </>
+        <SystemLink to="/dashboard/activity" icon={<HistoryIcon sx={{ fontSize: 18 }} />}>
+          Aktivita
+        </SystemLink>
       )}
     </Box>
   );

@@ -49,7 +49,7 @@ export default function TabsLayout() {
         options={{
           title: 'Přehled události',
           tabBarIcon: ({ color }) => <Icon name="calendar" size={20} color={color} />,
-          href: isOperator ? null : undefined,
+          href: null,
         }}
       />
       <Tabs.Screen
@@ -57,6 +57,14 @@ export default function TabsLayout() {
         options={{
           title: 'Události',
           tabBarIcon: ({ color }) => <Icon name="chart" size={20} color={color} />,
+          href: isOperator ? null : undefined,
+        }}
+      />
+      <Tabs.Screen
+        name="gallery"
+        options={{
+          title: 'Galerie',
+          tabBarIcon: ({ color }) => <Icon name="image" size={20} color={color} />,
           href: isOperator ? null : undefined,
         }}
       />

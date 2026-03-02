@@ -50,6 +50,13 @@ export const dashboardRouteMeta: RouteObject[] = [
             } satisfies DashboardChromeHandle,
           },
           {
+            path: 'gallery',
+            handle: {
+              crumb: 'Galerie',
+              title: 'Galerie',
+            } satisfies DashboardChromeHandle,
+          },
+          {
             path: 'dashboard',
             handle: {
               crumb: 'Moje statistiky',
@@ -76,6 +83,13 @@ export const dashboardRouteMeta: RouteObject[] = [
                         handle: {
                           crumb: 'Beer Pong',
                           title: 'Beer Pong',
+                        } satisfies DashboardChromeHandle,
+                      },
+                      {
+                        path: 'gallery',
+                        handle: {
+                          crumb: 'Galerie',
+                          title: 'Galerie',
                         } satisfies DashboardChromeHandle,
                       },
                     ],

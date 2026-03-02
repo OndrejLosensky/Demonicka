@@ -64,10 +64,12 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
       if (user.role === USER_ROLE.SUPER_ADMIN) {
         items.push(
           { to: '/dashboard/system', label: 'Systém' },
-          { to: '/dashboard/docs', label: 'Dokumentace' },
           { to: '/dashboard/activity', label: 'Aktivita' }
         );
       }
+
+      const userBase = `/u/${encodeURIComponent(user.username)}`;
+      items.push({ to: `${userBase}/gallery`, label: 'Galerie' });
     }
 
     if (user?.role === USER_ROLE.USER) {
@@ -77,7 +79,8 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
         { to: base, label: 'Moje statistiky' },
         { to: `${base}/events`, label: 'Události' },
         { to: `${userBase}/settings`, label: 'Nastavení' },
-        { to: `${userBase}/achievements`, label: 'Úspěchy' }
+        { to: `${userBase}/achievements`, label: 'Úspěchy' },
+        { to: `${userBase}/gallery`, label: 'Galerie' }
       );
     }
 

@@ -21,6 +21,7 @@ import { ExportsModule } from './exports/exports.module';
 import { BeerPongDefaultsModule } from './beer-pong-defaults/beer-pong-defaults.module';
 import { EventRegistrationModule } from './event-registration/event-registration.module';
 import { LeaderboardViewSettingsModule } from './leaderboard-view-settings/leaderboard-view-settings.module';
+import { GalleryModule } from './gallery/gallery.module';
 import { StorageModule } from './storage/storage.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
@@ -54,6 +55,7 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
     ExportsModule,
     EventRegistrationModule,
     LeaderboardViewSettingsModule,
+    GalleryModule,
   ],
 })
 export class AppModule implements NestModule {

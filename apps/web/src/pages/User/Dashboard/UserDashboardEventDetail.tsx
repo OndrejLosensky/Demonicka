@@ -83,6 +83,18 @@ export function UserDashboardEventDetail() {
           >
             Beer Pong
           </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => {
+              navigate(
+                `/u/${encodeURIComponent(data.user.username)}/dashboard/events/${data.event.id}/gallery`,
+              );
+            }}
+            sx={{ minHeight: 32, px: 2, fontSize: '0.8rem', fontWeight: 700, whiteSpace: 'nowrap' }}
+          >
+            Galerie
+          </Button>
         </Box>
       </Card>
 

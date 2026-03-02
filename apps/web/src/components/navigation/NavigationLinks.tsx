@@ -11,6 +11,7 @@ import {
   SportsBar as BeerPongIcon,
   Settings as SettingsIcon,
 } from '@demonicka/ui';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { USER_ROLE, type Event, type BeerPongEvent } from '@demonicka/shared-types';
@@ -317,6 +318,9 @@ export function NavigationLinks() {
               Beer Pong
             </DropdownNavLink>
           )}
+          <NavLink to={`${userBase}/gallery`} icon={<PhotoLibraryIcon sx={{ fontSize: 18 }} />}>
+            Galerie
+          </NavLink>
         </>
       )}
       {user?.role === USER_ROLE.USER && (
@@ -335,6 +339,9 @@ export function NavigationLinks() {
           </NavLink>
           <NavLink to={`${userBase}/achievements`} icon={<TrophyIcon sx={{ fontSize: 18 }} />}>
             Úspěchy
+          </NavLink>
+          <NavLink to={`${userBase}/gallery`} icon={<PhotoLibraryIcon sx={{ fontSize: 18 }} />}>
+            Galerie
           </NavLink>
         </>
       )}

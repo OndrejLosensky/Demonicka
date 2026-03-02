@@ -33,11 +33,13 @@ import { UserDashboardEvents } from './pages/User/Dashboard/UserDashboardEvents'
 import { UserDashboardEventLayout } from './pages/User/Dashboard/UserDashboardEventLayout';
 import { UserDashboardEventDetail } from './pages/User/Dashboard/UserDashboardEventDetail';
 import { UserDashboardEventBeerPong } from './pages/User/Dashboard/UserDashboardEventBeerPong';
+import { UserDashboardEventGallery } from './pages/User/Dashboard/UserDashboardEventGallery';
 import { LegacyUserDashboardRedirect } from './pages/User/Dashboard/LegacyUserDashboardRedirect';
 import { BeerPongList } from './pages/BeerPong';
 import { BeerPongDetail } from './pages/BeerPong/BeerPongDetail';
 import { UserSettingsPage } from './pages/User/Settings/UserSettingsPage';
 import { LegacyUserSettingsRedirect } from './pages/User/Settings/LegacyUserSettingsRedirect';
+import { GalleryPage } from './pages/User/Gallery/GalleryPage';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import { CompleteRegistration } from './pages/Auth/CompleteRegistration';
@@ -263,6 +265,7 @@ function App() {
               <Route path="events/:id" element={<UserDashboardEventLayout />}>
                 <Route index element={<UserDashboardEventDetail />} />
                 <Route path="beer-pong" element={<UserDashboardEventBeerPong />} />
+                <Route path="gallery" element={<UserDashboardEventGallery />} />
               </Route>
             </Route>
             <Route
@@ -278,6 +281,14 @@ function App() {
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
                   <AchievementsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="u/:username/gallery"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
+                  <GalleryPage />
                 </RoleRoute>
               }
             />

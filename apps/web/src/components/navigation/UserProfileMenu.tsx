@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Menu, MenuItem, ListItemIcon, ListItemText, Divider, Box, Typography } from '@demonicka/ui';
 import { Logout as LogoutIcon, Person as PersonIcon, TrendingUp as TrendingUpIcon, EmojiEvents as EmojiEventsIcon, Settings as SettingsIcon } from '@demonicka/ui';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useAuth } from '../../contexts/AuthContext';
 import { tokens } from '../../theme/tokens';
 import { getShadow } from '../../theme/utils';
@@ -50,6 +51,11 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
   const handleSettingsClick = () => {
     onClose();
     navigate(`${userBase}/settings`);
+  };
+
+  const handleDocsClick = () => {
+    onClose();
+    navigate('/dashboard/docs');
   };
 
   const getRoleLabel = () => {
@@ -152,6 +158,19 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
           />
         </MenuItem>,
       ]}
+      {hasRole([USER_ROLE.SUPER_ADMIN]) && (
+        <MenuItem onClick={handleDocsClick} sx={{ py: 1, px: 2 }}>
+          <ListItemIcon>
+            <MenuBookIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Dokumentace"
+            primaryTypographyProps={{
+              sx: { fontWeight: 500 },
+            }}
+          />
+        </MenuItem>
+      )}
       <Divider sx={{ opacity: 0.6 }} />
       <MenuItem
         onClick={handleLogout}

@@ -25,7 +25,9 @@ export type IconName =
   | 'remove'
   | 'spill'
   | 'copy'
-  | 'check';
+  | 'check'
+  | 'chevron-left'
+  | 'image';
 
 const ICON_MAP: Record<IconName, React.ComponentProps<typeof MaterialCommunityIcons>['name']> = {
   beer: 'glass-mug',
@@ -47,6 +49,8 @@ const ICON_MAP: Record<IconName, React.ComponentProps<typeof MaterialCommunityIc
   spill: 'cup-water',
   copy: 'content-copy',
   check: 'check',
+  'chevron-left': 'chevron-left',
+  image: 'image-multiple',
 };
 
 interface IconProps {
