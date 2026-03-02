@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Box, Typography, Card, PageLoader } from '@demonicka/ui';
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
@@ -16,6 +17,7 @@ import {
 } from 'recharts';
 import { barrelService } from '../../../services/barrelService';
 import { dashboardService } from '../../../services/dashboardService';
+import { websocketService } from '../../../services/websocketService';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { useAppTheme } from '../../../contexts/ThemeContext';
 import { EmptyEventState } from '../../../components/EmptyEventState';
@@ -41,6 +43,7 @@ function formatEta(asOfIso: string, emptyAtIso: string): { relative: string; abs
 export function BarrelDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { activeEvent } = useActiveEvent();
   const { mode } = useAppTheme();
   const isDark = mode === 'dark';
@@ -56,6 +59,17 @@ export function BarrelDetail() {
     queryFn: () => dashboardService.getDashboardStats(activeEvent?.id),
     enabled: Boolean(activeEvent),
   });
+
+  // Refetch barrel when dashboard stats update (e.g. beer added) so remainingLitres stays in sync
+  useEffect(() => {
+    const handleStatsUpdate = () => {
+      if (id) {
+        queryClient.invalidateQueries({ queryKey: ['barrel-detail', id] });
+      }
+    };
+    websocketService.subscribe('dashboard:stats:update', handleStatsUpdate);
+    return () => websocketService.unsubscribe('dashboard:stats:update', handleStatsUpdate);
+  }, [id, queryClient]);
 
   if (!activeEvent) {
     return (

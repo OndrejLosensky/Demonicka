@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../../store/auth.store';
 import { api } from '../../services/api';
 import { logBackgroundError } from '../../utils/errorHandler';
@@ -40,6 +41,7 @@ export function PersonalOverviewScreen() {
   const [data, setData] = useState<UserDashboardOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const isFirstFocus = useRef(true);
 
   const fetchOverview = useCallback(async () => {
     if (!token || !user?.username) return;
@@ -58,6 +60,19 @@ export function PersonalOverviewScreen() {
     setIsLoading(true);
     fetchOverview().finally(() => setIsLoading(false));
   }, [fetchOverview]);
+
+  // Refetch when user switches back to this tab
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      if (token && user?.username) {
+        fetchOverview();
+      }
+    }, [token, user?.username, fetchOverview])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

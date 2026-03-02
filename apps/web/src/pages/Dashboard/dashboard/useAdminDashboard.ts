@@ -117,6 +117,8 @@ export function useAdminDashboard(): AdminDashboardState {
           totalUsers: payload.public?.totalUsers ?? prev.totalUsers,
         }));
       }
+      // Refetch barrels so remainingLitres / active barrel update when beers are added
+      barrelService.getAll().then(setBarrels).catch(() => {});
     };
 
     websocketService.subscribe('dashboard:update', refreshHandler);

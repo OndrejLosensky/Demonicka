@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { barrelService } from '../../../services/barrelService';
+import { websocketService } from '../../../services/websocketService';
 import type { Barrel } from '@demonicka/shared-types';
 import { notify } from '../../../notifications/notify';
 import toastTranslations from '../../../locales/cs/toasts.json';
@@ -126,6 +127,15 @@ export const useBarrels = (includeDeleted = false, eventId?: string) => {
     fetchBarrels();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [includeDeleted, eventId]); // fetchBarrels is stable via useCallback with these deps
+
+  // Refetch barrels when beers are added (barrel remainingLitres change) so values update without manual refresh
+  useEffect(() => {
+    const handleStatsUpdate = () => {
+      fetchBarrels();
+    };
+    websocketService.subscribe('dashboard:stats:update', handleStatsUpdate);
+    return () => websocketService.unsubscribe('dashboard:stats:update', handleStatsUpdate);
+  }, [fetchBarrels]);
 
   return {
     barrels,

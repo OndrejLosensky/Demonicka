@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../../store/auth.store';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
@@ -36,6 +37,7 @@ export default function BarrelDetailScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isFirstFocus = useRef(true);
 
   const fetchBarrel = useCallback(async () => {
     if (!activeEvent?.id || !token || !id) return;
@@ -63,6 +65,19 @@ export default function BarrelDetailScreen() {
     setIsLoading(true);
     fetchBarrel().finally(() => setIsLoading(false));
   }, [fetchBarrel]);
+
+  // Refetch when returning to this screen so litre values are up to date
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      if (activeEvent?.id && token && id) {
+        fetchBarrel();
+      }
+    }, [activeEvent?.id, token, id, fetchBarrel])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

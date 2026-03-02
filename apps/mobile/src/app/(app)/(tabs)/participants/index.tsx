@@ -116,13 +116,27 @@ export default function ParticipantsScreen() {
   const handleAddBeer = useCallback(
     async (userId: string) => {
       if (!token || !activeEvent?.id) return;
-      const useSmall = activeEvent.beerSizesEnabled !== false && smallBeerForUser[userId];
-      await api.post(
-        `/events/${activeEvent.id}/users/${userId}/beers`,
-        useSmall ? { beerSize: 'SMALL' } : {},
-        token
+      // Optimistic update so the count updates immediately
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.id === userId ? { ...p, eventBeerCount: (p.eventBeerCount ?? 0) + 1 } : p
+        )
       );
-      await fetchParticipants();
+      setFilteredParticipants((prev) =>
+        prev.map((p) =>
+          p.id === userId ? { ...p, eventBeerCount: (p.eventBeerCount ?? 0) + 1 } : p
+        )
+      );
+      try {
+        const useSmall = activeEvent.beerSizesEnabled !== false && smallBeerForUser[userId];
+        await api.post(
+          `/events/${activeEvent.id}/users/${userId}/beers`,
+          useSmall ? { beerSize: 'SMALL' } : {},
+          token
+        );
+      } finally {
+        await fetchParticipants();
+      }
     },
     [token, activeEvent?.id, activeEvent?.beerSizesEnabled, smallBeerForUser, fetchParticipants]
   );
@@ -130,8 +144,26 @@ export default function ParticipantsScreen() {
   const handleRemoveBeer = useCallback(
     async (userId: string) => {
       if (!token || !activeEvent?.id) return;
-      await api.delete(`/events/${activeEvent.id}/users/${userId}/beers`, token);
-      await fetchParticipants();
+      // Optimistic update
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.id === userId
+            ? { ...p, eventBeerCount: Math.max(0, (p.eventBeerCount ?? 0) - 1) }
+            : p
+        )
+      );
+      setFilteredParticipants((prev) =>
+        prev.map((p) =>
+          p.id === userId
+            ? { ...p, eventBeerCount: Math.max(0, (p.eventBeerCount ?? 0) - 1) }
+            : p
+        )
+      );
+      try {
+        await api.delete(`/events/${activeEvent.id}/users/${userId}/beers`, token);
+      } finally {
+        await fetchParticipants();
+      }
     },
     [token, activeEvent?.id, fetchParticipants]
   );
@@ -139,12 +171,26 @@ export default function ParticipantsScreen() {
   const handleAddSpilledBeer = useCallback(
     async (userId: string) => {
       if (!token || !activeEvent?.id) return;
-      await api.post(
-        `/events/${activeEvent.id}/users/${userId}/beers`,
-        { spilled: true },
-        token
+      // Optimistic update (spilled still counts as a beer)
+      setParticipants((prev) =>
+        prev.map((p) =>
+          p.id === userId ? { ...p, eventBeerCount: (p.eventBeerCount ?? 0) + 1 } : p
+        )
       );
-      await fetchParticipants();
+      setFilteredParticipants((prev) =>
+        prev.map((p) =>
+          p.id === userId ? { ...p, eventBeerCount: (p.eventBeerCount ?? 0) + 1 } : p
+        )
+      );
+      try {
+        await api.post(
+          `/events/${activeEvent.id}/users/${userId}/beers`,
+          { spilled: true },
+          token
+        );
+      } finally {
+        await fetchParticipants();
+      }
     },
     [token, activeEvent?.id, fetchParticipants]
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
 import { useAuthStore } from '../../../../store/auth.store';
@@ -34,6 +35,7 @@ export default function BarrelsScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [addModalVisible, setAddModalVisible] = useState(false);
+  const isFirstFocus = useRef(true);
 
   const fetchBarrels = useCallback(async () => {
     if (!activeEvent?.id || !token) return;
@@ -55,6 +57,19 @@ export default function BarrelsScreen() {
       fetchBarrels().finally(() => setIsLoading(false));
     }
   }, [activeEvent?.id, fetchBarrels]);
+
+  // Refetch when user switches back to barrels tab (e.g. after adding beers elsewhere)
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      if (activeEvent?.id && token) {
+        fetchBarrels();
+      }
+    }, [activeEvent?.id, token, fetchBarrels])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

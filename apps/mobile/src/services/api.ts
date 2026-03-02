@@ -86,6 +86,7 @@ async function coreRequest<T>(path: string, options: RequestOptions = {}): Promi
   try {
     res = await fetch(url, {
       ...init,
+      cache: 'no-store', // prevent HTTP cache so mutations (e.g. add beer) show immediately
       headers: { ...headers, ...(init.headers as Record<string, string>) },
       signal: ctrl.signal,
     });

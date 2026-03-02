@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { useActiveEvent } from '../../hooks/useActiveEvent';
 import { useAuthStore } from '../../store/auth.store';
 import { api } from '../../services/api';
@@ -46,6 +47,7 @@ export function EventDashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const [barrels, setBarrels] = useState<Array<{ isActive: boolean; totalLitres: number; remainingLitres: number }>>([]);
+  const isFirstFocus = useRef(true);
 
   const fetchData = useCallback(async () => {
     if (!activeEvent?.id || !token) return;
@@ -73,6 +75,19 @@ export function EventDashboardScreen() {
       fetchData().finally(() => setIsLoading(false));
     }
   }, [activeEvent?.id, fetchData]);
+
+  // Refetch when user switches back to dashboard tab (e.g. after adding beers on participants)
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      if (activeEvent?.id && token) {
+        fetchData();
+      }
+    }, [activeEvent?.id, token, fetchData])
+  );
 
   useEffect(() => {
     const unsubscribe = websocketService.subscribe('dashboard:stats:update', (data) => {
