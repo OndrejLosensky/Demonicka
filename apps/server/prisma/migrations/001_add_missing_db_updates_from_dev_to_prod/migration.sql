@@ -45,9 +45,9 @@ WHERE ua.id < ua2.id
   AND ua."userId" = ua2."userId"
   AND ua."achievementId" = ua2."achievementId";
 
-ALTER TABLE "UserAchievement"
-  ADD CONSTRAINT "UserAchievement_userId_achievementId_key"
-  UNIQUE ("userId", "achievementId");
+-- Use IF NOT EXISTS so this is safe when 000_baseline (or init) already created the index
+CREATE UNIQUE INDEX IF NOT EXISTS "UserAchievement_userId_achievementId_key"
+  ON "UserAchievement"("userId", "achievementId");
 
 CREATE INDEX IF NOT EXISTS "UserAchievement_achievementId_idx"
   ON "UserAchievement"("achievementId");

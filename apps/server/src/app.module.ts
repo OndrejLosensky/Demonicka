@@ -23,6 +23,7 @@ import { EventRegistrationModule } from './event-registration/event-registration
 import { LeaderboardViewSettingsModule } from './leaderboard-view-settings/leaderboard-view-settings.module';
 import { GalleryModule } from './gallery/gallery.module';
 import { StorageModule } from './storage/storage.module';
+import { FeedbackModule } from './feedback/feedback.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
 
@@ -56,6 +57,7 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
     EventRegistrationModule,
     LeaderboardViewSettingsModule,
     GalleryModule,
+    FeedbackModule,
   ],
 })
 export class AppModule implements NestModule {

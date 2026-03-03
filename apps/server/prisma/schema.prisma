@@ -133,6 +133,7 @@ model User {
   matchedRegistrations       EventRegistration[]
   twoFactorCodes             TwoFactorCode[]
   galleryPhotos              GalleryPhoto[]
+  feedback                   Feedback[]
 
   creator User? @relation("UserCreator", fields: [createdBy], references: [id])
 
@@ -427,6 +428,20 @@ model FeatureFlag {
   description String?
   createdAt   DateTime @default(now()) @db.Timestamptz(6)
   updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+}
+
+/// User-submitted feedback (bugs, ideas). Stored in DB for later review.
+model Feedback {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  message   String   @db.Text
+  source    String?  // 'web' | 'mobile'
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 /// Global defaults for Beer Pong tournaments (single-row table managed by the system settings UI).

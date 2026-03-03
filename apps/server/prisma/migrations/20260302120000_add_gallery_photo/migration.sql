@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "GalleryPhoto" (
+CREATE TABLE IF NOT EXISTS "GalleryPhoto" (
     "id" UUID NOT NULL,
     "eventId" UUID NOT NULL,
     "userId" UUID NOT NULL,
@@ -12,13 +12,13 @@ CREATE TABLE "GalleryPhoto" (
 );
 
 -- CreateIndex
-CREATE INDEX "GalleryPhoto_eventId_idx" ON "GalleryPhoto"("eventId");
+CREATE INDEX IF NOT EXISTS "GalleryPhoto_eventId_idx" ON "GalleryPhoto"("eventId");
 
 -- CreateIndex
-CREATE INDEX "GalleryPhoto_userId_idx" ON "GalleryPhoto"("userId");
+CREATE INDEX IF NOT EXISTS "GalleryPhoto_userId_idx" ON "GalleryPhoto"("userId");
 
 -- AddForeignKey
-ALTER TABLE "GalleryPhoto" ADD CONSTRAINT "GalleryPhoto_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "GalleryPhoto" ADD CONSTRAINT "GalleryPhoto_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "GalleryPhoto" ADD CONSTRAINT "GalleryPhoto_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "GalleryPhoto" ADD CONSTRAINT "GalleryPhoto_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;

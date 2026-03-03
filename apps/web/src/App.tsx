@@ -15,6 +15,7 @@ import { BarrelDetail } from './pages/Dashboard/BarrelDetail';
 import { TopUsersDetail } from './pages/Dashboard/TopUsersDetail';
 import Leaderboard from './pages/Dashboard/Leaderboard';
 import ProfilePage from './pages/Dashboard/Profile/index';
+import { FeedbackPage } from './pages/Dashboard/Feedback';
 import { Events } from './pages/Dashboard/Events';
 import { EventDetail } from './pages/Dashboard/Events/EventDetail';
 import { EventResults } from './pages/Dashboard/Events/EventResults';
@@ -229,6 +230,14 @@ function App() {
               element={
                 <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
                   <ProfilePage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="dashboard/feedback"
+              element={
+                <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR, USER_ROLE.USER]}>
+                  <FeedbackPage />
                 </RoleRoute>
               }
             />

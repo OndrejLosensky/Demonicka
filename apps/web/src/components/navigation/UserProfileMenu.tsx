@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Menu, MenuItem, ListItemIcon, ListItemText, Divider, Box, Typography } from '@demonicka/ui';
 import { Logout as LogoutIcon, Person as PersonIcon, TrendingUp as TrendingUpIcon, EmojiEvents as EmojiEventsIcon, Settings as SettingsIcon } from '@demonicka/ui';
+import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useAuth } from '../../contexts/AuthContext';
 import { tokens } from '../../theme/tokens';
@@ -56,6 +57,11 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
   const handleDocsClick = () => {
     onClose();
     navigate('/dashboard/docs');
+  };
+
+  const handleFeedbackClick = () => {
+    onClose();
+    navigate('/dashboard/feedback');
   };
 
   const getRoleLabel = () => {
@@ -118,6 +124,17 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
         </ListItemIcon>
         <ListItemText
           primary={translations.auth.profile}
+          primaryTypographyProps={{
+            sx: { fontWeight: 500 },
+          }}
+        />
+      </MenuItem>
+      <MenuItem onClick={handleFeedbackClick} sx={{ py: 1, px: 2 }}>
+        <ListItemIcon>
+          <RateReviewOutlinedIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText
+          primary={translations.auth.feedback}
           primaryTypographyProps={{
             sx: { fontWeight: 500 },
           }}

@@ -6,14 +6,14 @@ EXCEPTION
 END $$;
 
 -- AlterTable
-ALTER TABLE "Event" ADD COLUMN "registrationEnabled" BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE "Event" ADD COLUMN "registrationToken" TEXT;
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "registrationEnabled" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "registrationToken" TEXT;
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Event_registrationToken_key" ON "Event"("registrationToken");
+CREATE UNIQUE INDEX IF NOT EXISTS "Event_registrationToken_key" ON "Event"("registrationToken");
 
 -- CreateTable
-CREATE TABLE "EventRegistration" (
+CREATE TABLE IF NOT EXISTS "EventRegistration" (
     "id" UUID NOT NULL,
     "eventId" UUID NOT NULL,
     "rawName" TEXT NOT NULL,
@@ -30,9 +30,9 @@ CREATE TABLE "EventRegistration" (
 );
 
 -- CreateIndex
-CREATE INDEX "EventRegistration_eventId_idx" ON "EventRegistration"("eventId");
-CREATE INDEX "EventRegistration_status_idx" ON "EventRegistration"("status");
+CREATE INDEX IF NOT EXISTS "EventRegistration_eventId_idx" ON "EventRegistration"("eventId");
+CREATE INDEX IF NOT EXISTS "EventRegistration_status_idx" ON "EventRegistration"("status");
 
 -- AddForeignKey
-ALTER TABLE "EventRegistration" ADD CONSTRAINT "EventRegistration_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "EventRegistration" ADD CONSTRAINT "EventRegistration_matchedUserId_fkey" FOREIGN KEY ("matchedUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "EventRegistration" ADD CONSTRAINT "EventRegistration_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN ALTER TABLE "EventRegistration" ADD CONSTRAINT "EventRegistration_matchedUserId_fkey" FOREIGN KEY ("matchedUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;

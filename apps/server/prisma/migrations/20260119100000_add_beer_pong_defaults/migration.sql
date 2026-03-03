@@ -1,5 +1,5 @@
--- CreateTable
-CREATE TABLE "BeerPongDefaults" (
+-- CreateTable (idempotent for 000_baseline)
+CREATE TABLE IF NOT EXISTS "BeerPongDefaults" (
     "id" UUID NOT NULL,
     "beersPerPlayer" INTEGER NOT NULL DEFAULT 2,
     "timeWindowMinutes" INTEGER NOT NULL DEFAULT 5,
@@ -13,5 +13,5 @@ CREATE TABLE "BeerPongDefaults" (
 );
 
 -- CreateIndex
-CREATE INDEX "BeerPongDefaults_updatedBy_idx" ON "BeerPongDefaults"("updatedBy");
+CREATE INDEX IF NOT EXISTS "BeerPongDefaults_updatedBy_idx" ON "BeerPongDefaults"("updatedBy");
 

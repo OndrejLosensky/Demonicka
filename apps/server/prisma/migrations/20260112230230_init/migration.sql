@@ -1,20 +1,20 @@
--- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'USER', 'PARTICIPANT');
+-- CreateEnum (idempotent: skip if type already exists from 000_baseline)
+DO $$ BEGIN CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'USER', 'PARTICIPANT'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- CreateEnum
-CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE');
+DO $$ BEGIN CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- CreateEnum
-CREATE TYPE "DeviceType" AS ENUM ('ios', 'android', 'web');
+DO $$ BEGIN CREATE TYPE "DeviceType" AS ENUM ('ios', 'android', 'web'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- CreateEnum
-CREATE TYPE "AchievementType" AS ENUM ('EVENT_WIN', 'BEERS_IN_EVENT', 'BEERS_IN_HOUR', 'EVENTS_PARTICIPATED', 'TOTAL_BEERS', 'CONSECUTIVE_DAYS', 'FIRST_BEER', 'MILESTONE');
+DO $$ BEGIN CREATE TYPE "AchievementType" AS ENUM ('EVENT_WIN', 'BEERS_IN_EVENT', 'BEERS_IN_HOUR', 'EVENTS_PARTICIPATED', 'TOTAL_BEERS', 'CONSECUTIVE_DAYS', 'FIRST_BEER', 'MILESTONE'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- CreateEnum
-CREATE TYPE "AchievementCategory" AS ENUM ('BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT', 'LEGENDARY');
+DO $$ BEGIN CREATE TYPE "AchievementCategory" AS ENUM ('BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT', 'LEGENDARY'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- CreateTable
-CREATE TABLE "User" (
+CREATE TABLE IF NOT EXISTS "User" (
     "id" UUID NOT NULL,
     "username" TEXT,
     "password" TEXT,
@@ -40,7 +40,7 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
-CREATE TABLE "RefreshToken" (
+CREATE TABLE IF NOT EXISTS "RefreshToken" (
     "id" UUID NOT NULL,
     "token" TEXT NOT NULL,
     "userId" UUID NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE "RefreshToken" (
 );
 
 -- CreateTable
-CREATE TABLE "DeviceToken" (
+CREATE TABLE IF NOT EXISTS "DeviceToken" (
     "id" UUID NOT NULL,
     "token" TEXT NOT NULL,
     "deviceType" "DeviceType" NOT NULL DEFAULT 'web',
@@ -73,7 +73,7 @@ CREATE TABLE "DeviceToken" (
 );
 
 -- CreateTable
-CREATE TABLE "Barrel" (
+CREATE TABLE IF NOT EXISTS "Barrel" (
     "id" UUID NOT NULL,
     "size" INTEGER NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT false,
@@ -88,7 +88,7 @@ CREATE TABLE "Barrel" (
 );
 
 -- CreateTable
-CREATE TABLE "Beer" (
+CREATE TABLE IF NOT EXISTS "Beer" (
     "id" UUID NOT NULL,
     "userId" UUID NOT NULL,
     "barrelId" UUID,
@@ -99,7 +99,7 @@ CREATE TABLE "Beer" (
 );
 
 -- CreateTable
-CREATE TABLE "Event" (
+CREATE TABLE IF NOT EXISTS "Event" (
     "id" UUID NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
@@ -114,7 +114,7 @@ CREATE TABLE "Event" (
 );
 
 -- CreateTable
-CREATE TABLE "EventBeer" (
+CREATE TABLE IF NOT EXISTS "EventBeer" (
     "id" UUID NOT NULL,
     "eventId" UUID NOT NULL,
     "userId" UUID NOT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE "EventBeer" (
 );
 
 -- CreateTable
-CREATE TABLE "Achievement" (
+CREATE TABLE IF NOT EXISTS "Achievement" (
     "id" UUID NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
@@ -146,7 +146,7 @@ CREATE TABLE "Achievement" (
 );
 
 -- CreateTable
-CREATE TABLE "UserAchievement" (
+CREATE TABLE IF NOT EXISTS "UserAchievement" (
     "id" UUID NOT NULL,
     "userId" UUID NOT NULL,
     "achievementId" UUID NOT NULL,
@@ -163,7 +163,7 @@ CREATE TABLE "UserAchievement" (
 );
 
 -- CreateTable
-CREATE TABLE "EventUsers" (
+CREATE TABLE IF NOT EXISTS "EventUsers" (
     "eventId" UUID NOT NULL,
     "userId" UUID NOT NULL,
 
@@ -171,7 +171,7 @@ CREATE TABLE "EventUsers" (
 );
 
 -- CreateTable
-CREATE TABLE "EventBarrels" (
+CREATE TABLE IF NOT EXISTS "EventBarrels" (
     "eventId" UUID NOT NULL,
     "barrelId" UUID NOT NULL,
 
@@ -179,91 +179,91 @@ CREATE TABLE "EventBarrels" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
+CREATE UNIQUE INDEX IF NOT EXISTS "User_username_key" ON "User"("username");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_registrationToken_key" ON "User"("registrationToken");
+CREATE UNIQUE INDEX IF NOT EXISTS "User_registrationToken_key" ON "User"("registrationToken");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "RefreshToken_token_key" ON "RefreshToken"("token");
+CREATE UNIQUE INDEX IF NOT EXISTS "RefreshToken_token_key" ON "RefreshToken"("token");
 
 -- CreateIndex
-CREATE INDEX "RefreshToken_userId_idx" ON "RefreshToken"("userId");
+CREATE INDEX IF NOT EXISTS "RefreshToken_userId_idx" ON "RefreshToken"("userId");
 
 -- CreateIndex
-CREATE INDEX "RefreshToken_token_idx" ON "RefreshToken"("token");
+CREATE INDEX IF NOT EXISTS "RefreshToken_token_idx" ON "RefreshToken"("token");
 
 -- CreateIndex
-CREATE INDEX "DeviceToken_userId_idx" ON "DeviceToken"("userId");
+CREATE INDEX IF NOT EXISTS "DeviceToken_userId_idx" ON "DeviceToken"("userId");
 
 -- CreateIndex
-CREATE INDEX "DeviceToken_token_idx" ON "DeviceToken"("token");
+CREATE INDEX IF NOT EXISTS "DeviceToken_token_idx" ON "DeviceToken"("token");
 
 -- CreateIndex
-CREATE INDEX "Beer_userId_idx" ON "Beer"("userId");
+CREATE INDEX IF NOT EXISTS "Beer_userId_idx" ON "Beer"("userId");
 
 -- CreateIndex
-CREATE INDEX "Beer_barrelId_idx" ON "Beer"("barrelId");
+CREATE INDEX IF NOT EXISTS "Beer_barrelId_idx" ON "Beer"("barrelId");
 
 -- CreateIndex
-CREATE INDEX "EventBeer_eventId_idx" ON "EventBeer"("eventId");
+CREATE INDEX IF NOT EXISTS "EventBeer_eventId_idx" ON "EventBeer"("eventId");
 
 -- CreateIndex
-CREATE INDEX "EventBeer_userId_idx" ON "EventBeer"("userId");
+CREATE INDEX IF NOT EXISTS "EventBeer_userId_idx" ON "EventBeer"("userId");
 
 -- CreateIndex
-CREATE INDEX "EventBeer_barrelId_idx" ON "EventBeer"("barrelId");
+CREATE INDEX IF NOT EXISTS "EventBeer_barrelId_idx" ON "EventBeer"("barrelId");
 
 -- CreateIndex
-CREATE INDEX "UserAchievement_userId_idx" ON "UserAchievement"("userId");
+CREATE INDEX IF NOT EXISTS "UserAchievement_userId_idx" ON "UserAchievement"("userId");
 
 -- CreateIndex
-CREATE INDEX "UserAchievement_achievementId_idx" ON "UserAchievement"("achievementId");
+CREATE INDEX IF NOT EXISTS "UserAchievement_achievementId_idx" ON "UserAchievement"("achievementId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "UserAchievement_userId_achievementId_key" ON "UserAchievement"("userId", "achievementId");
+CREATE UNIQUE INDEX IF NOT EXISTS "UserAchievement_userId_achievementId_key" ON "UserAchievement"("userId", "achievementId");
 
 -- CreateIndex
-CREATE INDEX "EventUsers_userId_idx" ON "EventUsers"("userId");
+CREATE INDEX IF NOT EXISTS "EventUsers_userId_idx" ON "EventUsers"("userId");
 
 -- CreateIndex
-CREATE INDEX "EventBarrels_barrelId_idx" ON "EventBarrels"("barrelId");
+CREATE INDEX IF NOT EXISTS "EventBarrels_barrelId_idx" ON "EventBarrels"("barrelId");
 
 -- AddForeignKey
-ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "RefreshToken" ADD CONSTRAINT "RefreshToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "DeviceToken" ADD CONSTRAINT "DeviceToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "DeviceToken" ADD CONSTRAINT "DeviceToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "Beer" ADD CONSTRAINT "Beer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "Beer" ADD CONSTRAINT "Beer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "Beer" ADD CONSTRAINT "Beer_barrelId_fkey" FOREIGN KEY ("barrelId") REFERENCES "Barrel"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "Beer" ADD CONSTRAINT "Beer_barrelId_fkey" FOREIGN KEY ("barrelId") REFERENCES "Barrel"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "EventBeer" ADD CONSTRAINT "EventBeer_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "EventBeer" ADD CONSTRAINT "EventBeer_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "EventBeer" ADD CONSTRAINT "EventBeer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "EventBeer" ADD CONSTRAINT "EventBeer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "EventBeer" ADD CONSTRAINT "EventBeer_barrelId_fkey" FOREIGN KEY ("barrelId") REFERENCES "Barrel"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "EventBeer" ADD CONSTRAINT "EventBeer_barrelId_fkey" FOREIGN KEY ("barrelId") REFERENCES "Barrel"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "UserAchievement" ADD CONSTRAINT "UserAchievement_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "UserAchievement" ADD CONSTRAINT "UserAchievement_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "UserAchievement" ADD CONSTRAINT "UserAchievement_achievementId_fkey" FOREIGN KEY ("achievementId") REFERENCES "Achievement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "UserAchievement" ADD CONSTRAINT "UserAchievement_achievementId_fkey" FOREIGN KEY ("achievementId") REFERENCES "Achievement"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "EventUsers" ADD CONSTRAINT "EventUsers_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "EventUsers" ADD CONSTRAINT "EventUsers_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "EventUsers" ADD CONSTRAINT "EventUsers_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "EventUsers" ADD CONSTRAINT "EventUsers_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "EventBarrels" ADD CONSTRAINT "EventBarrels_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "EventBarrels" ADD CONSTRAINT "EventBarrels_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AddForeignKey
-ALTER TABLE "EventBarrels" ADD CONSTRAINT "EventBarrels_barrelId_fkey" FOREIGN KEY ("barrelId") REFERENCES "Barrel"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN ALTER TABLE "EventBarrels" ADD CONSTRAINT "EventBarrels_barrelId_fkey" FOREIGN KEY ("barrelId") REFERENCES "Barrel"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;

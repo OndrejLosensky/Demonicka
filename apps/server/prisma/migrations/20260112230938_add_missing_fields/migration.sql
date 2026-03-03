@@ -20,4 +20,4 @@ ALTER TABLE "UserAchievement" ADD CONSTRAINT "UserAchievement_achievementId_fkey
   FOREIGN KEY ("achievementId") REFERENCES "Achievement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AlterTable
-ALTER TABLE "EventBeer" ADD COLUMN     "spilled" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "EventBeer" ADD COLUMN IF NOT EXISTS "spilled" BOOLEAN NOT NULL DEFAULT false;

@@ -207,6 +207,20 @@ export default function SettingsScreen() {
                 →
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.menuItem, { borderBottomColor: colors.border }]}
+              onPress={() => router.push('/(app)/(tabs)/settings/feedback')}
+            >
+              <View style={styles.menuIconWrap}>
+                <Icon name="info" size={22} color={colors.textMuted} />
+              </View>
+              <Text style={[styles.menuLabel, { color: colors.text }]}>
+                Zpětná vazba
+              </Text>
+              <Text style={[styles.menuArrow, { color: colors.textMuted }]}>
+                →
+              </Text>
+            </TouchableOpacity>
             <View style={[styles.menuItem, { borderBottomWidth: 0 }]}>
               <View style={styles.menuIconWrap}>
                 <Icon name="info" size={22} color={colors.textMuted} />
