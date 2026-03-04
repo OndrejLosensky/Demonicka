@@ -4,6 +4,16 @@ import type { LeaderboardData } from '../pages/Dashboard/Leaderboard/types';
 import type { DashboardStats } from '@demonicka/shared-types';
 import type { PublicStats } from '../types/public';
 
+export type JobStatus = 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+
+export type JobUpdatedPayload = {
+  jobId: string;
+  type: string;
+  status: JobStatus;
+  result: Record<string, unknown> | null;
+  error: string | null;
+};
+
 type WebSocketEvents = {
   'leaderboard:update': LeaderboardData;
   'dashboard:update': void;
@@ -13,6 +23,7 @@ type WebSocketEvents = {
   };
   'event:join': { eventId: string };
   'event:leave': { eventId: string };
+  'job:updated': JobUpdatedPayload;
 };
 
 class WebSocketService {
@@ -22,14 +33,20 @@ class WebSocketService {
   connect() {
     if (this.socket?.connected) return;
 
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('access_token') : null;
     this.socket = io(config.wsUrl, {
       transports: ['websocket'],
       withCredentials: true,
       autoConnect: true,
+      auth: token ? { token } : {},
     });
 
     this.socket.on('connect', () => {
-      // WebSocket connected
+      // Optionally re-send auth if token was set after initial connect
+      const t = typeof localStorage !== 'undefined' ? localStorage.getItem('access_token') : null;
+      if (t && this.socket) {
+        this.socket.auth = { token: t };
+      }
     });
 
     this.socket.on('disconnect', () => {
@@ -55,6 +72,11 @@ class WebSocketService {
     this.socket.on('dashboard:stats:update', (data: WebSocketEvents['dashboard:stats:update']) => {
       console.log('[WebSocket] Received dashboard:stats:update', { timestamp: new Date().toISOString() });
       this.notifyEventListeners('dashboard:stats:update', data);
+    });
+
+    // Listen for job updates (background jobs: backup, exports, etc.)
+    this.socket.on('job:updated', (data: WebSocketEvents['job:updated']) => {
+      this.notifyEventListeners('job:updated', data);
     });
 
     // Legacy event names for backward compatibility

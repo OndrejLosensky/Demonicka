@@ -40,6 +40,7 @@ export interface ActivityLogEntry {
   beerPongEventId?: string;
   teamId?: string;
   operation?: string;
+  jobId?: string;
   setting?: string;
   key?: string;
   name?: string;

@@ -10,6 +10,7 @@ import { LoggingModule } from './logging/logging.module';
 import { VersioningModule } from './versioning/versioning.module';
 import { DocsModule } from './docs/docs.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
+import { JobQueueModule } from './job-queue/job-queue.module';
 import { BackupModule } from './backup/backup.module';
 import { SystemModule } from './system/system.module';
 import { AchievementsModule } from './achievements/achievements.module';
@@ -46,6 +47,7 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
     VersioningModule,
     DocsModule,
     LeaderboardModule,
+    JobQueueModule,
     BackupModule,
     SystemModule,
     AchievementsModule,

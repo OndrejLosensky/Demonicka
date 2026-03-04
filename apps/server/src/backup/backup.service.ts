@@ -1,22 +1,29 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { EventsService } from '../events/events.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { JobQueueService } from '../job-queue/job-queue.service';
+import { JOB_TYPES } from '../job-queue/job-handler.registry';
+import {
+  STORAGE_SERVICE,
+  type IStorageService,
+} from '../storage/storage.interface';
 import * as fs from 'fs';
 import * as path from 'path';
-import { spawn } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 import { createGzip } from 'zlib';
 import { pipeline } from 'stream/promises';
+
+const BACKUP_S3_PREFIX = 'demonicka/backups';
 
 @Injectable()
 export class BackupService {
   private readonly logger = new Logger(BackupService.name);
   private backupDir: string;
-  private isRunning = false;
 
   constructor(
-    private readonly eventsService: EventsService,
     private prisma: PrismaService,
+    private readonly jobQueueService: JobQueueService,
+    @Inject(STORAGE_SERVICE) private readonly storage: IStorageService,
   ) {
     // Determine backup directory
     if (process.env.BACKUP_DIR) {
@@ -38,21 +45,17 @@ export class BackupService {
 
   @Cron(CronExpression.EVERY_HOUR)
   async handleBackup() {
-    // Opt-in for production
     if (process.env.BACKUP_ENABLED !== 'true') {
       return;
     }
-    if (this.isRunning) {
-      this.logger.warn('Backup already running, skipping this tick');
-      return;
-    }
-    this.isRunning = true;
     try {
-      await this.runPgDumpAndUpload({ trigger: 'cron' });
+      await this.jobQueueService.enqueue({
+        type: JOB_TYPES.BACKUP_RUN,
+        payload: { trigger: 'cron' },
+        createdByUserId: null,
+      });
     } catch (error) {
-      this.logger.error('Failed to create backup:', error);
-    } finally {
-      this.isRunning = false;
+      this.logger.error('Failed to enqueue backup job:', error);
     }
   }
 
@@ -79,24 +82,8 @@ export class BackupService {
       // ignore
     }
 
-    // Include active event name if available (but never gate backups on it)
-    let eventSuffix = '';
-    try {
-      const activeEvent = await this.eventsService.getActiveEvent();
-      if (activeEvent?.name) {
-        eventSuffix =
-          '_' +
-          activeEvent.name
-            .toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9_-]/g, '')
-            .slice(0, 40);
-      }
-    } catch {
-      // ignore
-    }
-
-    const fileName = `demonicka_${dbName}${eventSuffix}_${ts}.sql.gz`;
+    // Full database dump; filename is db + timestamp only (no event label to avoid confusion)
+    const fileName = `demonicka_${dbName}_${ts}.sql.gz`;
     const backupPath = path.join(this.backupDir, fileName);
 
     this.logger.log(`Creating backup: ${backupPath}`);
@@ -105,10 +92,25 @@ export class BackupService {
     const fileSize = fs.statSync(backupPath).size;
     this.logger.log(`Backup completed: ${fileName} (${fileSize} bytes)`);
 
-    // Cleanup old backups if retention is configured
+    const monthFolder =
+      now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    const s3Key = `${BACKUP_S3_PREFIX}/${monthFolder}/${fileName}`;
+    const buffer = fs.readFileSync(backupPath);
+    await this.storage.upload(buffer, s3Key, 'application/gzip');
+    this.logger.log(`Backup uploaded to S3: ${s3Key}`);
+    try {
+      fs.unlinkSync(backupPath);
+    } catch (err) {
+      this.logger.warn(
+        'Could not remove local backup file after S3 upload',
+        err,
+      );
+    }
+
+    // Cleanup old local backups if retention is configured (only affects local leftovers)
     const retentionDays = Number(process.env.BACKUP_RETENTION_DAYS ?? 0);
     if (Number.isFinite(retentionDays) && retentionDays > 0) {
-      await this.cleanupOldBackups(retentionDays);
+      this.cleanupOldBackups(retentionDays);
     }
 
     return { fileName };
@@ -198,9 +200,9 @@ export class BackupService {
               fs.mkdirSync(fallbackDir, { recursive: true });
             }
             // Update the backupDir property
-            (this as any).backupDir = fallbackDir;
+            this.backupDir = fallbackDir;
             this.logger.log(`Using backup directory: ${fallbackDir}`);
-          } catch (fallbackError) {
+          } catch {
             throw new Error(
               `Cannot create backup directory. Please set BACKUP_DIR to a writable path or remove it to use the default.`,
             );
@@ -212,7 +214,7 @@ export class BackupService {
     }
   }
 
-  private async cleanupOldBackups(retentionDays: number): Promise<void> {
+  private cleanupOldBackups(retentionDays: number): void {
     try {
       const files = fs.readdirSync(this.backupDir);
       const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
@@ -222,7 +224,7 @@ export class BackupService {
 
         const filePath = path.join(this.backupDir, file);
         const stats = fs.statSync(filePath);
-        
+
         if (stats.mtimeMs < cutoff) {
           fs.unlinkSync(filePath);
           this.logger.log(`Deleted old backup: ${file}`);
@@ -233,9 +235,56 @@ export class BackupService {
     }
   }
 
+  private getPgDumpPath(): string {
+    if (process.env.BACKUP_PG_DUMP_PATH || process.env.PG_DUMP_PATH) {
+      return process.env.BACKUP_PG_DUMP_PATH || process.env.PG_DUMP_PATH!;
+    }
+    const candidates = [
+      '/opt/homebrew/opt/postgresql@17/bin/pg_dump',
+      '/usr/local/opt/postgresql@17/bin/pg_dump',
+      '/opt/homebrew/opt/libpq/bin/pg_dump',
+      '/usr/local/opt/libpq/bin/pg_dump',
+    ];
+    for (const p of candidates) {
+      const exists = fs.existsSync(p);
+      this.logger.log(`pg_dump candidate ${p} exists=${exists}`);
+      if (exists) {
+        this.logger.log(`Using pg_dump: ${p}`);
+        return p;
+      }
+    }
+    this.logger.warn(
+      'No pg_dump 17 path found, falling back to PATH (may cause version mismatch)',
+    );
+    return 'pg_dump';
+  }
+
+  private getPgDumpVersion(bin: string): number {
+    try {
+      const result = spawnSync(bin, ['--version'], {
+        encoding: 'utf8',
+        timeout: 5000,
+      });
+      const out = result.stdout?.trim() || result.stderr?.trim() || '';
+      const match = out.match(/pg_dump \(PostgreSQL\) (\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    } catch {
+      return 0;
+    }
+  }
+
   private async pgDumpToGzipFile(databaseUrl: string, outputPath: string) {
-    this.logger.log(`Starting pg_dump: ${outputPath}`);
-    
+    const pgDumpBin = this.getPgDumpPath();
+    const version = this.getPgDumpVersion(pgDumpBin);
+    this.logger.log(`Starting pg_dump (version ${version}): ${outputPath}`);
+    if (version > 0 && version < 17) {
+      throw new Error(
+        `pg_dump version ${version} is too old (server is 17.x). ` +
+          `Resolved binary: ${pgDumpBin}. ` +
+          `Install PostgreSQL 17 and set BACKUP_PG_DUMP_PATH to its pg_dump, or fix PATH so pg_dump 17 is found.`,
+      );
+    }
+
     const args = [
       databaseUrl,
       '--clean',
@@ -244,31 +293,29 @@ export class BackupService {
       '--no-privileges',
     ];
 
-    const child = spawn('pg_dump', args, {
+    const child = spawn(pgDumpBin, args, {
       env: process.env,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
     let stderr = '';
-    let stdoutBytes = 0;
-    
+
     child.on('error', (err) => {
       this.logger.error(`pg_dump spawn error: ${err.message}`);
       throw err;
     });
-    
-    child.stderr?.on('data', (d) => {
-      stderr += String(d);
-    });
 
-    child.stdout?.on('data', (d) => {
-      stdoutBytes += d.length;
+    child.stderr?.on('data', (d: Buffer | string) => {
+      stderr += String(d);
     });
 
     const gzip = createGzip({ level: 9 });
     const out = fs.createWriteStream(outputPath);
 
-    await pipeline(child.stdout!, gzip, out);
+    if (!child.stdout) {
+      throw new Error('pg_dump stdout is not available');
+    }
+    await pipeline(child.stdout, gzip, out);
 
     // Wait for process to exit with timeout
     const exitCode: number = await Promise.race([
@@ -302,7 +349,4 @@ export class BackupService {
 
     this.logger.log(`pg_dump completed: ${fileSize} bytes`);
   }
-
-  // Note: no local retention (tmp-only). Keep local by setting BACKUP_KEEP_LOCAL=true
-
 }

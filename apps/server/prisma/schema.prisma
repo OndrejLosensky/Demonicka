@@ -134,6 +134,7 @@ model User {
   twoFactorCodes             TwoFactorCode[]
   galleryPhotos              GalleryPhoto[]
   feedback                   Feedback[]
+  jobs                       Job[]
 
   creator User? @relation("UserCreator", fields: [createdBy], references: [id])
 
@@ -596,4 +597,32 @@ model TwoFactorCode {
   @@index([userId])
   @@index([code])
   @@index([expiresAt])
+}
+
+/// Background job queue: backup, exports, imports, etc. Source of truth for status; queue driver (in-process or Bull) only decides what runs next.
+model Job {
+  id                String    @id @default(uuid()) @db.Uuid
+  type              String    // e.g. backup.run, export.eventDetail
+  payload           Json      // input for the handler
+  status            JobStatus @default(QUEUED)
+  result            Json?     // e.g. { fileName } for backup
+  error             String?   @db.Text
+  createdByUserId   String?   @db.Uuid
+  createdAt         DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @db.Timestamptz(6)
+  startedAt         DateTime? @db.Timestamptz(6)
+  finishedAt        DateTime? @db.Timestamptz(6)
+
+  createdByUser User? @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([createdByUserId])
+  @@index([createdAt])
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
 }

@@ -211,6 +211,10 @@ export function getActivityEventMessage(log: ActivityLogEntry): string {
     }
     case 'SYSTEM_OPERATION_TRIGGERED': {
       const op = log.operation ?? getStringField(log, 'operation');
+      const jobId = getStringField(log, 'jobId');
+      if (op === 'BACKUP_RUN' && jobId) {
+        return `Spuštěna záloha (úloha: ${jobId})${actor ? ` — ${actor}` : ''}`;
+      }
       return `Spuštěna systémová operace${op ? `: ${op}` : ''}${actor ? ` (provedl ${actor})` : ''}`;
     }
     case 'SETTINGS_CHANGED': {

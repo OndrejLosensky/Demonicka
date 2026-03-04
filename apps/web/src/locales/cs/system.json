@@ -57,7 +57,7 @@
     "roleUpdateFailed": "Nepodařilo se změnit roli",
     "userDeleted": "Uživatel byl smazán",
     "userDeleteFailed": "Nepodařilo se smazat uživatele",
-    "backupCompleted": "Záloha byla úspěšně nahrána na Google Drive",
+    "backupCompleted": "Záloha byla úspěšně vytvořena a uložena",
     "backupFailed": "Nepodařilo se spustit zálohu",
     "tokenGenerationFailed": "Nepodařilo se vygenerovat registrační token"
   },

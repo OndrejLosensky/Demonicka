@@ -557,7 +557,7 @@ export class LoggingService {
     this.audit('SYSTEM_OPERATION_TRIGGERED', 'System operation triggered', {
       operation,
       actorUserId,
-      details,
+      ...(details ?? {}),
     });
   }
 

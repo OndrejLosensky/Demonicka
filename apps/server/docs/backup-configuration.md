@@ -1,124 +1,68 @@
 # Backup Configuration Guide
 
 ## Overview
-The enhanced backup service now provides multiple backup strategies:
-1. **Local backups** (every hour)
-2. **Email backups** (every hour with zipped database)
-3. **Google Drive backups** (every hour with automatic upload)
+
+The backup service creates compressed PostgreSQL dumps and uploads them to **S3** (same bucket as gallery and profile pictures), under the prefix `demonicka/backups/YYYY-MM/` (e.g. `demonicka/backups/2026-03/demonicka_database_2026-03-04T12-00-00.sql.gz`).
+
+- **Manual backup:** Triggered from the System → Users page (or API `POST /api/backup/run`). Returns a job ID; status and completion are available via the Jobs page and WebSocket.
+- **Scheduled backup:** Optional hourly cron when `BACKUP_ENABLED=true`.
 
 ## Environment Variables
 
-### Required for Email Backups
+### S3 (required for backup upload)
+
+Backups use the same S3 configuration as gallery and profile pictures:
+
 ```bash
-# SMTP Configuration
-SMTP_HOST=smtp.gmail.com          # SMTP server host
-SMTP_PORT=587                     # SMTP port (587 for TLS, 465 for SSL)
-SMTP_USER=your-email@gmail.com    # Your email address
-SMTP_PASS=your-app-password       # Your email password or app password
-
-# Backup Email Recipient
-BACKUP_EMAIL_TO=backup@example.com  # Where to send backup emails
+AWS_REGION=eu-central-1
+AWS_S3_BUCKET=your-bucket
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
 ```
 
-### Required for Google Drive Backups
+### Optional
+
 ```bash
-# Google Drive Service Account Credentials
-GOOGLE_DRIVE_CREDENTIALS={"type":"service_account","project_id":"...","private_key":"...","client_email":"..."}
+# Enable hourly backup (default: off)
+BACKUP_ENABLED=true
 
-# Google Drive Folder ID
-GOOGLE_DRIVE_FOLDER_ID=1ABC...XYZ  # ID of the folder to upload backups to
+# Local directory for temporary backup before upload (default: apps/server/data/backups/database or /var/backups/demonicka in production)
+BACKUP_DIR=/path/to/writable/dir
+
+# Delete local backup files older than N days (only affects files left in BACKUP_DIR; default: 0 = no cleanup)
+BACKUP_RETENTION_DAYS=7
+
+# Force a specific pg_dump binary (e.g. if server runs in an environment where auto-detection fails)
+BACKUP_PG_DUMP_PATH=/opt/homebrew/opt/postgresql@17/bin/pg_dump
 ```
 
-## Setup Instructions
+## Backup flow
 
-### 1. Email Backup Setup (Gmail Example)
+1. A backup job is enqueued (manual or cron).
+2. The worker runs `pg_dump` (PostgreSQL 17 recommended; version is checked).
+3. Output is gzipped to a local file, then uploaded to S3 at `demonicka/backups/{year}-{month}/{filename}.sql.gz`.
+4. The local file is removed after a successful upload.
 
-#### Option A: App Password (Recommended)
-1. Enable 2FA on your Google account
-2. Go to Google Account → Security → App passwords
-3. Generate an app password for "Mail"
-4. Use your email + app password in SMTP_PASS
+## Manual trigger
 
-#### Option B: Less Secure Apps (Not Recommended)
-1. Enable "Less secure app access" in Google Account settings
-2. Use your regular email password
+From the app: System → Users → “Spustit zálohu”. The request returns immediately with a job ID; use System → Úlohy to see status and any error.
 
-### 2. Google Drive Setup
+Via API:
 
-1. **Create a Google Cloud Project:**
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project or select existing one
-
-2. **Enable Google Drive API:**
-   - Go to APIs & Services → Library
-   - Search for "Google Drive API" and enable it
-
-3. **Create Service Account:**
-   - Go to APIs & Services → Credentials
-   - Click "Create Credentials" → "Service Account"
-   - Fill in details and create
-
-4. **Generate JSON Key:**
-   - Click on your service account
-   - Go to "Keys" tab
-   - Click "Add Key" → "Create new key" → "JSON"
-   - Download the JSON file
-
-5. **Share Google Drive Folder:**
-   - Create a folder in Google Drive for backups
-   - Right-click → Share → Add your service account email
-   - Give "Editor" permissions
-   - Copy the folder ID from the URL
-
-6. **Set Environment Variables:**
-   - Copy the entire JSON content to `GOOGLE_DRIVE_CREDENTIALS`
-   - Copy the folder ID to `GOOGLE_DRIVE_FOLDER_ID`
-
-## Backup Schedule
-
-- **Frequency:** Every hour automatically
-- **Local Cleanup:** Old backups deleted after 6 hours
-- **Email:** Zipped database sent to specified email
-- **Google Drive:** Zipped database uploaded to specified folder
-
-## Manual Backup Trigger
-
-You can trigger a manual backup via the service:
-```typescript
-const result = await backupService.triggerManualBackup();
-console.log(result.message);
+```http
+POST /api/backup/run
+Authorization: Bearer <token>
 ```
 
-## Backup Contents
-
-Each backup includes:
-- **Database file:** `database.sqlite` (zipped)
-- **Metadata:** Event name, timestamp, file size
-- **Format:** ZIP archive with compression level 9
+Response: `{ "jobId": "<uuid>", "status": "queued" }`. Poll `GET /api/jobs/:jobId` or listen for `job:updated` over WebSocket.
 
 ## Troubleshooting
 
-### Email Issues
-- Check SMTP credentials
-- Verify port settings (587 for TLS, 465 for SSL)
-- Check firewall/network restrictions
-- For Gmail: Ensure app password is used if 2FA is enabled
+- **pg_dump version mismatch:** Server must use `pg_dump` 17.x for a PostgreSQL 17 server. The app tries common Homebrew paths first; if your process doesn’t see them, set `BACKUP_PG_DUMP_PATH` to the correct binary.
+- **S3 errors:** Ensure `AWS_*` env vars are set and the bucket allows PutObject for the backup key prefix.
+- **Job failed:** Check System → Úlohy for the error message and stack trace.
 
-### Google Drive Issues
-- Verify service account has access to the folder
-- Check API quotas and limits
-- Ensure credentials JSON is properly formatted
-- Verify folder ID is correct
+## Security
 
-### General Issues
-- Check application logs for detailed error messages
-- Verify database file exists and is accessible
-- Ensure backup directory has write permissions
-
-## Security Notes
-
-- **Never commit credentials to version control**
-- **Use environment variables for all sensitive data**
-- **Regularly rotate app passwords and service account keys**
-- **Monitor backup logs for unauthorized access attempts**
-- **Consider encrypting backups before sending to external services**
+- Do not commit AWS credentials or `.env` files.
+- Backups in S3 are private; use IAM and bucket policy to restrict access.

@@ -26,6 +26,7 @@ import { UsersPage } from './pages/Dashboard/System/UsersPage';
 import { StatisticsPage } from './pages/Dashboard/System/StatisticsPage';
 import { OperationsPage } from './pages/Dashboard/System/OperationsPage';
 import { SettingsPage } from './pages/Dashboard/System/SettingsPage';
+import { JobsPage } from './pages/Dashboard/System/JobsPage';
 import { Activity } from './pages/Dashboard/Activity';
 import { AchievementsPage } from './pages/User/Achievements';
 import { UserDashboardLayout } from './pages/User/Dashboard/UserDashboardLayout';
@@ -157,6 +158,14 @@ function App() {
                 element={
                   <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN]}>
                     <SettingsPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="jobs"
+                element={
+                  <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
+                    <JobsPage />
                   </RoleRoute>
                 }
               />

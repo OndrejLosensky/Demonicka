@@ -30,6 +30,8 @@ import {
 import { systemService, type SystemStats } from '../../../services/systemService';
 import { userService } from '../../../services/userService';
 import { backupService } from '../../../services/backupService';
+import { websocketService } from '../../../services/websocketService';
+import { jobsService } from '../../../services/jobsService';
 import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/system.json';
 import { MetricCard } from '@demonicka/ui';
@@ -73,6 +75,50 @@ const UsersPage: React.FC = () => {
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRunningBackup, setIsRunningBackup] = useState(false);
+  const backupJobIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const handleJobUpdated = (data: import('../../../services/websocketService').JobUpdatedPayload) => {
+      if (data.jobId !== backupJobIdRef.current) return;
+      if (data.status === 'COMPLETED') {
+        const fileName = data.result?.fileName as string | undefined;
+        toast.success(fileName ? `${translations.toasts.backupCompleted}: ${fileName}` : translations.toasts.backupCompleted);
+        setIsRunningBackup(false);
+        backupJobIdRef.current = null;
+      } else if (data.status === 'FAILED') {
+        const msg = data.error || translations.toasts.backupFailed;
+        toast.error(msg.length > 120 ? `${msg.slice(0, 120)}…` : msg);
+        setIsRunningBackup(false);
+        backupJobIdRef.current = null;
+      }
+    };
+    websocketService.subscribe('job:updated', handleJobUpdated);
+    return () => websocketService.unsubscribe('job:updated', handleJobUpdated);
+  }, [toast]);
+
+  useEffect(() => {
+    if (!isRunningBackup || !backupJobIdRef.current) return;
+    const interval = setInterval(async () => {
+      if (!backupJobIdRef.current) return;
+      try {
+        const job = await jobsService.getJob(backupJobIdRef.current);
+        if (job.status === 'COMPLETED') {
+          const fileName = job.result?.fileName as string | undefined;
+          toast.success(fileName ? `${translations.toasts.backupCompleted}: ${fileName}` : translations.toasts.backupCompleted);
+          setIsRunningBackup(false);
+          backupJobIdRef.current = null;
+        } else if (job.status === 'FAILED') {
+          const msg = job.error || translations.toasts.backupFailed;
+          toast.error(msg.length > 120 ? `${msg.slice(0, 120)}…` : msg);
+          setIsRunningBackup(false);
+          backupJobIdRef.current = null;
+        }
+      } catch {
+        // ignore poll errors
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isRunningBackup, toast]);
 
   const copyToClipboard = useCallback(
     async (value: string, successMessage: string) => {
@@ -198,12 +244,16 @@ const UsersPage: React.FC = () => {
     try {
       setIsRunningBackup(true);
       const res = await backupService.run();
-      toast.success(`${translations.toasts.backupCompleted}: ${res.fileName}`);
+      backupJobIdRef.current = res.jobId;
+      if (res.status !== 'queued') {
+        setIsRunningBackup(false);
+        backupJobIdRef.current = null;
+      }
     } catch (error) {
       console.error('Failed to run backup:', error);
       toast.error(translations.toasts.backupFailed);
-    } finally {
       setIsRunningBackup(false);
+      backupJobIdRef.current = null;
     }
   };
 

@@ -2,12 +2,19 @@ import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BackupService } from './backup.service';
 import { BackupController } from './backup.controller';
-import { EventsModule } from '../events/events.module';
+import { BackupJobHandlerRegistration } from './backup-job-handler.registration';
 import { LoggingModule } from '../logging/logging.module';
+import { JobQueueModule } from '../job-queue/job-queue.module';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), EventsModule, LoggingModule],
+  imports: [
+    ScheduleModule.forRoot(),
+    LoggingModule,
+    JobQueueModule,
+    StorageModule,
+  ],
   controllers: [BackupController],
-  providers: [BackupService],
+  providers: [BackupService, BackupJobHandlerRegistration],
 })
 export class BackupModule {}
