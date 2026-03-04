@@ -1,4 +1,4 @@
-import type { ActivityLogEntry, ActivityEventType, ActivityUserRef } from './activity.types';
+import type { ActivityLogEntry, ActivityEventType, ActivityUserRef, ActivityAppSource } from './activity.types';
 
 export type ActivityChipColor =
   | 'default'
@@ -8,6 +8,41 @@ export type ActivityChipColor =
   | 'info'
   | 'warning'
   | 'error';
+
+export function getAppLabel(app?: string): string {
+  switch (app as ActivityAppSource | undefined) {
+    case 'backend':
+      return 'Backend';
+    case 'web':
+      return 'Web';
+    case 'mobile':
+      return 'Mobil';
+    default:
+      return app ?? '—';
+  }
+}
+
+export function getLevelLabel(level?: string): string {
+  const u = (level ?? '').toUpperCase();
+  if (u === 'ERROR' || u === 'WARN' || u === 'INFO' || u === 'DEBUG') return u;
+  return level ?? '—';
+}
+
+export function getLevelColor(level?: string): ActivityChipColor {
+  const u = (level ?? '').toUpperCase();
+  switch (u) {
+    case 'ERROR':
+      return 'error';
+    case 'WARN':
+      return 'warning';
+    case 'INFO':
+      return 'info';
+    case 'DEBUG':
+      return 'default';
+    default:
+      return 'default';
+  }
+}
 
 export function getActivityEventColor(event?: string): ActivityChipColor {
   switch (event) {
@@ -37,6 +72,28 @@ export function getActivityEventColor(event?: string): ActivityChipColor {
       return 'warning';
     case 'SETTINGS_CHANGED':
       return 'warning';
+    case 'LOGIN_SUCCESS':
+    case 'LOGIN':
+    case 'LOGIN_2FA':
+    case 'LOGIN_GOOGLE':
+    case 'REGISTRATION_COMPLETED':
+      return 'success';
+    case 'LOGOUT':
+      return 'default';
+    case 'DATA_EXPORT':
+    case 'EVENT_EXPORT_EXCEL':
+      return 'info';
+    case 'BEER_ADD_FAILED':
+    case 'BEER_REMOVE_FAILED':
+    case 'BARREL_CREATE_FAILED':
+    case 'BARREL_UPDATE_FAILED':
+    case 'BARREL_SET_ACTIVE_FAILED':
+    case 'BARREL_DELETE_FAILED':
+    case 'PROFILE_PICTURE_UPLOAD_FAILED':
+    case 'EVENT_UPDATE_FAILED':
+    case 'GALLERY_PHOTO_UPLOAD_FAILED':
+    case 'GALLERY_PHOTO_DELETE_FAILED':
+      return 'error';
     default:
       return 'default';
   }
@@ -70,6 +127,39 @@ export function getActivityEventLabel(event?: string): string {
       return 'Systémová operace';
     case 'SETTINGS_CHANGED':
       return 'Nastavení';
+    case 'LOGIN_SUCCESS':
+    case 'LOGIN':
+    case 'LOGIN_2FA':
+    case 'LOGIN_GOOGLE':
+      return 'Přihlášení';
+    case 'LOGOUT':
+      return 'Odhlášení';
+    case 'REGISTRATION_COMPLETED':
+      return 'Dokončená registrace';
+    case 'DATA_EXPORT':
+      return 'Export dat';
+    case 'EVENT_EXPORT_EXCEL':
+      return 'Export Excel';
+    case 'BEER_ADD_FAILED':
+      return 'Přidání piva selhalo';
+    case 'BEER_REMOVE_FAILED':
+      return 'Odebrání piva selhalo';
+    case 'BARREL_CREATE_FAILED':
+      return 'Vytvoření sudu selhalo';
+    case 'BARREL_UPDATE_FAILED':
+      return 'Úprava sudu selhala';
+    case 'BARREL_SET_ACTIVE_FAILED':
+      return 'Aktivace sudu selhala';
+    case 'BARREL_DELETE_FAILED':
+      return 'Smazání sudu selhalo';
+    case 'PROFILE_PICTURE_UPLOAD_FAILED':
+      return 'Nahrání fotky profilu selhalo';
+    case 'EVENT_UPDATE_FAILED':
+      return 'Úprava události selhala';
+    case 'GALLERY_PHOTO_UPLOAD_FAILED':
+      return 'Nahrání fotky do galerie selhalo';
+    case 'GALLERY_PHOTO_DELETE_FAILED':
+      return 'Smazání fotky z galerie selhalo';
     default:
       return event ?? '';
   }
@@ -128,6 +218,19 @@ export function getActivityEventMessage(log: ActivityLogEntry): string {
       const key = log.key ?? getStringField(log, 'key');
       const what = [setting, key].filter(Boolean).join(' ');
       return `Změna nastavení${what ? `: ${what}` : ''}${actor ? ` (provedl ${actor})` : ''}`;
+    }
+    case 'BEER_ADD_FAILED':
+    case 'BEER_REMOVE_FAILED':
+    case 'BARREL_CREATE_FAILED':
+    case 'BARREL_UPDATE_FAILED':
+    case 'BARREL_SET_ACTIVE_FAILED':
+    case 'BARREL_DELETE_FAILED':
+    case 'PROFILE_PICTURE_UPLOAD_FAILED':
+    case 'EVENT_UPDATE_FAILED':
+    case 'GALLERY_PHOTO_UPLOAD_FAILED':
+    case 'GALLERY_PHOTO_DELETE_FAILED': {
+      const reason = getStringField(log, 'reason');
+      return reason ? `${log.message}: ${reason}` : log.message;
     }
     default:
       return log.message;

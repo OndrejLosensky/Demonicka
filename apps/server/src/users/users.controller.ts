@@ -170,6 +170,7 @@ export class UsersController {
       throw new BadRequestException('Nebyl poskytnut žádný soubor');
     }
 
+    try {
     // Delete old profile picture if it exists
     const existingUser = await this.usersService.findOne(user.id);
     if (existingUser.profilePictureUrl) {
@@ -184,6 +185,15 @@ export class UsersController {
     await this.usersService.update(user.id, { profilePictureUrl });
 
     return { profilePictureUrl };
+    } catch (error: unknown) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.loggingService.auditFailure(
+        'PROFILE_PICTURE_UPLOAD_FAILED',
+        'Profile picture upload failed',
+        { reason, actorUserId: user.id },
+      );
+      throw error;
+    }
   }
 
   @Get(':id/profile-picture')

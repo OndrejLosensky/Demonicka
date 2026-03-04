@@ -57,8 +57,11 @@ export class BarrelsController {
   }
 
   @Post()
-  create(@Body() createBarrelDto: CreateBarrelDto): Promise<Barrel> {
-    return this.barrelsService.create(createBarrelDto);
+  create(
+    @Body() createBarrelDto: CreateBarrelDto,
+    @CurrentUser() user?: { id: string },
+  ): Promise<Barrel> {
+    return this.barrelsService.create(createBarrelDto, user?.id);
   }
 
   @Get(':id')
@@ -70,17 +73,24 @@ export class BarrelsController {
   update(
     @Param('id') id: string,
     @Body() updateBarrelDto: UpdateBarrelDto,
+    @CurrentUser() user?: { id: string },
   ): Promise<Barrel> {
-    return this.barrelsService.update(id, updateBarrelDto);
+    return this.barrelsService.update(id, updateBarrelDto, user?.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.barrelsService.remove(id);
+  remove(
+    @Param('id') id: string,
+    @CurrentUser() user?: { id: string },
+  ): Promise<void> {
+    return this.barrelsService.remove(id, user?.id);
   }
 
   @Patch(':id/activate')
-  setActive(@Param('id') id: string): Promise<Barrel> {
-    return this.barrelsService.setActive(id);
+  setActive(
+    @Param('id') id: string,
+    @CurrentUser() user?: { id: string },
+  ): Promise<Barrel> {
+    return this.barrelsService.setActive(id, user?.id);
   }
 }

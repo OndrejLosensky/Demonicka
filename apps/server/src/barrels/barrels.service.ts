@@ -64,7 +64,7 @@ export class BarrelsService {
     return barrel;
   }
 
-  async create(createBarrelDto: CreateBarrelDto): Promise<Barrel> {
+  async create(createBarrelDto: CreateBarrelDto, actorUserId?: string): Promise<Barrel> {
     try {
       // Barrel size is already in litres (15L, 30L, or 50L)
       const totalLitres = createBarrelDto.size;
@@ -88,15 +88,17 @@ export class BarrelsService {
 
       return savedBarrel;
     } catch (error: unknown) {
-      this.loggingService.error('Failed to create barrel', {
-        error: error instanceof Error ? error.message : String(error),
+      const reason = error instanceof Error ? error.message : String(error);
+      this.loggingService.auditFailure('BARREL_CREATE_FAILED', 'Create barrel failed', {
+        reason,
         size: createBarrelDto.size,
+        actorUserId,
       });
       throw error;
     }
   }
 
-  async update(id: string, updateBarrelDto: UpdateBarrelDto): Promise<Barrel> {
+  async update(id: string, updateBarrelDto: UpdateBarrelDto, actorUserId?: string): Promise<Barrel> {
     try {
       await this.findOne(id); // Verify barrel exists
       const savedBarrel = await this.prisma.barrel.update({
@@ -110,16 +112,17 @@ export class BarrelsService {
 
       return savedBarrel;
     } catch (error: unknown) {
-      this.loggingService.error('Failed to update barrel', {
-        error: error instanceof Error ? error.message : String(error),
+      const reason = error instanceof Error ? error.message : String(error);
+      this.loggingService.auditFailure('BARREL_UPDATE_FAILED', 'Update barrel failed', {
+        reason,
         id,
-        changes: updateBarrelDto,
+        actorUserId,
       });
       throw error;
     }
   }
 
-  async setActive(id: string): Promise<Barrel> {
+  async setActive(id: string, actorUserId?: string): Promise<Barrel> {
     try {
       const barrel = await this.findOne(id);
 
@@ -153,15 +156,17 @@ export class BarrelsService {
 
       return savedBarrel;
     } catch (error: unknown) {
-      this.loggingService.error('Failed to set barrel active status', {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.loggingService.auditFailure('BARREL_SET_ACTIVE_FAILED', 'Set barrel active failed', {
+        reason,
         id,
-        error: error instanceof Error ? error.message : String(error),
+        actorUserId,
       });
       throw error;
     }
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, actorUserId?: string): Promise<void> {
     try {
       await this.findOne(id);
       await this.prisma.barrel.update({
@@ -171,9 +176,11 @@ export class BarrelsService {
       });
       this.loggingService.logBarrelDeleted(id);
     } catch (error: unknown) {
-      this.loggingService.error('Failed to delete barrel', {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.loggingService.auditFailure('BARREL_DELETE_FAILED', 'Delete barrel failed', {
+        reason,
         id,
-        error: error instanceof Error ? error.message : String(error),
+        actorUserId,
       });
       throw error;
     }

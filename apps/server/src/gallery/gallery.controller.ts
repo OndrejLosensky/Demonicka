@@ -27,6 +27,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { Inject } from '@nestjs/common';
 import { STORAGE_SERVICE, type IStorageService } from '../storage/storage.interface';
+import { LoggingService } from '../logging/logging.service';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB for gallery
 const ALLOWED_MIME = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
@@ -40,6 +41,7 @@ const WEBP_QUALITY = 85;
 export class GalleryController {
   constructor(
     private readonly galleryService: GalleryService,
+    private readonly loggingService: LoggingService,
     @Inject(STORAGE_SERVICE) private readonly storage: IStorageService,
   ) {}
 
@@ -88,14 +90,24 @@ export class GalleryController {
       throw new BadRequestException('Chyba při zpracování obrázku.');
     }
 
-    return this.galleryService.create(
-      eventId,
-      user.id,
-      buffer,
-      'image/webp',
-      typeof caption === 'string' ? caption : undefined,
-      user.role,
-    );
+    try {
+      return await this.galleryService.create(
+        eventId,
+        user.id,
+        buffer,
+        'image/webp',
+        typeof caption === 'string' ? caption : undefined,
+        user.role,
+      );
+    } catch (error: unknown) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.loggingService.auditFailure(
+        'GALLERY_PHOTO_UPLOAD_FAILED',
+        'Gallery photo upload failed',
+        { reason, eventId, actorUserId: user.id },
+      );
+      throw error;
+    }
   }
 
   @Get('photos/:photoId/image')
@@ -121,7 +133,20 @@ export class GalleryController {
 
   @Delete('photos/:photoId')
   @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR, UserRole.USER, UserRole.PARTICIPANT)
-  deletePhoto(@Param('photoId', ParseUUIDPipe) photoId: string, @GetUser() user: User) {
-    return this.galleryService.deletePhoto(photoId, user.id, user.role);
+  async deletePhoto(
+    @Param('photoId', ParseUUIDPipe) photoId: string,
+    @GetUser() user: User,
+  ) {
+    try {
+      return await this.galleryService.deletePhoto(photoId, user.id, user.role);
+    } catch (error: unknown) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.loggingService.auditFailure(
+        'GALLERY_PHOTO_DELETE_FAILED',
+        'Gallery photo delete failed',
+        { reason, photoId, actorUserId: user.id },
+      );
+      throw error;
+    }
   }
 }

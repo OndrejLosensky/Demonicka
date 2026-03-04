@@ -29,6 +29,7 @@ import { TwoFactorService } from './two-factor.service';
 import { CompleteRegistrationDto } from '../users/dto/complete-registration.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { LoggingService } from '../logging/logging.service';
 
 interface RequestWithUser extends Request {
   user: User;
@@ -53,6 +54,7 @@ export class AuthController {
     private readonly twoFactorService: TwoFactorService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly loggingService: LoggingService,
   ) {}
 
   /**
@@ -140,6 +142,10 @@ export class AuthController {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = user;
+    this.loggingService.audit('LOGIN_SUCCESS', 'User logged in', {
+      actorUserId: user.id,
+      username: user.username,
+    });
     return { access_token, user: userWithoutPassword };
   }
 
@@ -238,6 +244,11 @@ export class AuthController {
       refresh_token,
       this.authService.getCookieOptions(true),
     );
+
+    this.loggingService.audit('REGISTRATION_COMPLETED', 'User completed registration', {
+      actorUserId: user.id,
+      username: user.username,
+    });
 
     return { access_token, user };
   }
@@ -351,6 +362,12 @@ export class AuthController {
 
     // Generate tokens
     const { access_token, refresh_token } = await this.authService.login(user);
+
+    this.loggingService.audit('LOGIN_SUCCESS', 'User logged in via Google', {
+      actorUserId: user.id,
+      username: user.username,
+      loginMethod: 'google',
+    });
 
     // Set refresh token as an HTTP-only cookie
     response.cookie(

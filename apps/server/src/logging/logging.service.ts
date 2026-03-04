@@ -7,16 +7,19 @@ import 'winston-daily-rotate-file';
 import type { Stats } from 'fs';
 import type { DailyRotateFileTransportOptions } from 'winston-daily-rotate-file';
 import { PrismaService } from '../prisma/prisma.service';
+import { getAppFromContext } from './request-context';
 
 export interface LogEntry {
   timestamp: string;
   level: string;
   message: string;
-  service: string;
+  app: string;
   event?: string;
   userId?: string;
   actorUserId?: string;
   barrelId?: string;
+  /** @deprecated use app */
+  service?: string;
   [key: string]: unknown;
 }
 
@@ -41,29 +44,41 @@ interface CleanupOptions {
 export class LoggingService {
   private logger: winston.Logger;
   private readonly logDir = 'logs';
-  private readonly combinedLogPath = path.join(this.logDir, 'combined.log');
+  private readonly backendLogDir = path.join(this.logDir, 'backend');
 
   constructor(private readonly prisma: PrismaService) {
-    // Ensure logs directory exists
-    fs.mkdir(this.logDir, { recursive: true }).catch(() => {});
+    // Ensure log directories exist
+    fs.mkdir(this.backendLogDir, { recursive: true }).catch(() => {});
 
-    // Configure daily rotating log file for all log levels
+    // Canonical format: timestamp, app, level (uppercase), message, ...meta
+    const canonicalFormat = format((info) => {
+      const level = String(info.level ?? 'info').toUpperCase();
+      const normalizedLevel = level === 'WARN' ? 'WARN' : level === 'ERROR' ? 'ERROR' : level === 'DEBUG' ? 'DEBUG' : 'INFO';
+      return {
+        ...info,
+        level: normalizedLevel,
+        app: info.app ?? 'backend',
+        timestamp: info.timestamp ?? new Date().toISOString(),
+      };
+    })();
+
+    // Configure daily rotating log file for all log levels (backend only)
     const rotateConfig: DailyRotateFileTransportOptions = {
-      filename: path.join(this.logDir, '%DATE%-combined.log'),
+      filename: path.join(this.backendLogDir, '%DATE%-combined.log'),
       datePattern: 'YYYY-MM-DD',
       maxSize: '20m',
       maxFiles: '14d',
-      format: format.combine(format.timestamp(), format.json()),
+      format: format.combine(format.timestamp(), canonicalFormat, format.json()),
     };
 
     // Configure daily rotating log file specifically for errors
     const errorRotateConfig: DailyRotateFileTransportOptions = {
-      filename: path.join(this.logDir, '%DATE%-error.log'),
+      filename: path.join(this.backendLogDir, '%DATE%-error.log'),
       datePattern: 'YYYY-MM-DD',
       maxSize: '20m',
       maxFiles: '30d',
       level: 'error',
-      format: format.combine(format.timestamp(), format.json()),
+      format: format.combine(format.timestamp(), canonicalFormat, format.json()),
     };
 
     const rotateFileTransport = new winston.transports.DailyRotateFile(
@@ -73,15 +88,16 @@ export class LoggingService {
       errorRotateConfig,
     );
 
-    // Initialize winston logger with file transports
+    // Initialize winston logger with file transports (canonical: app, level, timestamp, message, ...meta)
     this.logger = winston.createLogger({
       level: 'info',
       format: format.combine(
         format.timestamp(),
         format.errors({ stack: true }),
+        canonicalFormat,
         format.json(),
       ),
-      defaultMeta: { service: 'beer-app' },
+      defaultMeta: { app: 'backend' },
       transports: [rotateFileTransport, errorRotateFileTransport],
     });
 
@@ -108,13 +124,44 @@ export class LoggingService {
   }
 
   /**
-   * Retrieves logs based on specified filters
-   * @param level - Log level to filter by
-   * @param limit - Maximum number of logs to return
-   * @param offset - Number of logs to skip
-   * @param startDate - Start date for log range
-   * @param endDate - End date for log range
-   * @param eventType - Specific event type to filter by
+   * Ingest a single log entry from web or mobile client.
+   * Appends one JSON line to logs/{app}/%DATE%-combined.log in canonical format.
+   */
+  async ingestLog(payload: {
+    app: 'web' | 'mobile';
+    level: string;
+    message: string;
+    event?: string;
+    actorUserId?: string;
+    timestamp?: string;
+    meta?: Record<string, unknown>;
+    [key: string]: unknown;
+  }): Promise<void> {
+    const level = String(payload.level ?? 'INFO').toUpperCase();
+    const normalizedLevel = level === 'WARN' ? 'WARN' : level === 'ERROR' ? 'ERROR' : level === 'DEBUG' ? 'DEBUG' : 'INFO';
+    const timestamp = payload.timestamp ?? new Date().toISOString();
+    const { app, message, event, actorUserId, level: _level, meta = {}, ...rest } = payload;
+    const entry: LogEntry = {
+      timestamp,
+      app,
+      level: normalizedLevel,
+      message,
+      ...(event && { event }),
+      ...(actorUserId && { actorUserId }),
+      ...meta,
+      ...rest,
+    };
+    const dateStr = timestamp.slice(0, 10); // YYYY-MM-DD
+    const dir = path.join(this.logDir, app);
+    await fs.mkdir(dir, { recursive: true });
+    const filePath = path.join(dir, `${dateStr}-combined.log`);
+    const line = JSON.stringify(entry) + '\n';
+    await fs.appendFile(filePath, line);
+  }
+
+  /**
+   * Retrieves logs based on specified filters.
+   * Reads from logs/backend/, logs/web/, logs/mobile/ and merges by timestamp.
    */
   async getLogs(
     level?: string,
@@ -124,42 +171,66 @@ export class LoggingService {
     endDate?: Date,
     eventType?: string | string[],
     search?: string,
+    appFilter?: string,
   ): Promise<{
     logs: (LogEntry & { user?: LogUserRef; actor?: LogUserRef })[];
     total: number;
   }> {
     try {
-      // Read all log files in the logs directory
-      const files = await fs.readdir(this.logDir);
-      const logFiles = files.filter((file) => file.endsWith('-combined.log'));
-
+      const appDirs = ['backend', 'web', 'mobile'] as const;
       let allLogs: LogEntry[] = [];
 
-      // Read each log file and combine the logs
-      for (const file of logFiles) {
+      for (const appName of appDirs) {
+        const dir = path.join(this.logDir, appName);
         try {
-          const filePath = path.join(this.logDir, file);
-          const fileContent = await fs.readFile(filePath, 'utf-8');
-          const fileLogs = fileContent
-            .split('\n')
-            .filter(Boolean)
-            .map((line) => JSON.parse(line) as LogEntry);
-          allLogs.push(...fileLogs);
-        } catch (fileError) {
-          console.error(`Error reading log file ${file}:`, fileError);
-          // Continue with other files
+          const files = await fs.readdir(dir);
+          const logFiles = files.filter((f) => f.endsWith('-combined.log'));
+          for (const file of logFiles) {
+            try {
+              const filePath = path.join(dir, file);
+              const fileContent = await fs.readFile(filePath, 'utf-8');
+              const fileLogs = fileContent
+                .split('\n')
+                .filter(Boolean)
+                .map((line) => {
+                  const parsed = JSON.parse(line) as LogEntry;
+                  // Ensure app and level are set (canonical format)
+                  const level = String(parsed.level ?? 'info').toUpperCase();
+                  const normalizedLevel = level === 'WARN' ? 'WARN' : level === 'ERROR' ? 'ERROR' : level === 'DEBUG' ? 'DEBUG' : 'INFO';
+                  return {
+                    ...parsed,
+                    app: parsed.app ?? appName,
+                    level: normalizedLevel,
+                  } as LogEntry;
+                });
+              allLogs.push(...fileLogs);
+            } catch (fileError) {
+              console.error(`Error reading log file ${dir}/${file}:`, fileError);
+            }
+          }
+        } catch (dirError) {
+          // Subdir may not exist yet (e.g. no ingest yet)
+          if ((dirError as NodeJS.ErrnoException)?.code !== 'ENOENT') {
+            console.error(`Error reading log dir ${dir}:`, dirError);
+          }
         }
       }
 
-      // Sort all logs by timestamp (newest first)
+      // Sort by timestamp (newest first)
       allLogs.sort(
         (a, b) =>
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       );
 
+      // Filter by app (source)
+      if (appFilter && ['backend', 'web', 'mobile'].includes(appFilter)) {
+        allLogs = allLogs.filter((log) => (log.app ?? 'backend') === appFilter);
+      }
+
       // Apply filters
       if (level) {
-        allLogs = allLogs.filter((log) => log.level === level);
+        const levelUpper = level.toUpperCase();
+        allLogs = allLogs.filter((log) => (log.level ?? '').toUpperCase() === levelUpper);
       }
 
       if (startDate) {
@@ -186,6 +257,7 @@ export class LoggingService {
           const actorUserId = (log as any).actorUserId as string | undefined;
           const hay = [
             log.message,
+            log.app,
             log.service,
             log.level,
             log.event,
@@ -207,7 +279,7 @@ export class LoggingService {
       const total = allLogs.length;
       const page = allLogs.slice(offset, offset + limit);
 
-      // Enrich page with username/name for userId + actorUserId (nice UI display)
+      // Enrich page with username/name for userId + actorUserId
       const ids = new Set<string>();
       for (const log of page) {
         if (typeof log.userId === 'string' && log.userId) ids.add(log.userId);
@@ -228,7 +300,6 @@ export class LoggingService {
           });
           userMap = new Map(users.map((u) => [u.id, u]));
         } catch (e) {
-          // If enrichment fails, return raw logs
           this.warn('Failed to enrich logs with user info', {
             event: 'LOG_ENRICH_FAILED',
             error: e instanceof Error ? e.message : String(e),
@@ -240,6 +311,7 @@ export class LoggingService {
         const actorUserId = (log as any).actorUserId as string | undefined;
         return {
           ...log,
+          app: log.app ?? 'backend',
           user: log.userId ? userMap.get(String(log.userId)) : undefined,
           actor: actorUserId ? userMap.get(actorUserId) : undefined,
         };
@@ -255,6 +327,18 @@ export class LoggingService {
 
   audit(event: string, message: string, meta?: Record<string, unknown>) {
     this.info(message, { event, ...meta });
+  }
+
+  /**
+   * Logs a failed action as an audit event (WARN level) so it appears in Aktivity.
+   * Use for e.g. BEER_ADD_FAILED, BARREL_CREATE_FAILED when the server rejects the request.
+   */
+  auditFailure(
+    event: string,
+    message: string,
+    meta?: Record<string, unknown>,
+  ) {
+    this.warn(message, { event, ...meta });
   }
 
   /**
@@ -280,12 +364,14 @@ export class LoggingService {
         0,
         startDate,
         endDate,
+        undefined,
+        undefined,
       );
 
       const stats = {
         totalLogs: logs.length,
-        errorCount: logs.filter((log) => log.level === 'error').length,
-        warnCount: logs.filter((log) => log.level === 'warn').length,
+        errorCount: logs.filter((log) => (log.level ?? '').toUpperCase() === 'ERROR').length,
+        warnCount: logs.filter((log) => (log.level ?? '').toUpperCase() === 'WARN').length,
         eventCounts: {} as Record<string, number>,
         userActivity: {} as Record<string, number>,
         barrelActivity: {} as Record<string, number>,
@@ -318,39 +404,40 @@ export class LoggingService {
   }
 
   /**
+   * Merges request context app (X-App header) into meta when present.
+   */
+  private withContextApp(meta?: Record<string, unknown>): Record<string, unknown> {
+    const ctxApp = getAppFromContext();
+    if (!ctxApp) return meta ?? {};
+    return { ...meta, app: ctxApp };
+  }
+
+  /**
    * Logs an error message with optional metadata
-   * @param message - Error message to log
-   * @param meta - Additional metadata to include in the log
    */
   error(message: string, meta?: Record<string, unknown>) {
-    this.logger.error(message, meta);
+    this.logger.error(message, this.withContextApp(meta));
   }
 
   /**
    * Logs a warning message with optional metadata
-   * @param message - Warning message to log
-   * @param meta - Additional metadata to include in the log
    */
   warn(message: string, meta?: Record<string, unknown>) {
-    this.logger.warn(message, meta);
+    this.logger.warn(message, this.withContextApp(meta));
   }
 
   /**
    * Logs an info message with optional metadata
-   * @param message - Info message to log
-   * @param meta - Additional metadata to include in the log
    */
   info(message: string, meta?: Record<string, unknown>) {
-    this.logger.info(message, meta);
+    this.logger.info(message, this.withContextApp(meta));
   }
 
   /**
    * Logs a debug message with optional metadata
-   * @param message - Debug message to log
-   * @param meta - Additional metadata to include in the log
    */
   debug(message: string, meta?: Record<string, unknown>) {
-    this.logger.debug(message, meta);
+    this.logger.debug(message, this.withContextApp(meta));
   }
 
   /**
@@ -603,35 +690,36 @@ export class LoggingService {
   }
 
   /**
-   * Performs cleanup of log files based on specified options
-   * @param options - Cleanup options
+   * Performs cleanup of log files based on specified options.
+   * Scans logs/backend, logs/web, logs/mobile for .log files.
    */
   async cleanup(
     options: CleanupOptions = {},
   ): Promise<{ deletedCount: number }> {
-    try {
-      const files = await fs.readdir(this.logDir);
-      let deletedCount = 0;
+    let deletedCount = 0;
+    const appDirs = ['backend', 'web', 'mobile'] as const;
 
-      for (const file of files) {
-        if (!file.endsWith('.log')) continue;
-
-        const filePath = path.join(this.logDir, file);
-        const stats = await fs.stat(filePath);
-
-        if (this.shouldDeleteFile(file, stats, options)) {
-          await fs.unlink(filePath);
-          deletedCount++;
+    for (const appName of appDirs) {
+      const dir = path.join(this.logDir, appName);
+      try {
+        const files = await fs.readdir(dir);
+        for (const file of files) {
+          if (!file.endsWith('.log')) continue;
+          const filePath = path.join(dir, file);
+          const stats = await fs.stat(filePath);
+          if (this.shouldDeleteFile(file, stats, options)) {
+            await fs.unlink(filePath);
+            deletedCount++;
+          }
+        }
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException)?.code !== 'ENOENT') {
+          this.error('Failed to cleanup log dir', { dir, error: String(e) });
         }
       }
-
-      return { deletedCount };
-    } catch (error) {
-      this.error('Failed to cleanup logs', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
     }
+
+    return { deletedCount };
   }
 
   /**

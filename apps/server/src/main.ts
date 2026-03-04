@@ -17,6 +17,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppLogger } from './logging/app-logger.service';
 import { LoggingService } from './logging/logging.service';
 import { requestIdMiddleware } from './logging/request-id.middleware';
+import { requestAppContextMiddleware } from './logging/request-app-context.middleware';
 import { httpLoggingMiddleware } from './logging/http-logging.middleware';
 
 async function bootstrap() {
@@ -46,8 +47,9 @@ async function bootstrap() {
   // Route all Nest framework logs through our Winston-backed logger
   app.useLogger(app.get(AppLogger));
 
-  // Request id + HTTP access logs
+  // Request id + app context (X-App) + HTTP access logs
   app.use(requestIdMiddleware);
+  app.use(requestAppContextMiddleware);
   app.use(httpLoggingMiddleware(loggingService));
 
   // Enable cookie parser
@@ -94,6 +96,7 @@ async function bootstrap() {
       'Authorization',
       'Accept',
       'x-api-version',
+      'X-App',
     ],
     exposedHeaders: ['Set-Cookie'],
   });

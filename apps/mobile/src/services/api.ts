@@ -7,6 +7,7 @@ const CACHE_PREFIX = 'api_cache:';
 const DEFAULT_HEADERS: Record<string, string> = {
   'Content-Type': 'application/json',
   'x-api-version': '1',
+  'X-App': 'mobile',
 };
 
 export interface ApiError extends Error {

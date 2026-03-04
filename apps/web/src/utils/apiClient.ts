@@ -9,6 +9,7 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'x-api-version': '1',
+    'X-App': 'web',
   },
   // Default timeout for all requests (can be overridden per request)
   timeout: 30000, // 30 seconds default

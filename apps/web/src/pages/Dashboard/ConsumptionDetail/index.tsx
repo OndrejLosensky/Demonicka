@@ -21,7 +21,9 @@ import {
 } from 'recharts';
 import { dashboardService } from '../../../services/dashboardService';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import { useAppTheme } from '../../../contexts/ThemeContext';
+import { logger } from '../../../utils/logger';
 import { EmptyEventState } from '../../../components/EmptyEventState';
 import { Container } from '@mui/material';
 
@@ -29,6 +31,7 @@ type ChartType = 'area' | 'line' | 'bar';
 
 export function ConsumptionDetail() {
   const { activeEvent } = useActiveEvent();
+  const { user } = useAuth();
   const { mode } = useAppTheme();
   const isDark = mode === 'dark';
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -95,14 +98,14 @@ export function ConsumptionDetail() {
       })
     : [];
 
-  const handleExport = (format: 'csv' | 'json') => {
+  const handleExport = (exportFormat: 'csv' | 'json') => {
     const data = chartData.map((d) => ({
       hour: d.label,
       count: d.count,
       date: format(selectedDate, 'yyyy-MM-dd'),
     }));
 
-    if (format === 'csv') {
+    if (exportFormat === 'csv') {
       const headers = ['Hour', 'Count', 'Date'];
       const rows = data.map((d) => [d.hour, d.count, d.date]);
       const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
@@ -121,6 +124,13 @@ export function ConsumptionDetail() {
       a.download = `consumption-${format(selectedDate, 'yyyy-MM-dd')}.json`;
       a.click();
     }
+    logger.info('Consumption data exported', {
+      event: 'DATA_EXPORT',
+      format: exportFormat,
+      date: format(selectedDate, 'yyyy-MM-dd'),
+      eventId: activeEvent?.id,
+      ...(user?.id && { actorUserId: user.id }),
+    });
   };
 
   if (!activeEvent) {

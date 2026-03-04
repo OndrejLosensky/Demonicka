@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { ActivityEventType, ActivityLogEntry } from '../pages/Dashboard/Activity/activity.types';
+import type { ActivityEventType, ActivityLogEntry, ActivityAppSource } from '../pages/Dashboard/Activity/activity.types';
 import { fetchActivityLogs } from '../pages/Dashboard/Activity/activity.api';
 
 function toLocalDateInputValue(date: Date) {
@@ -26,6 +26,7 @@ export function useActivityLogs() {
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [selectedEvent, setSelectedEvent] = useState<ActivityEventType | ''>('');
   const [selectedLevel, setSelectedLevel] = useState<string>('');
+  const [selectedApp, setSelectedApp] = useState<ActivityAppSource | ''>('');
   const [selectedDate, setSelectedDate] = useState<string>(() => toLocalDateInputValue(new Date()));
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -45,6 +46,7 @@ export function useActivityLogs() {
         offset: page * rowsPerPage,
         eventType: selectedEvent,
         level: selectedLevel || undefined,
+        app: selectedApp || undefined,
         startDate: bounds?.startIso,
         endDate: bounds?.endIso,
         search: debouncedSearch || undefined,
@@ -57,7 +59,7 @@ export function useActivityLogs() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, rowsPerPage, selectedEvent, selectedLevel, selectedDate, debouncedSearch]);
+  }, [page, rowsPerPage, selectedEvent, selectedLevel, selectedApp, selectedDate, debouncedSearch]);
 
   useEffect(() => {
     void load();
@@ -88,6 +90,11 @@ export function useActivityLogs() {
     setPage(0);
   };
 
+  const changeApp = (value: ActivityAppSource | '') => {
+    setSelectedApp(value);
+    setPage(0);
+  };
+
   const changeDate = (value: string) => {
     setSelectedDate(value);
     setPage(0);
@@ -106,6 +113,7 @@ export function useActivityLogs() {
     rowsPerPage,
     selectedEvent,
     selectedLevel,
+    selectedApp,
     selectedDate,
     search,
     autoRefresh,
@@ -114,6 +122,7 @@ export function useActivityLogs() {
     setRowsPerPage: changeRowsPerPage,
     setSelectedEvent: changeEventType,
     setSelectedLevel: changeLevel,
+    setSelectedApp: changeApp,
     setSelectedDate: changeDate,
     setSearch: changeSearch,
     setAutoRefresh,

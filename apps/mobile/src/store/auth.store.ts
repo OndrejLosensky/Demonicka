@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { User } from '@demonicka/shared-types';
 import { authService, type LoginResult } from '../services/auth.service';
+import { logger } from '../utils/logger';
 
 interface AuthState {
   user: User | null;
@@ -63,6 +64,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       });
 
+      logger.info('User logged in', {
+        event: 'LOGIN',
+        actorUserId: successResult.user.id,
+        username: successResult.user.username,
+      });
+
       return result;
     } catch (e: unknown) {
       const err = e as { message?: string; data?: { message?: string } };
@@ -92,6 +99,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
         isLoading: false,
       });
+
+      logger.info('Registration completed', {
+        event: 'REGISTRATION_COMPLETED',
+        actorUserId: result.user.id,
+        username: result.user.username,
+      });
     } catch (e: unknown) {
       const err = e as { message?: string; data?: { message?: string } };
       const message = err?.data?.message ?? err?.message ?? 'Registrace se nezdařila';
@@ -101,7 +114,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
+    const currentUser = get().user;
     await authService.logout();
+    if (currentUser?.id) {
+      logger.info('User logged out', {
+        event: 'LOGOUT',
+        actorUserId: currentUser.id,
+        username: currentUser.username,
+      });
+    }
     set({
       user: null,
       token: null,
@@ -160,6 +181,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           token,
           isAuthenticated: true,
           isLoading: false,
+        });
+
+        logger.info('User logged in via Google', {
+          event: 'LOGIN_GOOGLE',
+          actorUserId: user.id,
+          username: user.username,
         });
       } else {
         set({

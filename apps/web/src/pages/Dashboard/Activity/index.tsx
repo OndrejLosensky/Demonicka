@@ -16,6 +16,7 @@ export const Activity: React.FC = () => {
     rowsPerPage,
     selectedEvent,
     selectedLevel,
+    selectedApp,
     selectedDate,
     search,
     autoRefresh,
@@ -23,6 +24,7 @@ export const Activity: React.FC = () => {
     setRowsPerPage,
     setSelectedEvent,
     setSelectedLevel,
+    setSelectedApp,
     setSelectedDate,
     setSearch,
     setAutoRefresh,
@@ -59,6 +61,8 @@ export const Activity: React.FC = () => {
           onChange={setSelectedEvent}
           level={selectedLevel}
           onLevelChange={setSelectedLevel}
+          app={selectedApp}
+          onAppChange={setSelectedApp}
           date={selectedDate}
           onDateChange={setSelectedDate}
           search={search}

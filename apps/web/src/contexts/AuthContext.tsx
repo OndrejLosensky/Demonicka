@@ -7,6 +7,7 @@ import { apiClient } from '../utils/apiClient';
 import type { AxiosError } from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppTheme } from './ThemeContext';
+import { logger } from '../utils/logger';
 
 interface AuthContextType {
   user: User | null;
@@ -109,6 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setIsLoading(false); // Explicitly clear loading state after setting user
       
+      logger.info('User logged in', { event: 'LOGIN', actorUserId: u.id, username: u.username });
+      
       // Redirect based on user role
       if (response.data.user.role === 'USER') {
         navigate(`/${response.data.user.id}/dashboard`);
@@ -152,6 +155,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setMode((u as any).preferredTheme, { persistToServer: false });
       }
       setIsLoading(false);
+      
+      logger.info('User logged in (2FA)', { event: 'LOGIN_2FA', actorUserId: u.id, username: u.username });
       
       // Redirect based on user role
       if (response.data.user.role === 'USER') {
@@ -211,6 +216,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setMode((u as any).preferredTheme, { persistToServer: false });
       }
       
+      logger.info('Registration completed', { event: 'REGISTRATION_COMPLETED', actorUserId: u.id, username: u.username });
+      
       // Redirect based on user role
       if (response.data.user.role === 'USER') {
         navigate(`/${response.data.user.id}/dashboard`);
@@ -230,11 +237,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    const userId = user?.id;
+    const username = user?.username;
     try {
       await apiClient.post('/auth/logout');
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
+      if (userId) {
+        logger.info('User logged out', { event: 'LOGOUT', actorUserId: userId, username });
+      }
       localStorage.removeItem('access_token');
       setUser(null);
       navigate('/login');

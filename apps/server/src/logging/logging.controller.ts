@@ -12,6 +12,7 @@ import { DatePipe } from './date.pipe';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
+import { IngestLogDto } from './dto/ingest-log.dto';
 
 interface CleanupLogsDto {
   olderThan?: Date;
@@ -25,6 +26,12 @@ interface CleanupLogsDto {
 export class LoggingController {
   constructor(private readonly loggingService: LoggingService) {}
 
+  @Post('ingest')
+  async ingest(@Body() body: IngestLogDto & Record<string, unknown>) {
+    await this.loggingService.ingestLog(body);
+    return { ok: true };
+  }
+
   @Post('cleanup')
   async cleanup(
     @Body() dto: CleanupLogsDto,
@@ -36,12 +43,13 @@ export class LoggingController {
   @Get()
   async getLogs(
     @Query('level') level?: string,
-    @Query('limit', ParseIntPipe) limit = 100,
-    @Query('offset', ParseIntPipe) offset = 0,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit = 100,
+    @Query('offset', new ParseIntPipe({ optional: true })) offset = 0,
     @Query('startDate', DatePipe) startDate?: Date,
     @Query('endDate', DatePipe) endDate?: Date,
     @Query('eventType') eventType?: string | string[],
     @Query('search') search?: string,
+    @Query('app') app?: string,
   ) {
     return this.loggingService.getLogs(
       level,
@@ -51,6 +59,7 @@ export class LoggingController {
       endDate,
       eventType,
       search,
+      app,
     );
   }
 

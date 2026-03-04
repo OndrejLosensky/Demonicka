@@ -1,7 +1,7 @@
 import { Box, Chip, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from '@demonicka/ui';
 import { format } from 'date-fns';
 import type { ActivityLogEntry } from './activity.types';
-import { getActivityEventColor, getActivityEventLabel, getActivityEventMessage } from './activity.presentation';
+import { getActivityEventColor, getActivityEventLabel, getActivityEventMessage, getAppLabel, getLevelLabel, getLevelColor } from './activity.presentation';
 
 export function ActivityTable({
   logs,
@@ -32,6 +32,8 @@ export function ActivityTable({
           <TableHead>
             <TableRow>
               <TableCell>Čas</TableCell>
+              <TableCell>Zdroj</TableCell>
+              <TableCell>Úroveň</TableCell>
               <TableCell>Událost</TableCell>
               <TableCell>Zpráva</TableCell>
             </TableRow>
@@ -48,16 +50,38 @@ export function ActivityTable({
                   {format(new Date(log.timestamp), 'dd.MM.yyyy HH:mm:ss')}
                 </TableCell>
                 <TableCell>
+                  <Typography variant="body2">
+                    {getAppLabel(log.app ?? log.service)}
+                  </Typography>
+                </TableCell>
+                <TableCell>
                   <Chip
-                    label={getActivityEventLabel(log.event)}
-                    color={getActivityEventColor(log.event)}
+                    label={getLevelLabel(log.level)}
+                    color={getLevelColor(log.level)}
+                    size="small"
                     sx={{
-                      height: 28,
+                      height: 24,
                       borderRadius: 1,
-                      fontSize: '0.8rem',
-                      fontWeight: 700,
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
                     }}
                   />
+                </TableCell>
+                <TableCell>
+                  {log.event ? (
+                    <Chip
+                      label={getActivityEventLabel(log.event)}
+                      color={getActivityEventColor(log.event)}
+                      sx={{
+                        height: 28,
+                        borderRadius: 1,
+                        fontSize: '0.8rem',
+                        fontWeight: 700,
+                      }}
+                    />
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">—</Typography>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Typography variant="body2">
@@ -68,7 +92,7 @@ export function ActivityTable({
             ))}
             {logs.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                   <Typography color="text.secondary">
                     {isLoading ? 'Načítání...' : 'Žádná data k zobrazení'}
                   </Typography>

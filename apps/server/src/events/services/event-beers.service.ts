@@ -117,6 +117,7 @@ export class EventBeersService {
     userId: string,
     actorUserId?: string,
   ): Promise<void> {
+    try {
     // Check if event is completed
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
@@ -155,6 +156,16 @@ export class EventBeersService {
     this.leaderboardGateway.emitFullUpdate(eventId).catch((error) => {
       console.error('Failed to emit leaderboard update after beer removal:', error);
     });
+    } catch (error: unknown) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.loggingService.auditFailure('BEER_REMOVE_FAILED', 'Remove beer failed', {
+        reason,
+        eventId,
+        userId,
+        actorUserId,
+      });
+      throw error;
+    }
   }
 
   async findByEventId(eventId: string): Promise<EventBeer[]> {

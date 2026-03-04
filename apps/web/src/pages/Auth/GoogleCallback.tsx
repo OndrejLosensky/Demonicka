@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { PageLoader } from '@demonicka/ui';
 import { toast } from 'react-hot-toast';
+import { logger } from '../../utils/logger';
 
 export function GoogleCallback() {
   usePageTitle('Google přihlášení');
@@ -49,6 +50,11 @@ export function GoogleCallback() {
   // Redirect when user is loaded
   useEffect(() => {
     if (hasProcessed && user) {
+      logger.info('User logged in via Google', {
+        event: 'LOGIN_GOOGLE',
+        actorUserId: user.id,
+        username: user.username,
+      });
       // Redirect based on user role
       if (user.role === 'USER') {
         navigate(`/${user.id}/dashboard`);

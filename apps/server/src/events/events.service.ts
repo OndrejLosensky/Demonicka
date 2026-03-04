@@ -153,6 +153,7 @@ export class EventsService {
     updateEventDto: UpdateEventDto,
     user?: User,
   ): Promise<Event> {
+    try {
     const event = await this.findOne(id, user); // Verify event exists and check access
 
     // Check if event is completed or active - do not allow config changes when active
@@ -185,6 +186,15 @@ export class EventsService {
     });
 
     return this.findOne(id, user);
+    } catch (error: unknown) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.loggingService.auditFailure('EVENT_UPDATE_FAILED', 'Event update failed', {
+        reason,
+        eventId: id,
+        actorUserId: user?.id,
+      });
+      throw error;
+    }
   }
 
   async remove(id: string, user?: User): Promise<void> {
@@ -483,6 +493,7 @@ export class EventsService {
     beerSize: 'SMALL' | 'LARGE' = 'LARGE',
     volumeLitres: number = 0.5,
   ): Promise<void> {
+    let barrelId: string | undefined;
     try {
       const event = await this.findOne(eventId);
       
@@ -500,7 +511,7 @@ export class EventsService {
 
       // Get active barrel
       const activeBarrel = await this.barrelsService.getActiveBarrel();
-      let barrelId: string | undefined = undefined;
+      barrelId = undefined;
 
       if (activeBarrel) {
         barrelId = activeBarrel.id;
@@ -518,10 +529,13 @@ export class EventsService {
         volumeLitres,
       );
     } catch (error: unknown) {
-      this.loggingService.error('Failed to add beer to event', {
-        error: error instanceof Error ? error.message : String(error),
+      const reason = error instanceof Error ? error.message : String(error);
+      this.loggingService.auditFailure('BEER_ADD_FAILED', 'Add beer failed', {
+        reason,
         eventId,
         userId,
+        barrelId,
+        actorUserId,
       });
       throw error;
     }

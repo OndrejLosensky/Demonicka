@@ -19,11 +19,16 @@ export interface ActivityUserRef {
   name: string | null;
 }
 
+export type ActivityAppSource = 'backend' | 'web' | 'mobile';
+export type ActivityLogLevel = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
+
 export interface ActivityLogEntry {
   timestamp: string;
   level: string;
   message: string;
-  service: string;
+  app?: ActivityAppSource;
+  /** @deprecated use app */
+  service?: string;
   event?: string;
   userId?: string;
   actorUserId?: string;

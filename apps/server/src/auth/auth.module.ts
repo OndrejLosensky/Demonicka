@@ -5,6 +5,7 @@ import { AdminAuthController } from './admin-auth.controller';
 import { UsersModule } from '../users/users.module';
 import { RolesModule } from '../roles/roles.module';
 import { EmailModule } from '../email/email.module';
+import { LoggingModule } from '../logging/logging.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DeviceTokenService } from './device-token.service';
@@ -26,6 +27,7 @@ import { RolesService } from '../roles/roles.service';
     UsersModule,
     RolesModule,
     EmailModule,
+    LoggingModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

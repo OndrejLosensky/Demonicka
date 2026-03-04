@@ -10,6 +10,7 @@ export async function fetchActivityLogs(params: {
   endDate?: string;
   search?: string;
   level?: string;
+  app?: string;
 }): Promise<ActivityLogsResponse> {
   const qs = new URLSearchParams({
     limit: String(params.limit),
@@ -20,6 +21,7 @@ export async function fetchActivityLogs(params: {
   if (params.endDate) qs.append('endDate', params.endDate);
   if (params.search) qs.append('search', params.search);
   if (params.level) qs.append('level', params.level);
+  if (params.app) qs.append('app', params.app);
 
   if (params.eventType) {
     qs.append('eventType', params.eventType);

@@ -226,7 +226,7 @@ export class SystemService {
   async getLogStats() {
     try {
       const logDir = 'logs';
-      const logFiles = await fs.readdir(logDir);
+      const appDirs = ['backend', 'web', 'mobile'];
 
       let totalLogs = 0;
       let logsToday = 0;
@@ -238,18 +238,24 @@ export class SystemService {
 
       const today = new Date().toDateString();
 
-      for (const file of logFiles) {
-        if (file.endsWith('.log')) {
-          const filePath = path.join(logDir, file);
+      for (const appName of appDirs) {
+        const dir = path.join(logDir, appName);
+        let files: string[] = [];
+        try {
+          files = await fs.readdir(dir);
+        } catch {
+          continue;
+        }
+        for (const file of files) {
+          if (!file.endsWith('.log')) continue;
+          const filePath = path.join(dir, file);
           const stats = await fs.stat(filePath);
           totalSize += stats.size;
 
-          // Read file to count logs
           const content = await fs.readFile(filePath, 'utf-8');
           const lines = content.split('\n').filter((line) => line.trim());
           totalLogs += lines.length;
 
-          // Count today's logs
           const todayLines = lines.filter((line) => {
             try {
               const logData = JSON.parse(line);
@@ -260,18 +266,17 @@ export class SystemService {
           });
           logsToday += todayLines.length;
 
-          // Count errors and warnings
           lines.forEach((line) => {
             try {
               const logData = JSON.parse(line);
-              if (logData.level === 'error') errorCount++;
-              if (logData.level === 'warn') warningCount++;
+              const level = String(logData.level ?? '').toLowerCase();
+              if (level === 'error') errorCount++;
+              if (level === 'warn') warningCount++;
             } catch {
               // Skip invalid JSON lines
             }
           });
 
-          // Track oldest and newest logs
           lines.forEach((line) => {
             try {
               const logData = JSON.parse(line);
@@ -320,17 +325,20 @@ export class SystemService {
       let logsSize = 0;
       let backupsSize = 0;
 
-      // Calculate logs size
-      try {
-        const logFiles = await fs.readdir(logDir);
-        for (const file of logFiles) {
-          if (file.endsWith('.log')) {
-            const stats = await fs.stat(path.join(logDir, file));
-            logsSize += stats.size;
+      // Calculate logs size (logs/backend, logs/web, logs/mobile)
+      const appDirs = ['backend', 'web', 'mobile'];
+      for (const appName of appDirs) {
+        try {
+          const dir = path.join(logDir, appName);
+          const logFiles = await fs.readdir(dir);
+          for (const file of logFiles) {
+            if (file.endsWith('.log')) {
+              logsSize += (await fs.stat(path.join(dir, file))).size;
+            }
           }
+        } catch {
+          // Subdir may not exist
         }
-      } catch {
-        // Logs directory might not exist
       }
 
       // Calculate backups size

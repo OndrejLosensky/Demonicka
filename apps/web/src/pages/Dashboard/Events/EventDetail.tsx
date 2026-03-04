@@ -50,6 +50,7 @@ import { Permission } from '@demonicka/shared';
 import { UserAvatar } from '../../../components/UserAvatar';
 import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 import { notify } from '../../../notifications/notify';
+import { logger } from '../../../utils/logger';
 
 export const EventDetail: React.FC = () => {
     const navigate = useNavigate();
@@ -80,7 +81,7 @@ export const EventDetail: React.FC = () => {
     const [editEndDate, setEditEndDate] = useState<string | null>(null);
     const [editBeerPrice, setEditBeerPrice] = useState<number | null>(null);
     const { loadActiveEvent } = useActiveEvent();
-    const { hasPermission } = useAuth();
+    const { hasPermission, user } = useAuth();
 
     const loadEventData = useCallback(async () => {
         if (!id) return;
@@ -452,6 +453,13 @@ export const EventDetail: React.FC = () => {
                 a.click();
                 a.remove();
                 window.URL.revokeObjectURL(url);
+
+                logger.info('Event detail Excel exported', {
+                  event: 'EVENT_EXPORT_EXCEL',
+                  eventId: id,
+                  eventName: event.name,
+                  ...(user?.id && { actorUserId: user.id }),
+                });
               },
             );
         } catch (error) {

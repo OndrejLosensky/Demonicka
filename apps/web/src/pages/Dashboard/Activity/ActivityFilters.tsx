@@ -10,7 +10,7 @@ import {
   type SelectChangeEvent,
 } from '@demonicka/ui';
 import { FormControlLabel, Switch } from '@mui/material';
-import type { ActivityEventType } from './activity.types';
+import type { ActivityEventType, ActivityAppSource } from './activity.types';
 import { ACTIVITY_EVENTS } from './activity.constants';
 import { getActivityEventLabel } from './activity.presentation';
 
@@ -19,6 +19,8 @@ export function ActivityFilters({
   onChange,
   level,
   onLevelChange,
+  app,
+  onAppChange,
   date,
   onDateChange,
   search,
@@ -31,6 +33,8 @@ export function ActivityFilters({
   onChange: (value: ActivityEventType | '') => void;
   level: string;
   onLevelChange: (value: string) => void;
+  app: ActivityAppSource | '';
+  onAppChange: (value: ActivityAppSource | '') => void;
   date: string;
   onDateChange: (value: string) => void;
   search: string;
@@ -45,6 +49,10 @@ export function ActivityFilters({
 
   const handleLevelChange = (event: SelectChangeEvent<string>) => {
     onLevelChange(event.target.value);
+  };
+
+  const handleAppChange = (event: SelectChangeEvent<string>) => {
+    onAppChange(event.target.value as ActivityAppSource | '');
   };
 
   return (
@@ -88,18 +96,39 @@ export function ActivityFilters({
             '& .MuiOutlinedInput-root': { borderRadius: 1 },
           }}
         >
-          <InputLabel id="level-select-label">Level</InputLabel>
+          <InputLabel id="app-select-label">Zdroj</InputLabel>
+          <Select
+            labelId="app-select-label"
+            value={app}
+            label="Zdroj"
+            onChange={handleAppChange}
+          >
+            <MenuItem value="">Vše</MenuItem>
+            <MenuItem value="backend">Backend</MenuItem>
+            <MenuItem value="web">Web</MenuItem>
+            <MenuItem value="mobile">Mobil</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl
+          size="small"
+          sx={{
+            width: 140,
+            '& .MuiOutlinedInput-root': { borderRadius: 1 },
+          }}
+        >
+          <InputLabel id="level-select-label">Úroveň</InputLabel>
           <Select
             labelId="level-select-label"
             value={level}
-            label="Level"
+            label="Úroveň"
             onChange={handleLevelChange}
           >
             <MenuItem value="">Vše</MenuItem>
-            <MenuItem value="info">info</MenuItem>
-            <MenuItem value="warn">warn</MenuItem>
-            <MenuItem value="error">error</MenuItem>
-            <MenuItem value="debug">debug</MenuItem>
+            <MenuItem value="ERROR">ERROR</MenuItem>
+            <MenuItem value="WARN">WARN</MenuItem>
+            <MenuItem value="INFO">INFO</MenuItem>
+            <MenuItem value="DEBUG">DEBUG</MenuItem>
           </Select>
         </FormControl>
 
