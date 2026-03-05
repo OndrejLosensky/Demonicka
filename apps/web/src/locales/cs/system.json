@@ -9,7 +9,7 @@
   "userStatistics": {
     "title": "Statistiky uživatelů",
     "totalUsers": "Celkem uživatelů",
-    "adminUsers": "Administrátoři",
+    "adminUsers": "Operátoři",
     "completedRegistrations": "Dokončené registrace",
     "twoFactorEnabled": "2FA povoleno"
   },

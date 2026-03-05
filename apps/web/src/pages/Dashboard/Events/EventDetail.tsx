@@ -382,12 +382,46 @@ export const EventDetail: React.FC = () => {
         }
     };
 
-    const safeFileName = (base: string): string => {
-        const trimmed = base.trim() || 'export';
-        const sanitized = trimmed.replace(/[^a-zA-Z0-9._-]+/g, '_');
-        return sanitized.replace(/^_+|_+$/g, '') || 'export';
-    };
+    const handleExportEventDetailExcel = async () => {
+        if (!id || !event) return;
 
+        try {
+            setIsExportingExcel(true);
+            await notify.action(
+              {
+                id: `event:export:${id}`,
+                success: 'Excel export stažen',
+                error: (err) => {
+                  const msg = notify.fromError(err);
+                  return msg === 'Něco se pokazilo' ? 'Nepodařilo se stáhnout Excel export' : msg;
+                },
+              },
+              async () => {
+                const { blob, filename } = await eventService.downloadEventDetailExcel(id);
+
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename ?? `${event.name}_event_detail.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+
+                logger.info('Event detail Excel exported', {
+                  event: 'EVENT_EXPORT_EXCEL',
+                  eventId: id,
+                  eventName: event.name,
+                  ...(user?.id && { actorUserId: user.id }),
+                });
+              },
+            );
+        } catch (error) {
+            console.error('Failed to export event detail excel:', error);
+        } finally {
+            setIsExportingExcel(false);
+        }
+    };
     const handleOpenRegistration = async () => {
         if (!id) return;
         try {
@@ -425,47 +459,6 @@ export const EventDetail: React.FC = () => {
         if (registrationLink) {
             navigator.clipboard.writeText(registrationLink);
             notify.success('Odkaz zkopírován do schránky');
-        }
-    };
-
-    const handleExportEventDetailExcel = async () => {
-        if (!id || !event) return;
-
-        try {
-            setIsExportingExcel(true);
-            await notify.action(
-              {
-                id: `event:export:${id}`,
-                success: 'Excel export stažen',
-                error: (err) => {
-                  const msg = notify.fromError(err);
-                  return msg === 'Něco se pokazilo' ? 'Nepodařilo se stáhnout Excel export' : msg;
-                },
-              },
-              async () => {
-                const blob = await eventService.downloadEventDetailExcel(id);
-
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${safeFileName(`${event.name}_event_detail`)}.xlsx`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(url);
-
-                logger.info('Event detail Excel exported', {
-                  event: 'EVENT_EXPORT_EXCEL',
-                  eventId: id,
-                  eventName: event.name,
-                  ...(user?.id && { actorUserId: user.id }),
-                });
-              },
-            );
-        } catch (error) {
-            console.error('Failed to export event detail excel:', error);
-        } finally {
-            setIsExportingExcel(false);
         }
     };
 
@@ -583,7 +576,7 @@ export const EventDetail: React.FC = () => {
                                     }}
                                     disabled={isExportingExcel}
                                 >
-                                    {isExportingExcel ? 'Exportuji…' : 'Excel export'}
+                                    {isExportingExcel ? 'Exportuji…' : 'Exportovat'}
                                 </MenuItem>
                             )}
                             {hasPermission([Permission.DELETE_EVENT]) && (

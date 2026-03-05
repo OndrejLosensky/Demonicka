@@ -69,10 +69,15 @@ export class ExcelRenderer {
       width: c.width ?? Math.max(10, Math.min(60, c.header.length + 2)),
     }));
 
-    // Header styling
+    // Header styling: subtle gray background, bold, consistent across all exports (v4 import contract)
     const headerRow = worksheet.getRow(1);
     headerRow.font = { bold: true };
     headerRow.alignment = { vertical: 'middle' };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFF2F2F2' },
+    };
 
     // Data
     for (const row of rows) {
@@ -152,18 +157,32 @@ export class ExcelRenderer {
    * Produces a `StreamableFile` while writing the XLSX into a PassThrough stream.
    * Note: For very large exports you may still want exceljs streaming writer,
    * but this already allows HTTP streaming without holding the final XLSX in memory.
+   * @param filenameUtf8 - Preferred filename (may contain non-ASCII e.g. Czech). Used in RFC 5987 filename*.
    */
-  toStreamableFile(filename: string): StreamableFile {
+  toStreamableFile(filenameUtf8: string): StreamableFile {
     const stream = new PassThrough();
     void this.workbook.xlsx
       .write(stream)
       .then(() => stream.end())
       .catch((err) => stream.destroy(err));
 
+    const disposition = ExcelRenderer.contentDispositionFilename(filenameUtf8);
     return new StreamableFile(stream, {
       type: ExcelRenderer.XLSX_MIME,
-      disposition: `attachment; filename="${filename}"`,
+      disposition,
     });
+  }
+
+  /**
+   * Builds Content-Disposition value with RFC 5987 for UTF-8 filenames.
+   * Browsers use filename*=UTF-8''... when present; filename="..." is ASCII fallback.
+   */
+  static contentDispositionFilename(filenameUtf8: string): string {
+    const safe = filenameUtf8.trim() || 'export.xlsx';
+    const asciiFallback = safe.replace(/[^a-zA-Z0-9._-]+/g, '_').replace(/^_+|_+$/g, '') || 'export';
+    const base = asciiFallback.endsWith('.xlsx') ? asciiFallback : `${asciiFallback}.xlsx`;
+    const encoded = encodeURIComponent(safe.endsWith('.xlsx') ? safe : `${safe}.xlsx`);
+    return `attachment; filename="${base}"; filename*=UTF-8''${encoded}`;
   }
 
   safeFileName(base: string): string {

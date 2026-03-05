@@ -1,6 +1,25 @@
 import { api } from './api';
 import type { Event, User } from '@demonicka/shared-types';
 
+/**
+ * Parses filename from Content-Disposition header (RFC 5987).
+ * Prefers filename*=UTF-8''... when present; falls back to filename="...".
+ */
+export function parseContentDispositionFilename(contentDisposition: string | undefined): string | null {
+    if (!contentDisposition) return null;
+    const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utf8Match) {
+        try {
+            return decodeURIComponent(utf8Match[1].trim());
+        } catch {
+            // ignore malformed
+        }
+    }
+    const asciiMatch = contentDisposition.match(/filename="([^"]*)"/);
+    if (asciiMatch) return asciiMatch[1].trim() || null;
+    return null;
+}
+
 export const eventService = {
     async getAllEvents(): Promise<Event[]> {
         const response = await api.get('/events');
@@ -93,14 +112,16 @@ export const eventService = {
         await api.delete(`/events/${eventId}/users/${userId}/beers`);
     },
 
-    async downloadEventDetailExcel(eventId: string): Promise<Blob> {
+    async downloadEventDetailExcel(eventId: string): Promise<{ blob: Blob; filename: string | null }> {
         const response = await api.get(`/events/${eventId}/export/excel/detail`, {
             responseType: 'blob',
             headers: {
                 Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             },
         });
-        return response.data as Blob;
+        const contentDisposition = response.headers?.['content-disposition'];
+        const filename = parseContentDispositionFilename(contentDisposition);
+        return { blob: response.data as Blob, filename };
     },
 
     async openRegistration(eventId: string): Promise<{ token: string; link: string }> {

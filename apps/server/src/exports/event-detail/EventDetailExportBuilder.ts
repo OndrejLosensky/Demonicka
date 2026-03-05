@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import type { StreamableFile } from '@nestjs/common';
 import { DashboardService } from '../../dashboard/dashboard.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ExcelRenderer } from '../excel/ExcelRenderer';
+import { ExcelRenderer, type ExcelCellValue } from '../excel/ExcelRenderer';
+import type { EventDetailData } from './EventDetailDataLoader';
 import { EventDetailDataLoader } from './EventDetailDataLoader';
 
 @Injectable()
@@ -13,24 +14,24 @@ export class EventDetailExportBuilder {
     private readonly prisma: PrismaService,
   ) {}
 
-  async build(eventId: string): Promise<StreamableFile> {
-    const data = await this.loader.load(eventId);
+  /**
+   * Adds event-detail sheets to an existing renderer (for single-event or system export).
+   * Sheet names get optional suffix (e.g. "_1" for system export) for v4 import contract.
+   * Conditional: beer pong sheets only if event.beerPongEnabled; deletedAt column only if any row has it.
+   */
+  addSheetsTo(renderer: ExcelRenderer, data: EventDetailData, suffix = ''): void {
     const { event, users, barrels, beerLog, beerPongTeams, beerPongEvents } =
       data;
 
-    const [dashboardStats, leaderboard, spilledCount] = await Promise.all([
-      this.dashboardService.getDashboardStats(eventId),
-      this.dashboardService.getLeaderboard(eventId),
-      this.prisma.eventBeer.count({
-        where: { eventId, spilled: true, deletedAt: null },
-      }),
-    ]);
-
-    const renderer = new ExcelRenderer();
+    const s = (name: string) => (suffix ? `${name}${suffix}` : name);
+    const hasUserDeletedAt = users.some((u) => u.deletedAt != null);
+    const hasBarrelDeletedAt = barrels.some((b) => b.deletedAt != null);
+    const hasBeerLogDeletedAt = beerLog.some((r) => r.deletedAt != null);
+    const hasTeamDeletedAt = beerPongTeams.some((t) => t.deletedAt != null);
 
     // 1) Event
     renderer.addTableSheet({
-      name: 'Event',
+      name: s('Event'),
       columns: [
         { header: 'Field', key: 'field', width: 28, value: (r) => r.field },
         { header: 'Value', key: 'value', width: 60, value: (r) => r.value },
@@ -42,259 +43,178 @@ export class EventDetailExportBuilder {
         { field: 'startDate', value: event.startDate },
         { field: 'endDate', value: event.endDate ?? null },
         { field: 'isActive', value: event.isActive },
+        { field: 'beerPongEnabled', value: event.beerPongEnabled },
+        { field: 'beerSizesEnabled', value: event.beerSizesEnabled },
+        { field: 'beerPrice', value: event.beerPrice },
         { field: 'createdBy', value: event.createdBy ?? '' },
         { field: 'createdAt', value: event.createdAt },
         { field: 'updatedAt', value: event.updatedAt },
-        { field: 'deletedAt', value: event.deletedAt ?? null },
+        ...(event.deletedAt != null ? [{ field: 'deletedAt' as const, value: event.deletedAt }] : []),
       ],
       freezeHeader: false,
       autoFilter: false,
     });
 
-    // 2) Users
+    // 2) Users – include deletedAt only if any user has it
+    const userColumns: Array<{
+      header: string;
+      key: string;
+      width: number;
+      value: (u: EventDetailData['users'][number]) => ExcelCellValue;
+      numFmt?: string;
+    }> = [
+      { header: 'id', key: 'id', width: 36, value: (u) => u.id },
+      { header: 'username', key: 'username', width: 22, value: (u) => u.username ?? '' },
+      { header: 'firstName', key: 'firstName', width: 18, value: (u) => u.firstName ?? '' },
+      { header: 'lastName', key: 'lastName', width: 18, value: (u) => u.lastName ?? '' },
+      { header: 'gender', key: 'gender', width: 10, value: (u) => u.gender },
+      { header: 'role', key: 'role', width: 14, value: (u) => u.role },
+      { header: 'eventBeerCount', key: 'eventBeerCount', width: 16, value: (u) => u.eventBeerCount },
+      { header: 'totalPrice', key: 'totalPrice', width: 14, value: (u) => u.eventBeerCount * event.beerPrice },
+    ];
+    if (hasUserDeletedAt) {
+      userColumns.push({
+        header: 'deletedAt',
+        key: 'deletedAt',
+        width: 22,
+        value: (u) => u.deletedAt ?? null,
+        numFmt: 'yyyy-mm-dd hh:mm:ss',
+      });
+    }
     renderer.addTableSheet({
-      name: 'Users',
-      columns: [
-        { header: 'id', key: 'id', width: 36, value: (u) => u.id },
-        {
-          header: 'username',
-          key: 'username',
-          width: 22,
-          value: (u) => u.username ?? '',
-        },
-        {
-          header: 'firstName',
-          key: 'firstName',
-          width: 18,
-          value: (u) => u.firstName ?? '',
-        },
-        {
-          header: 'lastName',
-          key: 'lastName',
-          width: 18,
-          value: (u) => u.lastName ?? '',
-        },
-        {
-          header: 'gender',
-          key: 'gender',
-          width: 10,
-          value: (u) => u.gender,
-        },
-        { header: 'role', key: 'role', width: 14, value: (u) => u.role },
-        {
-          header: 'eventBeerCount',
-          key: 'eventBeerCount',
-          width: 16,
-          value: (u) => u.eventBeerCount,
-        },
-        {
-          header: 'deletedAt',
-          key: 'deletedAt',
-          width: 22,
-          value: (u) => u.deletedAt ?? null,
-          numFmt: 'yyyy-mm-dd hh:mm:ss',
-        },
-      ],
+      name: s('Users'),
+      columns: userColumns,
       rows: users,
     });
 
-    // 3) Barrels
+    // 3) Barrels – include deletedAt only if any barrel has it
+    const barrelColumns: Array<{
+      header: string;
+      key: string;
+      width: number;
+      value: (b: EventDetailData['barrels'][number]) => ExcelCellValue;
+      numFmt?: string;
+    }> = [
+      { header: 'id', key: 'id', width: 36, value: (b) => b.id },
+      { header: 'size', key: 'size', width: 10, value: (b) => b.size },
+      { header: 'orderNumber', key: 'orderNumber', width: 14, value: (b) => b.orderNumber },
+      { header: 'remainingBeers', key: 'remainingBeers', width: 16, value: (b) => b.remainingBeers },
+      { header: 'totalBeers', key: 'totalBeers', width: 12, value: (b) => b.totalBeers },
+      { header: 'isActive', key: 'isActive', width: 10, value: (b) => b.isActive },
+    ];
+    if (hasBarrelDeletedAt) {
+      barrelColumns.push({
+        header: 'deletedAt',
+        key: 'deletedAt',
+        width: 22,
+        value: (b) => b.deletedAt ?? null,
+        numFmt: 'yyyy-mm-dd hh:mm:ss',
+      });
+    }
     renderer.addTableSheet({
-      name: 'Barrels',
-      columns: [
-        { header: 'id', key: 'id', width: 36, value: (b) => b.id },
-        { header: 'size', key: 'size', width: 10, value: (b) => b.size },
-        {
-          header: 'orderNumber',
-          key: 'orderNumber',
-          width: 14,
-          value: (b) => b.orderNumber,
-        },
-        {
-          header: 'remainingBeers',
-          key: 'remainingBeers',
-          width: 16,
-          value: (b) => b.remainingBeers,
-        },
-        {
-          header: 'totalBeers',
-          key: 'totalBeers',
-          width: 12,
-          value: (b) => b.totalBeers,
-        },
-        {
-          header: 'isActive',
-          key: 'isActive',
-          width: 10,
-          value: (b) => b.isActive,
-        },
-        {
-          header: 'deletedAt',
-          key: 'deletedAt',
-          width: 22,
-          value: (b) => b.deletedAt ?? null,
-          numFmt: 'yyyy-mm-dd hh:mm:ss',
-        },
-      ],
+      name: s('Barrels'),
+      columns: barrelColumns,
       rows: barrels,
     });
 
-    // 4) Beer log (paged for row limit safety)
+    // 4) Beer log (paged) – include deletedAt only if any row has it
+    const beerLogColumns: Array<{
+      header: string;
+      key: string;
+      width: number;
+      value: (r: EventDetailData['beerLog'][number]) => ExcelCellValue;
+      numFmt?: string;
+    }> = [
+      { header: 'consumedAt', key: 'consumedAt', width: 22, value: (r) => r.consumedAt, numFmt: 'yyyy-mm-dd hh:mm:ss' },
+      { header: 'userId', key: 'userId', width: 36, value: (r) => r.userId },
+      { header: 'username', key: 'username', width: 22, value: (r) => r.user?.username ?? '' },
+      { header: 'barrelId', key: 'barrelId', width: 36, value: (r) => r.barrelId ?? '' },
+      { header: 'barrelSize', key: 'barrelSize', width: 12, value: (r) => r.barrel?.size ?? null },
+      { header: 'barrelOrderNumber', key: 'barrelOrderNumber', width: 18, value: (r) => r.barrel?.orderNumber ?? null },
+      { header: 'spilled', key: 'spilled', width: 10, value: (r) => r.spilled },
+    ];
+    if (hasBeerLogDeletedAt) {
+      beerLogColumns.push({
+        header: 'deletedAt',
+        key: 'deletedAt',
+        width: 22,
+        value: (r) => r.deletedAt ?? null,
+        numFmt: 'yyyy-mm-dd hh:mm:ss',
+      });
+    }
     renderer.addPagedTableSheets({
-      namePrefix: 'Beer_log',
-      columns: [
-        {
-          header: 'consumedAt',
-          key: 'consumedAt',
-          width: 22,
-          value: (r) => r.consumedAt,
-          numFmt: 'yyyy-mm-dd hh:mm:ss',
-        },
-        { header: 'userId', key: 'userId', width: 36, value: (r) => r.userId },
-        {
-          header: 'username',
-          key: 'username',
-          width: 22,
-          value: (r) => r.user?.username ?? '',
-        },
-        {
-          header: 'barrelId',
-          key: 'barrelId',
-          width: 36,
-          value: (r) => r.barrelId ?? '',
-        },
-        {
-          header: 'barrelSize',
-          key: 'barrelSize',
-          width: 12,
-          value: (r) => r.barrel?.size ?? null,
-        },
-        {
-          header: 'barrelOrderNumber',
-          key: 'barrelOrderNumber',
-          width: 18,
-          value: (r) => r.barrel?.orderNumber ?? null,
-        },
-        {
-          header: 'spilled',
-          key: 'spilled',
-          width: 10,
-          value: (r) => r.spilled,
-        },
-        {
-          header: 'deletedAt',
-          key: 'deletedAt',
-          width: 22,
-          value: (r) => r.deletedAt ?? null,
-          numFmt: 'yyyy-mm-dd hh:mm:ss',
-        },
-      ],
+      namePrefix: s('Beer_log'),
+      columns: beerLogColumns,
       rows: beerLog,
     });
 
-    // 5) Beer pong teams
-    renderer.addTableSheet({
-      name: 'BeerPong_teams',
-      columns: [
+    // 5) Beer pong teams – only if beer pong is enabled for the event
+    if (event.beerPongEnabled) {
+      const teamColumns: Array<{
+        header: string;
+        key: string;
+        width: number;
+        value: (t: EventDetailData['beerPongTeams'][number]) => ExcelCellValue;
+        numFmt?: string;
+      }> = [
         { header: 'id', key: 'id', width: 36, value: (t) => t.id },
         { header: 'name', key: 'name', width: 24, value: (t) => t.name },
-        {
-          header: 'player1',
-          key: 'player1',
-          width: 24,
-          value: (t) => t.player1.username ?? '',
-        },
-        {
-          header: 'player2',
-          key: 'player2',
-          width: 24,
-          value: (t) => t.player2.username ?? '',
-        },
-        {
-          header: 'player1Id',
-          key: 'player1Id',
-          width: 36,
-          value: (t) => t.player1Id,
-        },
-        {
-          header: 'player2Id',
-          key: 'player2Id',
-          width: 36,
-          value: (t) => t.player2Id,
-        },
-        {
+        { header: 'player1', key: 'player1', width: 24, value: (t) => t.player1.username ?? '' },
+        { header: 'player2', key: 'player2', width: 24, value: (t) => t.player2.username ?? '' },
+        { header: 'player1Id', key: 'player1Id', width: 36, value: (t) => t.player1Id },
+        { header: 'player2Id', key: 'player2Id', width: 36, value: (t) => t.player2Id },
+      ];
+      if (hasTeamDeletedAt) {
+        teamColumns.push({
           header: 'deletedAt',
           key: 'deletedAt',
           width: 22,
           value: (t) => t.deletedAt ?? null,
           numFmt: 'yyyy-mm-dd hh:mm:ss',
-        },
-      ],
-      rows: beerPongTeams,
-    });
+        });
+      }
+      renderer.addTableSheet({
+        name: s('BeerPong_teams'),
+        columns: teamColumns,
+        rows: beerPongTeams,
+      });
 
-    // 6) Beer pong events
-    renderer.addTableSheet({
-      name: 'BeerPong_events',
-      columns: [
-        { header: 'id', key: 'id', width: 36, value: (e) => e.id },
-        { header: 'name', key: 'name', width: 26, value: (e) => e.name },
-        {
-          header: 'status',
-          key: 'status',
-          width: 12,
-          value: (e) => e.status,
-        },
-        {
-          header: 'beersPerPlayer',
-          key: 'beersPerPlayer',
-          width: 16,
-          value: (e) => e.beersPerPlayer,
-        },
-        {
-          header: 'timeWindowMinutes',
-          key: 'timeWindowMinutes',
-          width: 18,
-          value: (e) => e.timeWindowMinutes,
-        },
-        {
-          header: 'undoWindowMinutes',
-          key: 'undoWindowMinutes',
-          width: 18,
-          value: (e) => e.undoWindowMinutes,
-        },
-        {
-          header: 'cancellationPolicy',
-          key: 'cancellationPolicy',
-          width: 20,
-          value: (e) => e.cancellationPolicy,
-        },
-        {
-          header: 'startedAt',
-          key: 'startedAt',
-          width: 22,
-          value: (e) => e.startedAt ?? null,
-          numFmt: 'yyyy-mm-dd hh:mm:ss',
-        },
-        {
-          header: 'completedAt',
-          key: 'completedAt',
-          width: 22,
-          value: (e) => e.completedAt ?? null,
-          numFmt: 'yyyy-mm-dd hh:mm:ss',
-        },
-        {
-          header: 'createdAt',
-          key: 'createdAt',
-          width: 22,
-          value: (e) => e.createdAt,
-          numFmt: 'yyyy-mm-dd hh:mm:ss',
-        },
-      ],
-      rows: beerPongEvents,
-    });
+      // 6) Beer pong events
+      renderer.addTableSheet({
+        name: s('BeerPong_events'),
+        columns: [
+          { header: 'id', key: 'id', width: 36, value: (e) => e.id },
+          { header: 'name', key: 'name', width: 26, value: (e) => e.name },
+          { header: 'status', key: 'status', width: 12, value: (e) => e.status },
+          { header: 'beersPerPlayer', key: 'beersPerPlayer', width: 16, value: (e) => e.beersPerPlayer },
+          { header: 'timeWindowMinutes', key: 'timeWindowMinutes', width: 18, value: (e) => e.timeWindowMinutes },
+          { header: 'undoWindowMinutes', key: 'undoWindowMinutes', width: 18, value: (e) => e.undoWindowMinutes },
+          { header: 'cancellationPolicy', key: 'cancellationPolicy', width: 20, value: (e) => e.cancellationPolicy },
+          { header: 'startedAt', key: 'startedAt', width: 22, value: (e) => e.startedAt ?? null, numFmt: 'yyyy-mm-dd hh:mm:ss' },
+          { header: 'completedAt', key: 'completedAt', width: 22, value: (e) => e.completedAt ?? null, numFmt: 'yyyy-mm-dd hh:mm:ss' },
+          { header: 'createdAt', key: 'createdAt', width: 22, value: (e) => e.createdAt, numFmt: 'yyyy-mm-dd hh:mm:ss' },
+        ],
+        rows: beerPongEvents,
+      });
+    }
+  }
 
-    // 7) Aggregates
+  async build(eventId: string): Promise<StreamableFile> {
+    const data = await this.loader.load(eventId);
+    const { event, beerLog } = data;
+
+    const [dashboardStats, leaderboard, spilledCount] = await Promise.all([
+      this.dashboardService.getDashboardStats(eventId),
+      this.dashboardService.getLeaderboard(eventId),
+      this.prisma.eventBeer.count({
+        where: { eventId, spilled: true, deletedAt: null },
+      }),
+    ]);
+
+    const renderer = new ExcelRenderer();
+    this.addSheetsTo(renderer, data);
+
+    // 7) Aggregates (single-event only)
     const aggregatesSheet = renderer.addSheet('Aggregates');
     aggregatesSheet.getRow(1).values = ['Event statistics'];
     aggregatesSheet.getRow(1).font = { bold: true, size: 14 };
@@ -352,8 +272,7 @@ export class EventDetailExportBuilder {
 
     aggregatesSheet.views = [{ state: 'frozen', ySplit: 3 }];
 
-    const filenameBase = renderer.safeFileName(`${event.name}_event_detail`);
-    const filename = `${filenameBase}.xlsx`;
+    const filename = `${event.name}_event_detail.xlsx`;
     return renderer.toStreamableFile(filename);
   }
 }

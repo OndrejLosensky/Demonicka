@@ -1,45 +1,39 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import {
   Box,
   Typography,
   CircularProgress,
   Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
   Grid,
-  Card,
-  CardContent,
-  IconButton,
-  Tooltip,
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
-  ContentCopy as CopyIcon,
+  Download as DownloadIcon,
+  CloudUpload as CloudUploadIcon,
 } from '@mui/icons-material';
 import { systemService, type SystemStats } from '../../../services/systemService';
-import { userService } from '../../../services/userService';
 import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/system.json';
-import { CleanupSection } from './components/CleanupSection';
-import { SystemHealthDashboard } from './components/SystemHealthDashboard';
 import { MetricCard } from '@demonicka/ui';
-import { useNavigate } from 'react-router-dom';
-import { Settings as SettingsIcon, Flag as FlagIcon } from '@mui/icons-material';
 import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { USER_ROLE } from '@demonicka/shared-types';
+import { backupService } from '../../../services/backupService';
+import { websocketService } from '../../../services/websocketService';
+import { jobsService } from '../../../services/jobsService';
 
 const SystemPage: React.FC = () => {
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isExportingSystem, setIsExportingSystem] = useState(false);
+  const [isExportingUsers, setIsExportingUsers] = useState(false);
+  const [isRunningBackup, setIsRunningBackup] = useState(false);
+  const backupJobIdRef = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [generatingTokenFor, setGeneratingTokenFor] = useState<string | null>(null);
   const toast = useToast();
+  const isSuperAdmin = user?.role === USER_ROLE.SUPER_ADMIN;
 
   const loadStats = useCallback(async (isInitial = false) => {
     // Prevent multiple simultaneous calls
@@ -83,22 +77,138 @@ const SystemPage: React.FC = () => {
     };
   }, [loadStats]);
 
+  useEffect(() => {
+    const handleJobUpdated = (data: import('../../../services/websocketService').JobUpdatedPayload) => {
+      if (data.jobId !== backupJobIdRef.current) return;
+      if (data.status === 'COMPLETED') {
+        const fileName = data.result?.fileName as string | undefined;
+        toast.success(fileName ? `${translations.toasts.backupCompleted}: ${fileName}` : translations.toasts.backupCompleted);
+        setIsRunningBackup(false);
+        backupJobIdRef.current = null;
+      } else if (data.status === 'FAILED') {
+        const msg = data.error || translations.toasts.backupFailed;
+        toast.error(msg.length > 120 ? `${msg.slice(0, 120)}…` : msg);
+        setIsRunningBackup(false);
+        backupJobIdRef.current = null;
+      }
+    };
+    websocketService.subscribe('job:updated', handleJobUpdated);
+    return () => websocketService.unsubscribe('job:updated', handleJobUpdated);
+  }, [toast]);
+
+  useEffect(() => {
+    if (!isRunningBackup || !backupJobIdRef.current) return;
+    const interval = setInterval(async () => {
+      if (!backupJobIdRef.current) return;
+      try {
+        const job = await jobsService.getJob(backupJobIdRef.current);
+        if (job.status === 'COMPLETED') {
+          const fileName = job.result?.fileName as string | undefined;
+          toast.success(fileName ? `${translations.toasts.backupCompleted}: ${fileName}` : translations.toasts.backupCompleted);
+          setIsRunningBackup(false);
+          backupJobIdRef.current = null;
+        } else if (job.status === 'FAILED') {
+          const msg = job.error || translations.toasts.backupFailed;
+          toast.error(msg.length > 120 ? `${msg.slice(0, 120)}…` : msg);
+          setIsRunningBackup(false);
+          backupJobIdRef.current = null;
+        }
+      } catch {
+        // ignore poll errors
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isRunningBackup, toast]);
+
+  const handleRunBackup = useCallback(async () => {
+    try {
+      setIsRunningBackup(true);
+      const res = await backupService.run();
+      backupJobIdRef.current = res.jobId;
+      if (res.status !== 'queued') {
+        setIsRunningBackup(false);
+        backupJobIdRef.current = null;
+      }
+    } catch (err) {
+      console.error('Failed to run backup:', err);
+      toast.error(translations.toasts.backupFailed);
+      setIsRunningBackup(false);
+      backupJobIdRef.current = null;
+    }
+  }, [toast]);
+
+  const handleExportSystemExcel = useCallback(async () => {
+    try {
+      setIsExportingSystem(true);
+      const { blob, filename } = await systemService.downloadSystemExcel();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename ?? 'system_export.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Export stažen');
+    } catch (err) {
+      console.error('System export failed', err);
+      toast.error('Nepodařilo se stáhnout export');
+    } finally {
+      setIsExportingSystem(false);
+    }
+  }, [toast]);
+
+  const handleExportUsersExcel = useCallback(async () => {
+    try {
+      setIsExportingUsers(true);
+      const { blob, filename } = await systemService.downloadUsersExcel();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename ?? 'users_export.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Export stažen');
+    } catch (err) {
+      console.error('Users export failed', err);
+      toast.error('Nepodařilo se stáhnout export');
+    } finally {
+      setIsExportingUsers(false);
+    }
+  }, [toast]);
+
   const headerAction = useMemo(
     () => (
       <Box display="flex" gap={2}>
-        <Button 
-          variant="contained" 
-          startIcon={<SettingsIcon />}
-          onClick={() => navigate('/dashboard/system/roles')}
+        {isSuperAdmin && (
+          <>
+            <Button 
+              variant="outlined" 
+              startIcon={<DownloadIcon />}
+              onClick={handleExportSystemExcel}
+              disabled={isExportingSystem}
+            >
+              {isExportingSystem ? 'Exportuji…' : 'Exportovat systém (Excel)'}
+            </Button>
+            <Button 
+              variant="outlined" 
+              startIcon={<DownloadIcon />}
+              onClick={handleExportUsersExcel}
+              disabled={isExportingUsers}
+            >
+              {isExportingUsers ? 'Exportuji…' : 'Exportovat uživatele (Excel)'}
+            </Button>
+          </>
+        )}
+        <Button
+          variant="outlined"
+          startIcon={<CloudUploadIcon />}
+          onClick={handleRunBackup}
+          disabled={isRunningBackup}
         >
-          Role a oprávnění
-        </Button>
-        <Button 
-          variant="contained" 
-          startIcon={<FlagIcon />}
-          onClick={() => navigate('/dashboard/system/feature-flags')}
-        >
-          Funkce
+          {isRunningBackup ? translations.backup.running : translations.backup.runButton}
         </Button>
         <Button 
           variant="outlined" 
@@ -110,27 +220,12 @@ const SystemPage: React.FC = () => {
         </Button>
       </Box>
     ),
-    [navigate, loadStats, isRefreshing],
+    [loadStats, isRefreshing, isSuperAdmin, isExportingSystem, isExportingUsers, isRunningBackup, handleExportSystemExcel, handleExportUsersExcel, handleRunBackup],
   );
 
   useDashboardHeaderSlots({
     action: headerAction,
   });
-
-  const handleGenerateToken = async (userId: string) => {
-    try {
-      setGeneratingTokenFor(userId);
-      const response = await userService.generateRegisterToken(userId);
-      await navigator.clipboard.writeText(response.token);
-      toast.success(translations.toasts.tokenCopied);
-      loadStats(false);
-    } catch (error) {
-      console.error('Failed to generate token:', error);
-      toast.error(translations.toasts.tokenGenerationFailed);
-    } finally {
-      setGeneratingTokenFor(null);
-    }
-  };
 
   if (isInitialLoading) {
     return (
@@ -160,106 +255,20 @@ const SystemPage: React.FC = () => {
   return (
     <Box>
       {stats && (
-        <Box>
-          <Grid container spacing={3} mb={3}>
-            <Grid item xs={12} sm={6} md={3}>
-              <MetricCard title={translations.userStatistics.totalUsers} value={stats.totalUsers} />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <MetricCard title={translations.userStatistics.adminUsers} value={stats.totalAdminUsers} color="error" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <MetricCard title={translations.userStatistics.completedRegistrations} value={stats.totalCompletedRegistrations} color="success" />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <MetricCard title={translations.userStatistics.twoFactorEnabled} value={stats.total2FAEnabled} color="warning" />
-            </Grid>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} md={3}>
+            <MetricCard title={translations.userStatistics.totalUsers} value={stats.totalUsers} />
           </Grid>
-
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                {translations.userList.title}
-              </Typography>
-              <TableContainer sx={{ overflowX: 'auto' }}>
-                <Table stickyHeader size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>{translations.userList.columns.username}</TableCell>
-                      <TableCell>{translations.userList.columns.role}</TableCell>
-                      <TableCell>{translations.userList.columns.twoFactorStatus}</TableCell>
-                      <TableCell>{translations.userList.columns.registrationStatus}</TableCell>
-                      <TableCell>{translations.userList.columns.lastAdminLogin}</TableCell>
-                      <TableCell align="right">{translations.userList.columns.actions}</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {stats.users.map(user => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <Typography variant="body2" fontWeight="medium">
-                            {user.username}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={translations.userList.roles[user.role as keyof typeof translations.userList.roles] || user.role}
-                            size="small"
-                            color={user.role === 'SUPER_ADMIN' ? 'error' : user.role === 'OPERATOR' ? 'warning' : 'primary'}
-                            variant="outlined"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={user.isTwoFactorEnabled ? translations.userList.twoFactorStatus.enabled : translations.userList.twoFactorStatus.disabled}
-                            size="small"
-                            color={user.isTwoFactorEnabled ? 'success' : 'default'}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={user.isRegistrationComplete ? translations.userList.registrationStatus.complete : translations.userList.registrationStatus.incomplete}
-                            size="small"
-                            color={user.isRegistrationComplete ? 'success' : 'warning'}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">
-                            {user.lastAdminLogin ? new Date(user.lastAdminLogin).toLocaleString('cs-CZ') : 'Nikdy'}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          {!user.isRegistrationComplete && (
-                            <Tooltip title={translations.userList.actions.generateToken}>
-                              <IconButton
-                                size="small"
-                                onClick={() => handleGenerateToken(user.id)}
-                                disabled={generatingTokenFor === user.id}
-                                color="primary"
-                              >
-                                <CopyIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-
-          {/* System Health Dashboard */}
-          <Box mt={4}>
-            <SystemHealthDashboard onRefresh={loadStats} />
-          </Box>
-
-          {/* Cleanup Section */}
-          <Box mt={4}>
-            <CleanupSection onRefresh={loadStats} />
-          </Box>
-        </Box>
+          <Grid item xs={12} sm={6} md={3}>
+            <MetricCard title={translations.userStatistics.adminUsers} value={stats.totalOperatorUsers} color="error" />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <MetricCard title={translations.userStatistics.completedRegistrations} value={stats.totalCompletedRegistrations} color="success" />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <MetricCard title={translations.userStatistics.twoFactorEnabled} value={stats.total2FAEnabled} color="warning" />
+          </Grid>
+        </Grid>
       )}
     </Box>
   );

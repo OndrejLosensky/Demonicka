@@ -7,6 +7,7 @@ import {
   Settings as SettingsIcon,
   Build as BuildIcon,
   Work as WorkIcon,
+  Dashboard as DashboardIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../../contexts/AuthContext';
 import { USER_ROLE } from '@demonicka/shared-types';
@@ -19,10 +20,12 @@ const SystemLayout: React.FC = () => {
   const isOperator = user?.role === USER_ROLE.OPERATOR;
   const tabs = isOperator
     ? [
+        { path: '/dashboard/system/overview', label: 'Přehled', icon: <DashboardIcon /> },
         { path: '/dashboard/system/users', label: 'Uživatelé', icon: <PeopleIcon /> },
         { path: '/dashboard/system/jobs', label: 'Úlohy', icon: <WorkIcon /> },
       ]
     : [
+        { path: '/dashboard/system/overview', label: 'Přehled', icon: <DashboardIcon /> },
         { path: '/dashboard/system/users', label: 'Uživatelé', icon: <PeopleIcon /> },
         { path: '/dashboard/system/jobs', label: 'Úlohy', icon: <WorkIcon /> },
         { path: '/dashboard/system/statistics', label: 'Statistiky', icon: <BarChartIcon /> },
@@ -33,12 +36,13 @@ const SystemLayout: React.FC = () => {
   // Determine active tab based on current route
   const getActiveTab = () => {
     const path = location.pathname;
-    if (path.includes('/users')) return 0;
-    if (path.includes('/jobs')) return 1;
-    if (!isOperator && path.includes('/statistics')) return 2;
-    if (!isOperator && path.includes('/operations')) return 3;
-    if (!isOperator && path.includes('/settings')) return 4;
-    return 0; // Default to users
+    if (path.includes('/overview')) return 0;
+    if (path.includes('/users')) return 1;
+    if (path.includes('/jobs')) return 2;
+    if (!isOperator && path.includes('/statistics')) return 3;
+    if (!isOperator && path.includes('/operations')) return 4;
+    if (!isOperator && path.includes('/settings')) return 5;
+    return 0; // Default to overview
   };
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {

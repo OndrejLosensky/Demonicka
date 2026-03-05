@@ -391,8 +391,8 @@ export class EventRegistrationService {
       rows: registrations,
     });
 
-    const safeFileName = renderer.safeFileName(`${event.name}_registrace`);
-    return renderer.toStreamableFile(`${safeFileName}.xlsx`);
+    const filename = `${event.name}_registrace.xlsx`;
+    return renderer.toStreamableFile(filename);
   }
 
   /**

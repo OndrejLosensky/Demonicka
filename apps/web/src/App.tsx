@@ -22,6 +22,7 @@ import { EventResults } from './pages/Dashboard/Events/EventResults';
 import { EventRegistrationReview } from './pages/Dashboard/Events/EventRegistrationReview';
 import { Docs } from './pages/Dashboard/System/Docs';
 import { SystemLayout } from './pages/Dashboard/System/SystemLayout';
+import { SystemPage } from './pages/Dashboard/System/SystemPage';
 import { UsersPage } from './pages/Dashboard/System/UsersPage';
 import { StatisticsPage } from './pages/Dashboard/System/StatisticsPage';
 import { OperationsPage } from './pages/Dashboard/System/OperationsPage';
@@ -128,7 +129,15 @@ function App() {
                 </RoleRoute>
               }
             >
-              <Route index element={<Navigate to="users" replace />} />
+              <Route index element={<Navigate to="overview" replace />} />
+              <Route
+                path="overview"
+                element={
+                  <RoleRoute allowedRoles={[USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]}>
+                    <SystemPage />
+                  </RoleRoute>
+                }
+              />
               <Route
                 path="users"
                 element={
