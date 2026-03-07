@@ -1,9 +1,12 @@
-import { Injectable, Inject, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Inject, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { JobStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { JOB_QUEUE_ADAPTER, IJobQueueAdapter } from './job-queue.adapter.interface';
 import { JobHandlerRegistry } from './job-handler.registry';
 import { JobsGateway } from './jobs.gateway';
+
+const DEFAULT_STALE_MINUTES = 15;
+const STALE_CHECK_INTERVAL_MS = 60_000; // 1 minute
 
 export interface EnqueueOptions {
   type: string;
@@ -12,10 +15,11 @@ export interface EnqueueOptions {
 }
 
 @Injectable()
-export class JobQueueService implements OnModuleInit {
+export class JobQueueService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(JobQueueService.name);
   private workerRunning = false;
   private readonly POLL_MS = 200;
+  private staleCheckInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -24,8 +28,100 @@ export class JobQueueService implements OnModuleInit {
     private readonly jobsGateway: JobsGateway,
   ) {}
 
-  onModuleInit(): void {
+  async onModuleInit(): Promise<void> {
+    await this.runRecovery();
     this.startWorker();
+    this.startStaleCheck();
+  }
+
+  onModuleDestroy(): void {
+    if (this.staleCheckInterval) {
+      clearInterval(this.staleCheckInterval);
+      this.staleCheckInterval = null;
+    }
+  }
+
+  /**
+   * On startup: mark any RUNNING jobs as FAILED (interrupted by restart) and re-queue
+   * all QUEUED jobs from DB into the in-memory queue so they get processed.
+   */
+  async runRecovery(): Promise<{ markedFailed: number; requeued: number }> {
+    const markedFailed = await this.markStaleRunningAsFailed(
+      'Job interrupted (server restart or process exit).',
+      0, // on startup, consider any RUNNING stale
+    );
+    const requeued = await this.requeueQueuedFromDb();
+    if (markedFailed > 0 || requeued > 0) {
+      this.logger.log(
+        `Recovery: marked ${markedFailed} RUNNING job(s) as failed, requeued ${requeued} QUEUED job(s).`,
+      );
+    }
+    return { markedFailed, requeued };
+  }
+
+  /**
+   * Mark RUNNING jobs that have been running longer than threshold as FAILED.
+   * thresholdMinutes = 0 means all RUNNING (e.g. for startup).
+   */
+  async markStaleRunningAsFailed(
+    errorMessage: string,
+    thresholdMinutes: number = this.getStaleMinutes(),
+  ): Promise<number> {
+    const threshold = new Date(Date.now() - thresholdMinutes * 60 * 1000);
+    const stale = await this.prisma.job.findMany({
+      where: {
+        status: JobStatus.RUNNING,
+        ...(thresholdMinutes > 0 ? { startedAt: { lt: threshold } } : {}),
+      },
+      select: { id: true },
+    });
+    for (const { id } of stale) {
+      await this.prisma.job.update({
+        where: { id },
+        data: {
+          status: JobStatus.FAILED,
+          error: errorMessage,
+          finishedAt: new Date(),
+        },
+      });
+      this.emitJobUpdate(id);
+    }
+    return stale.length;
+  }
+
+  /**
+   * Load all QUEUED jobs from DB and push them into the adapter so the worker picks them up.
+   * Used on startup (after restart the in-memory queue is empty) and by manual recover.
+   */
+  async requeueQueuedFromDb(): Promise<number> {
+    const queued = await this.prisma.job.findMany({
+      where: { status: JobStatus.QUEUED },
+      orderBy: { createdAt: 'asc' },
+    });
+    for (const job of queued) {
+      await this.adapter.enqueue(job.id, job.type, (job.payload as object) ?? {});
+    }
+    return queued.length;
+  }
+
+  private getStaleMinutes(): number {
+    const env = process.env.JOB_STALE_MINUTES;
+    if (env == null || env === '') return DEFAULT_STALE_MINUTES;
+    const n = parseInt(env, 10);
+    return Number.isFinite(n) && n >= 0 ? n : DEFAULT_STALE_MINUTES;
+  }
+
+  private startStaleCheck(): void {
+    const minutes = this.getStaleMinutes();
+    if (minutes <= 0) return;
+    this.staleCheckInterval = setInterval(() => {
+      this.markStaleRunningAsFailed(
+        `Job exceeded stale threshold (${minutes} minutes). Marked as failed.`,
+        minutes,
+      ).then((n) => {
+        if (n > 0) this.logger.warn(`Marked ${n} stale RUNNING job(s) as failed.`);
+      });
+    }, STALE_CHECK_INTERVAL_MS);
   }
 
   /**
@@ -58,6 +154,30 @@ export class JobQueueService implements OnModuleInit {
       where: { id },
       include: { createdByUser: { select: { id: true, username: true } } },
     });
+  }
+
+  /**
+   * Mark a single job as FAILED (e.g. cancel RUNNING or QUEUED). No-op if job is already completed/failed.
+   */
+  async markJobFailed(
+    jobId: string,
+    errorMessage: string = 'Job cancelled or marked failed by user.',
+  ): Promise<boolean> {
+    const job = await this.prisma.job.findUnique({ where: { id: jobId } });
+    if (!job) return false;
+    if (job.status === JobStatus.COMPLETED || job.status === JobStatus.FAILED) {
+      return false;
+    }
+    await this.prisma.job.update({
+      where: { id: jobId },
+      data: {
+        status: JobStatus.FAILED,
+        error: errorMessage,
+        finishedAt: new Date(),
+      },
+    });
+    this.emitJobUpdate(jobId);
+    return true;
   }
 
   /**

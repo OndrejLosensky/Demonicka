@@ -31,4 +31,20 @@ export const jobsService = {
     const response = await api.get<JobResponse[]>(`/jobs${query ? `?${query}` : ''}`);
     return response.data;
   },
+
+  /** Admin: mark stale RUNNING as failed and re-queue QUEUED jobs. */
+  async recover(): Promise<{ markedFailed: number; requeued: number }> {
+    const response = await api.post<{ markedFailed: number; requeued: number }>(
+      '/jobs/actions/recover',
+    );
+    return response.data;
+  },
+
+  /** Cancel a QUEUED or RUNNING job (mark as FAILED). */
+  async cancel(id: string, message?: string): Promise<{ cancelled: boolean }> {
+    const response = await api.post<{ cancelled: boolean }>(`/jobs/${id}/cancel`, {
+      message: message ?? undefined,
+    });
+    return response.data;
+  },
 };

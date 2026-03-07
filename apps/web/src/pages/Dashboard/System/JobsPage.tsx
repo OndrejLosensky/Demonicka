@@ -11,7 +11,6 @@ import {
   TableRow,
   Chip,
   CircularProgress,
-  Tooltip,
   IconButton,
   Collapse,
   Paper,
@@ -20,9 +19,14 @@ import {
   Refresh as RefreshIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
+  BuildCircle as RecoverIcon,
+  Cancel as CancelIcon,
 } from '@mui/icons-material';
+import { useToast } from '../../../hooks/useToast';
 import { jobsService, type JobResponse, type JobStatus } from '../../../services/jobsService';
 import { websocketService } from '../../../services/websocketService';
+import { useAuth } from '../../../contexts/AuthContext';
+import { USER_ROLE } from '@demonicka/shared-types';
 
 const statusLabel: Record<JobStatus, string> = {
   QUEUED: 'Ve frontě',
@@ -52,9 +56,16 @@ function formatDate(s: string | null): string {
 }
 
 export const JobsPage: React.FC = () => {
+  const { user } = useAuth();
+  const toast = useToast();
   const [jobs, setJobs] = useState<JobResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [recovering, setRecovering] = useState(false);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  const isAdmin =
+    user?.role === USER_ROLE.SUPER_ADMIN || user?.role === USER_ROLE.OPERATOR;
 
   const loadJobs = useCallback(async () => {
     try {
@@ -80,20 +91,68 @@ export const JobsPage: React.FC = () => {
     return () => websocketService.unsubscribe('job:updated', handleJobUpdated);
   }, [loadJobs]);
 
+  const handleRecover = async () => {
+    if (!isAdmin) return;
+    try {
+      setRecovering(true);
+      const { markedFailed, requeued } = await jobsService.recover();
+      loadJobs();
+      toast.success(
+        `Obnoveno: ${markedFailed} úloh označeno jako selhané, ${requeued} úloh znovu zařazeno do fronty.`,
+      );
+    } catch (err) {
+      console.error('Recover failed:', err);
+      toast.error('Obnovení fronty se nezdařilo.');
+    } finally {
+      setRecovering(false);
+    }
+  };
+
+  const handleCancel = async (jobId: string) => {
+    try {
+      setCancellingId(jobId);
+      const { cancelled } = await jobsService.cancel(jobId);
+      if (cancelled) {
+        loadJobs();
+        toast.success('Úloha zrušena.');
+      } else {
+        toast.success('Úloha již byla dokončena nebo zrušena.');
+      }
+    } catch (err) {
+      console.error('Cancel failed:', err);
+      toast.error('Zrušení úlohy se nezdařilo.');
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h6" fontWeight="bold">
           Úlohy na pozadí
         </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<RefreshIcon />}
-          onClick={() => loadJobs()}
-          disabled={loading}
-        >
-          Obnovit
-        </Button>
+        <Box display="flex" gap={1}>
+          {isAdmin && (
+            <Button
+              variant="outlined"
+              color="warning"
+              startIcon={<RecoverIcon />}
+              onClick={handleRecover}
+              disabled={loading || recovering}
+            >
+              Obnovit frontu
+            </Button>
+          )}
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={() => loadJobs()}
+            disabled={loading}
+          >
+            Obnovit
+          </Button>
+        </Box>
       </Box>
 
       {loading && jobs.length === 0 ? (
@@ -169,6 +228,18 @@ export const JobsPage: React.FC = () => {
                         </Typography>
                       </TableCell>
                       <TableCell align="right">
+                        {(job.status === 'QUEUED' || job.status === 'RUNNING') && (
+                          <Button
+                            size="small"
+                            color="error"
+                            variant="outlined"
+                            startIcon={<CancelIcon />}
+                            onClick={() => handleCancel(job.id)}
+                            disabled={cancellingId === job.id}
+                          >
+                            Zrušit
+                          </Button>
+                        )}
                         {job.status === 'FAILED' && job.error ? (
                           <Typography variant="caption" color="error">
                             Zobrazit chybu
