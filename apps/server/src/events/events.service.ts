@@ -14,6 +14,7 @@ import { BarrelsService } from '../barrels/barrels.service';
 import { LoggingService } from '../logging/logging.service';
 import { UsersService } from '../users/users.service';
 import { EventRegistrationService } from '../event-registration/event-registration.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { userCanAccessEvent } from '../auth/guards/permissions.guard';
 import { isEventCompleted } from './utils/event-completion.util';
 
@@ -26,6 +27,7 @@ export class EventsService {
     private readonly loggingService: LoggingService,
     private readonly usersService: UsersService,
     private readonly eventRegistrationService: EventRegistrationService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(createEventDto: CreateEventDto, userId: string): Promise<Event> {
@@ -234,7 +236,11 @@ export class EventsService {
       this.loggingService.logEventSetActive(id, actorUserId, activeEvent?.id);
     }
 
-    return this.findOne(id);
+    const event = await this.findOne(id);
+    this.notificationsService
+      .notify('EVENT_STARTED', { eventId: id, eventName: event.name })
+      .catch(() => {});
+    return event;
   }
 
   async endEvent(id: string): Promise<Event> {
@@ -246,7 +252,11 @@ export class EventsService {
       },
     });
 
-    return this.findOne(id);
+    const updated = await this.findOne(id);
+    this.notificationsService
+      .notify('EVENT_ENDED', { eventId: id, eventName: updated.name })
+      .catch(() => {});
+    return updated;
   }
 
   async deactivate(id: string): Promise<Event> {
@@ -255,7 +265,11 @@ export class EventsService {
       data: { isActive: false },
     });
 
-    return this.findOne(id);
+    const event = await this.findOne(id);
+    this.notificationsService
+      .notify('EVENT_ENDED', { eventId: id, eventName: event.name })
+      .catch(() => {});
+    return event;
   }
 
   async getActiveEvent(): Promise<Event | null> {

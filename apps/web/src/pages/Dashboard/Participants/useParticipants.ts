@@ -135,10 +135,8 @@ export const useParticipants = (includeDeleted = false) => {
         ),
         { id: toastId },
       );
-      // Refresh in background to sync with server (e.g., lastBeerTime)
-      fetchParticipants().catch(error => {
-        console.error('Failed to sync participants after adding beer:', error);
-      });
+      // Optimistic update already applied; skip full refetch to avoid 2s reload.
+      // Leaderboard/dashboard WebSocket will sync if needed.
     } catch (error) {
       console.error('Failed to add beer:', error);
       const toastId = `beer:add:${activeEvent?.id ?? 'none'}:${id}`;
@@ -190,9 +188,7 @@ export const useParticipants = (includeDeleted = false) => {
         ),
         { id: toastId },
       );
-      fetchParticipants().catch(error => {
-        console.error('Failed to sync participants after adding spilled beer:', error);
-      });
+      // Optimistic update already applied; skip full refetch.
     } catch (error) {
       console.error('Failed to add spilled beer:', error);
       const toastId = `beer:spilled:add:${activeEvent.id}:${id}`;
@@ -254,10 +250,7 @@ export const useParticipants = (includeDeleted = false) => {
         ),
         { id: toastId },
       );
-      // Refresh in background to sync with server
-      fetchParticipants().catch(error => {
-        console.error('Failed to sync participants after removing beer:', error);
-      });
+      // Optimistic update already applied; skip full refetch.
     } catch (error) {
       console.error('Failed to remove beer:', error);
       const toastId = `beer:remove:${activeEvent?.id ?? 'none'}:${id}`;

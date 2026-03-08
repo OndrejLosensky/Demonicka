@@ -14,6 +14,15 @@ export type JobUpdatedPayload = {
   error: string | null;
 };
 
+export type NotificationPayload = {
+  id: string;
+  userId: string;
+  type: string;
+  payload: Record<string, unknown>;
+  readAt: string | null;
+  createdAt: string;
+};
+
 type WebSocketEvents = {
   'leaderboard:update': LeaderboardData;
   'dashboard:update': void;
@@ -24,6 +33,7 @@ type WebSocketEvents = {
   'event:join': { eventId: string };
   'event:leave': { eventId: string };
   'job:updated': JobUpdatedPayload;
+  'notification:new': NotificationPayload;
 };
 
 class WebSocketService {
@@ -77,6 +87,11 @@ class WebSocketService {
     // Listen for job updates (background jobs: backup, exports, etc.)
     this.socket.on('job:updated', (data: WebSocketEvents['job:updated']) => {
       this.notifyEventListeners('job:updated', data);
+    });
+
+    // Listen for new notifications (real-time)
+    this.socket.on('notification:new', (data: WebSocketEvents['notification:new']) => {
+      this.notifyEventListeners('notification:new', data);
     });
 
     // Legacy event names for backward compatibility

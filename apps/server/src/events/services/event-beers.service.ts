@@ -12,6 +12,7 @@ import { BeersService } from '../../beers/beers.service';
 import { BarrelsService } from '../../barrels/barrels.service';
 import { LeaderboardGateway } from '../../leaderboard/leaderboard.gateway';
 import { LoggingService } from '../../logging/logging.service';
+import { NotificationsService } from '../../notifications/notifications.service';
 import { isEventCompleted } from '../utils/event-completion.util';
 
 @Injectable()
@@ -25,6 +26,7 @@ export class EventBeersService {
     private readonly barrelsService: BarrelsService,
     private readonly leaderboardGateway: LeaderboardGateway,
     private readonly loggingService: LoggingService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(
@@ -109,6 +111,14 @@ export class EventBeersService {
       console.error('Failed to emit leaderboard update after beer creation:', error);
     });
 
+    this.notificationsService
+      .notify('BEER_ADDED', {
+        eventId,
+        targetUserId: userId,
+        actorUserId: actorUserId ?? undefined,
+      })
+      .catch((err) => this.logger.warn('Failed to send BEER_ADDED notification', err));
+
     return savedEventBeer;
   }
 
@@ -156,6 +166,14 @@ export class EventBeersService {
     this.leaderboardGateway.emitFullUpdate(eventId).catch((error) => {
       console.error('Failed to emit leaderboard update after beer removal:', error);
     });
+
+    this.notificationsService
+      .notify('BEER_REMOVED', {
+        eventId,
+        targetUserId: userId,
+        actorUserId: actorUserId ?? undefined,
+      })
+      .catch((err) => this.logger.warn('Failed to send BEER_REMOVED notification', err));
     } catch (error: unknown) {
       const reason = error instanceof Error ? error.message : String(error);
       this.loggingService.auditFailure('BEER_REMOVE_FAILED', 'Remove beer failed', {

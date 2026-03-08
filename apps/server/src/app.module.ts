@@ -27,6 +27,7 @@ import { LeaderboardViewSettingsModule } from './leaderboard-view-settings/leade
 import { GalleryModule } from './gallery/gallery.module';
 import { StorageModule } from './storage/storage.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
 
@@ -64,6 +65,7 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
     LeaderboardViewSettingsModule,
     GalleryModule,
     FeedbackModule,
+    NotificationsModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -1,20 +1,25 @@
 import { useState } from 'react';
 import { Box, IconButton, Button } from '@demonicka/ui';
 import { DarkMode as DarkModeIcon, LightMode as LightModeIcon, Notifications as NotificationsIcon, MenuIcon } from '@demonicka/ui';
+import { Badge } from '@mui/material';
 import { useAppTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Logo } from './Logo';
 import { ActiveEventDisplay } from './ActiveEventDisplay';
 import { UserInfo } from './UserInfo';
 import { MobileMenu } from './MobileMenu';
+import { NotificationMenu } from './NotificationMenu';
 import { Link } from 'react-router-dom';
 import translations from '../../locales/cs/common.header.json';
 import { tokens } from '../../theme/tokens';
+import { useNotifications } from '../../hooks/useNotifications';
 
 export function TopRow() {
   const { mode, toggleMode } = useAppTheme();
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationAnchor, setNotificationAnchor] = useState<null | HTMLElement>(null);
+  const { unreadCount } = useNotifications();
 
   return (
     <>
@@ -57,21 +62,31 @@ export function TopRow() {
             )}
           </IconButton>
 
-          {/* Notifications (placeholder for future) */}
-          <IconButton
-            size="small"
-            aria-label="Notifications"
-            sx={{
-              width: 36,
-              height: 36,
-              transition: tokens.transitions.default,
-              '&:hover': {
-                transform: 'translateY(-1px)',
-              },
-            }}
-          >
-            <NotificationsIcon fontSize="small" />
-          </IconButton>
+          {/* Notifications */}
+          {user && (
+            <IconButton
+              size="small"
+              aria-label="Notifications"
+              onClick={(e) => setNotificationAnchor(e.currentTarget)}
+              sx={{
+                width: 36,
+                height: 36,
+                transition: tokens.transitions.default,
+                '&:hover': {
+                  transform: 'translateY(-1px)',
+                },
+              }}
+            >
+              <Badge
+                badgeContent={unreadCount}
+                color="primary"
+                max={99}
+                invisible={unreadCount === 0}
+              >
+                <NotificationsIcon fontSize="small" />
+              </Badge>
+            </IconButton>
+          )}
 
           {/* Mobile Menu Button */}
           {user && (
@@ -114,6 +129,10 @@ export function TopRow() {
         </Box>
       </Box>
       <MobileMenu open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+      <NotificationMenu
+        anchorEl={notificationAnchor}
+        onClose={() => setNotificationAnchor(null)}
+      />
     </>
   );
 }

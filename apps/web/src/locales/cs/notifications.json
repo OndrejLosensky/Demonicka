@@ -1,0 +1,11 @@
+{
+  "title": "Oznámení",
+  "markAllRead": "Označit vše jako přečtené",
+  "settings": "Nastavení oznámení",
+  "empty": "Žádná oznámení",
+  "BEER_ADDED": "{{actorName}} vám přidal pivo",
+  "BEER_REMOVED": "{{actorName}} vám odebral pivo",
+  "EVENT_STARTED": "Událost {{eventName}} byla zahájena",
+  "EVENT_ENDED": "Událost {{eventName}} skončila",
+  "unknownActor": "Někdo"
+}

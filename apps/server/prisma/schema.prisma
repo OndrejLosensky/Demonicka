@@ -136,6 +136,8 @@ model User {
   feedback                   Feedback[]
   jobs                       Job[]
   jobConfigsUpdated          JobConfig[]
+  notifications              Notification[]
+  notificationPreferences    NotificationPreference[]
 
   creator User? @relation("UserCreator", fields: [createdBy], references: [id])
 
@@ -630,6 +632,34 @@ model JobConfig {
   updatedByUserId String?  @db.Uuid
 
   updatedByUser User? @relation(fields: [updatedByUserId], references: [id], onDelete: SetNull)
+}
+
+/// In-app notifications (beer added, event started, etc.). UI uses type + payload for i18n.
+model Notification {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  type      String    // BEER_ADDED, EVENT_STARTED, etc.
+  payload   Json      // type-specific: eventId, targetUserId, actorUserId, eventName, etc.
+  readAt    DateTime? @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, readAt])
+}
+
+/// Per-user, per-type preference. No row = enabled by default.
+model NotificationPreference {
+  userId   String  @db.Uuid
+  type     String  // BEER_ADDED, EVENT_STARTED, etc.
+  enabled  Boolean @default(true)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, type])
+  @@index([userId])
 }
 
 enum JobStatus {
