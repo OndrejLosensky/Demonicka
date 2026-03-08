@@ -33,7 +33,7 @@ import type {
   BeerPongGame,
   BeerPongRound,
 } from '@demonicka/shared-types';
-import translations from '../../locales/cs/beerPong.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Permission } from '@demonicka/shared';
 import { useDashboardHeaderSlots } from '../../contexts/DashboardChromeContext';
@@ -42,6 +42,22 @@ export function BeerPongDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const t = useTranslations<Record<string, unknown>>('beerPong');
+  const detailT = (t.detail as Record<string, unknown>) || {};
+  const detailErrors = (detailT.errors as Record<string, string>) || {};
+  const detailSuccess = (detailT.success as Record<string, string>) || {};
+  const detailStatus = (detailT.status as Record<string, string>) || {};
+  const detailActions = (detailT.actions as Record<string, string>) || {};
+  const detailTabs = (detailT.tabs as Record<string, string>) || {};
+  const detailTeams = (detailT.teams as Record<string, string>) || {};
+  const detailBracket = (detailT.bracket as Record<string, string>) || {};
+  const detailGames = (detailT.games as Record<string, string>) || {};
+  const detailStats = (detailT.stats as Record<string, string>) || {};
+  const detailDeleteTeamDialog = (detailT.deleteTeamDialog as Record<string, string>) || {};
+  const detailStartDialog = (detailT.startDialog as Record<string, string>) || {};
+  const detailCompleteDialog = (detailT.completeDialog as Record<string, string>) || {};
+  const createDialogT = (t.createDialog as Record<string, unknown>) || {};
+  const cancellationPolicyT = (createDialogT.cancellationPolicy as Record<string, string>) || {};
   const [tournament, setTournament] = useState<BeerPongEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +94,7 @@ export function BeerPongDetail() {
       setTournament(data);
     } catch (err: any) {
       console.log('[BeerPong loadTournament] getById FAILED:', err?.message, err?.response?.status, err?.response?.data);
-      setError(err.message || translations.detail.errors.loadFailed);
+      setError(err.message || (detailErrors.loadFailed ?? 'Nepodařilo se načíst turnaj'));
     } finally {
       setLoading(false);
     }
@@ -89,12 +105,12 @@ export function BeerPongDetail() {
 
     try {
       await beerPongService.deleteTeam(id, deleteTeamId);
-      toast.success(translations.detail.success.teamDeleted);
+      toast.success(detailSuccess.teamDeleted ?? 'Tým byl úspěšně smazán');
       setDeleteTeamId(null);
       loadTournament();
     } catch (err: any) {
       console.error('Failed to delete team:', err);
-      toast.error(err.response?.data?.message || translations.detail.errors.deleteTeamFailed);
+      toast.error(err.response?.data?.message || detailErrors.deleteTeamFailed ?? 'Nepodařilo se smazat tým');
     }
   };
 
@@ -103,12 +119,12 @@ export function BeerPongDetail() {
 
     try {
       await beerPongService.startTournament(id);
-      toast.success(translations.detail.success.started);
+      toast.success(detailSuccess.started ?? 'Turnaj spuštěn!');
       setStartTournamentOpen(false);
       loadTournament();
     } catch (err: any) {
       console.error('Failed to start tournament:', err);
-      toast.error(err.response?.data?.message || translations.detail.errors.startFailed);
+      toast.error(err.response?.data?.message || detailErrors.startFailed ?? 'Nepodařilo se spustit turnaj');
     }
   };
 
@@ -117,12 +133,12 @@ export function BeerPongDetail() {
 
     try {
       await beerPongService.completeTournament(id);
-      toast.success(translations.detail.success.completed || 'Tournament completed successfully');
+      toast.success(detailSuccess.completed || 'Tournament completed successfully');
       setCompleteTournamentOpen(false);
       loadTournament();
     } catch (err: any) {
       console.error('Failed to complete tournament:', err);
-      toast.error(err.response?.data?.message || translations.detail.errors.completeFailed || 'Failed to complete tournament');
+      toast.error(err.response?.data?.message || detailErrors.completeFailed || 'Failed to complete tournament');
     }
   };
 
@@ -159,11 +175,11 @@ export function BeerPongDetail() {
   const getStatusLabel = (status: BeerPongEventStatus): string => {
     switch (status) {
       case 'DRAFT':
-        return translations.detail.status.draft;
+        return detailStatus.draft;
       case 'ACTIVE':
-        return translations.detail.status.active;
+        return detailStatus.active;
       case 'COMPLETED':
-        return translations.detail.status.completed;
+        return detailStatus.completed;
       default:
         return status;
     }
@@ -172,11 +188,11 @@ export function BeerPongDetail() {
   const getRoundLabel = (round: BeerPongRound): string => {
     switch (round) {
       case 'QUARTERFINAL':
-        return translations.detail.bracket.quarterfinal;
+        return detailBracket.quarterfinal;
       case 'SEMIFINAL':
-        return translations.detail.bracket.semifinal;
+        return detailBracket.semifinal;
       case 'FINAL':
-        return translations.detail.bracket.final;
+        return detailBracket.final;
       default:
         return round;
     }
@@ -257,7 +273,7 @@ export function BeerPongDetail() {
             startIcon={<PlayArrowIcon />}
             onClick={() => setStartTournamentOpen(true)}
           >
-            {translations.detail.actions.startTournament}
+            {detailActions.startTournament}
           </Button>
         )}
         {canComplete && (
@@ -267,7 +283,7 @@ export function BeerPongDetail() {
             startIcon={<CheckCircleIcon />}
             onClick={() => setCompleteTournamentOpen(true)}
           >
-            {translations.detail.actions.completeTournament || 'Dokončit Turnaj'}
+            {detailActions.completeTournament || 'Dokončit Turnaj'}
           </Button>
         )}
       </Box>
@@ -277,8 +293,8 @@ export function BeerPongDetail() {
       canDeleteTournament,
       canStart,
       canComplete,
-      translations.detail.actions.startTournament,
-      translations.detail.actions.completeTournament,
+      detailActions.startTournament,
+      detailActions.completeTournament,
     ],
   );
 
@@ -296,11 +312,11 @@ export function BeerPongDetail() {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h5" gutterBottom>
-          {translations.detail.errors.loadFailed}
+          {detailErrors.loadFailed}
         </Typography>
-        <Typography color="error">{error || translations.detail.errors.loadFailed}</Typography>
+        <Typography color="error">{error || detailErrors.loadFailed}</Typography>
         <Button variant="contained" onClick={() => navigate('/dashboard/beer-pong')} sx={{ mt: 2 }}>
-          {translations.detail.back}
+          {(detailT.back as string) ?? 'Zpět'}
         </Button>
       </Box>
     );
@@ -317,9 +333,9 @@ export function BeerPongDetail() {
       {/* Tabs */}
       <Paper sx={{ mb: 3 }}>
         <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
-          <Tab label={translations.detail.tabs.map || 'Mapa'} />
-          <Tab label={translations.detail.tabs.teams || 'Týmy'} />
-          <Tab label={translations.detail.tabs.settings || 'Nastavení'} />
+          <Tab label={detailTabs.map ?? 'Mapa'} />
+          <Tab label={detailTabs.teams ?? 'Týmy'} />
+          <Tab label={detailTabs.settings ?? 'Nastavení'} />
         </Tabs>
       </Paper>
 
@@ -329,7 +345,7 @@ export function BeerPongDetail() {
           {/* Map/Bracket Tab */}
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              {translations.detail.bracket.title}
+              {detailBracket.title ?? 'Pavouk'}
             </Typography>
             <Box sx={{ mt: 2 }}>
               {tournament.games && tournament.games.length > 0 ? (
@@ -355,7 +371,7 @@ export function BeerPongDetail() {
                   }}
                 >
                   <Typography variant="body1" color="text.secondary">
-                    {translations.detail.games.noGames}
+                    {detailGames.noGames ?? 'Zatím žádné zápasy'}
                   </Typography>
                   {tournament.status === 'DRAFT' && (
                     <Button
@@ -385,7 +401,7 @@ export function BeerPongDetail() {
           <Paper sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h6">
-                {translations.detail.teams.title} ({teamCount}/8)
+                {detailTeams.title ?? 'Týmy'} ({teamCount}/8)
               </Typography>
               {canAddTeams && (
                 <Button
@@ -394,7 +410,7 @@ export function BeerPongDetail() {
                   onClick={() => setTeamDialogOpen(true)}
                   size="small"
                 >
-                  {translations.detail.actions.addTeam}
+                  {detailActions.addTeam ?? 'Přidat Tým'}
                 </Button>
               )}
             </Box>
@@ -410,10 +426,10 @@ export function BeerPongDetail() {
                 }}
               >
                 <Typography variant="body1" color="text.secondary" gutterBottom>
-                  {translations.detail.teams.empty}
+                  {detailTeams.empty ?? 'Zatím žádné týmy'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {translations.detail.teams.emptySubtitle}
+                  {detailTeams.emptySubtitle ?? 'Přidejte týmy pro spuštění turnaje.'}
                 </Typography>
               </Box>
             ) : (
@@ -448,13 +464,13 @@ export function BeerPongDetail() {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                         {team.player1 && <UserAvatar user={team.player1} sx={{ width: 24, height: 24, fontSize: '0.75rem' }} />}
                         <Typography variant="body2" color="text.secondary">
-                          {translations.detail.teams.player1}: {team.player1?.username || team.player1?.name || 'N/A'}
+                          {detailTeams.player1 ?? 'Hráč 1'}: {team.player1?.username || team.player1?.name || 'N/A'}
                         </Typography>
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         {team.player2 && <UserAvatar user={team.player2} sx={{ width: 24, height: 24, fontSize: '0.75rem' }} />}
                         <Typography variant="body2" color="text.secondary">
-                          {translations.detail.teams.player2}: {team.player2?.username || team.player2?.name || 'N/A'}
+                          {detailTeams.player2 ?? 'Hráč 2'}: {team.player2?.username || team.player2?.name || 'N/A'}
                         </Typography>
                       </Box>
                     </Paper>
@@ -466,7 +482,7 @@ export function BeerPongDetail() {
             {teamCount < 8 && tournament.status === 'DRAFT' && (
               <Box sx={{ mt: 2, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
                 <Typography variant="body2">
-                  <strong>{8 - teamCount}</strong> {translations.detail.teams.moreTeamsNeeded}
+                  <strong>{8 - teamCount}</strong> {detailTeams.moreTeamsNeeded ?? 'týmů chybí pro spuštění turnaje'}
                 </Typography>
               </Box>
             )}
@@ -481,12 +497,12 @@ export function BeerPongDetail() {
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 3 }}>
                 <Typography variant="h6" gutterBottom>
-                  {translations.detail.stats.title}
+                  {detailStats.title ?? 'Nastavení turnaje'}
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" color="text.secondary">
-                      {translations.detail.stats.beersPerPlayer}:
+                      {detailStats.beersPerPlayer ?? 'Piv na hráče'}:
                     </Typography>
                     <Typography variant="body2" fontWeight={600}>
                       {tournament.beersPerPlayer}
@@ -494,7 +510,7 @@ export function BeerPongDetail() {
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" color="text.secondary">
-                      {translations.detail.stats.timeWindow}:
+                      {detailStats.timeWindow ?? 'Časové okno'}:
                     </Typography>
                     <Typography variant="body2" fontWeight={600}>
                       {tournament.timeWindowMinutes} min
@@ -502,7 +518,7 @@ export function BeerPongDetail() {
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" color="text.secondary">
-                      {translations.detail.stats.undoWindow}:
+                      {detailStats.undoWindow ?? 'Okno pro zrušení'}:
                     </Typography>
                     <Typography variant="body2" fontWeight={600}>
                       {tournament.undoWindowMinutes} min
@@ -510,10 +526,10 @@ export function BeerPongDetail() {
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" color="text.secondary">
-                      {translations.detail.stats.cancellationPolicy}:
+                      {detailStats.cancellationPolicy ?? 'Politika zrušení'}:
                     </Typography>
                     <Typography variant="body2" fontWeight={600}>
-                      {tournament.cancellationPolicy === 'KEEP_BEERS' ? translations.createDialog.cancellationPolicy.keepBeers : translations.createDialog.cancellationPolicy.removeBeers}
+                      {tournament.cancellationPolicy === 'KEEP_BEERS' ? cancellationPolicyT.keepBeers : cancellationPolicyT.removeBeers}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -527,7 +543,7 @@ export function BeerPongDetail() {
                   {tournament.startedAt && (
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">
-                        {translations.detail.stats.started}:
+                        {detailStats.started ?? 'Spuštěno'}:
                       </Typography>
                       <Typography variant="body2" fontWeight={600}>
                         {new Date(tournament.startedAt).toLocaleString()}
@@ -537,7 +553,7 @@ export function BeerPongDetail() {
                   {tournament.completedAt && (
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">
-                        {translations.detail.stats.completed || 'Dokončeno'}:
+                        {detailStats.completed ?? 'Dokončeno'}:
                       </Typography>
                       <Typography variant="body2" fontWeight={600}>
                         {new Date(tournament.completedAt).toLocaleString()}
@@ -566,16 +582,16 @@ export function BeerPongDetail() {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>{translations.detail.deleteTeamDialog.title}</DialogTitle>
+        <DialogTitle>{detailDeleteTeamDialog.title ?? 'Smazat Tým'}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {translations.detail.deleteTeamDialog.message}
+            {detailDeleteTeamDialog.message ?? 'Opravdu chcete smazat tento tým?'}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteTeamId(null)}>{translations.detail.deleteTeamDialog.cancel}</Button>
+          <Button onClick={() => setDeleteTeamId(null)}>{detailDeleteTeamDialog.cancel ?? 'Zrušit'}</Button>
           <Button onClick={handleDeleteTeam} color="error" variant="contained">
-            {translations.detail.deleteTeamDialog.confirm}
+            {detailDeleteTeamDialog.confirm ?? 'Smazat'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -586,16 +602,16 @@ export function BeerPongDetail() {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>{translations.detail.startDialog.title}</DialogTitle>
+        <DialogTitle>{detailStartDialog.title ?? 'Spustit Turnaj'}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {translations.detail.startDialog.message}
+            {detailStartDialog.message ?? 'Opravdu chcete spustit turnaj?'}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setStartTournamentOpen(false)}>{translations.detail.startDialog.cancel}</Button>
+          <Button onClick={() => setStartTournamentOpen(false)}>{detailStartDialog.cancel ?? 'Zrušit'}</Button>
           <Button onClick={handleStartTournament} color="primary" variant="contained">
-            {translations.detail.startDialog.confirm}
+            {detailStartDialog.confirm ?? 'Spustit'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -606,16 +622,16 @@ export function BeerPongDetail() {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>{translations.detail.completeDialog?.title || 'Dokončit Turnaj'}</DialogTitle>
+        <DialogTitle>{detailCompleteDialog.title ?? 'Dokončit Turnaj'}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {translations.detail.completeDialog?.message || 'Opravdu chcete dokončit turnaj? Tato akce je nevratná.'}
+            {detailCompleteDialog.message ?? 'Opravdu chcete dokončit turnaj? Tato akce je nevratná.'}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCompleteTournamentOpen(false)}>{translations.detail.completeDialog?.cancel || 'Zrušit'}</Button>
+          <Button onClick={() => setCompleteTournamentOpen(false)}>{detailCompleteDialog.cancel ?? 'Zrušit'}</Button>
           <Button onClick={handleCompleteTournament} color="success" variant="contained">
-            {translations.detail.completeDialog?.confirm || 'Dokončit'}
+            {detailCompleteDialog.confirm ?? 'Dokončit'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -21,7 +21,8 @@ import { format } from 'date-fns';
 import type { LogEntry } from './types';
 import { LOG_LEVELS } from './useHistory';
 import type { LogLevel } from './useHistory';
-import translations from '../../../locales/cs/dashboard.history.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
+import { tokens } from '../../../theme/tokens';
 
 interface HistoryTableProps {
   logs: LogEntry[];
@@ -60,6 +61,12 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
   onRowsPerPageChange,
   onLevelChange,
 }) => {
+  const t = useTranslations<Record<string, unknown>>('dashboard.history');
+  const table = (t.table as Record<string, unknown>) || {};
+  const columns = (table.columns as Record<string, string>) || {};
+  const filters = (table.filters as Record<string, Record<string, string>>) || {};
+  const logLevelFilter = filters.logLevel || {};
+  const pagination = (table.pagination as Record<string, string>) || {};
   const handleLevelChange = (event: SelectChangeEvent<string>) => {
     onLevelChange(event.target.value as LogLevel | '');
   };
@@ -69,15 +76,15 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
       <Box sx={{ mb: 3 }}>
         <FormControl size="small" sx={{ minWidth: 200 }}>
           <InputLabel id="level-select-label">
-            {translations.table.filters.logLevel.label}
+            {logLevelFilter.label ?? 'Úroveň logu'}
           </InputLabel>
           <Select
             labelId="level-select-label"
             value={level}
-            label={translations.table.filters.logLevel.label}
+            label={logLevelFilter.label ?? 'Úroveň logu'}
             onChange={handleLevelChange}
           >
-            <MenuItem value="">{translations.table.filters.logLevel.all}</MenuItem>
+            <MenuItem value="">{logLevelFilter.all ?? 'Vše'}</MenuItem>
             {LOG_LEVELS.map((lvl) => (
               <MenuItem key={lvl} value={lvl}>
                 {lvl.toUpperCase()}
@@ -91,9 +98,9 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
-              <TableCell>{translations.table.columns.timestamp}</TableCell>
-              <TableCell>{translations.table.columns.level}</TableCell>
-              <TableCell>{translations.table.columns.message}</TableCell>
+              <TableCell>{columns.timestamp ?? 'Časová značka'}</TableCell>
+              <TableCell>{columns.level ?? 'Úroveň'}</TableCell>
+              <TableCell>{columns.message ?? 'Zpráva'}</TableCell>
               <TableCell>Service</TableCell>
             </TableRow>
           </TableHead>
@@ -149,7 +156,7 @@ export const HistoryTable: React.FC<HistoryTableProps> = ({
         rowsPerPageOptions={[5, 10, 25, 50]}
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
-        labelRowsPerPage={translations.table.pagination.rowsPerPage}
+        labelRowsPerPage={pagination.rowsPerPage ?? 'Řádků na stránku'}
       />
     </>
   );

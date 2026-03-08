@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
-import { cs } from 'date-fns/locale';
+import { cs, enUS } from 'date-fns/locale';
 import type { Barrel, DashboardStats, Event } from '@demonicka/shared-types';
 import type { HourlyStats } from '../../../types/hourlyStats';
 import { eventService } from '../../../services/eventService';
 import { barrelService } from '../../../services/barrelService';
 import { dashboardService } from '../../../services/dashboardService';
 import { websocketService } from '../../../services/websocketService';
+import { useLocale, useTranslations } from '../../../contexts/LocaleContext';
 
 export type AdminDashboardState = {
   isLoading: boolean;
@@ -58,6 +59,9 @@ export function useAdminDashboard(): AdminDashboardState {
   const [dashboardStats, setDashboardStats] = useState<DashboardStats>(emptyStats);
   const [barrels, setBarrels] = useState<Barrel[]>([]);
   const [hourly, setHourly] = useState<HourlyStats[]>(normalize24Hours([]));
+  const { locale } = useLocale();
+  const t = useTranslations<{ lastMinutes?: string; noDataLabel?: string; nobody?: string }>('dashboard');
+  const dateLocale = locale === 'en' ? enUS : cs;
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
@@ -164,7 +168,7 @@ export function useAdminDashboard(): AdminDashboardState {
         : '—';
     const avgPerHourSubtitle =
       typeof currentPace === 'number' && Number.isFinite(currentPace)
-        ? `${currentPace.toFixed(1)}/h (posledních ${windowMinutes} min)`
+        ? `${currentPace.toFixed(1)}/h (${(t.lastMinutes ?? 'posledních {{count}} min').replace('{{count}}', String(windowMinutes))})`
         : undefined;
 
     const peak = hourly.reduce((max, cur) => (cur.count > max.count ? cur : max), {
@@ -172,9 +176,9 @@ export function useAdminDashboard(): AdminDashboardState {
       count: 0,
     });
     const peakHourLabel =
-      peak.count > 0 ? `${peak.hour.toString().padStart(2, '0')}:00` : 'Žádná data';
+      peak.count > 0 ? `${peak.hour.toString().padStart(2, '0')}:00` : (t.noDataLabel ?? 'Žádná data');
 
-    const topDrinkerUsername = dashboardStats.topUsers?.[0]?.username ?? 'Nikdo';
+    const topDrinkerUsername = dashboardStats.topUsers?.[0]?.username ?? (t.nobody ?? 'Nikdo');
 
     return {
       kpis: {
@@ -188,7 +192,7 @@ export function useAdminDashboard(): AdminDashboardState {
         remainingBeers: remainingLitres, // Keep for backward compatibility but it's actually litres now
         efficiencyPercent,
         eventStartedAtLabel: activeEvent
-          ? format(new Date(activeEvent.startDate), 'PPp', { locale: cs })
+          ? format(new Date(activeEvent.startDate), 'PPp', { locale: dateLocale })
           : '',
       },
       insights: {
@@ -197,7 +201,7 @@ export function useAdminDashboard(): AdminDashboardState {
         topDrinkerUsername,
       },
     };
-  }, [activeEvent, barrels, dashboardStats, hourly]);
+  }, [activeEvent, barrels, dashboardStats, hourly, dateLocale, t.lastMinutes, t.noDataLabel, t.nobody]);
 
   return {
     isLoading,

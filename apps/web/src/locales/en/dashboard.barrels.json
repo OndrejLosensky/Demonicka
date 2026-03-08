@@ -22,7 +22,8 @@
       "deleted": "Deleted"
     },
     "actions": {
-      "delete": "Delete"
+      "delete": "Delete",
+      "activate": "Activate"
     }
   },
   "dialogs": {
@@ -53,5 +54,10 @@
     "fetchFailed": "Failed to load barrels",
     "toggleStatusFailed": "Failed to change barrel status",
     "statusUpdated": "Barrel status was successfully updated"
+  },
+  "emptyState": {
+    "title": "No active event",
+    "subtitle": "Create a new event to manage barrels",
+    "noActiveBarrel": "No active barrel"
   }
 } 

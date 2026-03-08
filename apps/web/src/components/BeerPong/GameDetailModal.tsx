@@ -24,7 +24,7 @@ import type {
   BeerPongRound,
   CompleteGameDto,
 } from '@demonicka/shared-types';
-import translations from '../../locales/cs/beerPong.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 
 interface GameDetailModalProps {
   open: boolean;
@@ -43,6 +43,15 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
   tournamentBeersPerPlayer,
   tournamentUndoWindowMinutes,
 }) => {
+  const t = useTranslations<Record<string, unknown>>('beerPong');
+  const gameModalT = (t.gameModal as Record<string, unknown>) || {};
+  const statusT = (gameModalT.status as Record<string, string>) || {};
+  const roundT = (gameModalT.round as Record<string, string>) || {};
+  const infoT = (gameModalT.info as Record<string, string>) || {};
+  const actionsT = (gameModalT.actions as Record<string, string>) || {};
+  const errorsT = (gameModalT.errors as Record<string, string>) || {};
+  const successT = (gameModalT.success as Record<string, string>) || {};
+  const completeGameT = (gameModalT.completeGame as Record<string, string>) || {};
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedWinner, setSelectedWinner] = useState<string>('');
   const [undoTimeRemaining, setUndoTimeRemaining] = useState<number | null>(null);
@@ -97,11 +106,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
   const getStatusLabel = (status: BeerPongGameStatus): string => {
     switch (status) {
       case 'PENDING':
-        return translations.gameModal.status.pending;
+        return statusT.pending ?? 'Čeká';
       case 'IN_PROGRESS':
-        return translations.gameModal.status.inProgress;
+        return statusT.inProgress ?? 'Probíhá';
       case 'COMPLETED':
-        return translations.gameModal.status.completed;
+        return statusT.completed ?? 'Dokončeno';
       default:
         return status;
     }
@@ -110,11 +119,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
   const getRoundLabel = (round: BeerPongRound): string => {
     switch (round) {
       case 'QUARTERFINAL':
-        return translations.gameModal.round.quarterfinal;
+        return roundT.quarterfinal ?? 'Čtvrtfinále';
       case 'SEMIFINAL':
-        return translations.gameModal.round.semifinal;
+        return roundT.semifinal ?? 'Semifinále';
       case 'FINAL':
-        return translations.gameModal.round.final;
+        return roundT.final ?? 'Finále';
       default:
         return round;
     }
@@ -132,12 +141,12 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
     try {
       setIsSubmitting(true);
       await beerPongService.startGame(game.id);
-      toast.success(translations.gameModal.success.started);
+      toast.success(successT.started ?? 'Hra byla spuštěna');
       onSuccess();
       onClose();
     } catch (error: any) {
       console.error('Failed to start game:', error);
-      toast.error(error.response?.data?.message || translations.gameModal.errors.startFailed);
+      toast.error(error.response?.data?.message || errorsT.startFailed ?? 'Nepodařilo se spustit hru');
     } finally {
       setIsSubmitting(false);
     }
@@ -151,12 +160,12 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
       await beerPongService.completeGame(game.id, {
         winnerTeamId: selectedWinner,
       });
-      toast.success(translations.gameModal.success.completed);
+      toast.success(successT.completed ?? 'Hra byla dokončena');
       onSuccess();
       onClose();
     } catch (error: any) {
       console.error('Failed to complete game:', error);
-      toast.error(error.response?.data?.message || translations.gameModal.errors.completeFailed);
+      toast.error(error.response?.data?.message || errorsT.completeFailed ?? 'Nepodařilo se dokončit hru');
     } finally {
       setIsSubmitting(false);
     }
@@ -165,19 +174,19 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
   const handleUndo = async () => {
     if (!game) return;
 
-    if (!window.confirm(translations.gameModal.actions.undoStart + '? ' + translations.gameModal.errors.undoFailed)) {
+    if (!window.confirm((actionsT.undoStart ?? 'Zrušit start') + '? ' + (errorsT.undoFailed ?? 'Nepodařilo se zrušit'))) {
       return;
     }
 
     try {
       setIsSubmitting(true);
       await beerPongService.undoGameStart(game.id);
-      toast.success(translations.gameModal.success.undo);
+      toast.success(successT.undo ?? 'Start hry byl zrušen');
       onSuccess();
       onClose();
     } catch (error: any) {
       console.error('Failed to undo game start:', error);
-      toast.error(error.response?.data?.message || translations.gameModal.errors.undoFailed);
+      toast.error(error.response?.data?.message || errorsT.undoFailed ?? 'Nepodařilo se zrušit start hry');
     } finally {
       setIsSubmitting(false);
     }
@@ -223,7 +232,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                 </Box>
               </Box>
               {game.winnerTeamId === game.team1Id && (
-                <Chip label={translations.gameModal.info.winner} color="success" size="small" />
+                <Chip label={infoT.winner ?? 'Vítěz'} color="success" size="small" />
               )}
             </Box>
           </Paper>
@@ -249,7 +258,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                 </Box>
               </Box>
               {game.winnerTeamId === game.team2Id && (
-                <Chip label={translations.gameModal.info.winner} color="success" size="small" />
+                <Chip label={infoT.winner ?? 'Vítěz'} color="success" size="small" />
               )}
             </Box>
           </Paper>
@@ -261,7 +270,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
             {game.startedAt && (
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="body2" color="text.secondary">
-                  {translations.gameModal.info.startedAt}:
+                  {infoT.startedAt ?? 'Začátek'}:
                 </Typography>
                 <Typography variant="body2">
                   {new Date(game.startedAt).toLocaleString()}
@@ -271,7 +280,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
             {game.endedAt && (
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="body2" color="text.secondary">
-                  {translations.gameModal.info.endedAt}:
+                  {infoT.endedAt ?? 'Konec'}:
                 </Typography>
                 <Typography variant="body2">
                   {new Date(game.endedAt).toLocaleString()}
@@ -291,7 +300,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
               }}
             >
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                {translations.gameModal.info.undoTimeRemaining.replace('{{time}}', formatTimeRemaining(undoTimeRemaining!))}
+                {(infoT.undoTimeRemaining ?? 'Zbývá času na zrušení: {{time}}').replace('{{time}}', formatTimeRemaining(undoTimeRemaining!))}
               </Typography>
             </Box>
           )}
@@ -299,10 +308,10 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
           {/* Mark Winner (when in progress) */}
           {game.status === 'IN_PROGRESS' && !game.winnerTeamId && (
             <FormControl fullWidth>
-              <InputLabel>{translations.gameModal.completeGame.selectWinner}</InputLabel>
+              <InputLabel>{completeGameT.selectWinner ?? 'Vyberte vítěze'}</InputLabel>
               <Select
                 value={selectedWinner}
-                label={translations.gameModal.completeGame.selectWinner}
+                label={completeGameT.selectWinner ?? 'Vyberte vítěze'}
                 onChange={(e) => setSelectedWinner(e.target.value)}
                 disabled={isSubmitting}
               >
@@ -322,7 +331,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
         {game.status === 'PENDING' && (
           <>
             <Button onClick={onClose} disabled={isSubmitting}>
-              {translations.gameModal.actions.close}
+              {actionsT.close ?? 'Zavřít'}
             </Button>
             <Button
               variant="contained"
@@ -330,7 +339,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
               onClick={handleStartGame}
               disabled={isSubmitting}
             >
-              {translations.gameModal.actions.startGame}
+              {actionsT.startGame ?? 'Spustit Hru'}
             </Button>
           </>
         )}
@@ -344,11 +353,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                 onClick={handleUndo}
                 disabled={isSubmitting}
               >
-                {translations.gameModal.actions.undoStart}
+                {actionsT.undoStart ?? 'Zrušit Start'}
               </Button>
             )}
             <Button onClick={onClose} disabled={isSubmitting}>
-              {translations.gameModal.actions.close}
+              {actionsT.close ?? 'Zavřít'}
             </Button>
             <Button
               variant="contained"
@@ -356,14 +365,14 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
               onClick={handleCompleteGame}
               disabled={isSubmitting || !selectedWinner}
             >
-              {translations.gameModal.actions.completeGame}
+              {actionsT.completeGame ?? 'Dokončit Hru'}
             </Button>
           </>
         )}
 
         {game.status === 'COMPLETED' && (
           <Button onClick={onClose} variant="contained">
-            {translations.gameModal.actions.close}
+            {actionsT.close ?? 'Zavřít'}
           </Button>
         )}
       </DialogActions>

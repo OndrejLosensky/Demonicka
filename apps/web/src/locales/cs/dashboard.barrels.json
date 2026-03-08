@@ -58,6 +58,7 @@
   },
   "emptyState": {
     "title": "Žádná aktivní akce",
-    "subtitle": "Vytvořte novou akci pro správu sudů"
+    "subtitle": "Vytvořte novou akci pro správu sudů",
+    "noActiveBarrel": "Žádný aktivní sud"
   }
 } 

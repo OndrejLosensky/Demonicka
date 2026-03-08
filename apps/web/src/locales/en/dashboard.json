@@ -1,0 +1,88 @@
+{
+  "title": "Overview",
+  "stats": {
+    "totalBeers": "Total beers",
+    "totalParticipants": "Total participants",
+    "totalBarrels": "Total barrels",
+    "avgBeersPerParticipant": "Avg beers per participant",
+    "participants": "participants",
+    "topDrinker": "Top drinker",
+    "beers": "beers",
+    "averagePerHour": "Average per hour"
+  },
+  "overview": {
+    "title": "Overview",
+    "cards": {
+      "totalBeers": "Total beers",
+      "totalUsers": "Total users",
+      "totalBarrels": "Total barrels",
+      "avgBeersPerUser": "Avg beers per user"
+    },
+    "charts": {
+      "topUsers": {
+        "title": "Top users",
+        "columns": {
+          "name": "Name",
+          "beers": "Beers"
+        },
+        "unknownUser": "Unknown user"
+      },
+      "barrelStats": {
+        "title": "Barrel statistics",
+        "columns": {
+          "size": "Size",
+          "count": "Count"
+        }
+      }
+    }
+  },
+  "errors": {
+    "loadFailed": "Failed to load overview data",
+    "noData": "No data to display"
+  },
+  "loading": "Loading...",
+  "refresh": "Refresh",
+  "noActiveEvent": {
+    "title": "No active event",
+    "subtitle": "Create a new event to track beers and participants",
+    "createButton": "Create new event"
+  },
+  "barrelStatus": {
+    "title": "Barrel status",
+    "remainingBeers": "Beers remaining",
+    "activeBarrels": "Active barrels",
+    "totalBarrels": "Total barrels"
+  },
+  "consumption": {
+    "title": "Beer consumption during the day"
+  },
+  "barrel": {
+    "activeBarrel": "Active barrel",
+    "noBarrel": "No active barrel.",
+    "emptyIn": "Will be empty in:",
+    "emptyInHistorical": "Will be empty in (historical):",
+    "collectingData": "Collecting data…",
+    "ofL": "of {{total}} L"
+  },
+  "insights": {
+    "title": "Insights",
+    "start": "Start",
+    "peak": "Peak",
+    "topUser": "Top user",
+    "beers": "beers"
+  },
+  "topUsers": {
+    "title": "Top users",
+    "noData": "No data yet.",
+    "beers": "beers"
+  },
+  "kpis": {
+    "participants": "Participants",
+    "avgPerPerson": "avg / person",
+    "avgPerHour": "Avg / hour",
+    "efficiency": "Efficiency"
+  },
+  "lastMinutes": "last {{count}} min",
+  "noDataLabel": "No data",
+  "nobody": "Nobody"
+}

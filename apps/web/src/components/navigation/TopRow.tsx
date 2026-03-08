@@ -10,13 +10,14 @@ import { UserInfo } from './UserInfo';
 import { MobileMenu } from './MobileMenu';
 import { NotificationMenu } from './NotificationMenu';
 import { Link } from 'react-router-dom';
-import translations from '../../locales/cs/common.header.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 import { tokens } from '../../theme/tokens';
 import { useNotifications } from '../../hooks/useNotifications';
 
 export function TopRow() {
   const { mode, toggleMode } = useAppTheme();
   const { user } = useAuth();
+  const headerT = useTranslations<{ auth: { login: string } }>('common.header');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationAnchor, setNotificationAnchor] = useState<null | HTMLElement>(null);
   const { unreadCount } = useNotifications();
@@ -123,7 +124,7 @@ export function TopRow() {
                 fontWeight: 500,
               }}
             >
-              {translations.auth.login}
+              {headerT.auth?.login ?? 'Log in'}
             </Button>
           )}
         </Box>

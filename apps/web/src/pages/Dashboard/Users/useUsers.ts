@@ -3,8 +3,7 @@ import { userService } from '../../../services/userService';
 import type { User } from '@demonicka/shared-types';
 import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
 import { useToast } from '../../../hooks/useToast';
-import translations from '../../../locales/cs/dashboard.users.json';
-import toastTranslations from '../../../locales/cs/toasts.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 
 export const useUsers = (includeDeleted = false) => {
   const [users, setUsers] = useState<User[]>([]);
@@ -12,6 +11,11 @@ export const useUsers = (includeDeleted = false) => {
   const [isLoading, setIsLoading] = useState(true);
   const { selectedEvent } = useSelectedEvent();
   const toast = useToast();
+  const toastT = useTranslations<Record<string, Record<string, string>>>('toasts');
+  const usersT = useTranslations<Record<string, unknown>>('dashboard.users');
+  const success = toastT.success as Record<string, string> | undefined;
+  const toastError = toastT.error as Record<string, string> | undefined;
+  const errors = usersT.errors as Record<string, string> | undefined;
   const fetchTimeoutRef = useRef<NodeJS.Timeout>();
   const isMountedRef = useRef(true);
 
@@ -53,10 +57,10 @@ export const useUsers = (includeDeleted = false) => {
             }
           }
         }
-      } catch (error) {
-        console.error('Failed to fetch users:', error);
+      } catch (err) {
+        console.error('Failed to fetch users:', err);
         if (isMountedRef.current) {
-          toast.error(toastTranslations.error.fetch.replace('{{item}}', 'uživatele'));
+          toast.error((toastError?.fetch ?? 'Nepodařilo se načíst {{item}}').replace('{{item}}', 'uživatele'));
         }
       } finally {
         if (isMountedRef.current) {
@@ -64,16 +68,16 @@ export const useUsers = (includeDeleted = false) => {
         }
       }
     }, 300); // Debounce time of 300ms
-  }, [includeDeleted, selectedEvent?.id, toast]); // Removed selectedEvent?.updatedAt dependency
+  }, [includeDeleted, selectedEvent?.id, toast, toastError]);
 
   const handleDelete = async (userId: string) => {
     try {
       await userService.deleteUser(userId);
       await fetchUsers();
-      toast.success(toastTranslations.success.deleted.replace('{{item}}', 'Uživatel'));
-    } catch (error) {
-      console.error('Failed to delete user:', error);
-      toast.error(toastTranslations.error.delete.replace('{{item}}', 'uživatele'));
+      toast.success((success?.deleted ?? '{{item}} byl úspěšně smazán').replace('{{item}}', 'Uživatel'));
+    } catch (err) {
+      console.error('Failed to delete user:', err);
+      toast.error((toastError?.delete ?? 'Nepodařilo se smazat {{item}}').replace('{{item}}', 'uživatele'));
     }
   };
 
@@ -82,10 +86,10 @@ export const useUsers = (includeDeleted = false) => {
     try {
       await userService.addBeer(userId);
       await fetchUsers();
-      toast.success(toastTranslations.success.beerAdded.replace('{{user}}', user?.username || userId));
-    } catch (error) {
-      console.error('Failed to add beer:', error);
-      toast.error(translations.errors.addBeerFailed);
+      toast.success((success?.beerAdded ?? 'Pivo bylo přidáno uživateli {{user}}').replace('{{user}}', user?.username || userId));
+    } catch (err) {
+      console.error('Failed to add beer:', err);
+      toast.error(errors?.addBeerFailed ?? 'Nepodařilo se přidat pivo');
     }
   };
 
@@ -94,10 +98,10 @@ export const useUsers = (includeDeleted = false) => {
     try {
       await userService.removeBeer(userId);
       await fetchUsers();
-      toast.success(toastTranslations.success.beerRemoved.replace('{{user}}', user?.username || userId));
-    } catch (error) {
-      console.error('Failed to remove beer:', error);
-      toast.error(translations.errors.removeBeerFailed);
+      toast.success((success?.beerRemoved ?? 'Pivo bylo odebráno uživateli {{user}}').replace('{{user}}', user?.username || userId));
+    } catch (err) {
+      console.error('Failed to remove beer:', err);
+      toast.error(errors?.removeBeerFailed ?? 'Nepodařilo se odebrat pivo');
     }
   };
 
@@ -105,10 +109,10 @@ export const useUsers = (includeDeleted = false) => {
     try {
       await userService.cleanup();
       await fetchUsers();
-      toast.success(toastTranslations.success.deleted.replace('{{item}}', 'Smazaní uživatelé'));
-    } catch (error) {
-      console.error('Failed to cleanup users:', error);
-      toast.error(toastTranslations.error.delete.replace('{{item}}', 'smazané uživatele'));
+      toast.success((success?.deleted ?? '{{item}} byl úspěšně smazán').replace('{{item}}', 'Smazaní uživatelé'));
+    } catch (err) {
+      console.error('Failed to cleanup users:', err);
+      toast.error((toastError?.delete ?? 'Nepodařilo se smazat {{item}}').replace('{{item}}', 'smazané uživatele'));
     }
   };
 

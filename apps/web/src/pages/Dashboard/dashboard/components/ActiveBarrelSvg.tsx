@@ -1,8 +1,8 @@
-import { Box, Typography } from '@demonicka/ui';
-import { Card } from '@mui/material';
+import { Box, Card, Typography } from '@demonicka/ui';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from '@mui/icons-material';
 import type { Barrel, BarrelPrediction } from '@demonicka/shared-types';
+import { useTranslations } from '../../../../contexts/LocaleContext';
 
 type Props = {
   barrel?: Barrel;
@@ -26,15 +26,22 @@ function formatEta(asOfIso: string, emptyAtIso: string): { relative: string; abs
 }
 
 export function ActiveBarrelSvg({ barrel, prediction }: Props) {
+  const t = useTranslations<{ barrel: Record<string, string> }>('dashboard');
+  const activeBarrelLabel = t.barrel?.activeBarrel ?? 'Aktivní sud';
+  const noBarrelLabel = t.barrel?.noBarrel ?? 'Není aktivní žádný sud.';
+  const emptyInLabel = t.barrel?.emptyIn ?? 'Bude prázdný za:';
+  const emptyInHistLabel = t.barrel?.emptyInHistorical ?? 'Bude prázdný za (historicky):';
+  const collectingLabel = t.barrel?.collectingData ?? 'Sbírám data…';
+
   if (!barrel) {
     return (
       <Card sx={{ borderRadius: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
         <Box sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1 }}>
-            Aktivní sud
+            {activeBarrelLabel}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Není aktivní žádný sud.
+            {noBarrelLabel}
           </Typography>
           <Box sx={{ mt: 2, opacity: 0.75 }}>
             <svg viewBox="0 0 240 220" width="100%" height="220" aria-hidden="true">
@@ -97,13 +104,13 @@ export function ActiveBarrelSvg({ barrel, prediction }: Props) {
           },
         }}
       >
-        Aktivní sud
+        {activeBarrelLabel}
       </Typography>
       <ChevronRight sx={{ fontSize: '1.2rem', color: 'text.secondary' }} />
     </Link>
   ) : (
     <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-      Aktivní sud
+      {activeBarrelLabel}
     </Typography>
   );
 
@@ -127,7 +134,7 @@ export function ActiveBarrelSvg({ barrel, prediction }: Props) {
             width="100%"
             height="100%"
             role="img"
-            aria-label={`Aktivní sud, zbývá ${remaining.toFixed(1)} L z ${total.toFixed(1)} L (${pctLabel})`}
+            aria-label={`${activeBarrelLabel}, ${remaining.toFixed(1)} L / ${total.toFixed(1)} L (${pctLabel})`}
           >
             <defs>
               <linearGradient id="beerGradient" x1="0" y1="0" x2="0" y2="1">
@@ -213,20 +220,20 @@ export function ActiveBarrelSvg({ barrel, prediction }: Props) {
         <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Bude prázdný za:
+              {emptyInLabel}
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 800 }}>
               {currentEta
                 ? `${currentEta.relative} (${currentEta.absolute})`
                 : effectivePrediction?.status === 'warming_up'
-                  ? 'Sbírám data…'
+                  ? collectingLabel
                   : '—'}
             </Typography>
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Bude prázdný za (historicky):
+              {emptyInHistLabel}
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 800 }}>
               {historicalEta

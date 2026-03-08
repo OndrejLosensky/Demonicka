@@ -4,10 +4,12 @@ import { Settings as SettingsIcon, History as HistoryIcon } from '@demonicka/ui'
 import { useAuth } from '../../contexts/AuthContext';
 import { USER_ROLE } from '@demonicka/shared-types';
 import { tokens } from '../../theme/tokens';
+import { useTranslations } from '../../contexts/LocaleContext';
 
 export function SystemLinks() {
   const { user } = useAuth();
   const location = useLocation();
+  const t = useTranslations<{ navigation: Record<string, string> }>('common.header');
 
   if (!user) return null;
 
@@ -79,11 +81,11 @@ export function SystemLinks() {
   return (
     <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 0.5 }}>
       <SystemLink to="/dashboard/system" icon={<SettingsIcon sx={{ fontSize: 18 }} />}>
-        Systém
+        {t.navigation?.system}
       </SystemLink>
       {isSuperAdmin && (
         <SystemLink to="/dashboard/activity" icon={<HistoryIcon sx={{ fontSize: 18 }} />}>
-          Aktivita
+          {t.navigation?.activity}
         </SystemLink>
       )}
     </Box>

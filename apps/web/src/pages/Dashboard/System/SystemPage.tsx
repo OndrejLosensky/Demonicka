@@ -9,7 +9,7 @@ import {
 import { Refresh as RefreshIcon, Download as DownloadIcon } from '@mui/icons-material';
 import { systemService, type SystemStats } from '../../../services/systemService';
 import { useToast } from '../../../hooks/useToast';
-import translations from '../../../locales/cs/system.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import { MetricCard } from '@demonicka/ui';
 import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -17,6 +17,7 @@ import { USER_ROLE } from '@demonicka/shared-types';
 
 const SystemPage: React.FC = () => {
   const { user } = useAuth();
+  const t = useTranslations<Record<string, unknown>>('system');
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -44,9 +45,9 @@ const SystemPage: React.FC = () => {
       setError(null);
     } catch (error) {
       console.error('Failed to load system stats:', error);
-      setError(translations.error.loadFailed);
-      // Use toast directly instead of depending on it in useCallback
-      toast.error(translations.error.loadFailed);
+      const errMsg = (t.error as { loadFailed?: string })?.loadFailed ?? 'Failed to load';
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       if (isInitial) {
         setIsInitialLoading(false);
@@ -133,17 +134,17 @@ const SystemPage: React.FC = () => {
             </Button>
           </>
         )}
-        <Button
-          variant="outlined"
-          startIcon={<RefreshIcon />}
-          onClick={() => loadStats(false)}
-          disabled={isRefreshing}
-        >
-          {translations.refresh}
-        </Button>
+            <Button
+              variant="outlined"
+              startIcon={<RefreshIcon />}
+              onClick={() => loadStats(false)}
+              disabled={isRefreshing}
+            >
+              {(t as { refresh?: string }).refresh}
+            </Button>
       </Box>
     ),
-    [loadStats, isRefreshing, isSuperAdmin, isExportingSystem, isExportingUsers, handleExportSystemExcel, handleExportUsersExcel],
+    [loadStats, isRefreshing, isSuperAdmin, isExportingSystem, isExportingUsers, handleExportSystemExcel, handleExportUsersExcel, t],
   );
 
   useDashboardHeaderSlots({
@@ -169,7 +170,7 @@ const SystemPage: React.FC = () => {
           onClick={() => loadStats(true)}
           sx={{ mt: 2 }}
         >
-          {translations.error.retry}
+          {(t.error as { retry?: string })?.retry}
         </Button>
       </Box>
     );
@@ -180,16 +181,16 @@ const SystemPage: React.FC = () => {
       {stats && (
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3}>
-            <MetricCard title={translations.userStatistics.totalUsers} value={stats.totalUsers} />
+            <MetricCard title={(t.userStatistics as Record<string, string>)?.totalUsers} value={stats.totalUsers} />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <MetricCard title={translations.userStatistics.adminUsers} value={stats.totalOperatorUsers} color="error" />
+            <MetricCard title={(t.userStatistics as Record<string, string>)?.adminUsers} value={stats.totalOperatorUsers} color="error" />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <MetricCard title={translations.userStatistics.completedRegistrations} value={stats.totalCompletedRegistrations} color="success" />
+            <MetricCard title={(t.userStatistics as Record<string, string>)?.completedRegistrations} value={stats.totalCompletedRegistrations} color="success" />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <MetricCard title={translations.userStatistics.twoFactorEnabled} value={stats.total2FAEnabled} color="warning" />
+            <MetricCard title={(t.userStatistics as Record<string, string>)?.twoFactorEnabled} value={stats.total2FAEnabled} color="warning" />
           </Grid>
         </Grid>
       )}

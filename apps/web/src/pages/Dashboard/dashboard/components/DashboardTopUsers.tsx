@@ -4,13 +4,18 @@ import { Link } from 'react-router-dom';
 import { ChevronRight } from '@mui/icons-material';
 import type { UserStats } from '../../../../types/dashboard';
 import { UserAvatar } from '../../../../components/UserAvatar';
+import { useTranslations } from '../../../../contexts/LocaleContext';
 
 type Props = {
   users: UserStats[];
 };
 
 export function DashboardTopUsers({ users }: Props) {
+  const t = useTranslations<{ topUsers: Record<string, string>; stats?: { beers: string } }>('dashboard');
   const topUsers = users.slice(0, 4);
+  const titleLabel = t.topUsers?.title ?? 'Nejlepší uživatelé';
+  const noDataLabel = t.topUsers?.noData ?? 'Zatím žádná data.';
+  const beersLabel = t.stats?.beers ?? 'piv';
 
   return (
     <Card sx={{ borderRadius: 1, display: 'flex', flexDirection: 'column' }}>
@@ -30,7 +35,7 @@ export function DashboardTopUsers({ users }: Props) {
                 },
               }}
             >
-              Nejlepší uživatelé
+              {titleLabel}
             </Typography>
             <ChevronRight sx={{ fontSize: '1.2rem', color: 'text.secondary' }} />
           </Link>
@@ -38,7 +43,7 @@ export function DashboardTopUsers({ users }: Props) {
 
         {topUsers.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
-            Zatím žádná data.
+            {noDataLabel}
           </Typography>
         ) : (
           <Grid container spacing={1.5} sx={{ width: '100%' }}>
@@ -108,7 +113,7 @@ export function DashboardTopUsers({ users }: Props) {
                       {u.username}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500, fontSize: '0.7rem' }}>
-                      {u.beerCount} piv
+                      {u.beerCount} {beersLabel}
                     </Typography>
                   </Box>
                 </Box>

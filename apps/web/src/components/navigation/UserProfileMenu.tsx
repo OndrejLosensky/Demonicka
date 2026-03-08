@@ -8,7 +8,7 @@ import { tokens } from '../../theme/tokens';
 import { getShadow } from '../../theme/utils';
 import { useAppTheme } from '../../contexts/ThemeContext';
 import { USER_ROLE } from '@demonicka/shared-types';
-import translations from '../../locales/cs/common.header.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 
 interface UserProfileMenuProps {
   anchorEl: HTMLElement | null;
@@ -19,6 +19,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
   const { user, logout, hasRole } = useAuth();
   const { mode } = useAppTheme();
   const navigate = useNavigate();
+  const t = useTranslations<{ auth: Record<string, string>; navigation: Record<string, string> }>('common.header');
 
   if (!user) return null;
 
@@ -123,7 +124,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
           <PersonIcon fontSize="small" />
         </ListItemIcon>
         <ListItemText
-          primary={translations.auth.profile}
+          primary={t.auth?.profile}
           primaryTypographyProps={{
             sx: { fontWeight: 500 },
           }}
@@ -134,7 +135,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
           <RateReviewOutlinedIcon fontSize="small" />
         </ListItemIcon>
         <ListItemText
-          primary={translations.auth.feedback}
+          primary={t.auth?.feedback}
           primaryTypographyProps={{
             sx: { fontWeight: 500 },
           }}
@@ -146,7 +147,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
             <TrendingUpIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText
-            primary="Moje statistiky"
+            primary={t.navigation?.myStats}
             primaryTypographyProps={{
               sx: { fontWeight: 500 },
             }}
@@ -157,7 +158,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText
-            primary="Nastavení"
+            primary={t.navigation?.settings}
             primaryTypographyProps={{
               sx: { fontWeight: 500 },
             }}
@@ -168,7 +169,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
             <EmojiEventsIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText
-            primary="Úspěchy"
+            primary={t.navigation?.achievements}
             primaryTypographyProps={{
               sx: { fontWeight: 500 },
             }}
@@ -181,7 +182,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
             <MenuBookIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText
-            primary="Dokumentace"
+            primary={t.navigation?.docs}
             primaryTypographyProps={{
               sx: { fontWeight: 500 },
             }}
@@ -205,7 +206,7 @@ export function UserProfileMenu({ anchorEl, onClose }: UserProfileMenuProps) {
           <LogoutIcon fontSize="small" sx={{ color: 'error.main' }} />
         </ListItemIcon>
         <ListItemText
-          primary={translations.auth.logout}
+          primary={t.auth?.logout}
           primaryTypographyProps={{
             sx: { fontWeight: 500, color: 'error.main' },
           }}

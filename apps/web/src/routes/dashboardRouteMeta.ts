@@ -1,6 +1,5 @@
 import type { RouteObject } from 'react-router-dom';
 import type { Event, BeerPongEvent } from '@demonicka/shared-types';
-import translations from '../locales/cs/common.header.json';
 import { eventService } from '../services/eventService';
 import { beerPongService } from '../services/beerPongService';
 
@@ -11,6 +10,10 @@ export type DashboardChromeHandle = {
   crumb?: string | ((params: Record<string, string>) => string);
   /** Page title for this route segment. If omitted, parent title can be used. */
   title?: string | ((params: Record<string, string>) => string);
+  /** Translation key path (e.g. 'navigation.dashboard') for crumb – resolved in DashboardChrome by locale */
+  crumbKey?: string;
+  /** Translation key path for title – resolved in DashboardChrome by locale */
+  titleKey?: string;
   /** Hide DashboardChrome for this route (still sets document title). */
   hideChrome?: boolean;
   /** Optional dynamic label resolver */
@@ -24,50 +27,50 @@ export const dashboardRouteMeta: RouteObject[] = [
       {
         path: ':userId/profile',
         handle: {
-          crumb: translations.auth.profile,
-          title: translations.auth.profile,
+          crumbKey: 'auth.profile',
+          titleKey: 'auth.profile',
         } satisfies DashboardChromeHandle,
       },
       {
         path: ':username',
         handle: {
-          crumb: (p) => p.username ?? 'Uživatel',
-          title: (p) => p.username ?? 'Uživatel',
+          crumb: (p) => p.username ?? 'User',
+          title: (p) => p.username ?? 'User',
         } satisfies DashboardChromeHandle,
         children: [
           {
             path: 'settings',
             handle: {
-              crumb: 'Nastavení',
-              title: 'Nastavení',
+              crumbKey: 'navigation.settings',
+              titleKey: 'navigation.settings',
             } satisfies DashboardChromeHandle,
           },
           {
             path: 'achievements',
             handle: {
-              crumb: 'Úspěchy',
-              title: 'Úspěchy',
+              crumbKey: 'navigation.achievements',
+              titleKey: 'navigation.achievements',
             } satisfies DashboardChromeHandle,
           },
           {
             path: 'gallery',
             handle: {
-              crumb: 'Galerie',
-              title: 'Galerie',
+              crumbKey: 'navigation.gallery',
+              titleKey: 'navigation.gallery',
             } satisfies DashboardChromeHandle,
           },
           {
             path: 'dashboard',
             handle: {
-              crumb: 'Moje statistiky',
-              title: 'Moje statistiky',
+              crumbKey: 'navigation.myStats',
+              titleKey: 'navigation.myStats',
             } satisfies DashboardChromeHandle,
             children: [
               {
                 path: 'events',
                 handle: {
-                  crumb: 'Události',
-                  title: 'Události',
+                  crumbKey: 'navigation.events',
+                  titleKey: 'navigation.events',
                 } satisfies DashboardChromeHandle,
                 children: [
                   {
@@ -88,8 +91,8 @@ export const dashboardRouteMeta: RouteObject[] = [
                       {
                         path: 'gallery',
                         handle: {
-                          crumb: 'Galerie',
-                          title: 'Galerie',
+                          crumbKey: 'navigation.gallery',
+                          titleKey: 'navigation.gallery',
                         } satisfies DashboardChromeHandle,
                       },
                     ],
@@ -105,15 +108,15 @@ export const dashboardRouteMeta: RouteObject[] = [
   {
     path: 'dashboard',
     handle: {
-      crumb: translations.navigation.dashboard,
-      title: translations.navigation.dashboard,
+      crumbKey: 'navigation.dashboard',
+      titleKey: 'navigation.dashboard',
     } satisfies DashboardChromeHandle,
     children: [
       {
         path: 'events',
         handle: {
-          crumb: translations.navigation.events,
-          title: translations.navigation.events,
+          crumbKey: 'navigation.events',
+          titleKey: 'navigation.events',
         } satisfies DashboardChromeHandle,
         children: [
           {
@@ -145,15 +148,15 @@ export const dashboardRouteMeta: RouteObject[] = [
       {
         path: 'participants',
         handle: {
-          crumb: translations.navigation.participants,
-          title: translations.navigation.participants,
+          crumbKey: 'navigation.participants',
+          titleKey: 'navigation.participants',
         } satisfies DashboardChromeHandle,
       },
       {
         path: 'barrels',
         handle: {
-          crumb: translations.navigation.barrels,
-          title: translations.navigation.barrels,
+          crumbKey: 'navigation.barrels',
+          titleKey: 'navigation.barrels',
         } satisfies DashboardChromeHandle,
       },
       {
@@ -219,8 +222,8 @@ export const dashboardRouteMeta: RouteObject[] = [
       {
         path: 'activity',
         handle: {
-          crumb: 'Aktivita',
-          title: 'Aktivita',
+          crumbKey: 'navigation.activity',
+          titleKey: 'navigation.activity',
         } satisfies DashboardChromeHandle,
       },
       {
@@ -243,21 +246,21 @@ export const dashboardRouteMeta: RouteObject[] = [
       {
         path: 'system',
         handle: {
-          crumb: 'Systém',
-          title: 'Systém',
+          crumbKey: 'navigation.system',
+          titleKey: 'navigation.system',
         } satisfies DashboardChromeHandle,
         children: [
           { path: 'users', handle: { crumb: 'Uživatelé' } satisfies DashboardChromeHandle },
           { path: 'statistics', handle: { crumb: 'Statistiky' } satisfies DashboardChromeHandle },
           { path: 'operations', handle: { crumb: 'Operace' } satisfies DashboardChromeHandle },
-          { path: 'settings', handle: { crumb: 'Nastavení' } satisfies DashboardChromeHandle },
+          { path: 'settings', handle: { crumbKey: 'navigation.settings', titleKey: 'navigation.settings' } satisfies DashboardChromeHandle },
         ],
       },
       {
         path: 'docs',
         handle: {
-          crumb: 'Dokumentace',
-          title: 'Dokumentace',
+          crumbKey: 'navigation.docs',
+          titleKey: 'navigation.docs',
         } satisfies DashboardChromeHandle,
       },
     ],
@@ -265,16 +268,16 @@ export const dashboardRouteMeta: RouteObject[] = [
   {
     path: 'dashboard/leaderboard',
     handle: {
-      crumb: translations.navigation.leaderboard,
-      title: translations.navigation.leaderboard,
+      crumbKey: 'navigation.leaderboard',
+      titleKey: 'navigation.leaderboard',
       hideChrome: true,
     } satisfies DashboardChromeHandle,
   },
   {
     path: ':userId/dashboard',
     handle: {
-      crumb: 'Moje statistiky',
-      title: 'Moje statistiky',
+      crumbKey: 'navigation.myStats',
+      titleKey: 'navigation.myStats',
     } satisfies DashboardChromeHandle,
   },
 ];

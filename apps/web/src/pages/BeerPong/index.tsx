@@ -14,12 +14,19 @@ import { beerPongService } from '../../services/beerPongService';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { CreateTournamentDialog } from './CreateTournamentDialog';
 import type { BeerPongEvent, BeerPongEventStatus } from '@demonicka/shared-types';
-import translations from '../../locales/cs/beerPong.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 import { useDashboardHeaderSlots } from '../../contexts/DashboardChromeContext';
 
 export function BeerPongList() {
   const navigate = useNavigate();
   const { activeEvent } = useActiveEvent();
+  const t = useTranslations<Record<string, unknown>>('beerPong');
+  const list = (t.list as Record<string, unknown>) || {};
+  const listStats = (list.stats as Record<string, string>) || {};
+  const listEmpty = (list.empty as Record<string, string>) || {};
+  const noActiveEvent = (t.noActiveEvent as Record<string, string>) || {};
+  const detail = (t.detail as Record<string, unknown>) || {};
+  const detailStatus = (detail.status as Record<string, string>) || {};
   const [tournaments, setTournaments] = useState<BeerPongEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +34,7 @@ export function BeerPongList() {
 
   useEffect(() => {
     if (!activeEvent) {
-      setError(translations.list.error);
+      setError((list.error as string) ?? 'Nepodařilo se načíst turnaje');
       setLoading(false);
       return;
     }
@@ -47,7 +54,7 @@ export function BeerPongList() {
       const data = await beerPongService.getByEvent(activeEvent.id);
       setTournaments(data);
     } catch (err: any) {
-      setError(err.message || translations.list.error);
+      setError(err.message || (list.error as string) ?? 'Nepodařilo se načíst turnaje');
     } finally {
       setLoading(false);
     }
@@ -77,11 +84,11 @@ export function BeerPongList() {
   const getStatusLabel = (status: BeerPongEventStatus): string => {
     switch (status) {
       case 'DRAFT':
-        return translations.detail.status.draft;
+        return detailStatus.draft ?? 'Návrh';
       case 'ACTIVE':
-        return translations.detail.status.active;
+        return detailStatus.active ?? 'Aktivní';
       case 'COMPLETED':
-        return translations.detail.status.completed;
+        return detailStatus.completed ?? 'Dokončeno';
       default:
         return status;
     }
@@ -94,10 +101,10 @@ export function BeerPongList() {
         startIcon={<AddIcon />}
         onClick={handleCreateTournament}
       >
-        {translations.list.createButton}
+        {(list.createButton as string) ?? 'Vytvořit Turnaj'}
       </Button>
     ),
-    [handleCreateTournament, translations.list.createButton],
+    [handleCreateTournament, list.createButton],
   );
   useDashboardHeaderSlots({ action: headerAction });
 
@@ -105,10 +112,10 @@ export function BeerPongList() {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h5" gutterBottom>
-          {translations.noActiveEvent.title}
+          {noActiveEvent.title ?? 'Beer Pong Turnaje'}
         </Typography>
         <Typography color="text.secondary">
-          {translations.noActiveEvent.subtitle}
+          {noActiveEvent.subtitle ?? 'Pro zobrazení beer pong turnajů prosím vyberte aktivní událost.'}
         </Typography>
       </Box>
     );
@@ -126,11 +133,11 @@ export function BeerPongList() {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h5" gutterBottom>
-          {translations.list.title}
+          {(list.title as string) ?? 'Beer Pong Turnaje'}
         </Typography>
         <Typography color="error">{error}</Typography>
         <Button variant="contained" onClick={loadTournaments} sx={{ mt: 2 }}>
-          {translations.list.retry}
+          {(list.retry as string) ?? 'Zkusit znovu'}
         </Button>
       </Box>
     );
@@ -149,13 +156,13 @@ export function BeerPongList() {
           }}
         >
           <Typography variant="h6" color="text.secondary" gutterBottom>
-            {translations.list.empty.title}
+            {listEmpty.title ?? 'Zatím žádné turnaje'}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            {translations.list.empty.subtitle}
+            {listEmpty.subtitle ?? 'Vytvořte svůj první beer pong turnaj a začněte. Každý turnaj potřebuje 8 týmů (dvojic) pro začátek.'}
           </Typography>
           <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreateTournament}>
-            {translations.list.empty.createButton}
+            {listEmpty.createButton ?? 'Vytvořit Turnaj'}
           </Button>
         </Paper>
       ) : (
@@ -203,7 +210,7 @@ export function BeerPongList() {
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">
-                        {translations.list.stats.teams}
+                        {listStats.teams ?? 'Týmy:'}
                       </Typography>
                       <Typography
                         variant="body2"
@@ -217,7 +224,7 @@ export function BeerPongList() {
                     {tournament.status === 'ACTIVE' && gameCount > 0 && (
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" color="text.secondary">
-                          {translations.list.stats.games}
+                          {listStats.games ?? 'Zápasy:'}
                         </Typography>
                         <Typography variant="body2" fontWeight={600}>
                           {gameCount}
@@ -227,7 +234,7 @@ export function BeerPongList() {
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">
-                        {translations.list.stats.beersPerPlayer}
+                        {listStats.beersPerPlayer ?? 'Piv na hráče:'}
                       </Typography>
                       <Typography variant="body2" fontWeight={600}>
                         {tournament.beersPerPlayer}
@@ -236,7 +243,7 @@ export function BeerPongList() {
 
                     {canStart && (
                       <Chip
-                        label={translations.list.stats.readyToStart}
+                        label={listStats.readyToStart ?? 'Připraveno ke startu'}
                         color="success"
                         size="small"
                         sx={{ mt: 1, alignSelf: 'flex-start' }}
@@ -245,7 +252,7 @@ export function BeerPongList() {
 
                     {teamCount < 8 && tournament.status === 'DRAFT' && (
                       <Typography variant="caption" color="warning.main" sx={{ mt: 0.5 }}>
-                        {translations.list.stats.moreTeamsNeeded.replace('{{count}}', String(8 - teamCount))}
+                        {(listStats.moreTeamsNeeded ?? '{{count}} týmů chybí').replace('{{count}}', String(8 - teamCount))}
                       </Typography>
                     )}
                   </Box>

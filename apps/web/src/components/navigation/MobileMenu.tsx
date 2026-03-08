@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { USER_ROLE } from '@demonicka/shared-types';
-import translations from '../../locales/cs/common.header.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 import { tokens } from '../../theme/tokens';
 
 interface MobileMenuProps {
@@ -17,6 +17,7 @@ interface MobileMenuProps {
 export function MobileMenu({ open, onClose }: MobileMenuProps) {
   const { user, hasRole } = useAuth();
   const { activeEvent } = useActiveEvent();
+  const t = useTranslations<{ navigation: Record<string, string> }>('common.header');
   const navigate = useNavigate();
   const location = useLocation();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -49,38 +50,38 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
 
     if (hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR])) {
       items.push(
-        { to: '/dashboard', label: translations.navigation.dashboard },
-        { to: '/dashboard/events', label: translations.navigation.events }
+        { to: '/dashboard', label: t.navigation?.dashboard },
+        { to: '/dashboard/events', label: t.navigation?.events }
       );
 
       if (activeEvent) {
         items.push(
-          { to: '/dashboard/participants', label: translations.navigation.participants },
-          { to: '/dashboard/barrels', label: translations.navigation.barrels },
-          { to: '/dashboard/leaderboard', label: translations.navigation.leaderboard }
+          { to: '/dashboard/participants', label: t.navigation?.participants },
+          { to: '/dashboard/barrels', label: t.navigation?.barrels },
+          { to: '/dashboard/leaderboard', label: t.navigation?.leaderboard }
         );
       }
 
       if (user.role === USER_ROLE.SUPER_ADMIN) {
         items.push(
-          { to: '/dashboard/system', label: 'Systém' },
-          { to: '/dashboard/activity', label: 'Aktivita' }
+          { to: '/dashboard/system', label: t.navigation?.system },
+          { to: '/dashboard/activity', label: t.navigation?.activity }
         );
       }
 
       const userBase = `/u/${encodeURIComponent(user.username)}`;
-      items.push({ to: `${userBase}/gallery`, label: 'Galerie' });
+      items.push({ to: `${userBase}/gallery`, label: t.navigation?.gallery });
     }
 
     if (user?.role === USER_ROLE.USER) {
       const userBase = `/u/${encodeURIComponent(user.username)}`;
       const base = `${userBase}/dashboard`;
       items.push(
-        { to: base, label: 'Moje statistiky' },
-        { to: `${base}/events`, label: 'Události' },
-        { to: `${userBase}/settings`, label: 'Nastavení' },
-        { to: `${userBase}/achievements`, label: 'Úspěchy' },
-        { to: `${userBase}/gallery`, label: 'Galerie' }
+        { to: base, label: t.navigation?.myStats },
+        { to: `${base}/events`, label: t.navigation?.events },
+        { to: `${userBase}/settings`, label: t.navigation?.settings },
+        { to: `${userBase}/achievements`, label: t.navigation?.achievements },
+        { to: `${userBase}/gallery`, label: t.navigation?.gallery }
       );
     }
 
@@ -108,7 +109,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
     >
       <Box sx={{ p: 2 }}>
         <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-          Navigace
+          {t.navigation?.label}
         </Typography>
 
         <List>
@@ -140,7 +141,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
         {activeEvent && (
           <Box sx={{ mt: 3, p: 2, bgcolor: 'background.default', borderRadius: tokens.borderRadius.md }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
-              Aktivní událost
+              {t.navigation?.activeEvent}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
               <EventIcon sx={{ fontSize: 16, color: 'text.secondary' }} />

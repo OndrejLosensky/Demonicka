@@ -1,0 +1,78 @@
+{
+  "title": "Participants",
+  "loading": "Loading participants...",
+  "noData": "No participants to display",
+  "actions": {
+    "showDeleted": "Show deleted",
+    "addParticipant": "Add participant"
+  },
+  "sections": {
+    "male": "Men",
+    "female": "Women",
+    "count": "count"
+  },
+  "table": {
+    "columns": {
+      "name": "Name",
+      "beers": "Beers",
+      "gender": "Gender",
+      "lastBeer": "Last",
+      "actions": "Actions"
+    },
+    "status": {
+      "deleted": "Deleted"
+    },
+    "actions": {
+      "addBeer": "Add beer",
+      "addSpilledBeer": "Spill beer",
+      "removeBeer": "Remove beer",
+      "restore": "Restore",
+      "delete": "Remove from event"
+    }
+  },
+  "dialogs": {
+    "add": {
+      "title": "Add participant",
+      "validation": {
+        "required": "This field is required",
+        "username": "This username already exists"
+      },
+      "fields": {
+        "username": {
+          "label": "Username"
+        },
+        "gender": {
+          "label": "Gender",
+          "male": "Male",
+          "female": "Female"
+        }
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "confirm": "Add"
+      },
+      "success": "Participant was added successfully",
+      "error": "Failed to add participant"
+    },
+    "delete": {
+      "title": "Remove participant from event",
+      "message": "Are you sure you want to remove participant {username} from this event?",
+      "confirm": "Remove",
+      "cancel": "Cancel",
+      "success": "Participant was removed from event",
+      "error": "Failed to remove participant from event"
+    }
+  },
+  "errors": {
+    "fetchFailed": "Failed to load participants",
+    "addBeerFailed": "Failed to add beer",
+    "addSpilledBeerFailed": "Failed to add spilled beer",
+    "removeBeerFailed": "Failed to remove beer",
+    "beerAdded": "Beer was added successfully",
+    "beerRemoved": "Beer was removed successfully"
+  },
+  "emptyState": {
+    "title": "No active event",
+    "subtitle": "Create a new event to manage participants"
+  }
+}

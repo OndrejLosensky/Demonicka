@@ -2,7 +2,7 @@ import { Paper, Typography, Box, Chip, Divider } from '@mui/material';
 import { FaBeer } from 'react-icons/fa';
 import { GiTrophy } from 'react-icons/gi';
 import type { LeaderboardTableProps } from './types';
-import translations from '../../../locales/cs/dashboard.leaderboard.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import type { UserLeaderboard } from './types';
 import { UserAvatar } from '../../../components/UserAvatar';
 
@@ -20,6 +20,11 @@ const getTrophyColor = (rank: number): string => {
 };
 
 export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableProps) => {
+  const t = useTranslations<Record<string, unknown>>('dashboard.leaderboard');
+  const table = (t.table as Record<string, unknown>) || {};
+  const columns = (table.columns as Record<string, string>) || {};
+  const noParticipants = (table.noParticipants as string) ?? 'Zatím žádní účastníci';
+  const champion = (table.champion as string) ?? 'ŠAMPION';
   // Group participants by rank (shared positions)
   const groupedByRank = participants.reduce((acc, participant) => {
     const rank = participant.rank;
@@ -61,7 +66,7 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
       {rankGroups.length === 0 ? (
         <Box textAlign="center" py={6}>
           <Typography color="text.secondary" variant="body1" sx={{ fontWeight: 500, fontSize: '1rem', textShadow: 'none' }}>
-            {translations.table.noParticipants}
+            {noParticipants}
           </Typography>
         </Box>
       ) : (
@@ -79,17 +84,17 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
           >
             <Box sx={{ width: '100px', flexShrink: 0 }}>
               <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 600, fontSize: '0.875rem', textShadow: 'none' }}>
-                {translations.table.columns.rank}
+                {columns.rank}
               </Typography>
             </Box>
             <Box sx={{ flex: 1 }}>
               <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 600, fontSize: '0.875rem', textShadow: 'none' }}>
-                {translations.table.columns.name}
+                {columns.name}
               </Typography>
             </Box>
             <Box sx={{ width: '140px', textAlign: 'right', flexShrink: 0 }}>
               <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 600, fontSize: '0.875rem', textShadow: 'none' }}>
-                {translations.table.columns.beers}
+                {columns.beers}
               </Typography>
             </Box>
           </Box>
@@ -223,7 +228,7 @@ export const LeaderboardTable = ({ participants = [], title }: LeaderboardTableP
                         </Typography>
                         {participant.rank === 1 && participantIndex === 0 && (
                           <Chip 
-                            label={translations.table.champion}
+                            label={champion}
                             size="small"
                             sx={{ 
                               bgcolor: 'warning.main',

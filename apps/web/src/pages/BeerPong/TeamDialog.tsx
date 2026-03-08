@@ -18,7 +18,7 @@ import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { userService } from '../../services/userService';
 import type { CreateTeamDto, BeerPongTeam, EventBeerPongTeam } from '@demonicka/shared-types';
 import type { User } from '@demonicka/shared-types';
-import translations from '../../locales/cs/beerPong.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 
 interface TeamDialogProps {
   open: boolean;
@@ -36,6 +36,13 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
   existingTeams = [],
 }) => {
   const { activeEvent } = useActiveEvent();
+  const t = useTranslations<Record<string, unknown>>('beerPong');
+  const teamDialog = (t.teamDialog as Record<string, unknown>) || {};
+  const teamDialogFields = (teamDialog.fields as Record<string, string>) || {};
+  const teamDialogButtons = (teamDialog.buttons as Record<string, string>) || {};
+  const teamDialogErrors = (teamDialog.errors as Record<string, string>) || {};
+  const detail = (t.detail as Record<string, unknown>) || {};
+  const detailTeams = (detail.teams as Record<string, string>) || {};
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -74,7 +81,7 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
       setUsers(eventUsers);
     } catch (error: any) {
       console.error('Failed to load users:', error);
-      toast.error(translations.teamDialog.errors.loadUsersFailed);
+      toast.error(teamDialogErrors.loadUsersFailed ?? 'Nepodařilo se načíst uživatele');
     } finally {
       setLoadingUsers(false);
     }
@@ -99,15 +106,14 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
     let valid = true;
 
     if (!formData.name.trim()) {
-      setNameError(translations.teamDialog.errors.nameRequired);
+      setNameError(teamDialogErrors.nameRequired ?? 'Název týmu je povinný');
       valid = false;
     } else {
-      // Check if team name is unique
       const nameExists = existingTeams.some(
         (team) => team.name.toLowerCase() === formData.name.trim().toLowerCase(),
       );
       if (nameExists) {
-        setNameError(translations.teamDialog.errors.nameExists);
+        setNameError(teamDialogErrors.nameExists ?? 'Tým s tímto názvem již existuje');
         valid = false;
       } else {
         setNameError('');
@@ -115,17 +121,17 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
     }
 
     if (!formData.player1Id) {
-      toast.error(translations.teamDialog.errors.selectPlayer1);
+      toast.error(teamDialogErrors.selectPlayer1 ?? 'Vyberte hráče 1');
       valid = false;
     }
 
     if (!formData.player2Id) {
-      toast.error(translations.teamDialog.errors.selectPlayer2);
+      toast.error(teamDialogErrors.selectPlayer2 ?? 'Vyberte hráče 2');
       valid = false;
     }
 
     if (formData.player1Id === formData.player2Id) {
-      toast.error(translations.teamDialog.errors.playersDifferent);
+      toast.error(teamDialogErrors.playersDifferent ?? 'Hráči musí být různí');
       valid = false;
     }
 
@@ -144,31 +150,30 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
       try {
         setIsSubmitting(true);
         await beerPongService.createTeam(beerPongEventId, formData);
-        toast.success(translations.teamDialog.success);
+        toast.success((teamDialog.success as string) ?? 'Tým byl vytvořen');
         onSuccess();
         onClose();
       } catch (error: any) {
         console.error('Failed to create team:', error);
-        toast.error(error.response?.data?.message || translations.teamDialog.errors.createFailed);
+        toast.error(error.response?.data?.message || (teamDialogErrors.createFailed ?? 'Nepodařilo se vytvořit tým'));
       } finally {
         setIsSubmitting(false);
       }
     } else {
-      // Add from event pool
       if (!selectedEventTeamId) {
-        toast.error('Prosím vyberte tým z event poolu');
+        toast.error(teamDialogErrors.selectEventTeam ?? 'Prosím vyberte tým z event poolu');
         return;
       }
 
       try {
         setIsSubmitting(true);
         await beerPongService.addTeamFromEvent(beerPongEventId, selectedEventTeamId);
-        toast.success(translations.teamDialog.success);
+        toast.success((teamDialog.success as string) ?? 'Tým byl přidán');
         onSuccess();
         onClose();
       } catch (error: any) {
         console.error('Failed to add team from event:', error);
-        toast.error(error.response?.data?.message || 'Nepodařilo se přidat tým z event poolu');
+        toast.error(error.response?.data?.message || (teamDialogErrors.addFromEventFailed ?? 'Nepodařilo se přidat tým z event poolu'));
       } finally {
         setIsSubmitting(false);
       }
@@ -215,7 +220,7 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit}>
-        <DialogTitle>{translations.teamDialog.title}</DialogTitle>
+        <DialogTitle>{(teamDialog.title as string) ?? 'Přidat Tým'}</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
             <Box sx={{ mb: 3, display: 'flex', gap: 1 }}>
@@ -225,7 +230,7 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
                 size="small"
                 disabled={isSubmitting}
               >
-                Vytvořit nový
+                {(teamDialog.tabCreateNew as string) ?? 'Vytvořit nový'}
               </Button>
               <Button
                 variant={activeTab === 1 ? 'contained' : 'outlined'}
@@ -233,14 +238,14 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
                 size="small"
                 disabled={isSubmitting}
               >
-                Přidat z event poolu
+                {(teamDialog.tabAddFromEvent as string) ?? 'Přidat z event poolu'}
               </Button>
             </Box>
 
             {activeTab === 0 ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <TextField
-              label={translations.teamDialog.fields.teamName}
+              label={teamDialogFields.teamName ?? 'Název týmu'}
               fullWidth
               required
               value={formData.name}
@@ -254,10 +259,10 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
             />
 
             <FormControl fullWidth required disabled={isSubmitting || loadingUsers}>
-              <InputLabel>{translations.teamDialog.fields.player1}</InputLabel>
+              <InputLabel>{teamDialogFields.player1 ?? 'Hráč 1'}</InputLabel>
               <Select
                 value={formData.player1Id}
-                label={translations.teamDialog.fields.player1}
+                label={teamDialogFields.player1 ?? 'Hráč 1'}
                 onChange={(e) => setFormData((prev) => ({ ...prev, player1Id: e.target.value }))}
               >
                 {getAvailableUsers(formData.player2Id).map((user) => (
@@ -269,10 +274,10 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
             </FormControl>
 
             <FormControl fullWidth required disabled={isSubmitting || loadingUsers}>
-              <InputLabel>{translations.teamDialog.fields.player2}</InputLabel>
+              <InputLabel>{teamDialogFields.player2 ?? 'Hráč 2'}</InputLabel>
               <Select
                 value={formData.player2Id}
-                label={translations.teamDialog.fields.player2}
+                label={teamDialogFields.player2 ?? 'Hráč 2'}
                 onChange={(e) => setFormData((prev) => ({ ...prev, player2Id: e.target.value }))}
               >
                 {getAvailableUsers(formData.player1Id).map((user) => (
@@ -285,7 +290,7 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
 
                 {existingTeams.length >= 8 && (
                   <Box sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
-                    {translations.detail.teams.full}
+                    {detailTeams.full ?? 'Turnaj je plný (8 týmů). Před přidáním nového týmu odstraňte existující tým.'}
                   </Box>
                 )}
               </Box>
@@ -293,18 +298,18 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {loadingEventTeams ? (
                   <Box sx={{ textAlign: 'center', py: 3 }}>
-                    Načítání týmů z event poolu...
+                    {(teamDialog.loadingEventTeams as string) ?? 'Načítání týmů z event poolu...'}
                   </Box>
                 ) : getAvailableEventTeams().length === 0 ? (
                   <Box sx={{ p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
-                    V event poolu nejsou žádné dostupné týmy. Vytvořte nejprve tým v event poolu nebo použijte kartu "Vytvořit nový".
+                    {(teamDialog.noEventTeams as string) ?? 'V event poolu nejsou žádné dostupné týmy. Vytvořte nejprve tým v event poolu nebo použijte kartu "Vytvořit nový".'}
                   </Box>
                 ) : (
                   <FormControl fullWidth required disabled={isSubmitting}>
-                    <InputLabel>Vybrat tým z event poolu</InputLabel>
+                    <InputLabel>{(teamDialog.selectEventTeam as string) ?? 'Vybrat tým z event poolu'}</InputLabel>
                     <Select
                       value={selectedEventTeamId}
-                      label="Vybrat tým z event poolu"
+                      label={(teamDialog.selectEventTeam as string) ?? 'Vybrat tým z event poolu'}
                       onChange={(e) => setSelectedEventTeamId(e.target.value)}
                     >
                       {getAvailableEventTeams().map((team) => (
@@ -317,7 +322,7 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
                 )}
                 {existingTeams.length >= 8 && (
                   <Box sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
-                    {translations.detail.teams.full}
+                    {detailTeams.full ?? 'Turnaj je plný (8 týmů).'}
                   </Box>
                 )}
               </Box>
@@ -326,7 +331,7 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} disabled={isSubmitting}>
-            {translations.teamDialog.buttons.cancel}
+            {teamDialogButtons.cancel ?? 'Zrušit'}
           </Button>
           <Button
             type="submit"
@@ -338,7 +343,7 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({
               (activeTab === 1 && (!selectedEventTeamId || loadingEventTeams))
             }
           >
-            {activeTab === 0 ? translations.teamDialog.buttons.create : 'Přidat z poolu'}
+            {activeTab === 0 ? (teamDialogButtons.create ?? 'Vytvořit') : (teamDialogButtons.addFromPool ?? 'Přidat z poolu')}
           </Button>
         </DialogActions>
       </form>

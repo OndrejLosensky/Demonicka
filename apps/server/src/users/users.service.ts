@@ -228,6 +228,7 @@ export class UsersService {
 
     const updateData: any = {
       preferredTheme: dto.preferredTheme ?? undefined,
+      preferredLocale: dto.preferredLocale ?? undefined,
     };
 
     if (dto.email !== undefined) {

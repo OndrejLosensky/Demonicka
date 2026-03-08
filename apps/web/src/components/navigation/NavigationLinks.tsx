@@ -15,7 +15,7 @@ import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import { USER_ROLE, type Event, type BeerPongEvent } from '@demonicka/shared-types';
-import translations from '../../locales/cs/common.header.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 import { tokens } from '../../theme/tokens';
 import { eventService } from '../../services/eventService';
 import { beerPongService } from '../../services/beerPongService';
@@ -25,6 +25,7 @@ export function NavigationLinks() {
   const { user, hasRole } = useAuth();
   const { activeEvent } = useActiveEvent();
   const location = useLocation();
+  const t = useTranslations<{ navigation: Record<string, string> }>('common.header');
 
   const canSeeAdminNav =
     Boolean(user) && hasRole([USER_ROLE.SUPER_ADMIN, USER_ROLE.OPERATOR]);
@@ -282,7 +283,7 @@ export function NavigationLinks() {
       {canSeeAdminNav && (
         <>
           <DropdownNavLink to="/dashboard" icon={<DashboardIcon sx={{ fontSize: 18 }} />} items={dashboardItems}>
-            {translations.navigation.dashboard}
+            {t.navigation?.dashboard}
           </DropdownNavLink>
           {activeEvent && (
             <>
@@ -290,10 +291,10 @@ export function NavigationLinks() {
                 to="/dashboard/participants"
                 icon={<PeopleIcon sx={{ fontSize: 18 }} />}
               >
-                {translations.navigation.participants}
+                {t.navigation?.participants}
               </NavLink>
               <NavLink to="/dashboard/barrels" icon={<StorageIcon sx={{ fontSize: 18 }} />}>
-                {translations.navigation.barrels}
+                {t.navigation?.barrels}
               </NavLink>
             </>
           )}
@@ -301,13 +302,13 @@ export function NavigationLinks() {
       )}
       {activeEvent && canSeeAdminNav && (
         <NavLink to="/dashboard/leaderboard" icon={<TrophyIcon sx={{ fontSize: 18 }} />}>
-          {translations.navigation.leaderboard}
+          {t.navigation?.leaderboard}
         </NavLink>
       )}
       {canSeeAdminNav && (
         <>
           <DropdownNavLink to="/dashboard/events" icon={<EventIcon sx={{ fontSize: 18 }} />} items={eventItems}>
-            {translations.navigation.events}
+            {t.navigation?.events}
           </DropdownNavLink>
           {activeEvent && activeEvent.beerPongEnabled === true && (
             <DropdownNavLink
@@ -319,29 +320,29 @@ export function NavigationLinks() {
             </DropdownNavLink>
           )}
           <NavLink to={`${userBase}/gallery`} icon={<PhotoLibraryIcon sx={{ fontSize: 18 }} />}>
-            Galerie
+            {t.navigation?.gallery}
           </NavLink>
         </>
       )}
       {user?.role === USER_ROLE.USER && (
         <>
           <NavLink to={`${userBase}/dashboard`} icon={<TrendingUpIcon sx={{ fontSize: 18 }} />}>
-            Moje statistiky
+            {t.navigation?.myStats}
           </NavLink>
           <NavLink to={`${userBase}/dashboard/events`} icon={<EventIcon sx={{ fontSize: 18 }} />}>
-            Události
+            {t.navigation?.events}
           </NavLink>
           <NavLink
             to={`${userBase}/settings`}
             icon={<SettingsIcon sx={{ fontSize: 18 }} />}
           >
-            Nastavení
+            {t.navigation?.settings}
           </NavLink>
           <NavLink to={`${userBase}/achievements`} icon={<TrophyIcon sx={{ fontSize: 18 }} />}>
-            Úspěchy
+            {t.navigation?.achievements}
           </NavLink>
           <NavLink to={`${userBase}/gallery`} icon={<PhotoLibraryIcon sx={{ fontSize: 18 }} />}>
-            Galerie
+            {t.navigation?.gallery}
           </NavLink>
         </>
       )}

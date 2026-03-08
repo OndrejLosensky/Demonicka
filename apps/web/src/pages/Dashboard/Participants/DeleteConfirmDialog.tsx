@@ -7,7 +7,7 @@ import {
   Typography,
 } from '@mui/material';
 import { FaUserTimes } from 'react-icons/fa';
-import translations from '../../../locales/cs/dashboard.participants.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 
 interface DeleteConfirmDialogProps {
   open: boolean;
@@ -22,21 +22,23 @@ export const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
   onConfirm,
   participantUsername,
 }) => {
+  const t = useTranslations<Record<string, unknown>>('dashboard.participants');
+  const deleteDialog = ((t.dialogs as Record<string, Record<string, string>>)?.delete) || {};
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <FaUserTimes className="text-red-500" />
-        {translations.dialogs.delete.title}
+        {deleteDialog.title}
       </DialogTitle>
       <DialogContent>
         <Typography>
-          {translations.dialogs.delete.message.replace('{username}', participantUsername)}
+          {(deleteDialog.message || '').replace('{username}', participantUsername)}
         </Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>{translations.dialogs.delete.cancel}</Button>
+        <Button onClick={onClose}>{deleteDialog.cancel}</Button>
         <Button onClick={onConfirm} color="error" variant="contained">
-          {translations.dialogs.delete.confirm}
+          {deleteDialog.confirm}
         </Button>
       </DialogActions>
     </Dialog>

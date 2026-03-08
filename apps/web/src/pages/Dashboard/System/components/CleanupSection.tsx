@@ -21,7 +21,7 @@ import { backupService } from '../../../../services/backupService';
 import { websocketService } from '../../../../services/websocketService';
 import { toast } from 'react-hot-toast';
 import { USER_ROLE } from '@demonicka/shared-types';
-import translations from '../../../../locales/cs/system.json';
+import { useTranslations } from '../../../../contexts/LocaleContext';
 
 interface CleanupSectionProps {
   onRefresh?: () => void;
@@ -30,13 +30,18 @@ interface CleanupSectionProps {
 
 type OperationId = 'backup' | 'system' | 'activeEvent';
 
-const OPERATION_LABELS: Record<OperationId, string> = {
-  backup: translations.backup.runButton,
-  system: 'Vyčistit systém',
-  activeEvent: 'Vyčistit aktivní událost',
-};
-
 export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userRole }) => {
+  const t = useTranslations<Record<string, unknown>>('system');
+  const backupT = (t.backup as Record<string, string>) || {};
+  const toastsT = (t.toasts as Record<string, string>) || {};
+  const cleanupT = (t.cleanupSection as Record<string, string>) || {};
+  const runButtonLabel = backupT.runButton ?? 'Spustit zálohu';
+
+  const OPERATION_LABELS: Record<OperationId, string> = {
+    backup: runButtonLabel,
+    system: cleanupT.operationSystem ?? 'Vyčistit systém',
+    activeEvent: cleanupT.operationActiveEvent ?? 'Vyčistit aktivní událost',
+  };
   const [isLoading, setIsLoading] = useState<OperationId | null>(null);
   const pendingJobsRef = useRef<Map<string, string>>(new Map());
   const [dialogConfig, setDialogConfig] = useState<{
@@ -56,11 +61,11 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
       if (!label) return;
       if (data.status === 'COMPLETED') {
         const fileName = data.result?.fileName as string | undefined;
-        const msg = label === translations.backup.runButton && fileName
-          ? `${translations.toasts.backupCompleted}: ${fileName}`
-          : label === translations.backup.runButton
-            ? translations.toasts.backupCompleted
-            : `Úloha „${label}“ dokončena.`;
+        const msg = label === runButtonLabel && fileName
+          ? `${toastsT.backupCompleted ?? 'Záloha byla úspěšně vytvořena'}: ${fileName}`
+          : label === runButtonLabel
+            ? (toastsT.backupCompleted ?? 'Záloha byla úspěšně vytvořena')
+            : (cleanupT.jobCompleted ?? 'Úloha dokončena.').replace('{{label}}', label);
         toast.success(msg);
         onRefresh?.();
       } else if (data.status === 'FAILED') {
@@ -81,11 +86,11 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
     try {
       const { jobId } = await apiCall();
       pendingJobsRef.current.set(jobId, OPERATION_LABELS[operationId]);
-      toast.success('Úloha zařazena. Stav uvidíte v Úlohy.');
+      toast.success(cleanupT.jobEnqueued ?? 'Úloha zařazena. Stav uvidíte v Úlohy.');
       onRefresh?.();
     } catch (error) {
       console.error(`${operationId} failed:`, error);
-      toast.error(`Nepodařilo se zařadit úlohu.`);
+      toast.error(cleanupT.jobFailed ?? 'Nepodařilo se zařadit úlohu.');
     } finally {
       setIsLoading(null);
     }
@@ -113,8 +118,8 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
   const operations = [
     {
       id: 'backup' as const,
-      title: 'Záloha databáze',
-      description: 'Vytvořit zálohu databáze a nahrát ji do úložiště.',
+      title: cleanupT.operationBackup ?? 'Záloha databáze',
+      description: cleanupT.operationBackupDesc ?? 'Vytvořit zálohu databáze a nahrát ji do úložiště.',
       icon: <BackupIcon />,
       color: 'primary' as const,
       severity: 'warning' as const,
@@ -122,28 +127,30 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
     },
     {
       id: 'system' as const,
-      title: 'Vyčistit systém',
-      description: 'Smazat staré logy a dočasné soubory',
+      title: cleanupT.operationSystem ?? 'Vyčistit systém',
+      description: cleanupT.operationSystemDesc ?? 'Smazat staré logy a dočasné soubory',
       icon: <DeleteSweepIcon />,
       color: 'primary' as const,
       severity: 'warning' as const,
       action: () => openDialog(
-        'Vyčistit systém',
-        'Tato akce smaže staré logy a dočasné soubory starší než 30 dní. Tato operace je bezpečná a neovlivní aktuální data.',
+        cleanupT.dialogSystemTitle ?? 'Vyčistit systém',
+        cleanupT.dialogSystemMessage ?? 'Tato akce smaže staré logy a dočasné soubory starší než 30 dní.',
         () => enqueueOperation('system', systemOperationsService.cleanupSystem),
+        'warning',
       ),
     },
     {
       id: 'activeEvent' as const,
-      title: 'Vyčistit aktivní událost',
-      description: 'Smazat všechna data aktivní události',
+      title: cleanupT.operationActiveEvent ?? 'Vyčistit aktivní událost',
+      description: cleanupT.operationActiveEventDesc ?? 'Smazat všechna data aktivní události',
       icon: <EventIcon />,
       color: 'warning' as const,
       severity: 'warning' as const,
       action: () => openDialog(
-        'Vyčistit aktivní událost',
-        'Tato akce smaže všechna data související s aktuální aktivní událostí včetně účastníků a vypitých piv. Tato operace je nevratná!',
+        cleanupT.dialogActiveEventTitle ?? 'Vyčistit aktivní událost',
+        cleanupT.dialogActiveEventMessage ?? 'Tato akce smaže všechna data související s aktuální aktivní událostí. Tato operace je nevratná!',
         () => enqueueOperation('activeEvent', systemOperationsService.cleanupActiveEvent),
+        'warning',
       ),
     },
   ];
@@ -154,13 +161,12 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
     <Box>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <WarningIcon color="warning" />
-        Systémové operace
+        {cleanupT.title ?? 'Systémové operace'}
       </Typography>
 
       <Alert severity="warning" sx={{ mb: 3 }}>
         <Typography variant="body2">
-          <strong>Upozornění:</strong> Operace „Vyčistit aktivní událost“ je nevratná. Před provedením se ujistěte,
-          že máte zálohu důležitých dat.
+          <strong>{cleanupT.warningTitle ?? 'Upozornění:'}</strong> {cleanupT.warningText ?? 'Operace „Vyčistit aktivní událost" je nevratná. Před provedením se ujistěte, že máte zálohu důležitých dat.'}
         </Typography>
       </Alert>
 
@@ -197,7 +203,7 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
                   disabled={isLoading === option.id}
                   startIcon={option.icon}
                 >
-                  {isLoading === option.id ? 'Probíhá...' : option.id === 'backup' ? translations.backup.runButton : option.title}
+                  {isLoading === option.id ? (cleanupT.buttonRunning ?? 'Probíhá...') : option.id === 'backup' ? runButtonLabel : option.title}
                 </Button>
               </CardActions>
             </Card>

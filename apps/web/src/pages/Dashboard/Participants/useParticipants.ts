@@ -4,8 +4,7 @@ import type { Participant } from './types';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { websocketService } from '../../../services/websocketService';
 import { notify } from '../../../notifications/notify';
-import translations from '../../../locales/cs/dashboard.participants.json';
-import toastTranslations from '../../../locales/cs/toasts.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 
 // Helper function to sort participants by username (name) alphabetically
 const sortParticipantsByName = (participants: Participant[]): Participant[] => {
@@ -21,6 +20,11 @@ export const useParticipants = (includeDeleted = false) => {
   const [deletedParticipants, setDeletedParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { activeEvent } = useActiveEvent();
+  const toastT = useTranslations<Record<string, Record<string, string>>>('toasts');
+  const partT = useTranslations<Record<string, Record<string, string>>>('dashboard.participants');
+  const success = toastT.success as Record<string, string> | undefined;
+  const toastError = toastT.error as Record<string, string> | undefined;
+  const errors = partT.errors as Record<string, string> | undefined;
   
   // Use refs to maintain stable references to mutable data
   const participantsRef = useRef<Participant[]>([]);
@@ -66,9 +70,9 @@ export const useParticipants = (includeDeleted = false) => {
           deletedParticipantsRef.current = [];
         }
       }
-    } catch (error) {
-      console.error('Failed to fetch participants:', error);
-      notify.error(toastTranslations.error.fetch.replace('{{item}}', 'účastníky'), {
+    } catch (err) {
+      console.error('Failed to fetch participants:', err);
+      notify.error((toastError?.fetch ?? 'Nepodařilo se načíst {{item}}').replace('{{item}}', 'účastníky'), {
         id: `participants:fetch:${activeEvent?.id ?? 'all'}:${includeDeleted ? 'deleted' : 'active'}`,
       });
     } finally {
@@ -79,32 +83,32 @@ export const useParticipants = (includeDeleted = false) => {
   const handleDelete = useCallback(async (id: string) => {
     try {
       await participantsApi.delete(id);
-      notify.success(toastTranslations.success.deleted.replace('{{item}}', 'Účastníka'), {
+      notify.success((success?.deleted ?? '{{item}} byl úspěšně smazán').replace('{{item}}', 'Účastníka'), {
         id: `participant:delete:${id}`,
       });
       await fetchParticipants();
-    } catch (error) {
-      console.error('Failed to delete participant:', error);
-      notify.error(toastTranslations.error.delete.replace('{{item}}', 'účastníka'), {
+    } catch (err) {
+      console.error('Failed to delete participant:', err);
+      notify.error((toastError?.delete ?? 'Nepodařilo se smazat {{item}}').replace('{{item}}', 'účastníka'), {
         id: `participant:delete:${id}`,
       });
     }
-  }, [fetchParticipants]);
+  }, [fetchParticipants, success, toastError]);
 
   const handleRestore = useCallback(async (id: string) => {
     try {
       await participantsApi.restore(id);
-      notify.success(toastTranslations.success.restored.replace('{{item}}', 'Účastník'), {
+      notify.success((success?.restored ?? '{{item}} byl úspěšně obnoven').replace('{{item}}', 'Účastník'), {
         id: `participant:restore:${id}`,
       });
       await fetchParticipants();
-    } catch (error) {
-      console.error('Failed to restore participant:', error);
-      notify.error(toastTranslations.error.restore.replace('{{item}}', 'účastníka'), {
+    } catch (err) {
+      console.error('Failed to restore participant:', err);
+      notify.error((toastError?.restore ?? 'Nepodařilo se obnovit {{item}}').replace('{{item}}', 'účastníka'), {
         id: `participant:restore:${id}`,
       });
     }
-  }, [fetchParticipants]);
+  }, [fetchParticipants, success, toastError]);
 
   const handleAddBeer = useCallback(async (id: string, beerSize: 'SMALL' | 'LARGE' = 'LARGE', volumeLitres: number = 0.5) => {
     const participant = participantsRef.current.find(p => p.id === id);
@@ -129,7 +133,7 @@ export const useParticipants = (includeDeleted = false) => {
       await participantsApi.addBeer(id, activeEvent?.id, { beerSize, volumeLitres });
       const toastId = `beer:add:${activeEvent?.id ?? 'none'}:${id}`;
       notify.success(
-        toastTranslations.success.beerAdded.replace(
+        (success?.beerAdded ?? 'Pivo bylo přidáno uživateli {{user}}').replace(
           '{{user}}',
           participant?.username || id,
         ),
@@ -137,15 +141,15 @@ export const useParticipants = (includeDeleted = false) => {
       );
       // Optimistic update already applied; skip full refetch to avoid 2s reload.
       // Leaderboard/dashboard WebSocket will sync if needed.
-    } catch (error) {
-      console.error('Failed to add beer:', error);
+    } catch (err) {
+      console.error('Failed to add beer:', err);
       const toastId = `beer:add:${activeEvent?.id ?? 'none'}:${id}`;
       // Revert optimistic update on error
       setParticipants(prevParticipants => {
-        const reverted = prevParticipants.map(p => 
-          p.id === id 
-            ? { 
-                ...p, 
+        const reverted = prevParticipants.map(p =>
+          p.id === id
+            ? {
+                ...p,
                 eventBeerCount: Math.max((p.eventBeerCount ?? 1) - 1, 0),
                 eventNonSpilledBeerCount: Math.max((p.eventNonSpilledBeerCount ?? 1) - 1, 0),
               }
@@ -154,9 +158,9 @@ export const useParticipants = (includeDeleted = false) => {
         participantsRef.current = reverted;
         return reverted;
       });
-      notify.error(translations.errors.addBeerFailed, { id: toastId });
+      notify.error(errors?.addBeerFailed ?? 'Nepodařilo se přidat pivo', { id: toastId });
     }
-  }, [activeEvent?.id, fetchParticipants]);
+  }, [activeEvent?.id, fetchParticipants, success, errors]);
 
   const handleAddSpilledBeer = useCallback(async (id: string) => {
     if (!activeEvent?.id) return;
@@ -182,22 +186,22 @@ export const useParticipants = (includeDeleted = false) => {
       await participantsApi.addSpilledBeer(id, activeEvent.id);
       const toastId = `beer:spilled:add:${activeEvent.id}:${id}`;
       notify.success(
-        toastTranslations.success.beerAdded.replace(
+        (success?.beerAdded ?? 'Pivo bylo přidáno uživateli {{user}}').replace(
           '{{user}}',
           participant?.username || id,
         ),
         { id: toastId },
       );
       // Optimistic update already applied; skip full refetch.
-    } catch (error) {
-      console.error('Failed to add spilled beer:', error);
+    } catch (err) {
+      console.error('Failed to add spilled beer:', err);
       const toastId = `beer:spilled:add:${activeEvent.id}:${id}`;
       // Revert optimistic update on error
       setParticipants(prevParticipants => {
-        const reverted = prevParticipants.map(p => 
-          p.id === id 
-            ? { 
-                ...p, 
+        const reverted = prevParticipants.map(p =>
+          p.id === id
+            ? {
+                ...p,
                 eventBeerCount: Math.max((p.eventBeerCount ?? 1) - 1, 0),
                 eventSpilledBeerCount: Math.max((p.eventSpilledBeerCount ?? 1) - 1, 0),
               }
@@ -206,9 +210,9 @@ export const useParticipants = (includeDeleted = false) => {
         participantsRef.current = reverted;
         return reverted;
       });
-      notify.error(translations.errors.addSpilledBeerFailed ?? translations.errors.addBeerFailed, { id: toastId });
+      notify.error(errors?.addSpilledBeerFailed ?? errors?.addBeerFailed ?? 'Nepodařilo se přidat rozlité pivo', { id: toastId });
     }
-  }, [activeEvent?.id, fetchParticipants]);
+  }, [activeEvent?.id, fetchParticipants, success, errors]);
 
   const handleRemoveBeer = useCallback(async (id: string) => {
     const participant = participantsRef.current.find(p => p.id === id);
@@ -244,15 +248,15 @@ export const useParticipants = (includeDeleted = false) => {
       await participantsApi.removeBeer(id, activeEvent?.id);
       const toastId = `beer:remove:${activeEvent?.id ?? 'none'}:${id}`;
       notify.success(
-        toastTranslations.success.beerRemoved.replace(
+        (success?.beerRemoved ?? 'Pivo bylo odebráno uživateli {{user}}').replace(
           '{{user}}',
           participant?.username || id,
         ),
         { id: toastId },
       );
       // Optimistic update already applied; skip full refetch.
-    } catch (error) {
-      console.error('Failed to remove beer:', error);
+    } catch (err) {
+      console.error('Failed to remove beer:', err);
       const toastId = `beer:remove:${activeEvent?.id ?? 'none'}:${id}`;
       // Revert optimistic update on error
       setParticipants(prevParticipants => {
@@ -264,24 +268,24 @@ export const useParticipants = (includeDeleted = false) => {
         participantsRef.current = reverted;
         return reverted;
       });
-      notify.error(translations.errors.removeBeerFailed, { id: toastId });
+      notify.error(errors?.removeBeerFailed ?? 'Nepodařilo se odebrat pivo', { id: toastId });
     }
-  }, [activeEvent?.id, fetchParticipants]);
+  }, [activeEvent?.id, fetchParticipants, success, errors]);
 
   const handleCleanup = useCallback(async () => {
     try {
       await participantsApi.cleanup();
-      notify.success(toastTranslations.success.deleted.replace('{{item}}', 'Smazaní účastníci'), {
+      notify.success((success?.deleted ?? '{{item}} byl úspěšně smazán').replace('{{item}}', 'Smazaní účastníci'), {
         id: 'participants:cleanup',
       });
       await fetchParticipants();
-    } catch (error) {
-      console.error('Failed to cleanup participants:', error);
-      notify.error(toastTranslations.error.delete.replace('{{item}}', 'smazané účastníky'), {
+    } catch (err) {
+      console.error('Failed to cleanup participants:', err);
+      notify.error((toastError?.delete ?? 'Nepodařilo se smazat {{item}}').replace('{{item}}', 'smazané účastníky'), {
         id: 'participants:cleanup',
       });
     }
-  }, [fetchParticipants]);
+  }, [fetchParticipants, success, toastError]);
 
   useEffect(() => {
     fetchParticipants();

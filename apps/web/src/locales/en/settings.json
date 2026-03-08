@@ -1,0 +1,19 @@
+{
+  "title": "Settings",
+  "subtitle": "Customize the look and feel of the app",
+  "theme": {
+    "label": "Preferred theme",
+    "selectLabel": "Theme",
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "language": {
+    "label": "Language",
+    "selectLabel": "Language",
+    "cs": "Čeština",
+    "en": "English"
+  },
+  "save": "Save",
+  "saving": "Saving...",
+  "loading": "Loading settings..."
+}

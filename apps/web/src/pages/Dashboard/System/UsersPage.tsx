@@ -28,7 +28,7 @@ import {
 import { systemService, type SystemStats } from '../../../services/systemService';
 import { userService } from '../../../services/userService';
 import { useToast } from '../../../hooks/useToast';
-import translations from '../../../locales/cs/system.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
 import type { User, UserRole } from '@demonicka/shared-types';
@@ -38,6 +38,13 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { DeleteUserConfirmDialog } from './components/DeleteUserConfirmDialog';
 
 const UsersPage: React.FC = () => {
+  const t = useTranslations<Record<string, unknown>>('system');
+  const toastsT = (t.toasts as Record<string, string>) || {};
+  const errorT = (t.error as Record<string, string>) || {};
+  const userListT = (t.userList as Record<string, unknown>) || {};
+  const tokenDialogT = (t.tokenDialog as Record<string, string>) || {};
+  const roleDialogT = (t.roleDialog as Record<string, string>) || {};
+  const deleteDialogT = (t.deleteDialog as Record<string, string>) || {};
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -76,10 +83,10 @@ const UsersPage: React.FC = () => {
         toast.success(successMessage);
       } catch (error) {
         console.error('Failed to copy to clipboard:', error);
-        toast.error(translations.toasts.copyFailed);
+        toast.error(toastsT.copyFailed ?? 'Nepodařilo se zkopírovat');
       }
     },
-    [toast],
+    [toast, toastsT],
   );
 
   const loadStats = useCallback(async (isInitial = false) => {
@@ -101,9 +108,8 @@ const UsersPage: React.FC = () => {
       setError(null);
     } catch (error) {
       console.error('Failed to load system stats:', error);
-      setError(translations.error.loadFailed);
-      // Use toast directly instead of depending on it in useCallback
-      toast.error(translations.error.loadFailed);
+      setError(errorT.loadFailed ?? 'Nepodařilo se načíst systémové statistiky');
+      toast.error(errorT.loadFailed ?? 'Nepodařilo se načíst systémové statistiky');
     } finally {
       if (isInitial) {
         setIsInitialLoading(false);
@@ -136,7 +142,7 @@ const UsersPage: React.FC = () => {
       loadStats(false);
     } catch (error) {
       console.error('Failed to generate token:', error);
-      toast.error(translations.toasts.tokenGenerationFailed);
+      toast.error(toastsT.tokenGenerationFailed ?? 'Nepodařilo se vygenerovat registrační token');
     } finally {
       setGeneratingTokenFor(null);
     }
@@ -152,13 +158,13 @@ const UsersPage: React.FC = () => {
     try {
       setIsRoleSaving(true);
       await userService.updateUserRole(roleDialogUser.id, role);
-      toast.success(translations.toasts.roleUpdated);
+      toast.success(toastsT.roleUpdated ?? 'Role byla změněna');
       setRoleDialogOpen(false);
       setRoleDialogUser(null);
       await loadStats(false);
     } catch (error) {
       console.error('Failed to update user role:', error);
-      toast.error(translations.toasts.roleUpdateFailed);
+      toast.error(toastsT.roleUpdateFailed ?? 'Nepodařilo se změnit roli');
     } finally {
       setIsRoleSaving(false);
     }
@@ -174,7 +180,7 @@ const UsersPage: React.FC = () => {
     try {
       setIsDeleting(true);
       await userService.deleteUser(deleteTarget.id);
-      toast.success(translations.toasts.userDeleted);
+      toast.success(toastsT.userDeleted ?? 'Uživatel byl smazán');
       setDeleteDialogOpen(false);
       setDeleteTarget(null);
       await Promise.all([
@@ -183,7 +189,7 @@ const UsersPage: React.FC = () => {
       ]);
     } catch (error) {
       console.error('Failed to delete user:', error);
-      toast.error(translations.toasts.userDeleteFailed);
+      toast.error(toastsT.userDeleteFailed ?? 'Nepodařilo se smazat uživatele');
     } finally {
       setIsDeleting(false);
     }
@@ -244,7 +250,7 @@ const UsersPage: React.FC = () => {
           onClick={() => loadStats(true)}
           sx={{ mt: 2 }}
         >
-          {translations.error.retry}
+          {errorT.retry ?? 'Zkusit znovu'}
         </Button>
       </Box>
     );
@@ -274,7 +280,7 @@ const UsersPage: React.FC = () => {
             onClick={() => loadStats(false)}
             disabled={isRefreshing}
           >
-            {translations.refresh}
+            {(t.refresh as string) ?? 'Obnovit'}
           </Button>
         </Box>
       </Box>
@@ -284,18 +290,18 @@ const UsersPage: React.FC = () => {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                {translations.userList.title}
+                {(userListT.title as string) ?? 'Seznam uživatelů'}
               </Typography>
               <TableContainer sx={{ overflowX: 'auto' }}>
                 <Table stickyHeader size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>{translations.userList.columns.username}</TableCell>
-                      <TableCell>{translations.userList.columns.role}</TableCell>
-                      <TableCell>{translations.userList.columns.twoFactorStatus}</TableCell>
-                      <TableCell>{translations.userList.columns.registrationStatus}</TableCell>
-                      <TableCell>{translations.userList.columns.lastAdminLogin}</TableCell>
-                      <TableCell align="right">{translations.userList.columns.actions}</TableCell>
+                      <TableCell>{(userListT.columns as Record<string, string>)?.username ?? 'Uživatelské jméno'}</TableCell>
+                      <TableCell>{(userListT.columns as Record<string, string>)?.role ?? 'Role'}</TableCell>
+                      <TableCell>{(userListT.columns as Record<string, string>)?.twoFactorStatus ?? '2FA stav'}</TableCell>
+                      <TableCell>{(userListT.columns as Record<string, string>)?.registrationStatus ?? 'Stav registrace'}</TableCell>
+                      <TableCell>{(userListT.columns as Record<string, string>)?.lastAdminLogin ?? 'Poslední přihlášení'}</TableCell>
+                      <TableCell align="right">{(userListT.columns as Record<string, string>)?.actions ?? 'Akce'}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -308,7 +314,7 @@ const UsersPage: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={translations.userList.roles[user.role as keyof typeof translations.userList.roles] || user.role}
+                            label={(userListT.roles as Record<string, string>)?.[user.role] || user.role}
                             size="small"
                             color={user.role === 'SUPER_ADMIN' ? 'error' : user.role === 'OPERATOR' ? 'warning' : 'primary'}
                             variant="outlined"
@@ -316,14 +322,14 @@ const UsersPage: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={user.isTwoFactorEnabled ? translations.userList.twoFactorStatus.enabled : translations.userList.twoFactorStatus.disabled}
+                            label={user.isTwoFactorEnabled ? (userListT.twoFactorStatus as Record<string, string>)?.enabled : (userListT.twoFactorStatus as Record<string, string>)?.disabled}
                             size="small"
                             color={user.isTwoFactorEnabled ? 'success' : 'default'}
                           />
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={user.isRegistrationComplete ? translations.userList.registrationStatus.complete : translations.userList.registrationStatus.incomplete}
+                            label={user.isRegistrationComplete ? (userListT.registrationStatus as Record<string, string>)?.complete : (userListT.registrationStatus as Record<string, string>)?.incomplete}
                             size="small"
                             color={user.isRegistrationComplete ? 'success' : 'warning'}
                           />
@@ -334,7 +340,7 @@ const UsersPage: React.FC = () => {
                           </Typography>
                         </TableCell>
                         <TableCell align="right">
-                          <Tooltip title={translations.userList.actions.editRole}>
+                          <Tooltip title={(userListT.actions as Record<string, string>)?.editRole ?? 'Změnit roli'}>
                             <span>
                               <IconButton
                                 size="small"
@@ -356,7 +362,7 @@ const UsersPage: React.FC = () => {
                             </span>
                           </Tooltip>
                           {currentUser?.role === 'SUPER_ADMIN' && (
-                            <Tooltip title={translations.userList.actions.deleteUser}>
+                            <Tooltip title={(userListT.actions as Record<string, string>)?.deleteUser ?? 'Smazat uživatele'}>
                               <IconButton
                                 size="small"
                                 onClick={() =>
@@ -372,7 +378,7 @@ const UsersPage: React.FC = () => {
                             </Tooltip>
                           )}
                           {!user.isRegistrationComplete && (
-                            <Tooltip title={translations.userList.actions.generateToken}>
+                            <Tooltip title={(userListT.actions as Record<string, string>)?.generateToken ?? 'Vygenerovat token'}>
                               <IconButton
                                 size="small"
                                 onClick={() => handleGenerateToken(user.id, user.username)}
@@ -402,17 +408,17 @@ const UsersPage: React.FC = () => {
                 value.startsWith('http://') || value.startsWith('https://');
               await copyToClipboard(
                 value,
-                isUrl ? translations.toasts.urlCopied : translations.toasts.tokenCopied,
+                isUrl ? toastsT.urlCopied : toastsT.tokenCopied,
               );
             }}
             labels={{
-              title: translations.tokenDialog.title,
-              tokenLabel: translations.tokenDialog.tokenLabel,
-              urlLabel: translations.tokenDialog.urlLabel,
-              qrTitle: translations.tokenDialog.qrTitle,
-              close: translations.tokenDialog.close,
-              copyToken: translations.tokenDialog.copyToken,
-              copyUrl: translations.tokenDialog.copyUrl,
+              title: tokenDialogT.title ?? 'Registrační token',
+              tokenLabel: tokenDialogT.tokenLabel ?? 'Token',
+              urlLabel: tokenDialogT.urlLabel ?? 'Odkaz na registraci',
+              qrTitle: tokenDialogT.qrTitle ?? 'QR kód',
+              close: tokenDialogT.close ?? 'Zavřít',
+              copyToken: tokenDialogT.copyToken ?? 'Kopírovat token',
+              copyUrl: tokenDialogT.copyUrl ?? 'Kopírovat odkaz',
             }}
           />
 
@@ -429,11 +435,11 @@ const UsersPage: React.FC = () => {
             }}
             onSave={(role) => void handleSaveRole(role)}
             labels={{
-              title: translations.roleDialog.title,
-              roleLabel: translations.roleDialog.roleLabel,
-              cancel: translations.roleDialog.cancel,
-              save: translations.roleDialog.save,
-              helperTextOperator: translations.roleDialog.operatorHint,
+              title: roleDialogT.title ?? 'Změna role',
+              roleLabel: roleDialogT.roleLabel ?? 'Role',
+              cancel: roleDialogT.cancel ?? 'Zrušit',
+              save: roleDialogT.save ?? 'Uložit',
+              helperTextOperator: roleDialogT.operatorHint ?? 'Operátor nemůže měnit super admina ani přiřadit roli SUPER_ADMIN.',
             }}
           />
 
@@ -448,10 +454,10 @@ const UsersPage: React.FC = () => {
             }}
             onConfirm={() => void handleConfirmDelete()}
             labels={{
-              title: translations.deleteDialog.title,
-              message: translations.deleteDialog.message,
-              cancel: translations.deleteDialog.cancel,
-              confirm: translations.deleteDialog.confirm,
+              title: deleteDialogT.title ?? 'Smazat uživatele',
+              message: deleteDialogT.message ?? 'Opravdu chcete smazat uživatele?',
+              cancel: deleteDialogT.cancel ?? 'Zrušit',
+              confirm: deleteDialogT.confirm ?? 'Smazat',
             }}
           />
 

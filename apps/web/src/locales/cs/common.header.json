@@ -6,7 +6,16 @@
     "barrels": "Sudy",
     "history": "Historie",
     "leaderboard": "Žebříček",
-    "events": "Události"
+    "events": "Události",
+    "gallery": "Galerie",
+    "system": "Systém",
+    "activity": "Aktivita",
+    "myStats": "Moje statistiky",
+    "settings": "Nastavení",
+    "achievements": "Úspěchy",
+    "label": "Navigace",
+    "activeEvent": "Aktivní událost",
+    "docs": "Dokumentace"
   },
   "auth": {
     "login": "Přihlásit se",

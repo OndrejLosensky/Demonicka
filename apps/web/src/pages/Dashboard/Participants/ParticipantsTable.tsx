@@ -34,7 +34,7 @@ import { FaBeer } from 'react-icons/fa';
 import type { ParticipantTableProps } from './types';
 import { format } from 'date-fns';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
-import translations from '../../../locales/cs/dashboard.participants.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import { tokens } from '../../../theme/tokens';
 import { UserAvatar } from '../../../components/UserAvatar';
 
@@ -51,6 +51,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
   onRestore,
   onShowHistory,
 }) => {
+  const t = useTranslations<Record<string, unknown>>('dashboard.participants');
   const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; participant: { id: string; username: string } }>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<{ id: string; username: string } | null>(null);
@@ -86,11 +87,11 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
-              <TableCell>{translations.table.columns.name}</TableCell>
-              <TableCell align="center">{translations.table.columns.beers}</TableCell>
-              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{translations.table.columns.gender}</TableCell>
-              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{translations.table.columns.lastBeer}</TableCell>
-              <TableCell align="right" sx={{ width: { xs: 120, sm: 180, md: 220 } }}>{translations.table.columns.actions}</TableCell>
+              <TableCell>{(t.table as Record<string, Record<string, string>>)?.columns?.name}</TableCell>
+              <TableCell align="center">{(t.table as Record<string, Record<string, string>>)?.columns?.beers}</TableCell>
+              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{(t.table as Record<string, Record<string, string>>)?.columns?.gender}</TableCell>
+              <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{(t.table as Record<string, Record<string, string>>)?.columns?.lastBeer}</TableCell>
+              <TableCell align="right" sx={{ width: { xs: 120, sm: 180, md: 220 } }}>{(t.table as Record<string, Record<string, string>>)?.columns?.actions}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -117,7 +118,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                     <Typography sx={{ fontWeight: 500 }}>{participant.username}</Typography>
                     {showDeleted && participant.deletedAt && (
                       <Chip
-                        label={translations.table.status.deleted}
+                        label={(t.table as Record<string, Record<string, string>>)?.status?.deleted}
                         color="error"
                         size="small"
                         sx={{ ml: 1 }}
@@ -150,7 +151,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                 <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                   <Chip
                     icon={participant.gender === 'MALE' ? <MaleIcon /> : <FemaleIcon />}
-                    label={participant.gender === 'MALE' ? translations.dialogs.add.fields.gender.male : translations.dialogs.add.fields.gender.female}
+                    label={participant.gender === 'MALE' ? (t.dialogs as Record<string, Record<string, Record<string, Record<string, string>>>>)?.add?.fields?.gender?.male : (t.dialogs as Record<string, Record<string, Record<string, Record<string, string>>>>)?.add?.fields?.gender?.female}
                     size="small"
                     sx={{
                       bgcolor: participant.gender === 'MALE' ? 'rgba(25, 118, 210, 0.08)' : 'rgba(255, 192, 203, 0.2)',
@@ -173,7 +174,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                 <TableCell align="right">
                   {participant.deletedAt ? (
                     showDeleted ? (
-                      <Tooltip title={translations.table.actions.restore ?? 'Obnovit'}>
+                      <Tooltip title={(t.table as Record<string, Record<string, string>>)?.actions?.restore ?? 'Restore'}>
                         <IconButton
                           size="small"
                           onClick={() => onRestore(participant.id)}
@@ -205,7 +206,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                           </IconButton>
                         </Tooltip>
                       )}
-                      <Tooltip title={translations.table.actions.removeBeer}>
+                      <Tooltip title={(t.table as Record<string, Record<string, string>>)?.actions?.removeBeer}>
                         <span>
                           <IconButton
                             size="small"
@@ -235,7 +236,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                           },
                         }}
                       >
-                        <Tooltip title={translations.table.actions.addBeer}>
+                        <Tooltip title={(t.table as Record<string, Record<string, string>>)?.actions?.addBeer}>
                           <IconButton
                             size="small"
                             onClick={() => {
@@ -276,7 +277,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                         )}
                       </ButtonGroup>
                       {onAddSpilledBeer && (
-                        <Tooltip title={translations.table.actions.addSpilledBeer ?? 'Rozlít pivo'}>
+                        <Tooltip title={(t.table as Record<string, Record<string, string>>)?.actions?.addSpilledBeer ?? 'Spill beer'}>
                           <IconButton
                             size="small"
                             onClick={() => onAddSpilledBeer(participant.id)}
@@ -291,7 +292,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
                           </IconButton>
                         </Tooltip>
                       )}
-                      <Tooltip title={translations.table.actions.delete}>
+                      <Tooltip title={(t.table as Record<string, Record<string, string>>)?.actions?.delete}>
                         <IconButton
                           size="small"
                           onClick={(e) => setMenuAnchor({ 
@@ -326,7 +327,7 @@ export const ParticipantsTable: React.FC<ParticipantTableProps> = ({
           <ListItemIcon>
             <DeleteIcon fontSize="small" color="error" />
           </ListItemIcon>
-          <ListItemText>{translations.table.actions.delete}</ListItemText>
+          <ListItemText>{(t.table as Record<string, Record<string, string>>)?.actions?.delete}</ListItemText>
         </MenuItem>
       </Menu>
 

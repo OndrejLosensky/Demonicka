@@ -10,7 +10,7 @@ import {
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
 import { useLogStats } from './useLogStats';
-import translations from '../../../locales/cs/dashboard.history.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
 
 ChartJS.register(
@@ -25,13 +25,21 @@ ChartJS.register(
 
 function LogStatsComponent() {
   const { stats, isLoading, error, dateRange, setDateRange } = useLogStats();
+  const t = useTranslations<Record<string, unknown>>('dashboard.history');
+  const statsT = (t.stats as Record<string, unknown>) || {};
+  const dateRangeT = (statsT.dateRange as Record<string, string>) || {};
+  const sections = (statsT.sections as Record<string, Record<string, unknown>>) || {};
+  const eventsSection = (sections.events as Record<string, string>) || {};
+  const logLevelsSection = (sections.logLevels as Record<string, Record<string, string>>) || {};
+  const participantsSection = (sections.participants as Record<string, string>) || {};
+  const logLevelLabels = logLevelsSection.labels || {};
 
   if (isLoading) {
     return null; // withPageLoader will handle loading state
   }
 
   if (error) {
-    return <div>{translations.stats.error.replace('{{message}}', error.message)}</div>;
+    return <div>{(statsT.error as string)?.replace('{{message}}', error.message) ?? `Chyba při načítání statistik: ${error.message}`}</div>;
   }
 
   if (!stats) {
@@ -43,7 +51,7 @@ function LogStatsComponent() {
     labels: Object.keys(stats.eventCounts),
     datasets: [
       {
-        label: translations.stats.sections.events.label,
+        label: eventsSection.label ?? 'Počet událostí',
         data: Object.values(stats.eventCounts),
         backgroundColor: [
           'rgba(255, 99, 132, 0.5)',
@@ -66,9 +74,9 @@ function LogStatsComponent() {
 
   const logLevelData = {
     labels: [
-      translations.stats.sections.logLevels.labels.error,
-      translations.stats.sections.logLevels.labels.warning,
-      translations.stats.sections.logLevels.labels.other
+      logLevelLabels.error ?? 'Chyba',
+      logLevelLabels.warning ?? 'Varování',
+      logLevelLabels.other ?? 'Ostatní'
     ],
     datasets: [
       {
@@ -97,7 +105,7 @@ function LogStatsComponent() {
     labels: Object.keys(stats.participantActivity),
     datasets: [
       {
-        label: translations.stats.sections.participants.label,
+        label: participantsSection.label ?? 'Aktivita účastníka',
         data: Object.values(stats.participantActivity),
         backgroundColor: 'rgba(54, 162, 235, 0.5)',
         borderColor: 'rgba(54, 162, 235, 1)',
@@ -109,7 +117,7 @@ function LogStatsComponent() {
   return (
     <div className="p-4">
       <div className="mb-4">
-        <h2 className="text-2xl font-bold mb-4">{translations.stats.title}</h2>
+        <h2 className="text-2xl font-bold mb-4">{(statsT.title as string) ?? 'Statistiky logů'}</h2>
         <div className="flex gap-4 mb-4">
           <input
             type="date"
@@ -121,7 +129,7 @@ function LogStatsComponent() {
               }))
             }
             className="border rounded p-2"
-            aria-label={translations.stats.dateRange.start}
+            aria-label={dateRangeT.start ?? 'Počáteční datum'}
           />
           <input
             type="date"
@@ -133,7 +141,7 @@ function LogStatsComponent() {
               }))
             }
             className="border rounded p-2"
-            aria-label={translations.stats.dateRange.end}
+            aria-label={dateRangeT.end ?? 'Koncové datum'}
           />
         </div>
       </div>
@@ -141,7 +149,7 @@ function LogStatsComponent() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {eventData && (
           <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-2">{translations.stats.sections.events.title}</h3>
+            <h3 className="text-lg font-semibold mb-2">{eventsSection.title ?? 'Distribuce událostí'}</h3>
             <Bar
               data={eventData}
               options={{
@@ -152,7 +160,7 @@ function LogStatsComponent() {
                   },
                   title: {
                     display: true,
-                    text: translations.stats.sections.events.chartTitle,
+                    text: eventsSection.chartTitle ?? 'Typy událostí',
                   },
                 },
               }}
@@ -161,7 +169,7 @@ function LogStatsComponent() {
         )}
 
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">{translations.stats.sections.logLevels.title}</h3>
+          <h3 className="text-lg font-semibold mb-2">{logLevelsSection.title ?? 'Úrovně logů'}</h3>
           <Pie
             data={logLevelData}
             options={{
@@ -172,7 +180,7 @@ function LogStatsComponent() {
                 },
                 title: {
                   display: true,
-                  text: translations.stats.sections.logLevels.chartTitle,
+                  text: logLevelsSection.chartTitle ?? 'Distribuce úrovní logů',
                 },
               },
             }}
@@ -181,7 +189,7 @@ function LogStatsComponent() {
 
         {participantData && (
           <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-2">{translations.stats.sections.participants.title}</h3>
+            <h3 className="text-lg font-semibold mb-2">{participantsSection.title ?? 'Aktivita účastníků'}</h3>
             <Bar
               data={participantData}
               options={{
@@ -192,7 +200,7 @@ function LogStatsComponent() {
                   },
                   title: {
                     display: true,
-                    text: translations.stats.sections.participants.chartTitle,
+                    text: participantsSection.chartTitle ?? 'Aktivita podle účastníka',
                   },
                 },
               }}

@@ -16,7 +16,7 @@ import {
 import { LOG_LEVELS } from './useHistory';
 import { toast } from 'react-hot-toast';
 import { historyApi, type CleanupOptions } from './api';
-import translations from '../../../locales/cs/dashboard.history.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 
 interface CleanupDialogProps {
   open: boolean;
@@ -29,6 +29,9 @@ export const CleanupDialog: React.FC<CleanupDialogProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const t = useTranslations<Record<string, unknown>>('dashboard.history');
+  const cleanupLogs = (t.cleanupLogs as Record<string, unknown>) || {};
+  const dialog = (cleanupLogs.dialog as Record<string, string>) || {};
   const [olderThan, setOlderThan] = useState<string>('');
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,12 +45,12 @@ export const CleanupDialog: React.FC<CleanupDialogProps> = ({
       };
 
       const result = await historyApi.cleanup(options);
-      toast.success(translations.cleanupLogs.dialog.success.replace('{{count}}', result.deletedCount.toString()));
+      toast.success((dialog.success ?? 'Úspěšně vyčištěno {{count}} logů').replace('{{count}}', result.deletedCount.toString()));
       onSuccess();
       onClose();
-    } catch (error) {
-      toast.error(translations.cleanupLogs.dialog.error);
-      console.error('Failed to cleanup logs:', error);
+    } catch (err) {
+      toast.error(dialog.error ?? 'Nepodařilo se vyčistit logy');
+      console.error('Failed to cleanup logs:', err);
     } finally {
       setIsLoading(false);
     }
@@ -55,11 +58,11 @@ export const CleanupDialog: React.FC<CleanupDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{translations.cleanupLogs.dialog.title}</DialogTitle>
+      <DialogTitle>{dialog.title ?? 'Vyčistit Logy'}</DialogTitle>
       <DialogContent>
         <Box className="space-y-4 mt-4">
           <TextField
-            label={translations.cleanupLogs.dialog.olderThanLabel}
+            label={dialog.olderThanLabel ?? 'Smazat logy starší než'}
             type="date"
             value={olderThan}
             onChange={(e) => setOlderThan(e.target.value)}
@@ -70,7 +73,7 @@ export const CleanupDialog: React.FC<CleanupDialogProps> = ({
           />
 
           <FormControl fullWidth>
-            <InputLabel>{translations.cleanupLogs.dialog.logLevelsLabel}</InputLabel>
+            <InputLabel>{dialog.logLevelsLabel ?? 'Úrovně logů'}</InputLabel>
             <Select
               multiple
               value={selectedLevels}
@@ -94,7 +97,7 @@ export const CleanupDialog: React.FC<CleanupDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={isLoading}>
-          {translations.cleanupLogs.dialog.cancel}
+          {dialog.cancel ?? 'Zrušit'}
         </Button>
         <Button
           onClick={handleCleanup}
@@ -102,7 +105,7 @@ export const CleanupDialog: React.FC<CleanupDialogProps> = ({
           color="error"
           disabled={isLoading}
         >
-          {isLoading ? translations.cleanupLogs.dialog.cleaning : translations.cleanupLogs.dialog.confirm}
+          {isLoading ? (dialog.cleaning ?? 'Čištění...') : (dialog.confirm ?? 'Vyčistit')}
         </Button>
       </DialogActions>
     </Dialog>

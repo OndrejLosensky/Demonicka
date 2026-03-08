@@ -16,7 +16,7 @@ import { participantsApi } from './api';
 import { eventService } from '../../../services/eventService';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
-import translations from '../../../locales/cs/dashboard.participants.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import { notify } from '../../../notifications/notify';
 
 interface AddParticipantDialogProps {
@@ -36,6 +36,12 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   const [usernameError, setUsernameError] = useState('');
   const { activeEvent, loadActiveEvent } = useActiveEvent();
   const { setSelectedEvent } = useSelectedEvent();
+  const t = useTranslations<Record<string, unknown>>('dashboard.participants');
+  const dialogs = (t.dialogs as Record<string, Record<string, unknown>>) || {};
+  const addDialog = (dialogs.add as Record<string, unknown>) || {};
+  const validation = (addDialog.validation as Record<string, string>) || {};
+  const fields = (addDialog.fields as Record<string, Record<string, string>>) || {};
+  const buttons = (addDialog.buttons as Record<string, string>) || {};
 
   // Reset form state when dialog opens/closes
   useEffect(() => {
@@ -50,7 +56,7 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   const validateUsername = (value: string) => {
     const trimmedUsername = value.trim();
     if (!trimmedUsername) {
-      setUsernameError(translations.dialogs.add.validation.required);
+      setUsernameError(validation.required ?? 'Povinné pole');
       return false;
     }
     setUsernameError('');
@@ -79,10 +85,10 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
       await notify.action(
         {
           id: toastId,
-          success: translations.dialogs.add.success,
+          success: (addDialog.success as string) ?? 'Účastník byl přidán',
           error: (err) => {
             const msg = notify.fromError(err);
-            return msg === 'Něco se pokazilo' ? translations.dialogs.add.error : msg;
+            return msg === 'Něco se pokazilo' ? (addDialog.error as string) ?? 'Nepodařilo se přidat účastníka' : msg;
           },
         },
         async () => {
@@ -105,8 +111,8 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
 
       onSuccess(); // This will refresh the users list
       onClose();
-    } catch (error) {
-      console.error('Failed to add user:', error);
+    } catch (err) {
+      console.error('Failed to add user:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -115,12 +121,12 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit}>
-        <DialogTitle>{translations.dialogs.add.title}</DialogTitle>
+        <DialogTitle>{(addDialog.title as string) ?? 'Přidat účastníka'}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
             <TextField
               autoFocus
-              label={translations.dialogs.add.fields.username.label}
+              label={fields.username?.label ?? 'Uživatelské jméno'}
               value={username}
               onChange={handleUsernameChange}
               error={!!usernameError}
@@ -129,27 +135,27 @@ export const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
               required
             />
             <FormControl fullWidth>
-              <InputLabel>{translations.dialogs.add.fields.gender.label}</InputLabel>
+              <InputLabel>{fields.gender?.label ?? 'Pohlaví'}</InputLabel>
               <Select
                 value={gender}
-                label={translations.dialogs.add.fields.gender.label}
+                label={fields.gender?.label ?? 'Pohlaví'}
                 onChange={(e) => setGender(e.target.value as 'MALE' | 'FEMALE')}
               >
-                <MenuItem value="MALE">{translations.dialogs.add.fields.gender.male}</MenuItem>
-                <MenuItem value="FEMALE">{translations.dialogs.add.fields.gender.female}</MenuItem>
+                <MenuItem value="MALE">{fields.gender?.male ?? 'Muž'}</MenuItem>
+                <MenuItem value="FEMALE">{fields.gender?.female ?? 'Žena'}</MenuItem>
               </Select>
             </FormControl>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>{translations.dialogs.add.buttons.cancel}</Button>
+          <Button onClick={onClose}>{buttons.cancel ?? 'Zrušit'}</Button>
           <Button
             type="submit"
             variant="contained"
             color="primary"
             disabled={isSubmitting || !!usernameError}
           >
-            {translations.dialogs.add.buttons.confirm}
+            {buttons.confirm ?? 'Přidat'}
           </Button>
         </DialogActions>
       </form>

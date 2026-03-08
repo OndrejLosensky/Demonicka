@@ -1,0 +1,12 @@
+{
+  "title": "Notifications",
+  "markAllRead": "Mark all as read",
+  "settings": "Notification settings",
+  "empty": "No notifications",
+  "loading": "Loading…",
+  "BEER_ADDED": "{{actorName}} added a beer for you",
+  "BEER_REMOVED": "{{actorName}} removed a beer from you",
+  "EVENT_STARTED": "Event {{eventName}} has started",
+  "EVENT_ENDED": "Event {{eventName}} has ended",
+  "unknownActor": "Someone"
+}

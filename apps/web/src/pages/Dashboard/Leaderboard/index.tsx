@@ -5,7 +5,7 @@ import { LeaderboardTable } from './LeaderboardTable';
 import { BeerPongStandings } from './BeerPongStandings';
 import { useLeaderboard } from './useLeaderboard';
 import { useLeaderboardViewSettings } from './useLeaderboardViewSettings';
-import translations from '../../../locales/cs/dashboard.leaderboard.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
 import { useHeaderVisibility } from '../../../contexts/HeaderVisibilityContext';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
@@ -29,6 +29,11 @@ const LeaderboardComponent: React.FC = () => {
   const { settings } = useLeaderboardViewSettings();
   const { activeEvent } = useActiveEvent();
   const beerPongAllowed = activeEvent?.beerPongEnabled === true;
+  const t = useTranslations<Record<string, unknown>>('dashboard.leaderboard');
+  const sections = (t.sections as Record<string, string>) || {};
+  const tooltips = (t.tooltips as Record<string, string>) || {};
+  const metrics = (t.metrics as Record<string, string>) || {};
+  const filters = (t.filters as Record<string, { label?: string }>) || {};
 
   // View state
   const [currentView, setCurrentView] = useState<'LEADERBOARD' | 'BEER_PONG'>('LEADERBOARD');
@@ -265,7 +270,7 @@ const LeaderboardComponent: React.FC = () => {
   if (!stats) {
     return (
       <Box p={3} display="flex" justifyContent="center" alignItems="center" minHeight={400}>
-        <Typography>{translations.noData}</Typography>
+        <Typography>{(t.noData as string) ?? 'Žádná data k dispozici.'}</Typography>
       </Box>
     );
   }
@@ -308,7 +313,7 @@ const LeaderboardComponent: React.FC = () => {
             </Box>
           )}
           
-          <PageHeader title={translations.title} />
+          <PageHeader title={(t.title as string) ?? 'Žebříček piv'} />
           <Box display="flex" gap={1} alignItems="center">
             {isHeaderVisible && showAutoSwitch && settings && settings.autoSwitchEnabled && (
               <ButtonGroup size="small" variant="outlined">
@@ -316,24 +321,24 @@ const LeaderboardComponent: React.FC = () => {
                   variant={currentView === 'LEADERBOARD' ? 'contained' : 'outlined'}
                   onClick={() => setCurrentView('LEADERBOARD')}
                 >
-                  Žebříček
+                  {(t.viewLeaderboard as string) ?? 'Žebříček'}
                 </Button>
                 {beerPongAllowed && (
                 <Button
                   variant={currentView === 'BEER_PONG' ? 'contained' : 'outlined'}
                   onClick={() => setCurrentView('BEER_PONG')}
                 >
-                  Beer Pong
+                  {(t.viewBeerPong as string) ?? 'Beer Pong'}
                 </Button>
                 )}
               </ButtonGroup>
             )}
             {showYearFilter && availableYears.length > 0 && (
               <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel id="leaderboard-year-label">Rok</InputLabel>
+                <InputLabel id="leaderboard-year-label">{filters.year?.label ?? 'Rok'}</InputLabel>
                 <Select
                   labelId="leaderboard-year-label"
-                  label="Rok"
+                  label={filters.year?.label ?? 'Rok'}
                   value={selectedYear}
                   onChange={(e) => {
                     const year = e.target.value === '' ? '' : Number(e.target.value);
@@ -357,7 +362,7 @@ const LeaderboardComponent: React.FC = () => {
                 </Select>
               </FormControl>
             )}
-            <Tooltip title={isHeaderVisible ? "Skrýt hlavičku" : "Zobrazit hlavičku"} arrow>
+            <Tooltip title={isHeaderVisible ? (tooltips.hideHeader ?? "Skrýt hlavičku") : (tooltips.showHeader ?? "Zobrazit hlavičku")} arrow>
               <IconButton
                 onClick={toggleHeader}
                 size="small"
@@ -374,7 +379,7 @@ const LeaderboardComponent: React.FC = () => {
                 {isHeaderVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
               </IconButton>
             </Tooltip>
-            <Tooltip title={isFullscreen ? "Ukončit celou obrazovku" : "Celá obrazovka"} arrow>
+            <Tooltip title={isFullscreen ? (tooltips.exitFullscreen ?? "Ukončit celou obrazovku") : (tooltips.fullscreen ?? "Celá obrazovka")} arrow>
               <IconButton
                 onClick={toggleFullscreen}
                 size="small"
@@ -398,7 +403,7 @@ const LeaderboardComponent: React.FC = () => {
         <Grid container spacing={isHeaderVisible ? 3 : 2} mb={isHeaderVisible ? 4 : 3}>
           <Grid item xs={6} sm={3}>
             <MetricCard 
-              title="Celkem piv" 
+              title={metrics.totalBeers ?? 'Celkem piv'} 
               value={metricStats.totalBeers} 
               icon={<FaBeer style={{ fontSize: '1rem' }} />} 
               color="primary" 
@@ -406,7 +411,7 @@ const LeaderboardComponent: React.FC = () => {
           </Grid>
           <Grid item xs={6} sm={3}>
             <MetricCard 
-              title="Průměr piv za hodinu" 
+              title={metrics.averagePerHour ?? 'Průměr piv za hodinu'} 
               value={metricStats.averagePerHour.toFixed(1)} 
               icon={<SpeedIcon />} 
               color="error" 
@@ -414,7 +419,7 @@ const LeaderboardComponent: React.FC = () => {
           </Grid>
           <Grid item xs={6} sm={3}>
             <MetricCard 
-              title="Počet sudů" 
+              title={metrics.totalBarrels ?? 'Počet sudů'} 
               value={metricStats.totalBarrels} 
               icon={<FaBeer style={{ fontSize: '1rem' }} />} 
               color="success" 
@@ -422,7 +427,7 @@ const LeaderboardComponent: React.FC = () => {
           </Grid>
           <Grid item xs={6} sm={3}>
             <MetricCard 
-              title="průměr / os." 
+              title={metrics.averagePerPerson ?? 'průměr / os.'} 
               value={metricStats.averagePerPerson.toFixed(1)} 
               icon={<FaBeer style={{ fontSize: '1rem' }} />} 
               color="warning" 
@@ -444,14 +449,14 @@ const LeaderboardComponent: React.FC = () => {
             <Grid item xs={12} md={6}>
               <LeaderboardTable 
                 participants={stats.males} 
-                title={translations.sections.men}
+                title={sections.men ?? 'Pivopíči'}
                 icon={<FaBeer style={{ fontSize: '1.5rem' }} />}
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <LeaderboardTable 
                 participants={stats.females} 
-                title={translations.sections.women}
+                title={sections.women ?? 'Pivopíčky'}
                 icon={<FaBeer style={{ fontSize: '1.5rem' }} />}
               />
             </Grid>

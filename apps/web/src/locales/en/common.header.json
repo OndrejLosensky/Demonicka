@@ -1,0 +1,27 @@
+{
+  "brand": "Démonická",
+  "navigation": {
+    "dashboard": "Dashboard",
+    "participants": "Participants",
+    "barrels": "Barrels",
+    "history": "History",
+    "leaderboard": "Leaderboard",
+    "events": "Events",
+    "gallery": "Gallery",
+    "system": "System",
+    "activity": "Activity",
+    "myStats": "My statistics",
+    "settings": "Settings",
+    "achievements": "Achievements",
+    "label": "Navigation",
+    "activeEvent": "Active event",
+    "docs": "Documentation"
+  },
+  "auth": {
+    "login": "Log in",
+    "accountSettings": "Account settings",
+    "profile": "Profile",
+    "logout": "Log out",
+    "feedback": "Feedback"
+  }
+}

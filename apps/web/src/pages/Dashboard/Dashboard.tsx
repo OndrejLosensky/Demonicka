@@ -4,6 +4,7 @@ import { Container, Grid, Button, CircularProgress } from '@mui/material';
 import { Refresh as RefreshIcon } from '@mui/icons-material';
 import { EmptyEventState } from '../../components/EmptyEventState';
 import { useDashboardHeaderSlots } from '../../contexts/DashboardChromeContext';
+import { useTranslations } from '../../contexts/LocaleContext';
 import { useAdminDashboard } from './dashboard/useAdminDashboard';
 import { DashboardKpis } from './dashboard/components/DashboardKpis';
 import { DashboardConsumptionChart } from './dashboard/components/DashboardConsumptionChart';
@@ -14,6 +15,7 @@ import { DashboardTopUsers } from './dashboard/components/DashboardTopUsers';
 export const Dashboard: React.FC = () => {
     const dash = useAdminDashboard();
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const t = useTranslations<{ refresh?: string; loading?: string }>('dashboard');
 
     const handleRefresh = useCallback(async () => {
       setIsRefreshing(true);
@@ -33,15 +35,15 @@ export const Dashboard: React.FC = () => {
           disabled={isRefreshing}
           sx={{ borderRadius: 1 }}
         >
-          Obnovit
+          {t.refresh ?? 'Obnovit'}
         </Button>
       ),
-      [isRefreshing, handleRefresh],
+      [isRefreshing, handleRefresh, t.refresh],
     );
 
     useDashboardHeaderSlots({ action: headerAction });
 
-    if (dash.isLoading) return <PageLoader message="Načítání přehledu..." />;
+    if (dash.isLoading) return <PageLoader message={t.loading ?? 'Načítání...'} />;
 
     if (!dash.activeEvent) {
       return (

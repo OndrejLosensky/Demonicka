@@ -1,0 +1,23 @@
+{
+  "success": {
+    "created": "{{item}} was created successfully",
+    "updated": "{{item}} was updated successfully",
+    "deleted": "{{item}} was deleted successfully",
+    "restored": "{{item}} was restored successfully",
+    "beerAdded": "Beer was added for user {{user}}",
+    "beerRemoved": "Beer was removed from user {{user}}"
+  },
+  "warning": {
+    "lowBeers": "Only {{count}} beers left in barrel {{barrel}}",
+    "almostEmpty": "Barrel {{barrel}} is almost empty",
+    "inactive": "{{item}} is inactive"
+  },
+  "error": {
+    "create": "Failed to create {{item}}",
+    "update": "Failed to update {{item}}",
+    "delete": "Failed to delete {{item}}",
+    "restore": "Failed to restore {{item}}",
+    "fetch": "Failed to load {{item}}",
+    "unknown": "An unexpected error occurred"
+  }
+}

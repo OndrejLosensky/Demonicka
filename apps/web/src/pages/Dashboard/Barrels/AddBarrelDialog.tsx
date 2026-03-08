@@ -13,7 +13,7 @@ import {
 import { barrelService } from '../../../services/barrelService';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { eventService } from '../../../services/eventService';
-import translations from '../../../locales/cs/dashboard.barrels.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import { notify } from '../../../notifications/notify';
 
 interface AddBarrelDialogProps {
@@ -30,6 +30,8 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
   const [size, setSize] = useState<15 | 30 | 50>(30);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { activeEvent } = useActiveEvent();
+  const t = useTranslations<Record<string, unknown>>('dashboard.barrels');
+  const addDialog = (t.dialogs as Record<string, Record<string, string>>)?.add || {};
 
   // Reset form state when dialog opens/closes
   useEffect(() => {
@@ -50,10 +52,10 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
       await notify.action(
         {
           id: toastId,
-          success: translations.dialogs.add.success,
+          success: addDialog.success,
           error: (err) => {
             const msg = notify.fromError(err);
-            return msg === 'Něco se pokazilo' ? translations.dialogs.add.error : msg;
+            return msg === 'Něco se pokazilo' ? addDialog.error : msg;
           },
         },
         async () => {
@@ -83,8 +85,8 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
 
       onSuccess();
       onClose();
-    } catch (error) {
-      console.error('Failed to add barrel:', error);
+    } catch (err) {
+      console.error('Failed to add barrel:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -97,14 +99,14 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
       maxWidth="sm"
       fullWidth
     >
-      <DialogTitle>{translations.dialogs.add.title}</DialogTitle>
+      <DialogTitle>{addDialog.title}</DialogTitle>
       <DialogContent sx={{ pb: 4 }}>
         <FormControl fullWidth sx={{ mt: 2 }}>
-          <InputLabel id="size-label">{translations.dialogs.add.size}</InputLabel>
+          <InputLabel id="size-label">{addDialog.size}</InputLabel>
           <Select
             labelId="size-label"
             value={size}
-            label={translations.dialogs.add.size}
+            label={addDialog.size}
             onChange={(e) => setSize(Number(e.target.value) as 15 | 30 | 50)}
           >
             <MenuItem value={15}>15L</MenuItem>
@@ -115,7 +117,7 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={isSubmitting}>
-          {translations.dialogs.add.cancel}
+          {addDialog.cancel}
         </Button>
         <Button 
           onClick={handleSubmit} 
@@ -123,7 +125,7 @@ export const AddBarrelDialog: React.FC<AddBarrelDialogProps> = ({
           color="primary"
           disabled={isSubmitting}
         >
-          {translations.dialogs.add.confirm}
+          {addDialog.confirm}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,0 +1,42 @@
+{
+  "title": "Beer leaderboard",
+  "subtitle": "Who drinks the most? Let's find out! 🍻",
+  "loading": "Loading leaderboard...",
+  "noData": "No data available.",
+  "viewLeaderboard": "Leaderboard",
+  "viewBeerPong": "Beer Pong",
+  "tooltips": {
+    "hideHeader": "Hide header",
+    "showHeader": "Show header",
+    "exitFullscreen": "Exit fullscreen",
+    "fullscreen": "Fullscreen"
+  },
+  "metrics": {
+    "totalBeers": "Total beers",
+    "averagePerHour": "Average per hour",
+    "totalBarrels": "Number of barrels",
+    "averagePerPerson": "avg / person"
+  },
+  "emptyState": {
+    "title": "No active event",
+    "subtitle": "Create a new event to view the leaderboard"
+  },
+  "sections": {
+    "men": "Drinkers",
+    "women": "Drinkers"
+  },
+  "table": {
+    "columns": {
+      "rank": "Rank",
+      "name": "Username",
+      "beers": "Beers"
+    },
+    "champion": "CHAMPION",
+    "noParticipants": "No participants yet"
+  },
+  "filters": {
+    "year": {
+      "label": "Year"
+    }
+  }
+}

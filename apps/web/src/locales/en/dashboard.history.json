@@ -1,0 +1,68 @@
+{
+  "title": "History & Analytics",
+  "tabs": {
+    "analytics": "Analytics",
+    "detailedHistory": "Detailed history"
+  },
+  "cleanupLogs": {
+    "button": "Clean logs",
+    "dialog": {
+      "title": "Clean logs",
+      "olderThanLabel": "Delete logs older than",
+      "logLevelsLabel": "Log levels",
+      "cancel": "Cancel",
+      "confirm": "Clean",
+      "cleaning": "Cleaning...",
+      "success": "Successfully cleaned {{count}} logs",
+      "error": "Failed to clean logs"
+    }
+  },
+  "table": {
+    "columns": {
+      "timestamp": "Timestamp",
+      "level": "Level",
+      "event": "Event",
+      "message": "Message",
+      "metadata": "Metadata"
+    },
+    "filters": {
+      "logLevel": {
+        "label": "Log level",
+        "all": "All"
+      }
+    },
+    "pagination": {
+      "rowsPerPage": "Rows per page"
+    }
+  },
+  "stats": {
+    "title": "Log statistics",
+    "loading": "Loading statistics...",
+    "error": "Error loading statistics: {{message}}",
+    "dateRange": {
+      "start": "Start date",
+      "end": "End date"
+    },
+    "sections": {
+      "events": {
+        "title": "Event distribution",
+        "chartTitle": "Event types",
+        "label": "Event count"
+      },
+      "logLevels": {
+        "title": "Log levels",
+        "chartTitle": "Log level distribution",
+        "labels": {
+          "error": "Error",
+          "warning": "Warning",
+          "other": "Other"
+        }
+      },
+      "participants": {
+        "title": "Participant activity",
+        "chartTitle": "Activity by participant",
+        "label": "Participant activity"
+      }
+    }
+  }
+}

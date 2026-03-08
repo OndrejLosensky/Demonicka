@@ -13,25 +13,27 @@ import {
 import { Badge } from '@mui/material';
 import { SportsBar as SportsBarIcon, Event as EventIcon, Settings as SettingsIcon } from '@demonicka/ui';
 import { formatDistanceToNow } from 'date-fns';
-import { cs } from 'date-fns/locale';
+import { cs, enUS } from 'date-fns/locale';
 import { useAppTheme } from '../../contexts/ThemeContext';
 import { getShadow } from '../../theme/utils';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLocale, useTranslations } from '../../contexts/LocaleContext';
 import type { NotificationItem } from '../../services/notificationService';
-import notificationTranslations from '../../locales/cs/notifications.json';
 
 interface NotificationMenuProps {
   anchorEl: HTMLElement | null;
   onClose: () => void;
 }
 
-function getNotificationMessage(notification: NotificationItem): string {
-  const t = notificationTranslations as Record<string, string>;
+function getNotificationMessage(
+  notification: NotificationItem,
+  t: Record<string, string>,
+): string {
   const template = t[notification.type] ?? notification.type;
   const payload = notification.payload as Record<string, string | undefined>;
-  const actorName = payload.actorName ?? t.unknownActor ?? 'Někdo';
-  const eventName = payload.eventName ?? 'Událost';
+  const actorName = payload.actorName ?? t.unknownActor ?? 'Someone';
+  const eventName = payload.eventName ?? 'Event';
   return template
     .replace(/\{\{actorName\}\}/g, actorName)
     .replace(/\{\{eventName\}\}/g, eventName);
@@ -44,11 +46,11 @@ function getNotificationIcon(type: string) {
   return <EventIcon fontSize="small" />;
 }
 
-function formatTime(createdAt: string): string {
+function formatTime(createdAt: string, locale: 'cs' | 'en'): string {
   try {
     return formatDistanceToNow(new Date(createdAt), {
       addSuffix: true,
-      locale: cs,
+      locale: locale === 'en' ? enUS : cs,
     });
   } catch {
     return '';
@@ -57,6 +59,8 @@ function formatTime(createdAt: string): string {
 
 export function NotificationMenu({ anchorEl, onClose }: NotificationMenuProps) {
   const { mode } = useAppTheme();
+  const { locale } = useLocale();
+  const notificationT = useTranslations<Record<string, string>>('notifications');
   const navigate = useNavigate();
   const {
     unreadCount,
@@ -85,9 +89,11 @@ export function NotificationMenu({ anchorEl, onClose }: NotificationMenuProps) {
     }
   };
 
-  const title = notificationTranslations.title ?? 'Oznámení';
-  const markAllReadLabel = notificationTranslations.markAllRead ?? 'Označit vše jako přečtené';
-  const emptyLabel = notificationTranslations.empty ?? 'Žádná oznámení';
+  const title = notificationT.title ?? 'Notifications';
+  const markAllReadLabel = notificationT.markAllRead ?? 'Mark all as read';
+  const emptyLabel = notificationT.empty ?? 'No notifications';
+  const loadingLabel = notificationT.loading ?? 'Loading…';
+  const settingsLabel = notificationT.settings ?? 'Notification settings';
 
   return (
     <Menu
@@ -141,7 +147,7 @@ export function NotificationMenu({ anchorEl, onClose }: NotificationMenuProps) {
         {loadingList ? (
           <Box sx={{ py: 2, textAlign: 'center' }}>
             <Typography variant="body2" color="text.secondary">
-              Načítám…
+              {loadingLabel}
             </Typography>
           </Box>
         ) : notifications.length === 0 ? (
@@ -166,9 +172,9 @@ export function NotificationMenu({ anchorEl, onClose }: NotificationMenuProps) {
                 {getNotificationIcon(notification.type)}
               </ListItemIcon>
               <ListItemText
-                primary={getNotificationMessage(notification)}
+                primary={getNotificationMessage(notification, notificationT)}
                 primaryTypographyProps={{ variant: 'body2', fontWeight: notification.readAt ? 400 : 500 }}
-                secondary={formatTime(notification.createdAt)}
+                secondary={formatTime(notification.createdAt, locale)}
                 secondaryTypographyProps={{ variant: 'caption', color: 'text.secondary' }}
               />
               {!notification.readAt && (
@@ -196,7 +202,7 @@ export function NotificationMenu({ anchorEl, onClose }: NotificationMenuProps) {
               <SettingsIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
-              primary={(notificationTranslations as Record<string, string>).settings ?? 'Nastavení oznámení'}
+              primary={settingsLabel}
               primaryTypographyProps={{ variant: 'body2' }}
             />
           </MenuItem>

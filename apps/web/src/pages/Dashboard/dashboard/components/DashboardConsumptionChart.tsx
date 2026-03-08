@@ -3,7 +3,7 @@ import { Card } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from '@mui/icons-material';
 import { format } from 'date-fns';
-import { cs } from 'date-fns/locale';
+import { cs, enUS } from 'date-fns/locale';
 import {
   Area,
   AreaChart,
@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import type { HourlyStats } from '../../../../types/hourlyStats';
 import { useAppTheme } from '../../../../contexts/ThemeContext';
+import { useLocale, useTranslations } from '../../../../contexts/LocaleContext';
 
 type Props = {
   title?: string;
@@ -22,8 +23,12 @@ type Props = {
   hourly: HourlyStats[];
 };
 
-export function DashboardConsumptionChart({ title = 'Spotřeba piv během dne', date, hourly }: Props) {
+export function DashboardConsumptionChart({ title, date, hourly }: Props) {
   const { mode } = useAppTheme();
+  const { locale } = useLocale();
+  const t = useTranslations<{ consumption: { title: string }; stats?: { beers: string } }>('dashboard');
+  const displayTitle = title ?? t.consumption?.title ?? 'Spotřeba piv během dne';
+  const dateLocale = locale === 'en' ? enUS : cs;
   const isDark = mode === 'dark';
   const labelDate = date ?? new Date();
   const data = hourly.map((h) => ({
@@ -46,12 +51,13 @@ export function DashboardConsumptionChart({ title = 'Spotřeba piv během dne', 
   const labelFormatter = (_label: string | number, payload?: TooltipEntry[]) => {
     const ts = payload?.[0]?.payload?.ts;
     if (typeof ts === 'string') {
-      return format(new Date(ts), 'PPpp', { locale: cs });
+      return format(new Date(ts), 'PPpp', { locale: dateLocale });
     }
     return _label;
   };
 
-  const valueFormatter = (value: number | string) => [value, 'Piv'] as [number | string, string];
+  const beersLabel = t.stats?.beers ?? 'Piv';
+  const valueFormatter = (value: number | string) => [value, beersLabel] as [number | string, string];
 
   return (
     <Card sx={{ borderRadius: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -72,12 +78,12 @@ export function DashboardConsumptionChart({ title = 'Spotřeba piv během dne', 
                   },
                 }}
               >
-                {title}
+                {displayTitle}
               </Typography>
               <ChevronRight sx={{ fontSize: '1.2rem', color: 'text.secondary' }} />
             </Link>
             <Typography variant="body2" color="text.secondary">
-              {format(labelDate, 'PP', { locale: cs })}
+              {format(labelDate, 'PP', { locale: dateLocale })}
             </Typography>
           </Box>
         </Box>

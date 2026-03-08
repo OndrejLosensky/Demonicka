@@ -3,7 +3,7 @@ import { barrelService } from '../../../services/barrelService';
 import { websocketService } from '../../../services/websocketService';
 import type { Barrel } from '@demonicka/shared-types';
 import { notify } from '../../../notifications/notify';
-import toastTranslations from '../../../locales/cs/toasts.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 
 const LOW_BEER_THRESHOLD = 10;
 const ALMOST_EMPTY_THRESHOLD = 5;
@@ -14,6 +14,10 @@ export const useBarrels = (includeDeleted = false, eventId?: string) => {
   const [barrels, setBarrels] = useState<Barrel[]>([]);
   const [deletedBarrels, setDeletedBarrels] = useState<Barrel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const toastT = useTranslations<Record<string, Record<string, string>>>('toasts');
+  const success = toastT.success as Record<string, string> | undefined;
+  const toastError = toastT.error as Record<string, string> | undefined;
+  const warning = toastT.warning as Record<string, string> | undefined;
   
   // Use refs to maintain stable references to mutable data
   const barrelsRef = useRef<Barrel[]>([]);
@@ -26,18 +30,18 @@ export const useBarrels = (includeDeleted = false, eventId?: string) => {
     
     if (remainingLitres <= ALMOST_EMPTY_LITRES_THRESHOLD) {
       notify.warning(
-        toastTranslations.warning.almostEmpty.replace('{{barrel}}', `#${barrel.orderNumber}`),
+        (warning?.almostEmpty ?? 'Sud {{barrel}} je téměř prázdný').replace('{{barrel}}', `#${barrel.orderNumber}`),
         { id: `barrel:warning:${barrel.id}:almostEmpty` },
       );
     } else if (remainingLitres <= LOW_LITRES_THRESHOLD) {
       notify.warning(
-        toastTranslations.warning.lowBeers
+        (warning?.lowBeers ?? 'V sudu {{barrel}} zbývá pouze {{count}} piv')
           .replace('{{barrel}}', `#${barrel.orderNumber}`)
           .replace('{{count}}', remainingLitres.toFixed(1) + ' L'),
         { id: `barrel:warning:${barrel.id}:lowBeers` },
       );
     }
-  }, []);
+  }, [warning]);
 
   const fetchBarrels = useCallback(async () => {
     try {
@@ -63,9 +67,9 @@ export const useBarrels = (includeDeleted = false, eventId?: string) => {
         deletedBarrelsRef.current = [];
         data.forEach(checkBarrelWarnings);
       }
-    } catch (error) {
-      console.error('Failed to fetch barrels:', error);
-      notify.error(toastTranslations.error.fetch.replace('{{item}}', 'sudy'), {
+    } catch (err) {
+      console.error('Failed to fetch barrels:', err);
+      notify.error((toastError?.fetch ?? 'Nepodařilo se načíst {{item}}').replace('{{item}}', 'sudy'), {
         id: `barrels:fetch:${eventId ?? 'all'}:${includeDeleted ? 'deleted' : 'active'}`,
       });
     } finally {
@@ -78,49 +82,49 @@ export const useBarrels = (includeDeleted = false, eventId?: string) => {
     try {
       await barrelService.delete(id);
       notify.success(
-        toastTranslations.success.deleted.replace('{{item}}', `Sud #${barrel?.orderNumber || id}`),
+        (success?.deleted ?? '{{item}} byl úspěšně smazán').replace('{{item}}', `Sud #${barrel?.orderNumber || id}`),
         { id: `barrel:delete:${id}` },
       );
       await fetchBarrels();
-    } catch (error) {
-      console.error('Failed to delete barrel:', error);
-      notify.error(toastTranslations.error.delete.replace('{{item}}', 'sud'), {
+    } catch (err) {
+      console.error('Failed to delete barrel:', err);
+      notify.error((toastError?.delete ?? 'Nepodařilo se smazat {{item}}').replace('{{item}}', 'sud'), {
         id: `barrel:delete:${id}`,
       });
     }
-  }, [fetchBarrels]);
+  }, [fetchBarrels, success, toastError]);
 
   const handleToggleActive = useCallback(async (id: string) => {
     const barrel = barrelsRef.current.find(b => b.id === id);
     try {
       await barrelService.activate(id);
       notify.success(
-        toastTranslations.success.updated.replace('{{item}}', `Sud #${barrel?.orderNumber || id}`),
+        (success?.updated ?? '{{item}} byl úspěšně aktualizován').replace('{{item}}', `Sud #${barrel?.orderNumber || id}`),
         { id: `barrel:activate:${id}` },
       );
       await fetchBarrels();
-    } catch (error) {
-      console.error('Failed to update barrel status:', error);
-      notify.error(toastTranslations.error.update.replace('{{item}}', 'sud'), {
+    } catch (err) {
+      console.error('Failed to update barrel status:', err);
+      notify.error((toastError?.update ?? 'Nepodařilo se aktualizovat {{item}}').replace('{{item}}', 'sud'), {
         id: `barrel:activate:${id}`,
       });
     }
-  }, [fetchBarrels]);
+  }, [fetchBarrels, success, toastError]);
 
   const handleCleanup = useCallback(async () => {
     try {
       await barrelService.cleanup();
-      notify.success(toastTranslations.success.deleted.replace('{{item}}', 'Smazané sudy'), {
+      notify.success((success?.deleted ?? '{{item}} byl úspěšně smazán').replace('{{item}}', 'Smazané sudy'), {
         id: 'barrels:cleanup',
       });
       await fetchBarrels();
-    } catch (error) {
-      console.error('Failed to cleanup barrels:', error);
-      notify.error(toastTranslations.error.delete.replace('{{item}}', 'smazané sudy'), {
+    } catch (err) {
+      console.error('Failed to cleanup barrels:', err);
+      notify.error((toastError?.delete ?? 'Nepodařilo se smazat {{item}}').replace('{{item}}', 'smazané sudy'), {
         id: 'barrels:cleanup',
       });
     }
-  }, [fetchBarrels]);
+  }, [fetchBarrels, success, toastError]);
 
   // Fetch when includeDeleted or eventId changes
   useEffect(() => {

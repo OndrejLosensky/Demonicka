@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthLayout } from '../../components/auth/AuthLayout';
 import { Input, PasswordInput, Button } from '@demonicka/ui';
-import translations from '../../locales/cs/auth.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
 
 const LoginComponent: React.FC = () => {
@@ -15,7 +15,10 @@ const LoginComponent: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, loginWithTwoFactor } = useAuth();
-  usePageTitle('Přihlášení');
+  const t = useTranslations<Record<string, unknown>>('auth');
+  const loginT = (t.login as Record<string, unknown>) || {};
+  const twoFactor = (loginT.twoFactor as Record<string, string>) || {};
+  usePageTitle(loginT.title as string ?? 'Přihlášení');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +34,7 @@ const LoginComponent: React.FC = () => {
       } else {
         // First step: submit username/password
         const result = await login(username, password);
-        if (result?.requiresTwoFactor) {
+        if (result && typeof result === 'object' && 'requiresTwoFactor' in result && result.requiresTwoFactor) {
           setRequiresTwoFactor(true);
         }
       }
@@ -49,8 +52,8 @@ const LoginComponent: React.FC = () => {
 
   return (
     <AuthLayout
-      title={translations.login.title}
-      subtitle={translations.login.subtitle}
+      title={(loginT.title as string) ?? 'Vítejte zpět!'}
+      subtitle={(loginT.subtitle as string) ?? 'Přihlaste se ke svému účtu'}
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         {error && (
@@ -64,24 +67,24 @@ const LoginComponent: React.FC = () => {
               id="username"
               name="username"
               type="text"
-              label={translations.login.username}
+              label={(loginT.username as string) ?? 'Uživatelské jméno'}
               autoComplete="username"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder={translations.login.username}
+              placeholder={(loginT.username as string) ?? 'Uživatelské jméno'}
             />
           </div>
           <div>
             <PasswordInput
               id="password"
               name="password"
-              label={translations.login.password}
+              label={(loginT.password as string) ?? 'Heslo'}
               autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={translations.login.password}
+              placeholder={(loginT.password as string) ?? 'Heslo'}
               disabled={requiresTwoFactor}
             />
           </div>
@@ -89,13 +92,13 @@ const LoginComponent: React.FC = () => {
         {requiresTwoFactor && (
           <div className="space-y-2">
             <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 p-3 rounded-lg text-sm border border-blue-200 dark:border-blue-800">
-              Kód pro dvoufázové ověření byl odeslán na váš email. Zadejte 6místný kód.
+              {twoFactor.message ?? 'Kód pro dvoufázové ověření byl odeslán na váš email. Zadejte 6místný kód.'}
             </div>
             <Input
               id="twoFactorCode"
               name="twoFactorCode"
               type="text"
-              label="Kód pro dvoufázové ověření"
+              label={twoFactor.label ?? 'Kód pro dvoufázové ověření'}
               autoComplete="one-time-code"
               required
               value={twoFactorCode}
@@ -103,9 +106,8 @@ const LoginComponent: React.FC = () => {
                 const value = e.target.value.replace(/\D/g, '').slice(0, 6);
                 setTwoFactorCode(value);
               }}
-              placeholder="000000"
+              placeholder={twoFactor.placeholder ?? '000000'}
               inputMode="numeric"
-              maxLength={6}
             />
           </div>
         )}
@@ -116,11 +118,11 @@ const LoginComponent: React.FC = () => {
         >
           {isLoading
             ? requiresTwoFactor
-              ? 'Ověřuji...'
-              : translations.login.signingIn
+              ? (twoFactor.verifying ?? 'Ověřuji...')
+              : (loginT.signingIn as string) ?? 'Přihlašování...'
             : requiresTwoFactor
-            ? 'Ověřit a přihlásit'
-            : translations.login.signIn}
+            ? (twoFactor.verifyAndSignIn ?? 'Ověřit a přihlásit')
+            : (loginT.signIn as string) ?? 'Přihlásit se'}
         </Button>
 
         <div className="relative my-6">
@@ -129,7 +131,7 @@ const LoginComponent: React.FC = () => {
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-              nebo
+              {(loginT.or as string) ?? 'nebo'}
             </span>
           </div>
         </div>
@@ -162,7 +164,7 @@ const LoginComponent: React.FC = () => {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Přihlásit se přes Google
+          {(loginT.signInWithGoogle as string) ?? 'Přihlásit se přes Google'}
         </Button>
 
         <div className="text-center">
@@ -170,7 +172,7 @@ const LoginComponent: React.FC = () => {
             to="/register"
             className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 text-sm font-medium transition-colors"
           >
-            {translations.login.noAccount}
+            {(loginT.noAccount as string) ?? 'Nemáte účet? Zaregistrujte se'}
           </Link>
         </div>
         <div className="text-center pt-2">
@@ -178,7 +180,7 @@ const LoginComponent: React.FC = () => {
             to="/enter-token" 
             className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
           >
-            {translations.login.completeRegistration}
+            {(loginT.completeRegistration as string) ?? 'Máte registrační token? Dokončete registraci'}
           </Link>
         </div>
       </form>

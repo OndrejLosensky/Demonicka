@@ -4,15 +4,25 @@ import { useQueries } from '@tanstack/react-query';
 import { Box, Typography, PageHeader } from '@demonicka/ui';
 import { Breadcrumbs, Link as MuiLink } from '@mui/material';
 import { dashboardRouteMeta, resolveDashboardDynamicLabel, type DashboardChromeHandle } from '../../routes/dashboardRouteMeta';
-import translations from '../../locales/cs/common.header.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 import { useDashboardChromeState } from '../../contexts/DashboardChromeContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
 type Crumb = { label: string; to?: string };
 
+function getByPath(obj: Record<string, unknown>, path: string): string | undefined {
+  const v = path.split('.').reduce(
+    (o: unknown, k: string) =>
+      o && typeof o === 'object' && k in o ? (o as Record<string, unknown>)[k] : undefined,
+    obj,
+  );
+  return typeof v === 'string' ? v : undefined;
+}
+
 export function DashboardChrome() {
   const location = useLocation();
   const { left, action } = useDashboardChromeState();
+  const headerT = useTranslations<Record<string, unknown>>('common.header');
 
   const matches = useMemo(() => matchRoutes(dashboardRouteMeta, location) ?? [], [location]);
 
@@ -61,17 +71,25 @@ export function DashboardChrome() {
     const isDashboardPath =
       matches[0]?.route.path === 'dashboard' || matches[0]?.route.path === 'u';
     if (!isDashboardPath) {
-      items.push({ label: translations.navigation.dashboard, to: '/dashboard' });
+      items.push({
+        label: getByPath(headerT, 'navigation.dashboard') ?? 'Dashboard',
+        to: '/dashboard',
+      });
     }
 
     for (const m of matches) {
       const handle = m.route.handle as DashboardChromeHandle | undefined;
       const pathnameBase = (m as any).pathnameBase as string | undefined;
-      if (!handle?.crumb) continue;
+      if (!handle?.crumb && !handle?.crumbKey) continue;
 
       const params = m.params as Record<string, string>;
-      let label =
-        typeof handle.crumb === 'function' ? handle.crumb(params) : handle.crumb;
+      let label: string;
+      if (handle.crumbKey) {
+        label = getByPath(headerT, handle.crumbKey) ?? (typeof handle.crumb === 'string' ? handle.crumb : '');
+      } else {
+        label =
+          typeof handle.crumb === 'function' ? handle.crumb(params) : (handle.crumb ?? '');
+      }
 
       if (pathnameBase && dynamicLabelByPath.has(pathnameBase)) {
         const dynamic = dynamicLabelByPath.get(pathnameBase)!;
@@ -99,17 +117,16 @@ export function DashboardChrome() {
     for (const m of matches) {
       const handle = m.route.handle as DashboardChromeHandle | undefined;
       const params = m.params as Record<string, string>;
-      const base =
-        handle?.title
-          ? typeof handle.title === 'function'
-            ? handle.title(params)
-            : handle.title
-          : handle?.crumb
-            ? typeof handle.crumb === 'function'
-              ? handle.crumb(params)
-              : handle.crumb
-            : undefined;
-
+      let base: string | undefined;
+      if (handle?.titleKey) {
+        base = getByPath(headerT, handle.titleKey);
+      } else if (handle?.title) {
+        base = typeof handle.title === 'function' ? handle.title(params) : handle.title;
+      } else if (handle?.crumbKey) {
+        base = getByPath(headerT, handle.crumbKey);
+      } else if (handle?.crumb) {
+        base = typeof handle.crumb === 'function' ? handle.crumb(params) : handle.crumb;
+      }
       if (base) chosen = base;
 
       const pathnameBase = (m as any).pathnameBase as string | undefined;
@@ -119,8 +136,8 @@ export function DashboardChrome() {
       }
     }
 
-    return chosen || translations.navigation.dashboard;
-  }, [matches, dynamicLabelByPath]);
+    return chosen ?? getByPath(headerT, 'navigation.dashboard') ?? 'Dashboard';
+  }, [matches, dynamicLabelByPath, headerT]);
 
   usePageTitle(title);
 

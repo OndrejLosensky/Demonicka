@@ -25,7 +25,7 @@ import {
 import type { UserTableProps } from './types';
 import { format } from 'date-fns';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
-import translations from '../../../locales/cs/dashboard.users.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import { tokens } from '../../../theme/tokens';
 
 export const UsersTable: React.FC<UserTableProps> = ({
@@ -35,6 +35,12 @@ export const UsersTable: React.FC<UserTableProps> = ({
   onDelete,
   showGender = true,
 }) => {
+  const t = useTranslations<Record<string, unknown>>('dashboard.users');
+  const table = (t.table as Record<string, Record<string, string>>) || {};
+  const columns = table.columns || {};
+  const actions = (t.actions as Record<string, string>) || {};
+  const dialogsAdd = (t.dialogs as Record<string, Record<string, unknown>>)?.add as Record<string, Record<string, string>> | undefined;
+  const genders = dialogsAdd?.genders || {};
   const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; user: { id: string; name: string } }>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -61,11 +67,11 @@ export const UsersTable: React.FC<UserTableProps> = ({
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
-              <TableCell className="font-bold">{translations.table.columns.name}</TableCell>
-              <TableCell align="center" className="font-bold">{translations.table.columns.beers}</TableCell>
-              {showGender && <TableCell className="font-bold">{translations.table.columns.gender}</TableCell>}
-              <TableCell className="font-bold">{translations.table.columns.lastBeer}</TableCell>
-              <TableCell align="right" className="font-bold w-[220px]">{translations.table.columns.actions}</TableCell>
+              <TableCell className="font-bold">{columns.name}</TableCell>
+              <TableCell align="center" className="font-bold">{columns.beers}</TableCell>
+              {showGender && <TableCell className="font-bold">{columns.gender}</TableCell>}
+              <TableCell className="font-bold">{columns.lastBeer}</TableCell>
+              <TableCell align="right" className="font-bold w-[220px]">{columns.actions}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -82,26 +88,26 @@ export const UsersTable: React.FC<UserTableProps> = ({
                 <TableCell align="center">{user.beerCount}</TableCell>
                 {showGender && (
                   <TableCell>
-                    {user.gender === 'MALE' ? translations.dialogs.add.genders.male : translations.dialogs.add.genders.female}
+                    {user.gender === 'MALE' ? genders.male : genders.female}
                   </TableCell>
                 )}
                 <TableCell>
                   {user.lastBeerTime ? format(new Date(user.lastBeerTime), 'dd.MM.yyyy HH:mm') : '-'}
                 </TableCell>
                 <TableCell align="right">
-                  <Tooltip title={translations.actions.addBeer}>
+                  <Tooltip title={actions.addBeer}>
                     <IconButton onClick={() => onAddBeer(user.id)} size="small">
                       <AddIcon />
                     </IconButton>
                   </Tooltip>
                   {user.beerCount > 0 && (
-                    <Tooltip title={translations.actions.removeBeer}>
+                    <Tooltip title={actions.removeBeer}>
                       <IconButton onClick={() => onRemoveBeer(user.id)} size="small">
                         <RemoveIcon />
                       </IconButton>
                     </Tooltip>
                   )}
-                  <Tooltip title={translations.actions.delete}>
+                  <Tooltip title={actions.delete}>
                     <IconButton
                       onClick={(event) => setMenuAnchor({ element: event.currentTarget, user: { id: user.id, name: user.name } })}
                       size="small"
@@ -125,7 +131,7 @@ export const UsersTable: React.FC<UserTableProps> = ({
           <ListItemIcon>
             <DeleteIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>{translations.actions.delete}</ListItemText>
+          <ListItemText>{actions.delete}</ListItemText>
         </MenuItem>
       </Menu>
 

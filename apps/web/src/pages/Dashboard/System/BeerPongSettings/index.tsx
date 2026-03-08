@@ -16,13 +16,19 @@ import { Alert } from '@mui/material';
 import { Save as SaveIcon } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import { CancellationPolicy } from '@demonicka/shared-types';
-import translations from '../../../../locales/cs/beerPongSettings.json';
+import { useTranslations } from '../../../../contexts/LocaleContext';
 import { api } from '../../../../services/api';
 
 /**
  * Beer Pong Settings Page
  */
 const BeerPongSettingsPage: React.FC = () => {
+  const t = useTranslations<Record<string, unknown>>('beerPongSettings');
+  const toasts = (t.toasts as Record<string, string>) || {};
+  const fields = (t.fields as Record<string, Record<string, string> & { label?: string; helper?: string }>) || {};
+  const descriptions = (t.descriptions as Record<string, Record<string, string> & { title?: string; text?: string }>) || {};
+  const warnings = (t.warnings as Record<string, Record<string, string>>) || {};
+  const infoNote = (t.infoNote as Record<string, string>) || {};
   const [defaultBeersPerPlayer, setDefaultBeersPerPlayer] = useState(2);
   const [defaultTimeWindowMinutes, setDefaultTimeWindowMinutes] = useState(5);
   const [defaultUndoWindowMinutes, setDefaultUndoWindowMinutes] = useState(5);
@@ -50,7 +56,7 @@ const BeerPongSettingsPage: React.FC = () => {
         setDefaultCancellationPolicy(data.cancellationPolicy);
       } catch (e) {
         console.error('Failed to load beer pong defaults:', e);
-        toast.error('Nepodařilo se načíst Beer Pong nastavení');
+        toast.error(toasts.loadFailed ?? 'Nepodařilo se načíst Beer Pong nastavení');
       } finally {
         setIsLoading(false);
       }
@@ -68,10 +74,10 @@ const BeerPongSettingsPage: React.FC = () => {
         undoWindowMinutes: defaultUndoWindowMinutes,
         cancellationPolicy: defaultCancellationPolicy,
       });
-      toast.success(translations.toasts.saveSuccess);
+      toast.success(toasts.saveSuccess ?? 'Nastavení bylo uloženo');
     } catch (e) {
       console.error('Failed to save beer pong defaults:', e);
-      toast.error('Nepodařilo se uložit nastavení');
+      toast.error(toasts.saveFailed ?? 'Nepodařilo se uložit nastavení');
     } finally {
       setIsSaving(false);
     }
@@ -82,10 +88,10 @@ const BeerPongSettingsPage: React.FC = () => {
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box>
           <Typography variant="h6" fontWeight="bold">
-            {translations.title}
+            {(t.title as string) ?? 'Beer Pong výchozí nastavení'}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {translations.subtitle}
+            {(t.subtitle as string) ?? 'Tato nastavení se použijí jako výchozí při vytváření nových turnajů.'}
           </Typography>
         </Box>
         <Button
@@ -95,13 +101,13 @@ const BeerPongSettingsPage: React.FC = () => {
           sx={{ minWidth: 120 }}
           disabled={isLoading || isSaving}
         >
-          {translations.save}
+          {(t.save as string) ?? 'Uložit'}
         </Button>
       </Box>
 
       <Alert severity="info" sx={{ mb: 3 }}>
         <Typography variant="body2">
-          <strong>{translations.infoNote.title}</strong> {translations.infoNote.text}
+          <strong>{infoNote.title ?? 'Poznámka'}</strong> {infoNote.text ?? 'Tato nastavení slouží jako výchozí při vytváření nového turnaje.'}
         </Typography>
       </Alert>
 
@@ -110,13 +116,13 @@ const BeerPongSettingsPage: React.FC = () => {
           {/* Beers Per Player */}
           <Grid item xs={12} md={6}>
             <TextField
-              label={translations.fields.beersPerPlayer.label}
+              label={fields.beersPerPlayer?.label ?? 'Piv na hráče'}
               type="number"
               fullWidth
               value={defaultBeersPerPlayer}
               onChange={(e) => setDefaultBeersPerPlayer(Math.max(1, Number(e.target.value)))}
               inputProps={{ min: 1 }}
-              helperText={translations.fields.beersPerPlayer.helper}
+              helperText={fields.beersPerPlayer?.helper}
               disabled={isLoading}
             />
           </Grid>
@@ -124,13 +130,13 @@ const BeerPongSettingsPage: React.FC = () => {
           {/* Time Window Minutes */}
           <Grid item xs={12} md={6}>
             <TextField
-              label={translations.fields.timeWindowMinutes.label}
+              label={fields.timeWindowMinutes?.label ?? 'Časové okno (min)'}
               type="number"
               fullWidth
               value={defaultTimeWindowMinutes}
               onChange={(e) => setDefaultTimeWindowMinutes(Math.max(0, Number(e.target.value)))}
               inputProps={{ min: 0 }}
-              helperText={translations.fields.timeWindowMinutes.helper}
+              helperText={fields.timeWindowMinutes?.helper}
               disabled={isLoading}
             />
           </Grid>
@@ -138,13 +144,13 @@ const BeerPongSettingsPage: React.FC = () => {
           {/* Undo Window Minutes */}
           <Grid item xs={12} md={6}>
             <TextField
-              label={translations.fields.undoWindowMinutes.label}
+              label={fields.undoWindowMinutes?.label ?? 'Okno pro zrušení (min)'}
               type="number"
               fullWidth
               value={defaultUndoWindowMinutes}
               onChange={(e) => setDefaultUndoWindowMinutes(Math.max(0, Number(e.target.value)))}
               inputProps={{ min: 0 }}
-              helperText={translations.fields.undoWindowMinutes.helper}
+              helperText={fields.undoWindowMinutes?.helper}
               disabled={isLoading}
             />
           </Grid>
@@ -152,19 +158,19 @@ const BeerPongSettingsPage: React.FC = () => {
           {/* Cancellation Policy */}
           <Grid item xs={12} md={6}>
             <FormControl fullWidth>
-              <InputLabel>{translations.fields.cancellationPolicy.label}</InputLabel>
+              <InputLabel>{fields.cancellationPolicy?.label ?? 'Politika zrušení'}</InputLabel>
               <Select
                 value={defaultCancellationPolicy}
-                label={translations.fields.cancellationPolicy.label}
+                label={fields.cancellationPolicy?.label ?? 'Politika zrušení'}
                 onChange={(e) => setDefaultCancellationPolicy(e.target.value as CancellationPolicy)}
                 disabled={isLoading}
               >
-                <MenuItem value={CancellationPolicy.KEEP_BEERS}>{translations.fields.cancellationPolicy.keepBeers}</MenuItem>
-                <MenuItem value={CancellationPolicy.REMOVE_BEERS}>{translations.fields.cancellationPolicy.removeBeers}</MenuItem>
+                <MenuItem value={CancellationPolicy.KEEP_BEERS}>{fields.cancellationPolicy?.keepBeers ?? 'Ponechat piva'}</MenuItem>
+                <MenuItem value={CancellationPolicy.REMOVE_BEERS}>{fields.cancellationPolicy?.removeBeers ?? 'Odebrat piva'}</MenuItem>
               </Select>
             </FormControl>
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              {translations.fields.cancellationPolicy.helper}
+              {fields.cancellationPolicy?.helper}
             </Typography>
           </Grid>
         </Grid>
@@ -174,50 +180,50 @@ const BeerPongSettingsPage: React.FC = () => {
         {/* Documentation Section */}
         <Box>
           <Typography variant="h6" gutterBottom>
-            {translations.descriptions.title}
+            {(descriptions.title as string) ?? 'Popis polí'}
           </Typography>
 
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-              {translations.descriptions.beersPerPlayer.title}
+              {descriptions.beersPerPlayer?.title}
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
-              {translations.descriptions.beersPerPlayer.text}
+              {descriptions.beersPerPlayer?.text}
             </Typography>
 
             <Typography variant="subtitle2" fontWeight={600} gutterBottom sx={{ mt: 2 }}>
-              {translations.descriptions.timeWindowMinutes.title}
+              {descriptions.timeWindowMinutes?.title}
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
-              {translations.descriptions.timeWindowMinutes.text}
+              {descriptions.timeWindowMinutes?.text}
             </Typography>
 
             <Typography variant="subtitle2" fontWeight={600} gutterBottom sx={{ mt: 2 }}>
-              {translations.descriptions.undoWindowMinutes.title}
+              {descriptions.undoWindowMinutes?.title}
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
-              {translations.descriptions.undoWindowMinutes.text}
+              {descriptions.undoWindowMinutes?.text}
             </Typography>
 
             <Typography variant="subtitle2" fontWeight={600} gutterBottom sx={{ mt: 2 }}>
-              {translations.descriptions.cancellationPolicy.title}
+              {descriptions.cancellationPolicy?.title}
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
-              {translations.descriptions.cancellationPolicy.text}
+              {descriptions.cancellationPolicy?.text}
             </Typography>
             <Box component="ul" sx={{ ml: 3, mb: 2 }}>
               <li>
-                <strong>{translations.fields.cancellationPolicy.keepBeers}:</strong> {translations.descriptions.cancellationPolicy.keepBeers}
+                <strong>{fields.cancellationPolicy?.keepBeers}:</strong> {descriptions.cancellationPolicy?.keepBeers}
               </li>
               <li>
-                <strong>{translations.fields.cancellationPolicy.removeBeers}:</strong> {translations.descriptions.cancellationPolicy.removeBeers}
+                <strong>{fields.cancellationPolicy?.removeBeers}:</strong> {descriptions.cancellationPolicy?.removeBeers}
               </li>
             </Box>
           </Box>
 
           <Alert severity="warning" sx={{ mt: 3 }}>
             <Typography variant="body2">
-              <strong>{translations.warnings.important.title}</strong> {translations.warnings.important.text}
+              <strong>{warnings.important?.title ?? 'Důležité'}</strong> {warnings.important?.text}
             </Typography>
           </Alert>
         </Box>

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { landingApi } from '../api/landing';
 import type { PublicStats, ActivityEvent } from '../types/public';
-import translations from '../locales/cs/landing.json';
+import { useTranslations } from '../contexts/LocaleContext';
 import { FaTrophy, FaUsers, FaChartLine, FaBeer, FaAward, FaUserPlus } from 'react-icons/fa';
 import { BsArrowUpRight, BsLightning } from 'react-icons/bs';
 import { formatDistanceToNow } from 'date-fns';
@@ -94,16 +94,18 @@ const getEventIcon = (type: ActivityEvent['type']) => {
   }
 };
 
-const getEventText = (event: ActivityEvent) => {
+const getEventText = (event: ActivityEvent, eventsT: Record<string, string>) => {
   switch (event.type) {
     case 'beer_added':
-      return translations.latestActivity.events.beer_added.replace('{count}', event.details.beerCount?.toString() || '0');
+      return (eventsT.beer_added ?? 'přidal(a) {count} piv').replace('{count}', event.details.beerCount?.toString() || '0');
     case 'barrel_finished':
-      return translations.latestActivity.events.barrel_finished.replace('{name}', event.details.barrelName || '');
+      return (eventsT.barrel_finished ?? 'dokončil(a) sud {name}').replace('{name}', event.details.barrelName || '');
     case 'achievement_unlocked':
-      return translations.latestActivity.events.achievement_unlocked.replace('{name}', event.details.achievementName || '');
+      return (eventsT.achievement_unlocked ?? 'získal(a) achievement {name}').replace('{name}', event.details.achievementName || '');
     case 'new_user':
-      return translations.latestActivity.events.new_participant;
+      return eventsT.new_participant ?? 'se připojil(a) ke komunitě';
+    default:
+      return '';
   }
 };
 
@@ -115,7 +117,12 @@ const formatTimeAgo = (timestamp: string) => {
 
 export default function Landing() {
   usePageTitle();
-  const [stats, setStats] = useState<PublicStats | null>(null);
+  const t = useTranslations<Record<string, unknown>>('landing');
+  const hero = (t.hero as Record<string, string>) || {};
+  const stats = (t.stats as Record<string, string>) || {};
+  const latestActivity = (t.latestActivity as Record<string, unknown>) || {};
+  const latestActivityEvents = (latestActivity.events as Record<string, string>) || {};
+  const [statsData, setStatsData] = useState<PublicStats | null>(null);
   const [loading, setLoading] = useState(true);
   const { activeEvent, isActiveEventLoading } = useActiveEvent();
   const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
@@ -126,7 +133,7 @@ export default function Landing() {
       try {
         setLoading(true);
         const data = await landingApi.getStats(activeEvent?.id);
-        setStats(data);
+        setStatsData(data);
       } catch (error) {
         console.error('Error fetching stats:', error);
       } finally {
@@ -142,8 +149,6 @@ export default function Landing() {
     ? ((leaderboard?.males ?? []).reduce((s, u) => s + (u.beerCount || 0), 0) +
        (leaderboard?.females ?? []).reduce((s, u) => s + (u.beerCount || 0), 0))
     : undefined;
-
-  // Load public leaderboard preview (global or for active event if available)
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
@@ -173,7 +178,7 @@ export default function Landing() {
     };
 
     const onDashboardStatsUpdate = (data: { dashboard: unknown; public: PublicStats }) => {
-      setStats(data.public);
+      setStatsData(data.public);
     };
 
     websocketService.subscribe('leaderboard:update', onLeaderboardUpdate);
@@ -198,7 +203,7 @@ export default function Landing() {
           dashboardService.getLeaderboard(activeEvent.id)
         ]);
         
-        setStats(statsData);
+        setStatsData(statsData);
         setLeaderboard(leaderboardData);
       } catch (error) {
         console.error('Landing: Fallback refresh failed:', error);
@@ -342,7 +347,7 @@ export default function Landing() {
                     transition={{ duration: 0.8, delay: 0.3 }}
                   >
                     <span className="block bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-primary to-primary-600">
-                      {translations.hero.title}
+                      {hero.title ?? 'Démonická'}
                     </span>
                   </motion.h1>
 
@@ -353,7 +358,7 @@ export default function Landing() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4, duration: 0.8 }}
                   >
-                    {translations.hero.subtitle}
+                    {hero.subtitle ?? 'Sledujte svou pivní cestu s přáteli'}
                   </motion.p>
 
                   {/* Dynamic Stats - Improved Cards */}
@@ -368,10 +373,10 @@ export default function Landing() {
                       whileHover={{ y: -2 }}
                     >
                       <div className="text-3xl lg:text-4xl font-black text-primary">
-                        {loading ? "..." : (correctedTotalBeers ?? stats?.totalBeers ?? 0)}
+                        {loading ? "..." : (correctedTotalBeers ?? statsData?.totalBeers ?? 0)}
                       </div>
                       <div className="mt-1 text-xs font-medium text-gray-500 text-center lg:text-left">
-                        {translations.stats.totalBeers}
+                        {stats.totalBeers ?? 'Celkem piv'}
                       </div>
                     </motion.div>
                     <motion.div 
@@ -379,10 +384,10 @@ export default function Landing() {
                       whileHover={{ y: -2 }}
                     >
                       <div className="text-3xl lg:text-4xl font-black text-primary">
-                        {loading ? "..." : stats?.totalUsers || 0}
+                        {loading ? "..." : statsData?.totalUsers || 0}
                       </div>
                       <div className="mt-1 text-xs font-medium text-gray-500 text-center lg:text-left">
-                        {translations.stats.activeParticipants}
+                        {stats.activeParticipants ?? 'Aktivních účastníků'}
                       </div>
                     </motion.div>
                     <motion.div 
@@ -390,10 +395,10 @@ export default function Landing() {
                       whileHover={{ y: -2 }}
                     >
                       <div className="text-3xl lg:text-4xl font-black text-primary">
-                        {loading ? "..." : stats?.totalBarrels || 0}
+                        {loading ? "..." : statsData?.totalBarrels || 0}
                       </div>
                       <div className="mt-1 text-xs font-medium text-gray-500 text-center lg:text-left">
-                        {translations.stats.activeBarrels}
+                        {stats.activeBarrels ?? 'Aktivních sudů'}
                       </div>
                     </motion.div>
                   </motion.div>
@@ -412,7 +417,7 @@ export default function Landing() {
                       <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-primary-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-300" />
                       <button className="relative rounded-full bg-primary px-8 py-3 text-lg font-semibold text-white shadow-lg group-hover:bg-primary-600 transition-all duration-300 w-full sm:w-auto">
                         <span className="flex items-center gap-2 justify-center">
-                          {translations.hero.getStarted}
+                          {hero.getStarted ?? 'Začít'}
                           <BsArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
                         </span>
                       </button>
@@ -421,7 +426,7 @@ export default function Landing() {
                       to="/leaderboard"
                       className="group text-lg font-semibold text-gray-600 hover:text-primary transition-colors duration-300 flex items-center gap-2"
                     >
-                      {translations.hero.learnMore}
+                      {hero.learnMore ?? 'Zjistit více'}
                       <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
                     </Link>
                   </motion.div>
@@ -1032,7 +1037,7 @@ export default function Landing() {
         </section>
 
         {/* Latest Activity Section */}
-        {stats?.latestActivity && stats.latestActivity.length > 0 && (
+        {statsData?.latestActivity && statsData.latestActivity.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -1048,7 +1053,7 @@ export default function Landing() {
                 viewport={{ once: true }}
                 className="text-3xl font-bold tracking-tight sm:text-4xl bg-gradient-to-r from-primary via-primary-600 to-primary bg-clip-text text-transparent"
               >
-                {translations.latestActivity.title}
+                {(latestActivity.title as string) ?? 'Poslední aktivita'}
               </motion.h2>
               <motion.p
                 variants={fadeInUp}
@@ -1057,7 +1062,7 @@ export default function Landing() {
                 viewport={{ once: true }}
                 className="mt-4 text-lg leading-8 text-gray-600"
               >
-                {translations.latestActivity.subtitle}
+                {(latestActivity.subtitle as string) ?? 'Co se děje v komunitě'}
               </motion.p>
             </div>
 
@@ -1068,7 +1073,7 @@ export default function Landing() {
               viewport={{ once: true }}
               className="space-y-4"
             >
-              {stats.latestActivity.map((event) => (
+              {statsData.latestActivity.map((event) => (
                 <motion.div
                   key={event.id}
                   variants={fadeInUp}
@@ -1086,7 +1091,7 @@ export default function Landing() {
                           {event.userName}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {getEventText(event)}
+                          {getEventText(event, latestActivityEvents)}
                         </p>
                       </div>
                       <div className="text-sm text-gray-500">

@@ -1,0 +1,105 @@
+{
+  "title": "System",
+  "overview": "System overview",
+  "refresh": "Refresh",
+  "userStatistics": {
+    "title": "User statistics",
+    "totalUsers": "Total users",
+    "adminUsers": "Operators",
+    "completedRegistrations": "Completed registrations",
+    "twoFactorEnabled": "2FA enabled"
+  },
+  "userList": {
+    "title": "User list",
+    "columns": {
+      "username": "Username",
+      "role": "Role",
+      "twoFactorStatus": "2FA status",
+      "registrationStatus": "Registration status",
+      "lastAdminLogin": "Last login",
+      "actions": "Actions"
+    },
+    "roles": {
+      "SUPER_ADMIN": "Super admin",
+      "OPERATOR": "Operator",
+      "USER": "User",
+      "PARTICIPANT": "Participant"
+    },
+    "twoFactorStatus": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "registrationStatus": {
+      "complete": "Complete",
+      "incomplete": "Incomplete"
+    },
+    "actions": {
+      "editRole": "Change role",
+      "deleteUser": "Delete user",
+      "generateToken": "Generate token",
+      "generating": "Generating..."
+    }
+  },
+  "backup": {
+    "runButton": "Run backup",
+    "running": "Backing up..."
+  },
+  "cleanupSection": {
+    "title": "System operations",
+    "warningTitle": "Warning",
+    "warningText": "The \"Clean active event\" operation is irreversible. Make sure you have a backup of important data before proceeding.",
+    "operationBackup": "Database backup",
+    "operationBackupDesc": "Create a database backup and upload it to storage.",
+    "operationSystem": "Clean system",
+    "operationSystemDesc": "Delete old logs and temporary files",
+    "operationActiveEvent": "Clean active event",
+    "operationActiveEventDesc": "Delete all data for the active event",
+    "dialogSystemTitle": "Clean system",
+    "dialogSystemMessage": "This will delete old logs and temporary files older than 30 days. This operation is safe and will not affect current data.",
+    "dialogActiveEventTitle": "Clean active event",
+    "dialogActiveEventMessage": "This will delete all data related to the current active event including participants and beers consumed. This operation is irreversible!",
+    "buttonRunning": "Running...",
+    "jobEnqueued": "Job enqueued. Check status in Jobs.",
+    "jobFailed": "Failed to enqueue job.",
+    "jobCompleted": "Job \"{{label}}\" completed."
+  },
+  "loading": "Loading system statistics...",
+  "error": {
+    "loadFailed": "Failed to load system statistics",
+    "retry": "Retry"
+  },
+  "toasts": {
+    "tokenCopied": "Token copied to clipboard",
+    "urlCopied": "Link copied to clipboard",
+    "copyFailed": "Failed to copy to clipboard",
+    "roleUpdated": "Role was updated",
+    "roleUpdateFailed": "Failed to update role",
+    "userDeleted": "User was deleted",
+    "userDeleteFailed": "Failed to delete user",
+    "backupCompleted": "Backup completed successfully",
+    "backupFailed": "Failed to run backup",
+    "tokenGenerationFailed": "Failed to generate registration token"
+  },
+  "deleteDialog": {
+    "title": "Delete user",
+    "message": "Are you sure you want to delete user {{username}}? This can be undone (restore).",
+    "cancel": "Cancel",
+    "confirm": "Delete"
+  },
+  "roleDialog": {
+    "title": "Change role",
+    "roleLabel": "Role",
+    "cancel": "Cancel",
+    "save": "Save",
+    "operatorHint": "Operator cannot change super admin or assign SUPER_ADMIN role."
+  },
+  "tokenDialog": {
+    "title": "Registration token",
+    "tokenLabel": "Token",
+    "urlLabel": "Registration link",
+    "qrTitle": "QR code",
+    "close": "Close",
+    "copyToken": "Copy token",
+    "copyUrl": "Copy link"
+  }
+}

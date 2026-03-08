@@ -1,0 +1,19 @@
+{
+  "title": "Nastavení",
+  "subtitle": "Přizpůsobte si vzhled aplikace",
+  "theme": {
+    "label": "Preferovaný motiv",
+    "selectLabel": "Motiv",
+    "dark": "Tmavý",
+    "light": "Světlý"
+  },
+  "language": {
+    "label": "Jazyk",
+    "selectLabel": "Jazyk",
+    "cs": "Čeština",
+    "en": "English"
+  },
+  "save": "Uložit",
+  "saving": "Ukládám...",
+  "loading": "Načítání nastavení..."
+}

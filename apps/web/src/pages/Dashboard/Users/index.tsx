@@ -15,7 +15,7 @@ import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
-import translations from '../../../locales/cs/dashboard.users.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
 import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
@@ -24,6 +24,11 @@ const UsersPage: React.FC = () => {
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_USERS);
   const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_USER_HISTORY);
   const { activeEvent } = useActiveEvent();
+  const t = useTranslations<Record<string, unknown>>('dashboard.users');
+  const actions = (t.actions as Record<string, string>) || {};
+  const dialogs = (t.dialogs as Record<string, Record<string, unknown>>) || {};
+  const sections = (t.sections as Record<string, string>) || {};
+  const cleanupAll = (dialogs.cleanupAll as Record<string, string>) || {};
   const {
     users,
     deletedUsers,
@@ -51,10 +56,10 @@ const UsersPage: React.FC = () => {
   }, [users, deletedUsers, showDeleted]);
 
   const confirmCleanup = useCallback(async () => {
-    if (window.confirm(translations.dialogs.cleanupAll.message)) {
+    if (window.confirm(cleanupAll.message)) {
       await handleCleanup();
     }
-  }, [handleCleanup, translations.dialogs.cleanupAll.message]);
+  }, [handleCleanup, cleanupAll.message]);
 
   const headerLeft = useMemo(
     () => (showEventHistory && activeEvent ? <EventSelector /> : undefined),
@@ -72,7 +77,7 @@ const UsersPage: React.FC = () => {
                 onChange={(e) => setShowDeleted(e.target.checked)}
               />
             }
-            label={translations.actions.showDeleted}
+            label={actions.showDeleted}
           />
         )}
         <Button
@@ -82,7 +87,7 @@ const UsersPage: React.FC = () => {
           onClick={() => setDialogOpen(true)}
           sx={{ mr: 1 }}
         >
-          {translations.actions.addUser}
+          {actions.addUser}
         </Button>
         <Button
           variant="contained"
@@ -90,11 +95,11 @@ const UsersPage: React.FC = () => {
           startIcon={<DeleteIcon />}
           onClick={confirmCleanup}
         >
-          {translations.actions.cleanupAll}
+          {actions.cleanupAll}
         </Button>
       </Box>
     ),
-    [showDeletedFeature, showDeleted, confirmCleanup, translations.actions.addUser, translations.actions.cleanupAll, translations.actions.showDeleted],
+    [showDeletedFeature, showDeleted, confirmCleanup, actions.addUser, actions.cleanupAll, actions.showDeleted],
   );
 
   useDashboardHeaderSlots({
@@ -111,7 +116,7 @@ const UsersPage: React.FC = () => {
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <Typography variant="h6" gutterBottom>
-            {translations.sections.men}
+            {sections.men}
           </Typography>
           <UsersTable
             users={maleUsers}
@@ -124,7 +129,7 @@ const UsersPage: React.FC = () => {
         </Grid>
         <Grid item xs={12} md={6}>
           <Typography variant="h6" gutterBottom>
-            {translations.sections.women}
+            {sections.women}
           </Typography>
           <UsersTable
             users={femaleUsers}

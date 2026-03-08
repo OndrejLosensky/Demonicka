@@ -38,6 +38,8 @@
   },
   "roles": {
     "ADMIN": "Administrátor",
+    "SUPER_ADMIN": "Super administrátor",
+    "OPERATOR": "Operátor",
     "USER": "Uživatel",
     "PARTICIPANT": "Účastník"
   },
@@ -58,5 +60,53 @@
     "rank": "pořadí",
     "of": "z",
     "users": "uživatelů"
+  },
+  "editProfile": {
+    "title": "Upravit profil",
+    "email": "Email",
+    "emailHelper2FA": "Email je vyžadován pro dvoufázové ověření",
+    "save": "Uložit",
+    "saving": "Ukládám..."
+  },
+  "myStats": "Moje statistiky",
+  "refreshTooltip": "Obnovit data",
+  "twoFactor": {
+    "title": "Dvoufázové ověření",
+    "enabled": "Dvoufázové ověření je aktivní",
+    "disabled": "Dvoufázové ověření je deaktivováno",
+    "descriptionEnabled": "Při přihlášení budete potřebovat kód z emailu",
+    "descriptionDisabled": "Zapněte dvoufázové ověření pro zvýšení bezpečnosti vašeho účtu",
+    "activate": "Aktivovat",
+    "deactivate": "Deaktivovat",
+    "activating": "Odesílám...",
+    "deactivating": "Deaktivuji...",
+    "dialogTitle": "Ověření dvoufázového ověření",
+    "dialogMessage": "Zadejte 6místný kód, který jsme vám odeslali na email {{email}}",
+    "codeLabel": "Ověřovací kód",
+    "codePlaceholder": "000000",
+    "cancel": "Zrušit",
+    "verify": "Ověřit",
+    "verifying": "Ověřuji..."
+  },
+  "googleAccount": {
+    "title": "Google účet",
+    "linked": "Google účet je propojen",
+    "notLinked": "Google účet není propojen",
+    "descriptionLinked": "Můžete se přihlásit pomocí Google účtu nebo uživatelského jména a hesla",
+    "descriptionNotLinked": "Propojte svůj Google účet pro jednodušší přihlášení",
+    "link": "Propojit Google účet",
+    "unlink": "Zrušit propojení",
+    "unlinking": "Odpojuji..."
+  },
+  "errors": {
+    "saveFailed": "Nepodařilo se uložit změny profilu.",
+    "enable2faNeedEmail": "Pro aktivaci dvoufázového ověření musíte mít nastavenou emailovou adresu",
+    "sendCodeFailed": "Nepodařilo se odeslat ověřovací kód",
+    "invalidCode": "Zadejte 6místný kód",
+    "verifyFailed": "Neplatný ověřovací kód",
+    "disable2faFailed": "Nepodařilo se deaktivovat dvoufázové ověření",
+    "googleAlreadyLinked": "Tento Google účet je již propojen s jiným účtem",
+    "googleLinkFailed": "Nepodařilo se propojit Google účet",
+    "unlinkFailed": "Nepodařilo se odpojit Google účet"
   }
 } 

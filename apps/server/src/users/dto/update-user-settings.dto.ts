@@ -7,6 +7,10 @@ export class UpdateUserSettingsDto {
   preferredTheme?: 'light' | 'dark' | null;
 
   @IsOptional()
+  @IsIn(['cs', 'en'])
+  preferredLocale?: 'cs' | 'en' | null;
+
+  @IsOptional()
   @IsString()
   @IsEmail({}, { message: 'Email must be a valid email address' })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))

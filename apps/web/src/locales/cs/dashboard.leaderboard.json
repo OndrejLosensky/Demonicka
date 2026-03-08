@@ -3,6 +3,20 @@
   "subtitle": "Kdo vypije nejvíc? Pojďme to zjistit! 🍻",
   "loading": "Načítání žebříčku...",
   "noData": "Žádná data k dispozici.",
+  "viewLeaderboard": "Žebříček",
+  "viewBeerPong": "Beer Pong",
+  "tooltips": {
+    "hideHeader": "Skrýt hlavičku",
+    "showHeader": "Zobrazit hlavičku",
+    "exitFullscreen": "Ukončit celou obrazovku",
+    "fullscreen": "Celá obrazovka"
+  },
+  "metrics": {
+    "totalBeers": "Celkem piv",
+    "averagePerHour": "Průměr piv za hodinu",
+    "totalBarrels": "Počet sudů",
+    "averagePerPerson": "průměr / os."
+  },
   "emptyState": {
     "title": "Žádná aktivní akce",
     "subtitle": "Vytvořte novou akci pro zobrazení žebříčku"

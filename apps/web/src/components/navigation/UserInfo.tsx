@@ -5,11 +5,12 @@ import { tokens } from '../../theme/tokens';
 import { USER_ROLE } from '@demonicka/shared-types';
 import { UserProfileMenu } from './UserProfileMenu';
 import { UserAvatar } from '../UserAvatar';
-import translations from '../../locales/cs/common.header.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 
 export function UserInfo() {
   const { user } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const t = useTranslations<{ auth: Record<string, string> }>('common.header');
 
   if (!user) return null;
 
@@ -37,7 +38,7 @@ export function UserInfo() {
   return (
     <>
       <Tooltip
-        title={`${translations.auth.profile} - ${user.username}`}
+        title={`${t.auth?.profile ?? 'Profile'} - ${user.username}`}
         arrow
         placement="bottom"
       >

@@ -18,7 +18,7 @@ import { beerPongService } from '../../services/beerPongService';
 import { useActiveEvent } from '../../contexts/ActiveEventContext';
 import type { CreateBeerPongEventDto } from '@demonicka/shared-types';
 import { CancellationPolicy } from '@demonicka/shared-types';
-import translations from '../../locales/cs/beerPong.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 
 interface CreateTournamentDialogProps {
   open: boolean;
@@ -32,6 +32,12 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
   onSuccess,
 }) => {
   const { activeEvent } = useActiveEvent();
+  const t = useTranslations<Record<string, unknown>>('beerPong');
+  const createDialog = (t.createDialog as Record<string, unknown>) || {};
+  const fields = (createDialog.fields as Record<string, string>) || {};
+  const buttons = (createDialog.buttons as Record<string, string>) || {};
+  const errors = (createDialog.errors as Record<string, string>) || {};
+  const cancellationPolicy = (createDialog.cancellationPolicy as Record<string, string>) || {};
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<CreateBeerPongEventDto>({
     eventId: '',
@@ -65,12 +71,12 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
     e.preventDefault();
 
     if (!activeEvent) {
-      toast.error(translations.createDialog.errors.noActiveEvent);
+      toast.error(errors.noActiveEvent ?? 'Není vybrána žádná aktivní událost');
       return;
     }
 
     if (!formData.name.trim()) {
-      toast.error(translations.createDialog.errors.nameRequired);
+      toast.error(errors.nameRequired ?? 'Název turnaje je povinný');
       return;
     }
 
@@ -80,12 +86,12 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
         ...formData,
         eventId: activeEvent.id,
       });
-      toast.success(translations.createDialog.success);
+      toast.success((createDialog.success as string) ?? 'Turnaj byl úspěšně vytvořen');
       onSuccess();
       onClose();
     } catch (error: any) {
       console.error('Failed to create tournament:', error);
-      toast.error(error.response?.data?.message || translations.createDialog.errors.createFailed);
+      toast.error(error.response?.data?.message || (errors.createFailed ?? 'Nepodařilo se vytvořit turnaj'));
     } finally {
       setIsSubmitting(false);
     }
@@ -94,11 +100,11 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit}>
-        <DialogTitle>{translations.createDialog.title}</DialogTitle>
+        <DialogTitle>{(createDialog.title as string) ?? 'Vytvořit Beer Pong Turnaj'}</DialogTitle>
         <DialogContent sx={{ pb: 2 }}>
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
             <TextField
-              label={translations.createDialog.fields.tournamentName}
+              label={fields.tournamentName ?? 'Název turnaje'}
               fullWidth
               required
               value={formData.name}
@@ -107,7 +113,7 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
             />
 
             <TextField
-              label={translations.createDialog.fields.description}
+              label={fields.description ?? 'Popis (volitelné)'}
               fullWidth
               multiline
               rows={3}
@@ -118,7 +124,7 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
 
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
-                label={translations.createDialog.fields.beersPerPlayer}
+                label={fields.beersPerPlayer ?? 'Piv na hráče'}
                 type="number"
                 fullWidth
                 value={formData.beersPerPlayer || 2}
@@ -133,7 +139,7 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
               />
 
               <TextField
-                label={translations.createDialog.fields.timeWindowMinutes}
+                label={fields.timeWindowMinutes ?? 'Časové okno (minuty)'}
                 type="number"
                 fullWidth
                 value={formData.timeWindowMinutes || 5}
@@ -145,13 +151,13 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
                 }
                 inputProps={{ min: 1, max: 60 }}
                 disabled={isSubmitting}
-                helperText={translations.createDialog.fields.timeWindowHelper}
+                helperText={fields.timeWindowHelper}
               />
             </Box>
 
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
-                label={translations.createDialog.fields.undoWindowMinutes}
+                label={fields.undoWindowMinutes ?? 'Okno pro zrušení (minuty)'}
                 type="number"
                 fullWidth
                 value={formData.undoWindowMinutes || 5}
@@ -163,14 +169,14 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
                 }
                 inputProps={{ min: 1, max: 60 }}
                 disabled={isSubmitting}
-                helperText={translations.createDialog.fields.undoWindowHelper}
+                helperText={fields.undoWindowHelper}
               />
 
               <FormControl fullWidth disabled={isSubmitting}>
-                <InputLabel>{translations.createDialog.fields.cancellationPolicy}</InputLabel>
+                <InputLabel>{fields.cancellationPolicy ?? 'Politika zrušení'}</InputLabel>
                 <Select
                   value={formData.cancellationPolicy || CancellationPolicy.KEEP_BEERS}
-                  label={translations.createDialog.fields.cancellationPolicy}
+                  label={fields.cancellationPolicy ?? 'Politika zrušení'}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -178,8 +184,8 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
                     }))
                   }
                 >
-                  <MenuItem value={CancellationPolicy.KEEP_BEERS}>{translations.createDialog.cancellationPolicy.keepBeers}</MenuItem>
-                  <MenuItem value={CancellationPolicy.REMOVE_BEERS}>{translations.createDialog.cancellationPolicy.removeBeers}</MenuItem>
+                  <MenuItem value={CancellationPolicy.KEEP_BEERS}>{cancellationPolicy.keepBeers ?? 'Ponechat piva'}</MenuItem>
+                  <MenuItem value={CancellationPolicy.REMOVE_BEERS}>{cancellationPolicy.removeBeers ?? 'Odebrat piva'}</MenuItem>
                 </Select>
               </FormControl>
             </Box>
@@ -223,17 +229,17 @@ export const CreateTournamentDialog: React.FC<CreateTournamentDialogProps> = ({
 
             {activeEvent && (
               <Typography variant="body2" color="text.secondary">
-                {translations.createDialog.fields.creatingForEvent} <strong>{activeEvent.name}</strong>
+                {fields.creatingForEvent ?? 'Vytváření turnaje pro událost:'} <strong>{activeEvent.name}</strong>
               </Typography>
             )}
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} disabled={isSubmitting}>
-            {translations.createDialog.buttons.cancel}
+            {buttons.cancel ?? 'Zrušit'}
           </Button>
           <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {translations.createDialog.buttons.create}
+            {buttons.create ?? 'Vytvořit Turnaj'}
           </Button>
         </DialogActions>
       </form>

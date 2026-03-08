@@ -3,6 +3,7 @@
   "markAllRead": "Označit vše jako přečtené",
   "settings": "Nastavení oznámení",
   "empty": "Žádná oznámení",
+  "loading": "Načítám…",
   "BEER_ADDED": "{{actorName}} vám přidal pivo",
   "BEER_REMOVED": "{{actorName}} vám odebral pivo",
   "EVENT_STARTED": "Událost {{eventName}} byla zahájena",

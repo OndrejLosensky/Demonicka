@@ -12,11 +12,16 @@ import { useHistory } from './useHistory';
 import LogStats from './LogStats';
 import { CleanupDialog } from './CleanupDialog';
 import { DeleteOutline } from '@mui/icons-material';
-import translations from '../../../locales/cs/dashboard.history.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
+import { tokens } from '../../../theme/tokens';
 
 export const History = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [isCleanupOpen, setIsCleanupOpen] = useState(false);
+  const t = useTranslations<Record<string, unknown>>('dashboard.history');
+  const tabs = (t.tabs as Record<string, string>) || {};
+  const cleanupLogs = (t.cleanupLogs as Record<string, unknown>) || {};
+  const cleanupButton = (cleanupLogs.button as string) ?? 'Vyčistit Logy';
   const {
     logs,
     total,
@@ -38,7 +43,7 @@ export const History = () => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h6" fontWeight="bold">
-          {translations.title}
+          {(t.title as string) ?? 'Historie & Analytika'}
         </Typography>
         <Button
           variant="outlined"
@@ -47,7 +52,7 @@ export const History = () => {
           onClick={() => setIsCleanupOpen(true)}
           size="small"
         >
-          {translations.cleanupLogs.button}
+          {cleanupButton}
         </Button>
       </Box>
       
@@ -64,7 +69,7 @@ export const History = () => {
           }}
         >
           <Tab 
-            label={translations.tabs.analytics} 
+            label={tabs.analytics ?? 'Analytika'} 
             sx={{ 
               textTransform: 'none',
               fontWeight: 'medium',
@@ -72,7 +77,7 @@ export const History = () => {
             }} 
           />
           <Tab 
-            label={translations.tabs.detailedHistory} 
+            label={tabs.detailedHistory ?? 'Detailní Historie'} 
             sx={{ 
               textTransform: 'none',
               fontWeight: 'medium',

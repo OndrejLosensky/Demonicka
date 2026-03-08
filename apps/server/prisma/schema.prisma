@@ -109,6 +109,7 @@ model User {
   profilePictureUrl      String?
   googleProfilePictureUrl String?
   preferredTheme         String?
+  preferredLocale       String?
   onboarded              Boolean   @default(false)
   createdAt              DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt              DateTime  @updatedAt @db.Timestamptz(6)

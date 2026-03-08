@@ -18,8 +18,7 @@ import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { useSelectedEvent } from '../../../contexts/SelectedEventContext';
 import { eventService } from '../../../services/eventService';
 import { useToast } from '../../../hooks/useToast';
-import translations from '../../../locales/cs/dashboard.users.json';
-import toastTranslations from '../../../locales/cs/toasts.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 
 export const AddUserDialog: React.FC<AddUserDialogProps> = ({
   open,
@@ -34,6 +33,13 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({
   const { activeEvent, loadActiveEvent } = useActiveEvent();
   const { setSelectedEvent } = useSelectedEvent();
   const toast = useToast();
+  const t = useTranslations<Record<string, unknown>>('dashboard.users');
+  const toastT = useTranslations<Record<string, Record<string, string>>>('toasts');
+  const dialogs = (t.dialogs as Record<string, Record<string, unknown>>) || {};
+  const addDialog = (dialogs.add as Record<string, unknown>) || {};
+  const validation = (addDialog.validation as Record<string, string>) || {};
+  const success = toastT.success as Record<string, string> | undefined;
+  const toastError = toastT.error as Record<string, string> | undefined;
 
   // Reset form state when dialog opens/closes
   useEffect(() => {
@@ -48,17 +54,16 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({
   const validateName = (value: string) => {
     const trimmedName = value.trim();
     if (!trimmedName) {
-      setNameError(translations.dialogs.add.validation.required);
+      setNameError(validation.required ?? 'Povinné pole');
       return false;
     }
     
-    // Case-insensitive name comparison
     const nameExists = existingNames.some(
       existingName => existingName.toLowerCase() === trimmedName.toLowerCase()
     );
     
     if (nameExists) {
-      setNameError(translations.dialogs.add.validation.firstName);
+      setNameError(validation.firstName ?? 'Uživatel s tímto jménem již existuje');
       return false;
     }
     setNameError('');
@@ -92,16 +97,16 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({
         setSelectedEvent(updatedActiveEvent);
       }
       
-      toast.success(toastTranslations.success.created.replace('{{item}}', 'Uživatel'));
+      toast.success((success?.created ?? '{{item}} byl úspěšně vytvořen').replace('{{item}}', 'Uživatel'));
       onSuccess(); // This will refresh the users list
       onClose();
-    } catch (error) {
-      if ((error as AxiosError)?.response?.status === 409) {
-        setNameError(translations.dialogs.add.validation.firstName);
-        toast.error(translations.dialogs.add.validation.firstName);
+    } catch (err) {
+      if ((err as AxiosError)?.response?.status === 409) {
+        setNameError(validation.firstName ?? 'Uživatel s tímto jménem již existuje');
+        toast.error(validation.firstName ?? 'Uživatel s tímto jménem již existuje');
       } else {
-        console.error('Failed to add user:', error);
-        toast.error(toastTranslations.error.create.replace('{{item}}', 'uživatele'));
+        console.error('Failed to add user:', err);
+        toast.error((toastError?.create ?? 'Nepodařilo se vytvořit {{item}}').replace('{{item}}', 'uživatele'));
       }
     } finally {
       setIsSubmitting(false);
@@ -111,12 +116,12 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({
   return (
     <Dialog open={open} onClose={onClose}>
       <form onSubmit={handleSubmit}>
-        <DialogTitle>{translations.dialogs.add.title}</DialogTitle>
+        <DialogTitle>{(addDialog.title as string) ?? 'Přidat uživatele'}</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label={translations.dialogs.add.name}
+            label={(addDialog.name as string) ?? 'Jméno'}
             type="text"
             fullWidth
             value={name}
@@ -126,23 +131,23 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({
             disabled={isSubmitting}
           />
           <FormControl fullWidth margin="dense">
-            <InputLabel>{translations.dialogs.add.gender}</InputLabel>
+            <InputLabel>{(addDialog.gender as string) ?? 'Pohlaví'}</InputLabel>
             <Select
               value={gender}
               onChange={(e) => setGender(e.target.value as 'MALE' | 'FEMALE')}
               disabled={isSubmitting}
             >
-              <MenuItem value="MALE">{translations.dialogs.add.genders.male}</MenuItem>
-              <MenuItem value="FEMALE">{translations.dialogs.add.genders.female}</MenuItem>
+              <MenuItem value="MALE">{(addDialog.genders as Record<string, string>)?.male ?? 'Muž'}</MenuItem>
+              <MenuItem value="FEMALE">{(addDialog.genders as Record<string, string>)?.female ?? 'Žena'}</MenuItem>
             </Select>
           </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} disabled={isSubmitting}>
-            {translations.dialogs.add.cancel}
+            {(addDialog.cancel as string) ?? 'Zrušit'}
           </Button>
           <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {translations.dialogs.add.submit}
+            {(addDialog.submit as string) ?? 'Přidat'}
           </Button>
         </DialogActions>
       </form>

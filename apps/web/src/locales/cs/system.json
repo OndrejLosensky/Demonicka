@@ -6,6 +6,25 @@
     "runButton": "Spustit zálohu",
     "running": "Zálohuji..."
   },
+  "cleanupSection": {
+    "title": "Systémové operace",
+    "warningTitle": "Upozornění",
+    "warningText": "Operace „Vyčistit aktivní událost“ je nevratná. Před provedením se ujistěte, že máte zálohu důležitých dat.",
+    "operationBackup": "Záloha databáze",
+    "operationBackupDesc": "Vytvořit zálohu databáze a nahrát ji do úložiště.",
+    "operationSystem": "Vyčistit systém",
+    "operationSystemDesc": "Smazat staré logy a dočasné soubory",
+    "operationActiveEvent": "Vyčistit aktivní událost",
+    "operationActiveEventDesc": "Smazat všechna data aktivní události",
+    "dialogSystemTitle": "Vyčistit systém",
+    "dialogSystemMessage": "Tato akce smaže staré logy a dočasné soubory starší než 30 dní. Tato operace je bezpečná a neovlivní aktuální data.",
+    "dialogActiveEventTitle": "Vyčistit aktivní událost",
+    "dialogActiveEventMessage": "Tato akce smaže všechna data související s aktuální aktivní událostí včetně účastníků a vypitých piv. Tato operace je nevratná!",
+    "buttonRunning": "Probíhá...",
+    "jobEnqueued": "Úloha zařazena. Stav uvidíte v Úlohy.",
+    "jobFailed": "Nepodařilo se zařadit úlohu.",
+    "jobCompleted": "Úloha „{{label}}“ dokončena."
+  },
   "userStatistics": {
     "title": "Statistiky uživatelů",
     "totalUsers": "Celkem uživatelů",

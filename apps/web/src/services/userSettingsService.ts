@@ -2,6 +2,7 @@ import { api } from './api';
 
 export type UserSettings = {
   preferredTheme: 'light' | 'dark' | null;
+  preferredLocale: 'cs' | 'en' | null;
 };
 
 export const userSettingsService = {
@@ -10,8 +11,11 @@ export const userSettingsService = {
     return response.data;
   },
 
-  async updateMySettings(preferredTheme: 'light' | 'dark' | null): Promise<UserSettings> {
-    const response = await api.patch('/users/me/settings', { preferredTheme });
+  async updateMySettings(settings: {
+    preferredTheme?: 'light' | 'dark' | null;
+    preferredLocale?: 'cs' | 'en' | null;
+  }): Promise<UserSettings> {
+    const response = await api.patch('/users/me/settings', settings);
     return response.data;
   },
 };

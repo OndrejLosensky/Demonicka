@@ -29,8 +29,7 @@ import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
 import { barrelService } from '../../../services/barrelService';
 import { useToast } from '../../../hooks/useToast';
-import translations from '../../../locales/cs/dashboard.barrels.json';
-import toastTranslations from '../../../locales/cs/toasts.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
 import { tokens } from '../../../theme/tokens';
 import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
@@ -45,6 +44,12 @@ const BarrelsPage: React.FC = () => {
     useFeatureFlag(FeatureFlagKey.SHOW_BARRELS_HISTORY);
   const { activeEvent } = useActiveEvent();
   const showCleanupFeature = useFeatureFlag(FeatureFlagKey.CLEANUP_FUNCTIONALITY);
+  const t = useTranslations<Record<string, unknown>>('dashboard.barrels');
+  const toastT = useTranslations<Record<string, Record<string, string>>>('toasts');
+  const dialogs = (t.dialogs as Record<string, Record<string, string>>) || {};
+  const actions = (t.actions as Record<string, string>) || {};
+  const emptyState = (t.emptyState as Record<string, string>) || {};
+  const cleanupAll = (dialogs.cleanupAll as Record<string, string>) || {};
   const {
     barrels,
     deletedBarrels,
@@ -61,14 +66,14 @@ const BarrelsPage: React.FC = () => {
   const activeBarrel = barrels.find(barrel => barrel.isActive);
 
   const confirmCleanup = async () => {
-    if (window.confirm(translations.dialogs.cleanupAll.message)) {
+    if (window.confirm(cleanupAll.message)) {
       try {
         await barrelService.cleanup();
-        toast.success(translations.dialogs.cleanupAll.success);
+        toast.success(cleanupAll.success);
         await fetchBarrels();
-      } catch (error) {
-        console.error('Failed to cleanup barrels:', error);
-        toast.error(toastTranslations.error.unknown);
+      } catch (err) {
+        console.error('Failed to cleanup barrels:', err);
+        toast.error((toastT.error as Record<string, string>)?.unknown ?? 'Něco se pokazilo');
       }
     }
   };
@@ -103,7 +108,7 @@ const BarrelsPage: React.FC = () => {
                   onChange={(e) => setShowDeleted(e.target.checked)}
                 />
               }
-              label={translations.actions.showDeleted}
+              label={actions.showDeleted}
             />
           )}
           <Button
@@ -112,7 +117,7 @@ const BarrelsPage: React.FC = () => {
             startIcon={<AddIcon />}
             onClick={() => setDialogOpen(true)}
           >
-            {translations.actions.addBarrel}
+            {actions.addBarrel}
           </Button>
           {showCleanupFeature && (
             <Button
@@ -121,7 +126,7 @@ const BarrelsPage: React.FC = () => {
               startIcon={<DeleteIcon />}
               onClick={confirmCleanup}
             >
-              {translations.actions.cleanupAll}
+              {actions.cleanupAll}
             </Button>
           )}
         </Box>
@@ -133,9 +138,9 @@ const BarrelsPage: React.FC = () => {
       showDeleted,
       showCleanupFeature,
       confirmCleanup,
-      translations.actions.showDeleted,
-      translations.actions.addBarrel,
-      translations.actions.cleanupAll,
+      actions.showDeleted,
+      actions.addBarrel,
+      actions.cleanupAll,
     ],
   );
 
@@ -145,8 +150,8 @@ const BarrelsPage: React.FC = () => {
     return (
       <Container>
         <EmptyEventState
-          title={translations.emptyState.title}
-          subtitle={translations.emptyState.subtitle}
+          title={emptyState.title}
+          subtitle={emptyState.subtitle}
         />
       </Container>
     );
@@ -171,8 +176,8 @@ const BarrelsPage: React.FC = () => {
             <Paper sx={{ p: 3, height: '100%', borderRadius: 1 }}>
               <Typography variant="h6" sx={{ mb: 2 }}>
                 {activeBarrel 
-                  ? `Aktivní sud: #${activeBarrel.orderNumber}`
-                  : 'Žádný aktivní sud'}
+                  ? `${(t.table as Record<string, Record<string, string>>)?.status?.active ?? 'Aktivní'} sud: #${activeBarrel.orderNumber}`
+                  : ((t.emptyState as Record<string, string>)?.noActiveBarrel) ?? 'Žádný aktivní sud'}
               </Typography>
               <ActiveBarrelGraph barrel={activeBarrel} />
             </Paper>

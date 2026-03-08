@@ -4,10 +4,13 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthLayout } from '../../components/auth/AuthLayout';
 import { Input, PasswordInput, Button } from '@demonicka/ui';
-import translations from '../../locales/cs/auth.json';
+import { useTranslations } from '../../contexts/LocaleContext';
 
 export default function Register() {
   usePageTitle('Registrace');
+  const t = useTranslations<Record<string, unknown>>('auth');
+  const registerT = (t.register as Record<string, unknown>) || {};
+  const genders = (registerT.genders as Record<string, string>) || {};
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -40,7 +43,7 @@ export default function Register() {
     setIsLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Hesla se neshodují');
+      setError((registerT.passwordMismatch as string) ?? 'Hesla se neshodují');
       setIsLoading(false);
       return;
     }
@@ -57,8 +60,8 @@ export default function Register() {
 
   return (
     <AuthLayout
-      title={translations.register.title}
-      subtitle={translations.register.subtitle}
+      title={(registerT.title as string) ?? 'Vytvořte si účet'}
+      subtitle={(registerT.subtitle as string) ?? 'Připojte se k nám a začněte svou cestu'}
     >
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div>
@@ -67,11 +70,11 @@ export default function Register() {
               id="username"
               name="username"
               type="text"
-              label={translations.register.username}
+              label={(registerT.username as string) ?? 'Uživatelské jméno'}
               required
               value={formData.username}
               onChange={handleChange}
-              placeholder={translations.register.username}
+              placeholder={(registerT.username as string) ?? 'Uživatelské jméno'}
             />
           </div>
           <div className="mb-5">
@@ -79,7 +82,7 @@ export default function Register() {
               htmlFor="gender" 
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              {translations.register.gender}
+              {(registerT.gender as string) ?? 'Pohlaví'}
             </label>
             <select
               id="gender"
@@ -89,30 +92,30 @@ export default function Register() {
               className="block w-full px-3 py-2.5 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 bg-white dark:bg-[#1a1d24] transition-colors"
               required
             >
-              <option value="MALE">{translations.register.genders.male}</option>
-              <option value="FEMALE">{translations.register.genders.female}</option>
+              <option value="MALE">{genders.male ?? 'Muž'}</option>
+              <option value="FEMALE">{genders.female ?? 'Žena'}</option>
             </select>
           </div>
           <div className="mb-5">
             <PasswordInput
               id="password"
               name="password"
-              label={translations.register.password}
+              label={(registerT.password as string) ?? 'Heslo'}
               required
               value={formData.password}
               onChange={handleChange}
-              placeholder={translations.register.password}
+              placeholder={(registerT.password as string) ?? 'Heslo'}
             />
           </div>
           <div>
             <PasswordInput
               id="confirmPassword"
               name="confirmPassword"
-              label={translations.register.confirmPassword}
+              label={(registerT.confirmPassword as string) ?? 'Potvrďte heslo'}
               required
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder={translations.register.confirmPassword}
+              placeholder={(registerT.confirmPassword as string) ?? 'Potvrďte heslo'}
               error={error}
             />
           </div>
@@ -124,7 +127,7 @@ export default function Register() {
             isLoading={isLoading}
             fullWidth
           >
-            {isLoading ? translations.register.signingUp : translations.register.signUp}
+            {isLoading ? (registerT.signingUp as string) ?? 'Vytváření účtu...' : (registerT.signUp as string) ?? 'Vytvořit účet'}
           </Button>
         </div>
       </form>
@@ -134,7 +137,7 @@ export default function Register() {
           to="/login" 
           className="font-medium text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 transition-colors duration-200"
         >
-          {translations.register.haveAccount}
+          {(registerT.haveAccount as string) ?? 'Již máte účet? Přihlaste se'}
         </Link>
       </div>
     </AuthLayout>

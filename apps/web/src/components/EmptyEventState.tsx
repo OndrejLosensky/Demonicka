@@ -2,18 +2,19 @@ import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import { Add as AddIcon, Celebration as PartyIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import translations from '../locales/cs/dashboard.json';
+import { useTranslations } from '../contexts/LocaleContext';
 
 interface EmptyEventStateProps {
   title?: string;
   subtitle?: string;
 }
 
-export const EmptyEventState: React.FC<EmptyEventStateProps> = ({ 
-  title = translations.noActiveEvent.title,
-  subtitle = translations.noActiveEvent.subtitle,
-}) => {
+export const EmptyEventState: React.FC<EmptyEventStateProps> = ({ title, subtitle }) => {
   const navigate = useNavigate();
+  const t = useTranslations<{ noActiveEvent: { title: string; subtitle: string; createButton: string } }>('dashboard');
+  const displayTitle = title ?? t.noActiveEvent?.title;
+  const displaySubtitle = subtitle ?? t.noActiveEvent?.subtitle;
+  const createLabel = t.noActiveEvent?.createButton;
 
   return (
     <Box sx={{ 
@@ -26,10 +27,10 @@ export const EmptyEventState: React.FC<EmptyEventStateProps> = ({
     }}>
       <PartyIcon sx={{ fontSize: 60, color: 'primary.main' }} />
       <Typography variant="h4" gutterBottom>
-        {title}
+        {displayTitle}
       </Typography>
       <Typography color="textSecondary" gutterBottom>
-        {subtitle}
+        {displaySubtitle}
       </Typography>
       <Button
         variant="contained"
@@ -38,7 +39,7 @@ export const EmptyEventState: React.FC<EmptyEventStateProps> = ({
         onClick={() => navigate('/dashboard/events')}
         size="large"
       >
-        {translations.noActiveEvent.createButton}
+        {createLabel}
       </Button>
     </Box>
   );

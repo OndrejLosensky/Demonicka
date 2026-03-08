@@ -35,13 +35,14 @@ import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
 import { EmptyEventState } from '../../../components/EmptyEventState';
 import { useActiveEvent } from '../../../contexts/ActiveEventContext';
-import translations from '../../../locales/cs/dashboard.participants.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
 import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 
 const ParticipantsPage: React.FC = () => {
   const [showDeleted, setShowDeleted] = useState(false);
   const [viewMode, setViewMode] = useState<'combined' | 'split'>('combined');
+  const t = useTranslations<Record<string, unknown>>('dashboard.participants');
   const showDeletedFeature = useFeatureFlag(FeatureFlagKey.SHOW_DELETED_PARTICIPANTS);
   const showEventHistory = useFeatureFlag(FeatureFlagKey.SHOW_EVENT_HISTORY);
   const showUserHistory = useFeatureFlag(FeatureFlagKey.SHOW_USER_HISTORY);
@@ -130,7 +131,7 @@ const ParticipantsPage: React.FC = () => {
                   onChange={(e) => setShowDeleted(e.target.checked)}
                 />
               }
-              label={translations.actions.showDeleted}
+              label={(t.actions as Record<string, string>)?.showDeleted}
             />
           )}
           <Button
@@ -139,7 +140,7 @@ const ParticipantsPage: React.FC = () => {
             startIcon={<AddIcon />}
             onClick={() => setDialogOpen(true)}
           >
-            {translations.actions.addParticipant}
+            {(t.actions as Record<string, string>)?.addParticipant}
           </Button>
         </Box>
       ) : undefined,
@@ -148,8 +149,8 @@ const ParticipantsPage: React.FC = () => {
       viewMode,
       showDeletedFeature,
       showDeleted,
-      translations.actions.showDeleted,
-      translations.actions.addParticipant,
+      (t.actions as Record<string, string>)?.showDeleted,
+      (t.actions as Record<string, string>)?.addParticipant,
     ],
   );
 
@@ -159,8 +160,8 @@ const ParticipantsPage: React.FC = () => {
     return (
       <Container>
         <EmptyEventState
-          title={translations.emptyState.title}
-          subtitle={translations.emptyState.subtitle}
+          title={(t.emptyState as Record<string, string>)?.title}
+          subtitle={(t.emptyState as Record<string, string>)?.subtitle}
         />
       </Container>
     );
@@ -189,7 +190,7 @@ const ParticipantsPage: React.FC = () => {
           <Grid item xs={12} md={6}>
             <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
               <MaleIcon color="primary" />
-              {translations.sections.male} ({maleParticipants.length})
+              {(t.sections as Record<string, string>)?.male} ({maleParticipants.length})
             </Typography>
             <ParticipantsTable
               participants={maleParticipants}
@@ -208,7 +209,7 @@ const ParticipantsPage: React.FC = () => {
           <Grid item xs={12} md={6}>
             <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
               <FemaleIcon sx={{ color: '#E91E63' }} />
-              {translations.sections.female} ({femaleParticipants.length})
+              {(t.sections as Record<string, string>)?.female} ({femaleParticipants.length})
             </Typography>
             <ParticipantsTable
               participants={femaleParticipants}

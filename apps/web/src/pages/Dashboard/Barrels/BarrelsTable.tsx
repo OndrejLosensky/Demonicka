@@ -24,7 +24,7 @@ import {
 } from '@mui/icons-material';
 import { FaBeer } from 'react-icons/fa';
 import type { Barrel } from '@demonicka/shared-types';
-import translations from '../../../locales/cs/dashboard.barrels.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import { tokens } from '../../../theme/tokens';
 
@@ -45,6 +45,11 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
   onActivate,
   canToggleStatus = true,
 }) => {
+  const t = useTranslations<Record<string, unknown>>('dashboard.barrels');
+  const table = (t.table as Record<string, unknown>) || {};
+  const columns = (table.columns as Record<string, string>) || {};
+  const status = (table.status as Record<string, string>) || {};
+  const tableActions = (table.actions as Record<string, string>) || {};
   const [menuAnchor, setMenuAnchor] = useState<null | { element: HTMLElement; barrel: { id: string; size: number } }>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedBarrel, setSelectedBarrel] = useState<{ id: string; size: number } | null>(null);
@@ -78,12 +83,12 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
-              <TableCell>{translations.table.columns.barrel}</TableCell>
-              <TableCell>{translations.table.columns.size}</TableCell>
-              <TableCell>{translations.table.columns.remainingBeers || 'Zbývá'}</TableCell>
-              <TableCell>{translations.table.columns.status}</TableCell>
-              <TableCell>{translations.table.columns.createdAt}</TableCell>
-              <TableCell align="right" sx={{ width: 220 }}>{translations.table.columns.actions}</TableCell>
+              <TableCell>{columns.barrel}</TableCell>
+              <TableCell>{columns.size}</TableCell>
+              <TableCell>{columns.remainingBeers || 'Zbývá'}</TableCell>
+              <TableCell>{columns.status}</TableCell>
+              <TableCell>{columns.createdAt}</TableCell>
+              <TableCell align="right" sx={{ width: 220 }}>{columns.actions}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -104,7 +109,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                     </Typography>
                     {showDeleted && barrel.deletedAt && (
                       <Chip
-                        label={translations.table.status.deleted}
+                        label={status.deleted}
                         color="error"
                         size="small"
                         sx={{ ml: 1 }}
@@ -145,7 +150,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={barrel.isActive ? translations.table.status.active : translations.table.status.inactive}
+                    label={barrel.isActive ? status.active : status.inactive}
                     size="small"
                     sx={{
                       bgcolor: barrel.isActive ? 'success.light' : 'grey.100',
@@ -162,7 +167,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                   {!barrel.deletedAt && (
                     <>
                       {canToggleStatus && !barrel.isActive && (Number(barrel.remainingLitres || 0)) > 0.01 && (
-                        <Tooltip title={translations.table.actions.activate}>
+                        <Tooltip title={tableActions.activate}>
                           <IconButton
                             size="small"
                             onClick={() => onActivate(barrel.id)}
@@ -179,7 +184,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
                           </IconButton>
                         </Tooltip>
                       )}
-                      <Tooltip title={translations.table.actions.delete}>
+                      <Tooltip title={tableActions.delete}>
                         <IconButton
                           size="small"
                           onClick={(e) => setMenuAnchor({ 
@@ -214,7 +219,7 @@ export const BarrelsTable: React.FC<BarrelTableProps> = ({
           <ListItemIcon>
             <DeleteIcon fontSize="small" color="error" />
           </ListItemIcon>
-          <ListItemText>{translations.table.actions.delete}</ListItemText>
+          <ListItemText>{tableActions.delete}</ListItemText>
         </MenuItem>
       </Menu>
 

@@ -50,10 +50,20 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { profileApi } from './api';
 import type { User } from '@demonicka/shared-types';
 import { withPageLoader } from '../../../components/hoc/withPageLoader';
-import translations from '../../../locales/cs/profile.json';
+import { useTranslations } from '../../../contexts/LocaleContext';
 
 const ProfilePageComponent: React.FC = () => {
   const { user } = useAuth();
+  const t = useTranslations<Record<string, unknown>>('profile');
+  const tabs = (t.tabs as Record<string, string>) || {};
+  const basicInfo = (t.basicInfo as Record<string, string>) || {};
+  const roles = (t.roles as Record<string, string>) || {};
+  const registrationStatus = (t.registrationStatus as Record<string, string>) || {};
+  const gender = (t.gender as Record<string, string>) || {};
+  const editProfile = (t.editProfile as Record<string, string>) || {};
+  const twoFactor = (t.twoFactor as Record<string, string>) || {};
+  const googleAccount = (t.googleAccount as Record<string, string>) || {};
+  const errors = (t.errors as Record<string, string>) || {};
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -116,9 +126,9 @@ const ProfilePageComponent: React.FC = () => {
       setSearchParams({});
     } else if (error) {
       if (error === 'google_account_already_linked') {
-        setSaveError('Tento Google účet je již propojen s jiným účtem');
+        setSaveError(errors.googleAlreadyLinked ?? 'Tento Google účet je již propojen s jiným účtem');
       } else if (error === 'google_link_failed') {
-        setSaveError('Nepodařilo se propojit Google účet');
+        setSaveError(errors.googleLinkFailed ?? 'Nepodařilo se propojit Google účet');
       }
       setSearchParams({});
     }
@@ -179,7 +189,7 @@ const ProfilePageComponent: React.FC = () => {
       setProfileData(updated);
     } catch (err: any) {
       const msg =
-        err?.response?.data?.message || err?.message || 'Nepodařilo se uložit změny profilu.';
+        err?.response?.data?.message || err?.message || (errors.saveFailed ?? 'Nepodařilo se uložit změny profilu.');
       setSaveError(String(msg));
     } finally {
       setIsSaving(false);
@@ -188,7 +198,7 @@ const ProfilePageComponent: React.FC = () => {
 
   const handleEnable2FA = async () => {
     if (!editEmail.trim()) {
-      setSaveError('Pro aktivaci dvoufázového ověření musíte mít nastavenou emailovou adresu');
+      setSaveError(errors.enable2faNeedEmail ?? 'Pro aktivaci dvoufázového ověření musíte mít nastavenou emailovou adresu');
       return;
     }
 
@@ -199,7 +209,7 @@ const ProfilePageComponent: React.FC = () => {
       setShow2FADialog(true);
     } catch (err: any) {
       const msg =
-        err?.response?.data?.message || err?.message || 'Nepodařilo se odeslat ověřovací kód';
+        err?.response?.data?.message || err?.message || (errors.sendCodeFailed ?? 'Nepodařilo se odeslat ověřovací kód');
       setTwoFactorError(String(msg));
     } finally {
       setIs2FALoading(false);
@@ -208,7 +218,7 @@ const ProfilePageComponent: React.FC = () => {
 
   const handleVerify2FA = async () => {
     if (!twoFactorCode.trim() || twoFactorCode.length !== 6) {
-      setTwoFactorError('Zadejte 6místný kód');
+      setTwoFactorError(errors.invalidCode ?? 'Zadejte 6místný kód');
       return;
     }
 
@@ -222,7 +232,7 @@ const ProfilePageComponent: React.FC = () => {
       setProfileData(updated);
     } catch (err: any) {
       const msg =
-        err?.response?.data?.message || err?.message || 'Neplatný ověřovací kód';
+        err?.response?.data?.message || err?.message || (errors.verifyFailed ?? 'Neplatný ověřovací kód');
       setTwoFactorError(String(msg));
     } finally {
       setIs2FALoading(false);
@@ -238,7 +248,7 @@ const ProfilePageComponent: React.FC = () => {
       setProfileData(updated);
     } catch (err: any) {
       const msg =
-        err?.response?.data?.message || err?.message || 'Nepodařilo se deaktivovat dvoufázové ověření';
+        err?.response?.data?.message || err?.message || (errors.disable2faFailed ?? 'Nepodařilo se deaktivovat dvoufázové ověření');
       setTwoFactorError(String(msg));
     } finally {
       setIs2FALoading(false);
@@ -289,7 +299,7 @@ const ProfilePageComponent: React.FC = () => {
                   {displayData.name}
                 </Typography>
                 <Typography variant="subtitle1" className="text-text-secondary">
-                  {translations.tabs.basicInfo}
+                  {tabs.basicInfo ?? 'Základní informace'}
                 </Typography>
                 <Box display="flex" gap={1} mt={1}>
                   <Chip 
@@ -299,21 +309,21 @@ const ProfilePageComponent: React.FC = () => {
                     variant="outlined"
                   />
                   <Chip
-                    label={translations.roles[displayData.role as keyof typeof translations.roles] || displayData.role}
+                    label={roles[displayData.role] ?? displayData.role}
                     size="small"
                     color={getRoleColor(displayData.role)}
                   />
                   {displayData.isRegistrationComplete ? (
                     <Chip
                       icon={<CheckCircleIcon />}
-                      label={translations.registrationStatus.complete}
+                      label={registrationStatus.complete ?? 'Dokončeno'}
                       size="small"
                       color="success"
                     />
                   ) : (
                     <Chip
                       icon={<CancelIcon />}
-                      label={translations.registrationStatus.incomplete}
+                      label={registrationStatus.incomplete ?? 'Nedokončeno'}
                       size="small"
                       color="warning"
                     />
@@ -328,9 +338,9 @@ const ProfilePageComponent: React.FC = () => {
                 startIcon={<TrendingUpIcon />}
                 onClick={() => navigate(dashboardUrl)}
               >
-                Moje statistiky
+                {(t.myStats as string) ?? 'Moje statistiky'}
               </Button>
-              <Tooltip title="Obnovit data">
+              <Tooltip title={(t.refreshTooltip as string) ?? 'Obnovit data'}>
                 <IconButton onClick={handleRefresh} disabled={isRefreshing}>
                   <RefreshIcon className={isRefreshing ? 'animate-spin' : ''} />
                 </IconButton>
@@ -346,7 +356,7 @@ const ProfilePageComponent: React.FC = () => {
                 <PersonIcon color="primary" />
               </ListItemIcon>
               <ListItemText
-                primary={translations.basicInfo.username}
+                primary={basicInfo.username ?? 'Uživatelské jméno'}
                 secondary={displayData.username}
                 primaryTypographyProps={{
                   className: "text-text-secondary font-medium"
@@ -362,7 +372,7 @@ const ProfilePageComponent: React.FC = () => {
                 <BadgeIcon color="primary" />
               </ListItemIcon>
               <ListItemText
-                primary={translations.basicInfo.fullName}
+                primary={basicInfo.fullName ?? 'Celé jméno'}
                 secondary={displayData.name}
                 primaryTypographyProps={{
                   className: "text-text-secondary font-medium"
@@ -378,11 +388,11 @@ const ProfilePageComponent: React.FC = () => {
                 <GenderIcon color="primary" />
               </ListItemIcon>
               <ListItemText
-                primary={translations.basicInfo.gender}
+                primary={basicInfo.gender ?? 'Pohlaví'}
                 secondary={
                   <Box display="flex" alignItems="center" gap={1}>
                     <span>{getGenderIcon(displayData.gender)}</span>
-                    <span>{translations.gender[displayData.gender]}</span>
+                    <span>{gender[displayData.gender] ?? displayData.gender}</span>
                   </Box>
                 }
                 primaryTypographyProps={{
@@ -400,7 +410,7 @@ const ProfilePageComponent: React.FC = () => {
                 <FingerprintIcon color="primary" />
               </ListItemIcon>
               <ListItemText
-                primary={translations.basicInfo.userId}
+                primary={basicInfo.userId ?? 'ID uživatele'}
                 secondary={displayData.id}
                 primaryTypographyProps={{
                   className: "text-text-secondary font-medium"
@@ -416,7 +426,7 @@ const ProfilePageComponent: React.FC = () => {
                 <CalendarIcon color="primary" />
               </ListItemIcon>
               <ListItemText
-                primary={translations.basicInfo.accountCreated}
+                primary={basicInfo.accountCreated ?? 'Účet vytvořen'}
                 secondary={format(new Date(displayData.createdAt), 'PPpp', { locale: cs })}
                 primaryTypographyProps={{
                   className: "text-text-secondary font-medium"
@@ -431,7 +441,7 @@ const ProfilePageComponent: React.FC = () => {
 
         <Paper className="p-6 rounded-xl shadow-lg mb-6">
           <Typography variant="h6" className="font-bold text-text-primary" sx={{ mb: 2 }}>
-            Upravit profil
+            {editProfile.title ?? 'Upravit profil'}
           </Typography>
 
           {saveError && (
@@ -442,32 +452,32 @@ const ProfilePageComponent: React.FC = () => {
 
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
             <TextField
-              label={translations.basicInfo.fullName}
+              label={basicInfo.fullName ?? 'Celé jméno'}
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               fullWidth
             />
 
             <FormControl fullWidth>
-              <InputLabel id="gender-label">{translations.basicInfo.gender}</InputLabel>
+              <InputLabel id="gender-label">{basicInfo.gender ?? 'Pohlaví'}</InputLabel>
               <Select
                 labelId="gender-label"
-                label={translations.basicInfo.gender}
+                label={basicInfo.gender ?? 'Pohlaví'}
                 value={editGender}
                 onChange={(e) => setEditGender(e.target.value as 'MALE' | 'FEMALE')}
               >
-                <MenuItem value="MALE">{translations.gender.MALE}</MenuItem>
-                <MenuItem value="FEMALE">{translations.gender.FEMALE}</MenuItem>
+                <MenuItem value="MALE">{gender.MALE ?? 'Muž'}</MenuItem>
+                <MenuItem value="FEMALE">{gender.FEMALE ?? 'Žena'}</MenuItem>
               </Select>
             </FormControl>
 
             <TextField
-              label="Email"
+              label={editProfile.email ?? 'Email'}
               type="email"
               value={editEmail}
               onChange={(e) => setEditEmail(e.target.value)}
               fullWidth
-              helperText={displayData?.isTwoFactorEnabled ? 'Email je vyžadován pro dvoufázové ověření' : ''}
+              helperText={displayData?.isTwoFactorEnabled ? (editProfile.emailHelper2FA ?? 'Email je vyžadován pro dvoufázové ověření') : ''}
             />
           </Box>
 
@@ -478,14 +488,14 @@ const ProfilePageComponent: React.FC = () => {
               onClick={handleSave}
               disabled={isSaving}
             >
-              {isSaving ? 'Ukládám...' : 'Uložit'}
+              {isSaving ? (editProfile.saving ?? 'Ukládám...') : (editProfile.save ?? 'Uložit')}
             </Button>
           </Box>
         </Paper>
 
         <Paper className="p-6 rounded-xl shadow-lg mb-6">
           <Typography variant="h6" className="font-bold text-text-primary" sx={{ mb: 2 }}>
-            Dvoufázové ověření
+            {twoFactor.title ?? 'Dvoufázové ověření'}
           </Typography>
 
           {twoFactorError && (
@@ -497,12 +507,12 @@ const ProfilePageComponent: React.FC = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box>
               <Typography variant="body1" className="text-text-primary">
-                {displayData?.isTwoFactorEnabled ? 'Dvoufázové ověření je aktivní' : 'Dvoufázové ověření je deaktivováno'}
+                {displayData?.isTwoFactorEnabled ? (twoFactor.enabled ?? 'Dvoufázové ověření je aktivní') : (twoFactor.disabled ?? 'Dvoufázové ověření je deaktivováno')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                 {displayData?.isTwoFactorEnabled
-                  ? 'Při přihlášení budete potřebovat kód z emailu'
-                  : 'Zapněte dvoufázové ověření pro zvýšení bezpečnosti vašeho účtu'}
+                  ? (twoFactor.descriptionEnabled ?? 'Při přihlášení budete potřebovat kód z emailu')
+                  : (twoFactor.descriptionDisabled ?? 'Zapněte dvoufázové ověření pro zvýšení bezpečnosti vašeho účtu')}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -513,7 +523,7 @@ const ProfilePageComponent: React.FC = () => {
                   onClick={handleDisable2FA}
                   disabled={is2FALoading}
                 >
-                  {is2FALoading ? 'Deaktivuji...' : 'Deaktivovat'}
+                  {is2FALoading ? (twoFactor.deactivating ?? 'Deaktivuji...') : (twoFactor.deactivate ?? 'Deaktivovat')}
                 </Button>
               ) : (
                 <Button
@@ -521,7 +531,7 @@ const ProfilePageComponent: React.FC = () => {
                   onClick={handleEnable2FA}
                   disabled={is2FALoading || !editEmail.trim()}
                 >
-                  {is2FALoading ? 'Odesílám...' : 'Aktivovat'}
+                  {is2FALoading ? (twoFactor.activating ?? 'Odesílám...') : (twoFactor.activate ?? 'Aktivovat')}
                 </Button>
               )}
             </Box>
@@ -529,10 +539,10 @@ const ProfilePageComponent: React.FC = () => {
         </Paper>
 
         <Dialog open={show2FADialog} onClose={() => setShow2FADialog(false)}>
-          <DialogTitle>Ověření dvoufázového ověření</DialogTitle>
+          <DialogTitle>{twoFactor.dialogTitle ?? 'Ověření dvoufázového ověření'}</DialogTitle>
           <DialogContent>
             <Typography variant="body2" sx={{ mb: 2 }}>
-              Zadejte 6místný kód, který jsme vám odeslali na email {displayData?.email}
+              {(twoFactor.dialogMessage ?? 'Zadejte 6místný kód, který jsme vám odeslali na email {{email}}').replace('{{email}}', displayData?.email ?? '')}
             </Typography>
             {twoFactorError && (
               <Alert severity="error" sx={{ mb: 2 }} onClose={() => setTwoFactorError(null)}>
@@ -540,7 +550,7 @@ const ProfilePageComponent: React.FC = () => {
               </Alert>
             )}
             <TextField
-              label="Ověřovací kód"
+              label={twoFactor.codeLabel ?? 'Ověřovací kód'}
               value={twoFactorCode}
               onChange={(e) => {
                 const value = e.target.value.replace(/\D/g, '').slice(0, 6);
@@ -548,7 +558,7 @@ const ProfilePageComponent: React.FC = () => {
               }}
               fullWidth
               inputProps={{ maxLength: 6, pattern: '[0-9]*' }}
-              placeholder="000000"
+              placeholder={twoFactor.codePlaceholder ?? '000000'}
             />
           </DialogContent>
           <DialogActions>
@@ -557,34 +567,34 @@ const ProfilePageComponent: React.FC = () => {
               setTwoFactorCode('');
               setTwoFactorError(null);
             }}>
-              Zrušit
+              {twoFactor.cancel ?? 'Zrušit'}
             </Button>
             <Button
               onClick={handleVerify2FA}
               variant="contained"
               disabled={is2FALoading || twoFactorCode.length !== 6}
             >
-              {is2FALoading ? 'Ověřuji...' : 'Ověřit'}
+              {is2FALoading ? (twoFactor.verifying ?? 'Ověřuji...') : (twoFactor.verify ?? 'Ověřit')}
             </Button>
           </DialogActions>
         </Dialog>
 
         <Paper className="p-6 rounded-xl shadow-lg mb-6">
           <Typography variant="h6" className="font-bold text-text-primary" sx={{ mb: 2 }}>
-            Google účet
+            {googleAccount.title ?? 'Google účet'}
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box>
               <Typography variant="body1" className="text-text-primary">
                 {(displayData as any)?.googleId
-                  ? 'Google účet je propojen'
-                  : 'Google účet není propojen'}
+                  ? (googleAccount.linked ?? 'Google účet je propojen')
+                  : (googleAccount.notLinked ?? 'Google účet není propojen')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                 {(displayData as any)?.googleId
-                  ? 'Můžete se přihlásit pomocí Google účtu nebo uživatelského jména a hesla'
-                  : 'Propojte svůj Google účet pro jednodušší přihlášení'}
+                  ? (googleAccount.descriptionLinked ?? 'Můžete se přihlásit pomocí Google účtu nebo uživatelského jména a hesla')
+                  : (googleAccount.descriptionNotLinked ?? 'Propojte svůj Google účet pro jednodušší přihlášení')}
               </Typography>
             </Box>
             <Button
@@ -592,24 +602,21 @@ const ProfilePageComponent: React.FC = () => {
               color={(displayData as any)?.googleId ? 'error' : 'primary'}
               onClick={async () => {
                 if ((displayData as any)?.googleId) {
-                  // Unlink Google account
                   setIsUnlinkingGoogle(true);
                   try {
                     await profileApi.unlinkGoogleAccount();
-                    // Refresh profile data
                     const data = await profileApi.getProfile();
                     setProfileData(data);
                   } catch (err: any) {
                     setSaveError(
                       err?.response?.data?.message ||
                         err?.message ||
-                        'Nepodařilo se odpojit Google účet',
+                        (errors.unlinkFailed ?? 'Nepodařilo se odpojit Google účet'),
                     );
                   } finally {
                     setIsUnlinkingGoogle(false);
                   }
                 } else {
-                  // Link Google account
                   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
                   const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api';
                   window.location.href = `${apiUrl}${apiPrefix}/auth/google/link`;
@@ -618,10 +625,10 @@ const ProfilePageComponent: React.FC = () => {
               disabled={isUnlinkingGoogle}
             >
               {isUnlinkingGoogle
-                ? 'Odpojuji...'
+                ? (googleAccount.unlinking ?? 'Odpojuji...')
                 : (displayData as any)?.googleId
-                ? 'Zrušit propojení'
-                : 'Propojit Google účet'}
+                ? (googleAccount.unlink ?? 'Zrušit propojení')
+                : (googleAccount.link ?? 'Propojit Google účet')}
             </Button>
           </Box>
         </Paper>

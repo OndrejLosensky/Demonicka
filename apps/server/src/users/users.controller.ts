@@ -139,8 +139,12 @@ export class UsersController {
   async getMySettings(@GetUser() user: User) {
     const me = (await this.usersService.findOne(user.id)) as User & {
       preferredTheme?: string | null;
+      preferredLocale?: string | null;
     };
-    return { preferredTheme: me.preferredTheme ?? null };
+    return {
+      preferredTheme: me.preferredTheme ?? null,
+      preferredLocale: me.preferredLocale ?? null,
+    };
   }
 
   @Patch('me/settings')
@@ -155,8 +159,12 @@ export class UsersController {
       dto,
     )) as User & {
       preferredTheme?: string | null;
+      preferredLocale?: string | null;
     };
-    return { preferredTheme: updated.preferredTheme ?? null };
+    return {
+      preferredTheme: updated.preferredTheme ?? null,
+      preferredLocale: updated.preferredLocale ?? null,
+    };
   }
 
   @Post('me/profile-picture')

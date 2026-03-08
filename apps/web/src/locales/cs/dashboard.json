@@ -41,6 +41,7 @@
     "noData": "Žádná data k zobrazení"
   },
   "loading": "Načítání...",
+  "refresh": "Obnovit",
   "noActiveEvent": {
     "title": "Žádná aktivní akce",
     "subtitle": "Vytvořte novou akci pro sledování piv a účastníků",
@@ -51,5 +52,37 @@
     "remainingBeers": "Zbývá piv",
     "activeBarrels": "Aktivní sudy",
     "totalBarrels": "Celkem sudů"
-  }
+  },
+  "consumption": {
+    "title": "Spotřeba piv během dne"
+  },
+  "barrel": {
+    "activeBarrel": "Aktivní sud",
+    "noBarrel": "Není aktivní žádný sud.",
+    "emptyIn": "Bude prázdný za:",
+    "emptyInHistorical": "Bude prázdný za (historicky):",
+    "collectingData": "Sbírám data…",
+    "ofL": "z {{total}} L"
+  },
+  "insights": {
+    "title": "Přehled",
+    "start": "Začátek",
+    "peak": "Peak",
+    "topUser": "Top uživatel",
+    "beers": "piv"
+  },
+  "topUsers": {
+    "title": "Nejlepší uživatelé",
+    "noData": "Zatím žádná data.",
+    "beers": "piv"
+  },
+  "kpis": {
+    "participants": "Účastníci",
+    "avgPerPerson": "průměr / os.",
+    "avgPerHour": "Průměr / hod",
+    "efficiency": "Efektivita"
+  },
+  "lastMinutes": "posledních {{count}} min",
+  "noDataLabel": "Žádná data",
+  "nobody": "Nikdo"
 } 

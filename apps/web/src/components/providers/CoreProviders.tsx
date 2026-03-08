@@ -9,8 +9,10 @@ import { AuthProvider } from '../../contexts/AuthContext';
 import { AppThemeProvider } from '../../contexts/ThemeContext';
 import { ActiveEventProvider } from '../../contexts/ActiveEventContext';
 import { NotificationsProvider } from '../../contexts/NotificationsContext';
+import { LocaleProvider } from '../../contexts/LocaleContext';
 import { HeaderVisibilityProvider } from '../../contexts/HeaderVisibilityContext';
 import { OnboardingProvider } from '../onboarding/OnboardingProvider';
+import { SyncUserLocale } from './SyncUserLocale';
 
 const queryClient = new QueryClient();
 
@@ -26,7 +28,9 @@ export function CoreProviders({ children }: CoreProvidersProps) {
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={cs}>
             <AuthProvider>
               <NotificationsProvider>
-                <ActiveEventProvider>
+                <LocaleProvider>
+                  <SyncUserLocale />
+                  <ActiveEventProvider>
                 <HeaderVisibilityProvider>
                   <OnboardingProvider>
                     {children}
@@ -49,7 +53,8 @@ export function CoreProviders({ children }: CoreProvidersProps) {
                     closeButton={true}
                   />
                 </HeaderVisibilityProvider>
-                </ActiveEventProvider>
+                  </ActiveEventProvider>
+                </LocaleProvider>
               </NotificationsProvider>
             </AuthProvider>
           </LocalizationProvider>

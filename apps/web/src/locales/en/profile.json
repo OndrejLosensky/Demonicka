@@ -1,0 +1,112 @@
+{
+  "title": "Profile",
+  "accountInfo": "Account information",
+  "tabs": {
+    "basicInfo": "Basic information",
+    "statistics": "Statistics",
+    "settings": "Settings"
+  },
+  "basicInfo": {
+    "username": "Username",
+    "fullName": "Full name",
+    "userId": "User ID",
+    "accountCreated": "Account created",
+    "role": "Role",
+    "gender": "Gender",
+    "registrationStatus": "Registration status"
+  },
+  "statistics": {
+    "title": "Beer statistics",
+    "totalBeers": "Total beers",
+    "beersToday": "Today",
+    "beersThisWeek": "This week",
+    "beersThisMonth": "This month",
+    "averagePerDay": "Average per day",
+    "averagePerEvent": "Average per event",
+    "globalRank": "Global rank",
+    "percentile": "Percentile",
+    "mostBeersInDay": "Most in one day",
+    "longestBreak": "Longest break",
+    "firstBeer": "First beer",
+    "lastBeer": "Last beer"
+  },
+  "settings": {
+    "title": "Account settings",
+    "personalInfo": "Personal info",
+    "security": "Security",
+    "notifications": "Notifications"
+  },
+  "roles": {
+    "ADMIN": "Administrator",
+    "SUPER_ADMIN": "Super administrator",
+    "OPERATOR": "Operator",
+    "USER": "User",
+    "PARTICIPANT": "Participant"
+  },
+  "gender": {
+    "MALE": "Male",
+    "FEMALE": "Female"
+  },
+  "registrationStatus": {
+    "complete": "Complete",
+    "incomplete": "Incomplete"
+  },
+  "timeUnits": {
+    "hours": "hours",
+    "days": "days",
+    "never": "Never"
+  },
+  "rankings": {
+    "rank": "rank",
+    "of": "of",
+    "users": "users"
+  },
+  "editProfile": {
+    "title": "Edit profile",
+    "email": "Email",
+    "emailHelper2FA": "Email is required for two-factor authentication",
+    "save": "Save",
+    "saving": "Saving..."
+  },
+  "myStats": "My statistics",
+  "refreshTooltip": "Refresh data",
+  "twoFactor": {
+    "title": "Two-factor authentication",
+    "enabled": "Two-factor authentication is active",
+    "disabled": "Two-factor authentication is disabled",
+    "descriptionEnabled": "You will need a code from your email when signing in",
+    "descriptionDisabled": "Enable two-factor authentication to increase your account security",
+    "activate": "Enable",
+    "deactivate": "Disable",
+    "activating": "Sending...",
+    "deactivating": "Disabling...",
+    "dialogTitle": "Verify two-factor authentication",
+    "dialogMessage": "Enter the 6-digit code we sent to {{email}}",
+    "codeLabel": "Verification code",
+    "codePlaceholder": "000000",
+    "cancel": "Cancel",
+    "verify": "Verify",
+    "verifying": "Verifying..."
+  },
+  "googleAccount": {
+    "title": "Google account",
+    "linked": "Google account is linked",
+    "notLinked": "Google account is not linked",
+    "descriptionLinked": "You can sign in with Google or username and password",
+    "descriptionNotLinked": "Link your Google account for easier sign-in",
+    "link": "Link Google account",
+    "unlink": "Unlink",
+    "unlinking": "Unlinking..."
+  },
+  "errors": {
+    "saveFailed": "Failed to save profile changes.",
+    "enable2faNeedEmail": "You must set an email address to enable two-factor authentication",
+    "sendCodeFailed": "Failed to send verification code",
+    "invalidCode": "Enter 6-digit code",
+    "verifyFailed": "Invalid verification code",
+    "disable2faFailed": "Failed to disable two-factor authentication",
+    "googleAlreadyLinked": "This Google account is already linked to another account",
+    "googleLinkFailed": "Failed to link Google account",
+    "unlinkFailed": "Failed to unlink Google account"
+  }
+}
