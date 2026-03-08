@@ -1,30 +1,27 @@
-FROM node:20
+# Backend: build and run (single stage; server needs full node_modules at runtime)
+FROM node:20-alpine AS builder
 
-WORKDIR /root
+RUN corepack enable && corepack prepare pnpm@10.17.1 --activate
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 ENV CI=true
 
-COPY package.json pnpm-lock.yaml* ./
+WORKDIR /app
 
-# Copy tsconfig files
-COPY tsconfig.base.json ./
-COPY tsconfig.json ./
+# Workspace and lockfile
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 
-RUN npm install -g pnpm
-
+# Copy only packages required by the server (no ui, no apps/web)
 COPY packages/shared ./packages/shared
 COPY packages/shared-types ./packages/shared-types
 COPY packages/shared-utils ./packages/shared-utils
 COPY apps/server ./apps/server
 
-RUN pnpm install --recursive --no-frozen-lockfile
+# Install and build (turbo builds shared* then demonicka-server)
+RUN pnpm install --frozen-lockfile
+RUN pnpm run build:server
 
-# Build workspace packages
-RUN pnpm --filter @demonicka/shared build
-RUN pnpm --filter @demonicka/shared-types build
-RUN pnpm --filter @demonicka/shared-utils build
-
-WORKDIR /root/apps/server
-RUN pnpm build
-
+# Run from server directory; start:prod runs node dist/main
+WORKDIR /app/apps/server
 EXPOSE 3000
 CMD ["pnpm", "start:prod"]
