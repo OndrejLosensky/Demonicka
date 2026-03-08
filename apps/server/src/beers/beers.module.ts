@@ -4,14 +4,12 @@ import { BeersService } from './beers.service';
 import { BarrelsModule } from '../barrels/barrels.module';
 import { LoggingModule } from '../logging/logging.module';
 import { EventsModule } from '../events/events.module';
-import { AchievementsModule } from '../achievements/achievements.module';
 
 @Module({
   imports: [
     BarrelsModule,
     LoggingModule,
     forwardRef(() => EventsModule),
-    AchievementsModule,
   ],
   controllers: [BeersController],
   providers: [BeersService],

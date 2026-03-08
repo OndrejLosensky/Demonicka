@@ -1,10 +1,14 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Beer } from '@prisma/client';
+import { Beer, User, Barrel } from '@prisma/client';
 import { EventsService } from '../events/events.service';
 import { EventBeersService } from '../events/services/event-beers.service';
 import { LoggingService } from '../logging/logging.service';
-import { AchievementsService } from '../achievements/achievements.service';
+
+export interface CreateBeerFromEventOptions {
+  user: User;
+  barrel?: Barrel | null;
+}
 
 @Injectable()
 export class BeersService {
@@ -17,7 +21,6 @@ export class BeersService {
     @Inject(forwardRef(() => EventBeersService))
     private readonly eventBeersService: EventBeersService,
     private readonly loggingService: LoggingService,
-    private readonly achievementsService: AchievementsService,
   ) {}
 
   async create(
@@ -26,10 +29,11 @@ export class BeersService {
     skipEventBeer = false,
     beerSize: 'SMALL' | 'LARGE' = 'LARGE',
     volumeLitres: number = 0.5,
+    fromEvent?: CreateBeerFromEventOptions,
   ): Promise<Beer> {
-    const user = await this.prisma.user.findUnique({
+    const user = fromEvent?.user ?? (await this.prisma.user.findUnique({
       where: { id: userId },
-    });
+    }));
 
     if (!user) {
       throw new Error('User not found');
@@ -37,14 +41,17 @@ export class BeersService {
 
     let barrelIdToUse: string | null = null;
     if (barrelId) {
-      const barrel = await this.prisma.barrel.findUnique({
-        where: { id: barrelId },
-      });
-
-      if (!barrel) {
-        throw new Error('Barrel not found');
+      if (fromEvent?.barrel && fromEvent.barrel.id === barrelId) {
+        barrelIdToUse = fromEvent.barrel.id;
+      } else {
+        const barrel = await this.prisma.barrel.findUnique({
+          where: { id: barrelId },
+        });
+        if (!barrel) {
+          throw new Error('Barrel not found');
+        }
+        barrelIdToUse = barrel.id;
       }
-      barrelIdToUse = barrel.id;
     }
 
     // Create global beer record
@@ -92,15 +99,9 @@ export class BeersService {
       }
     }
 
-    // Log beer addition
-    this.loggingService.logBeerAdded(userId, barrelId);
-
-    // Check achievements
-    try {
-      await this.achievementsService.checkAndUpdateAchievements(userId);
-    } catch (error) {
-      this.logger.error('Failed to check achievements:', error);
-      // Don't throw the error as the beer was already created successfully
+    // Log beer addition only when not called from event path (event path logs once with full meta)
+    if (!skipEventBeer) {
+      this.loggingService.logBeerAdded(userId, barrelId);
     }
 
     return savedBeer;

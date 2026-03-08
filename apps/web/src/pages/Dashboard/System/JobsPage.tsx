@@ -46,6 +46,7 @@ const typeLabel: Record<string, string> = {
   'backup.run': 'Záloha DB',
   'cleanup.system': 'Vyčistit systém',
   'cleanup.activeEvent': 'Vyčistit aktivní událost',
+  'achievements.check': 'Kontrola achievementů',
 };
 
 function formatDate(s: string | null): string {
@@ -187,21 +188,19 @@ export const JobsPage: React.FC = () => {
                   <React.Fragment key={job.id}>
                     <TableRow hover>
                       <TableCell>
-                        {(job.error || (job.logs && job.logs.length > 0)) && (
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              setExpandedId((id) => (id === job.id ? null : job.id))
-                            }
-                            aria-label={expandedId === job.id ? 'Skrýt detail' : 'Zobrazit detail'}
-                          >
-                            {expandedId === job.id ? (
-                              <ExpandLessIcon fontSize="small" />
-                            ) : (
-                              <ExpandMoreIcon fontSize="small" />
-                            )}
-                          </IconButton>
-                        )}
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            setExpandedId((id) => (id === job.id ? null : job.id))
+                          }
+                          aria-label={expandedId === job.id ? 'Skrýt detail' : 'Zobrazit detail'}
+                        >
+                          {expandedId === job.id ? (
+                            <ExpandLessIcon fontSize="small" />
+                          ) : (
+                            <ExpandMoreIcon fontSize="small" />
+                          )}
+                        </IconButton>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
@@ -249,12 +248,11 @@ export const JobsPage: React.FC = () => {
                         ) : null}
                       </TableCell>
                     </TableRow>
-                    {(job.error || (job.logs && job.logs.length > 0)) && (
-                      <TableRow>
-                        <TableCell colSpan={7} sx={{ py: 0, borderBottom: 0 }}>
-                          <Collapse in={expandedId === job.id} timeout="auto">
-                            <Box sx={{ px: 2, pb: 2 }}>
-                              {job.logs && job.logs.length > 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} sx={{ py: 0, borderBottom: 0 }}>
+                        <Collapse in={expandedId === job.id} timeout="auto">
+                          <Box sx={{ px: 2, pb: 2 }}>
+                            {job.logs && job.logs.length > 0 && (
                                 <Box
                                   sx={{
                                     py: 1.5,
@@ -345,7 +343,6 @@ export const JobsPage: React.FC = () => {
                           </Collapse>
                         </TableCell>
                       </TableRow>
-                    )}
                   </React.Fragment>
                 ))
               )}

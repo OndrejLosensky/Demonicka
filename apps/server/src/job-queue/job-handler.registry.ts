@@ -5,6 +5,7 @@ const JOB_TYPES = {
   BACKUP_RUN: 'backup.run',
   CLEANUP_SYSTEM: 'cleanup.system',
   CLEANUP_ACTIVE_EVENT: 'cleanup.activeEvent',
+  ACHIEVEMENTS_CHECK: 'achievements.check',
 } as const;
 
 export type JobType = (typeof JOB_TYPES)[keyof typeof JOB_TYPES];

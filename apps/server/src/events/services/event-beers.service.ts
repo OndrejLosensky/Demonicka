@@ -7,7 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { EventBeer } from '@prisma/client';
+import { EventBeer, Barrel } from '@prisma/client';
 import { BeersService } from '../../beers/beers.service';
 import { BarrelsService } from '../../barrels/barrels.service';
 import { LeaderboardGateway } from '../../leaderboard/leaderboard.gateway';
@@ -68,11 +68,11 @@ export class EventBeersService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
+    let barrel: Barrel | null = null;
     if (barrelId) {
-      const barrel = await this.prisma.barrel.findUnique({
+      barrel = await this.prisma.barrel.findUnique({
         where: { id: barrelId },
       });
-
       if (!barrel) {
         throw new NotFoundException(`Barrel with ID ${barrelId} not found`);
       }
@@ -90,8 +90,12 @@ export class EventBeersService {
       },
     });
 
-    // Also create a global beer record, with skipEventBeer=true to prevent infinite loop
-    await this.beersService.create(userId, barrelId, true, beerSize, volumeLitres);
+    // Also create a global beer record, with skipEventBeer=true to prevent infinite loop.
+    // Pass user and barrel to avoid duplicate fetches in BeersService.
+    await this.beersService.create(userId, barrelId, true, beerSize, volumeLitres, {
+      user,
+      barrel: barrel ?? undefined,
+    });
 
     // Update barrel litres if barrel is provided
     if (barrelId) {
@@ -99,16 +103,15 @@ export class EventBeersService {
       await this.barrelsService.decrementLitres(barrelId, volumeLitres);
     }
 
-    // Log beer addition
+    // Emit leaderboard/dashboard right after critical writes (before logging/notifications)
+    this.leaderboardGateway.emitFullUpdate(eventId).catch((error) => {
+      console.error('Failed to emit leaderboard update after beer creation:', error);
+    });
+
+    // Log beer addition (once; BeersService skips logging when called from event path)
     this.loggingService.logBeerAdded(userId, barrelId, {
       actorUserId,
       eventId,
-    });
-
-    // Emit live updates for leaderboard and dashboard stats immediately
-    // Don't await to avoid blocking the response - fire and forget
-    this.leaderboardGateway.emitFullUpdate(eventId).catch((error) => {
-      console.error('Failed to emit leaderboard update after beer creation:', error);
     });
 
     this.notificationsService

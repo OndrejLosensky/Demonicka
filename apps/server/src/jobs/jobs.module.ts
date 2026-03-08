@@ -3,6 +3,7 @@ import { JobQueueModule } from '../job-queue/job-queue.module';
 import { BackupModule } from '../backup/backup.module';
 import { LoggingModule } from '../logging/logging.module';
 import { EventsModule } from '../events/events.module';
+import { AchievementsModule } from '../achievements/achievements.module';
 import { JobsRegistrationService } from './jobs.registration';
 
 @Module({
@@ -11,6 +12,7 @@ import { JobsRegistrationService } from './jobs.registration';
     BackupModule,
     LoggingModule,
     EventsModule,
+    AchievementsModule,
   ],
   providers: [JobsRegistrationService],
 })

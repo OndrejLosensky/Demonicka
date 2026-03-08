@@ -20,13 +20,15 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
+    "test:perf": "jest --runInBand --testPathPattern=add-beer\\.performance",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "cleanup:all": "ts-node scripts/cleanupAll.ts",
     "cleanup:data": "ts-node scripts/cleanupData.ts",
     "promote:superadmin": "ts-node promote-super-admin.ts",
     "seed:event": "ts-node scripts/seed-event.ts",
-    "seed:users": "ts-node scripts/seed-users.ts"
+    "seed:users": "ts-node scripts/seed-users.ts",
+    "measure:add-beer": "ts-node -r tsconfig-paths/register scripts/measure-add-beer.ts"
   },
   "dependencies": {
     "@demonicka/shared": "workspace:*",

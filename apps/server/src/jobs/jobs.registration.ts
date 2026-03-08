@@ -6,8 +6,10 @@ import {
 import { BackupService } from '../backup/backup.service';
 import { LoggingService } from '../logging/logging.service';
 import { EventsService } from '../events/events.service';
+import { AchievementsService } from '../achievements/achievements.service';
 import { registerBackupRunHandler } from './handlers/backup-run.handler';
 import { registerCleanupHandlers } from './handlers/cleanup.handlers';
+import { registerAchievementsCheckHandler } from './handlers/achievements-check.handler';
 
 @Injectable()
 export class JobsRegistrationService implements OnModuleInit {
@@ -16,6 +18,7 @@ export class JobsRegistrationService implements OnModuleInit {
     private readonly backupService: BackupService,
     private readonly loggingService: LoggingService,
     private readonly eventsService: EventsService,
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   onModuleInit(): void {
@@ -28,6 +31,10 @@ export class JobsRegistrationService implements OnModuleInit {
       this.jobHandlerRegistry,
       this.loggingService,
       this.eventsService,
+    );
+    registerAchievementsCheckHandler(
+      this.jobHandlerRegistry,
+      this.achievementsService,
     );
   }
 }

@@ -137,6 +137,24 @@ export class AchievementsService {
     }
   }
 
+  /**
+   * Run achievement check for all users. Used by the hourly background job.
+   * Optional onProgress callback is called after each user (for job logs with timestamps).
+   */
+  async checkAndUpdateAchievementsForAllUsers(
+    onProgress?: (message: string) => void,
+  ): Promise<{ usersChecked: number }> {
+    const users = await this.prisma.user.findMany({
+      where: { deletedAt: null },
+      select: { id: true, username: true },
+    });
+    for (const u of users) {
+      await this.checkAndUpdateAchievements(u.id);
+      onProgress?.(`Kontrolováno: ${u.username ?? u.id}`);
+    }
+    return { usersChecked: users.length };
+  }
+
   private async checkAchievement(
     userId: string,
     achievement: Achievement,
