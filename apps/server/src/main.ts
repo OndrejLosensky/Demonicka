@@ -104,8 +104,8 @@ async function bootstrap() {
     exposedHeaders: ['Set-Cookie'],
   });
 
-  // Set global prefix for all routes
-  app.setGlobalPrefix('api');
+  // Set global prefix for all routes (except /health for Coolify/Grafana)
+  app.setGlobalPrefix('api', { exclude: ['health'] });
 
   // Use global validation pipe
   app.useGlobalPipes(

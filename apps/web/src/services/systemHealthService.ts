@@ -11,7 +11,11 @@ export interface SystemHealth {
   };
   database: {
     size: number;
+    tableCount?: number;
+    totalRows?: number;
     connections: number;
+    connectionsActive?: number;
+    connectionsIdle?: number;
     responseTime: number;
     status: 'healthy' | 'warning' | 'error';
   };
@@ -52,6 +56,8 @@ export interface PerformanceMetrics {
   activeConnections: {
     websocket: number;
     database: number;
+    databaseActive?: number;
+    databaseIdle?: number;
     api: number;
   };
 }

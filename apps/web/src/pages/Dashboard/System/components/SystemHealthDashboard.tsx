@@ -254,8 +254,21 @@ export const SystemHealthDashboard: React.FC<SystemHealthDashboardProps> = ({ on
                 <Typography variant="body2" color="text.secondary">
                   Velikost: {formatBytes(health.database.size)}
                 </Typography>
+                {typeof health.database.tableCount === 'number' && (
+                  <Typography variant="body2" color="text.secondary">
+                    Tabulky: {health.database.tableCount}
+                  </Typography>
+                )}
+                {typeof health.database.totalRows === 'number' && (
+                  <Typography variant="body2" color="text.secondary">
+                    Řádky (přibl.): {health.database.totalRows.toLocaleString('cs-CZ')}
+                  </Typography>
+                )}
                 <Typography variant="body2" color="text.secondary">
                   Připojení: {health.database.connections}
+                  {typeof health.database.connectionsActive === 'number' && typeof health.database.connectionsIdle === 'number'
+                    ? ` (aktivní: ${health.database.connectionsActive}, neaktivní: ${health.database.connectionsIdle})`
+                    : ''}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Odezva: {health.database.responseTime}ms
@@ -390,6 +403,9 @@ export const SystemHealthDashboard: React.FC<SystemHealthDashboardProps> = ({ on
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Databáze: {performance.activeConnections.database}
+                  {typeof performance.activeConnections.databaseActive === 'number' && typeof performance.activeConnections.databaseIdle === 'number'
+                    ? ` (aktivní: ${performance.activeConnections.databaseActive}, neaktivní: ${performance.activeConnections.databaseIdle})`
+                    : ''}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   API: {performance.activeConnections.api}
@@ -398,10 +414,13 @@ export const SystemHealthDashboard: React.FC<SystemHealthDashboardProps> = ({ on
               <Grid item xs={12} md={8}>
                 <Typography variant="subtitle2" gutterBottom>
                   Nejpomalejší endpointy
+                  <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                    (poslední 2 min)
+                  </Typography>
                 </Typography>
                 {performance.apiResponseTimes
                   .sort((a, b) => b.averageTime - a.averageTime)
-                  .slice(0, 3)
+                  .slice(0, 5)
                   .map((endpoint) => (
                     <Box key={endpoint.endpoint} mb={1}>
                       <Typography variant="body2">

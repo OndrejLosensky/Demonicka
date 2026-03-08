@@ -28,7 +28,7 @@ export class SystemService {
 
     // Get database stats (size, status) and real connection count + response time
     const dbStats = await this.getDatabaseStats();
-    const dbConnections = await this.getDatabaseConnectionCount();
+    const dbConnections = await this.getDatabaseConnectionStats();
     const dbResponseTimeMs = await this.measureDatabaseResponseTime();
 
     // Get storage stats (logs + backups)
@@ -59,7 +59,11 @@ export class SystemService {
       },
       database: {
         size: dbStats.size,
-        connections: dbConnections,
+        tableCount: dbStats.tableCount,
+        totalRows: dbStats.totalRows,
+        connections: dbConnections.total,
+        connectionsActive: dbConnections.active,
+        connectionsIdle: dbConnections.idle,
         responseTime: Math.max(0, dbResponseTimeMs),
         status: dbStats.status,
       },
@@ -82,10 +86,10 @@ export class SystemService {
   async getPerformanceMetrics() {
     const notificationsCount = this.notificationsGateway.getConnectionCount();
     const jobsCount = this.jobsGateway.getConnectionCount();
-    const dbConnections = await this.getDatabaseConnectionCount();
+    const dbConnections = await this.getDatabaseConnectionStats();
     const apiActive = this.metrics.getActiveRequestCount();
 
-    const slowest = this.metrics.getSlowestEndpoints(10);
+    const slowest = this.metrics.getSlowestEndpointsRecent(10);
     const errorRates = this.metrics.getErrorRatesByEndpoint();
 
     return {
@@ -93,7 +97,9 @@ export class SystemService {
       errorRates,
       activeConnections: {
         websocket: notificationsCount + jobsCount,
-        database: dbConnections,
+        database: dbConnections.total,
+        databaseActive: dbConnections.active,
+        databaseIdle: dbConnections.idle,
         api: apiActive,
       },
     };
@@ -143,69 +149,93 @@ export class SystemService {
   }
 
   async getDatabaseStats() {
-    try {
-      // Get database size using PostgreSQL query
-      const sizeResult = await this.prisma.$queryRaw<Array<{ size: bigint }>>`
-        SELECT pg_database_size(current_database()) as size
-      `;
-      const size = Number(sizeResult[0]?.size || 0);
+    let size = 0;
+    let tableCount = 0;
+    let totalRows = 0;
+    const tableStats: Array<{ name: string; rowCount: number; size: number }> = [];
 
-      // Get table information
-      const tables = await this.prisma.$queryRaw<Array<{ tablename: string }>>`
-        SELECT tablename 
-        FROM pg_tables 
+    try {
+      // 1. Database size only (single query, no loop)
+      const sizeResult = await this.prisma.$queryRaw<
+        Array<{ size: bigint | string | number }>
+      >`SELECT pg_database_size(current_database()) as size`;
+      const raw = sizeResult[0]?.size;
+      if (raw !== undefined && raw !== null) {
+        size =
+          typeof raw === 'bigint'
+            ? Number(raw)
+            : typeof raw === 'string'
+              ? parseInt(raw, 10) || 0
+              : Number(raw) || 0;
+      }
+
+      // 2. Table stats in one query (no per-table loop - avoids dynamic SQL issues)
+      const tableRows = await this.prisma.$queryRaw<
+        Array<{
+          name: string;
+          row_count: bigint | string | number;
+          size: bigint | string | number;
+        }>
+      >`
+        SELECT
+          relname as name,
+          n_live_tup as row_count,
+          pg_total_relation_size(relid) as size
+        FROM pg_stat_user_tables
         WHERE schemaname = 'public'
       `;
 
-      const tableStats: Array<{
-        name: string;
-        rowCount: number;
-        size: number;
-      }> = [];
-
-      for (const table of tables) {
-        const countResult = await this.prisma.$queryRaw<
-          Array<{ count: bigint }>
-        >`
-          SELECT COUNT(*) as count FROM ${this.prisma.$queryRawUnsafe(`"${table.tablename}"`)}
-        `;
-        const rowCount = Number(countResult[0]?.count || 0);
-
+      for (const row of tableRows) {
+        const rowCount =
+          typeof row.row_count === 'bigint'
+            ? Number(row.row_count)
+            : typeof row.row_count === 'string'
+              ? parseInt(row.row_count, 10) || 0
+              : Number(row.row_count) || 0;
+        const tableSize =
+          typeof row.size === 'bigint'
+            ? Number(row.size)
+            : typeof row.size === 'string'
+              ? parseInt(row.size, 10) || 0
+              : Number(row.size) || 0;
+        totalRows += rowCount;
         tableStats.push({
-          name: table.tablename,
+          name: row.name,
           rowCount,
-          size: 0, // Could calculate with pg_total_relation_size if needed
+          size: tableSize,
         });
       }
-
-      // Determine database status
-      let status: 'healthy' | 'warning' | 'error' = 'healthy';
-      if (size > 100 * 1024 * 1024) {
-        // 100MB
-        status = 'warning';
-      }
-      if (size > 500 * 1024 * 1024) {
-        // 500MB
-        status = 'error';
-      }
-
-      return {
-        size,
-        tables: tableStats,
-        indexes: 0, // Could query pg_indexes if needed
-        lastBackup: null, // Would need to implement backup tracking
-        status,
-      };
+      tableCount = tableStats.length;
     } catch (error) {
       this.logger.error('Failed to get database stats:', error);
       return {
         size: 0,
+        tableCount: 0,
+        totalRows: 0,
         tables: [],
         indexes: 0,
         lastBackup: null,
         status: 'error' as const,
       };
     }
+
+    // Status only from size thresholds; never 'error' just because size is 0
+    let status: 'healthy' | 'warning' | 'error' = 'healthy';
+    if (size > 500 * 1024 * 1024) {
+      status = 'error';
+    } else if (size > 100 * 1024 * 1024) {
+      status = 'warning';
+    }
+
+    return {
+      size,
+      tableCount,
+      totalRows,
+      tables: tableStats,
+      indexes: 0,
+      lastBackup: null,
+      status,
+    };
   }
 
   async getLogStats() {
@@ -366,14 +396,39 @@ export class SystemService {
     }
   }
 
-  private async getDatabaseConnectionCount(): Promise<number> {
+  private async getDatabaseConnectionStats(): Promise<{
+    total: number;
+    active: number;
+    idle: number;
+  }> {
     try {
-      const result = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
-        SELECT count(*) as count FROM pg_stat_activity WHERE datname = current_database()
+      const rows = await this.prisma.$queryRaw<
+        Array<{ state: string | null; count: bigint | string | number }>
+      >`
+        SELECT state, count(*)::bigint as count
+        FROM pg_stat_activity
+        WHERE datname = current_database()
+        GROUP BY state
       `;
-      return Number(result[0]?.count ?? 0);
+      let active = 0;
+      let idle = 0;
+      for (const row of rows) {
+        const n =
+          typeof row.count === 'bigint'
+            ? Number(row.count)
+            : typeof row.count === 'string'
+              ? parseInt(row.count, 10) || 0
+              : Number(row.count) || 0;
+        const state = row.state != null ? String(row.state).toLowerCase() : '';
+        if (state === 'active') {
+          active += n;
+        } else {
+          idle += n;
+        }
+      }
+      return { total: active + idle, active, idle };
     } catch {
-      return 0;
+      return { total: 0, active: 0, idle: 0 };
     }
   }
 

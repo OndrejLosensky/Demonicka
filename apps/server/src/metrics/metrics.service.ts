@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
 const WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+const SLOW_ENDPOINTS_WINDOW_MS = 2 * 60 * 1000; // 2 minutes for rolling slow-endpoints list
 const MAX_ENTRIES = 15_000;
+
+/** Normalize path for display (e.g. /api/v1/events -> /api/events). */
+function normalizePathForDisplay(path: string): string {
+  return path.replace(/^\/api\/v1\//, '/api/');
+}
 
 interface RequestEntry {
   path: string;
@@ -85,14 +91,32 @@ export class MetricsService {
   /** Slowest endpoints by average response time (last 5 min). */
   getSlowestEndpoints(limit: number): Array<{ endpoint: string; averageTime: number; maxTime: number; minTime: number; requestCount: number }> {
     this.prune(Date.now());
+    return this.getSlowestEndpointsInWindow(limit, WINDOW_MS, false);
+  }
+
+  /** Slowest endpoints in the last 2 minutes (rolling, so the list changes more). Normalized paths for display. */
+  getSlowestEndpointsRecent(limit: number): Array<{ endpoint: string; averageTime: number; maxTime: number; minTime: number; requestCount: number }> {
+    this.prune(Date.now());
+    return this.getSlowestEndpointsInWindow(limit, SLOW_ENDPOINTS_WINDOW_MS, true);
+  }
+
+  private getSlowestEndpointsInWindow(
+    limit: number,
+    windowMs: number,
+    normalizePath: boolean,
+  ): Array<{ endpoint: string; averageTime: number; maxTime: number; minTime: number; requestCount: number }> {
+    const now = Date.now();
+    const cutoff = now - windowMs;
+    const inWindow = this.entries.filter((e) => e.timestamp >= cutoff);
     const byPath = new Map<
       string,
       { total: number; count: number; max: number; min: number }
     >();
-    for (const e of this.entries) {
-      const cur = byPath.get(e.path);
+    for (const e of inWindow) {
+      const key = normalizePath ? normalizePathForDisplay(e.path) : e.path;
+      const cur = byPath.get(key);
       if (!cur) {
-        byPath.set(e.path, { total: e.durationMs, count: 1, max: e.durationMs, min: e.durationMs });
+        byPath.set(key, { total: e.durationMs, count: 1, max: e.durationMs, min: e.durationMs });
       } else {
         cur.total += e.durationMs;
         cur.count += 1;

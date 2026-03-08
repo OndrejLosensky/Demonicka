@@ -29,6 +29,7 @@ import { StorageModule } from './storage/storage.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { MetricsModule } from './metrics/metrics.module';
+import { HealthModule } from './health/health.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
 
@@ -68,6 +69,7 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
     FeedbackModule,
     NotificationsModule,
     MetricsModule,
+    HealthModule,
   ],
 })
 export class AppModule implements NestModule {
