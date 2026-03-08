@@ -564,6 +564,30 @@ export class EventsService {
     this.loggingService.logCleanup('ALL', { eventsDeleted: events.length });
   }
 
+  /**
+   * Clear all data for the current active event (beers + participants). Used by system operations job.
+   */
+  async cleanupActiveEvent(): Promise<{ eventName: string; beersDeleted: number; usersRemoved: number } | null> {
+    const event = await this.prisma.event.findFirst({
+      where: { isActive: true, deletedAt: null },
+    });
+    if (!event) {
+      return null;
+    }
+    const beersResult = await this.prisma.eventBeer.updateMany({
+      where: { eventId: event.id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    const usersResult = await this.prisma.eventUsers.deleteMany({
+      where: { eventId: event.id },
+    });
+    return {
+      eventName: event.name,
+      beersDeleted: beersResult.count,
+      usersRemoved: usersResult.count,
+    };
+  }
+
   async openRegistration(eventId: string): Promise<{ token: string; link: string }> {
     const event = await this.findOne(eventId);
     

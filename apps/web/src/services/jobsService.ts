@@ -2,6 +2,12 @@ import { api } from './api';
 
 export type JobStatus = 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
+export type JobLogEntry = {
+  level: string;
+  message: string;
+  timestamp: string;
+};
+
 export type JobResponse = {
   id: string;
   type: string;
@@ -9,6 +15,7 @@ export type JobResponse = {
   status: JobStatus;
   result: Record<string, unknown> | null;
   error: string | null;
+  logs: JobLogEntry[] | null;
   createdByUserId: string | null;
   createdAt: string;
   updatedAt: string;

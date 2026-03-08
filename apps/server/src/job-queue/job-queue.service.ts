@@ -2,7 +2,7 @@ import { Injectable, Inject, Logger, OnModuleInit, OnModuleDestroy } from '@nest
 import { JobStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { JOB_QUEUE_ADAPTER, IJobQueueAdapter } from './job-queue.adapter.interface';
-import { JobHandlerRegistry } from './job-handler.registry';
+import { JobHandlerRegistry, type JobLogEntry } from './job-handler.registry';
 import { JobsGateway } from './jobs.gateway';
 
 const DEFAULT_STALE_MINUTES = 15;
@@ -246,14 +246,25 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
       where: { id: jobId },
       data: { status: JobStatus.RUNNING, startedAt: new Date() },
     });
+    const logs: JobLogEntry[] = [];
+    const context = {
+      appendLog(level: string, message: string) {
+        logs.push({
+          level,
+          message,
+          timestamp: new Date().toISOString(),
+        });
+      },
+    };
     try {
       const payload = job.payload as object;
-      const result = await handler(payload, jobId);
+      const result = await handler(payload, jobId, context);
       await this.prisma.job.update({
         where: { id: jobId },
         data: {
           status: JobStatus.COMPLETED,
           result: result as Prisma.InputJsonValue,
+          logs: logs.length > 0 ? (logs as unknown as Prisma.InputJsonValue) : undefined,
           finishedAt: new Date(),
         },
       });
@@ -267,6 +278,7 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
         data: {
           status: JobStatus.FAILED,
           error: errorStack ?? errorMessage,
+          logs: logs.length > 0 ? (logs as unknown as Prisma.InputJsonValue) : undefined,
           finishedAt: new Date(),
         },
       });
@@ -283,6 +295,7 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
         status: true,
         result: true,
         error: true,
+        logs: true,
         createdByUserId: true,
       },
     });
@@ -293,6 +306,7 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
         status: job.status,
         result: job.result as Record<string, unknown> | null,
         error: job.error,
+        logs: job.logs as JobLogEntry[] | null,
         createdByUserId: job.createdByUserId,
       });
     }

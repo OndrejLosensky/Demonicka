@@ -135,6 +135,7 @@ model User {
   galleryPhotos              GalleryPhoto[]
   feedback                   Feedback[]
   jobs                       Job[]
+  jobConfigsUpdated          JobConfig[]
 
   creator User? @relation("UserCreator", fields: [createdBy], references: [id])
 
@@ -607,6 +608,7 @@ model Job {
   status            JobStatus @default(QUEUED)
   result            Json?     // e.g. { fileName } for backup
   error             String?   @db.Text
+  logs              Json?     // array of { level, message, timestamp } from job run
   createdByUserId   String?   @db.Uuid
   createdAt         DateTime  @default(now()) @db.Timestamptz(6)
   updatedAt         DateTime  @updatedAt @db.Timestamptz(6)
@@ -618,6 +620,16 @@ model Job {
   @@index([status])
   @@index([createdByUserId])
   @@index([createdAt])
+}
+
+/// Key-value config for job scheduling (e.g. backup.enabled, backup.intervalHours).
+model JobConfig {
+  key             String   @id
+  value           Json     // boolean, number, or string
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+  updatedByUserId String?  @db.Uuid
+
+  updatedByUser User? @relation(fields: [updatedByUserId], references: [id], onDelete: SetNull)
 }
 
 enum JobStatus {

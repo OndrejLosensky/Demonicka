@@ -326,6 +326,24 @@ export class UsersService {
     });
   }
 
+  /**
+   * Delete all users with role PARTICIPANT (system operation).
+   */
+  async cleanupParticipants(): Promise<{ deletedCount: number }> {
+    const result = await this.prisma.user.deleteMany({
+      where: { role: UserRole.PARTICIPANT },
+    });
+    return { deletedCount: result.count };
+  }
+
+  /**
+   * Delete all users including admins (system operation).
+   */
+  async cleanupAllUsers(): Promise<{ deletedCount: number }> {
+    const result = await this.prisma.user.deleteMany({});
+    return { deletedCount: result.count };
+  }
+
   async completeRegistration(
     completeRegistrationDto: CompleteRegistrationDto,
   ): Promise<UserWithoutPassword> {

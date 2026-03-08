@@ -2,6 +2,7 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { JobQueueService } from '../job-queue/job-queue.service';
+import { JobConfigService } from '../job-config/job-config.service';
 import { JOB_TYPES } from '../job-queue/job-handler.registry';
 import {
   STORAGE_SERVICE,
@@ -23,6 +24,7 @@ export class BackupService {
   constructor(
     private prisma: PrismaService,
     private readonly jobQueueService: JobQueueService,
+    private readonly jobConfigService: JobConfigService,
     @Inject(STORAGE_SERVICE) private readonly storage: IStorageService,
   ) {
     // Determine backup directory
@@ -45,8 +47,18 @@ export class BackupService {
 
   @Cron(CronExpression.EVERY_HOUR)
   async handleBackup() {
-    if (process.env.BACKUP_ENABLED !== 'true') {
+    const enabled = await this.jobConfigService.getBackupEnabled();
+    if (!enabled) {
       return;
+    }
+    const intervalHours = await this.jobConfigService.getBackupIntervalHours();
+    const lastFinishedAt = await this.jobConfigService.getLastBackupFinishedAt();
+    if (lastFinishedAt) {
+      const elapsedMs = Date.now() - lastFinishedAt.getTime();
+      const intervalMs = intervalHours * 60 * 60 * 1000;
+      if (elapsedMs < intervalMs) {
+        return;
+      }
     }
     try {
       await this.jobQueueService.enqueue({

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -8,39 +8,37 @@ import {
   CardContent,
   CardActions,
   Alert,
-  Chip,
 } from '@mui/material';
 import {
   DeleteSweep as DeleteSweepIcon,
   Event as EventIcon,
-  People as PeopleIcon,
-  Person as PersonIcon,
-  LocalBar as BarrelIcon,
-  CalendarToday as CalendarIcon,
   Warning as WarningIcon,
-  Security as SecurityIcon,
+  CloudUpload as BackupIcon,
 } from '@mui/icons-material';
 import { CleanupConfirmDialog } from './CleanupConfirmDialog';
-import {
-  systemCleanup,
-  activeEventCleanup,
-  participantsCleanup,
-  usersCleanup,
-  barrelsCleanup,
-  eventsCleanup,
-  completeSystemCleanup,
-  type CleanupResult,
-} from '../utils/cleanupUtils';
+import { systemOperationsService } from '../../../../services/systemOperationsService';
+import { backupService } from '../../../../services/backupService';
+import { websocketService } from '../../../../services/websocketService';
 import { toast } from 'react-hot-toast';
 import { USER_ROLE } from '@demonicka/shared-types';
+import translations from '../../../../locales/cs/system.json';
 
 interface CleanupSectionProps {
   onRefresh?: () => void;
   userRole?: string;
 }
 
+type OperationId = 'backup' | 'system' | 'activeEvent';
+
+const OPERATION_LABELS: Record<OperationId, string> = {
+  backup: translations.backup.runButton,
+  system: 'Vyčistit systém',
+  activeEvent: 'Vyčistit aktivní událost',
+};
+
 export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userRole }) => {
-  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<OperationId | null>(null);
+  const pendingJobsRef = useRef<Map<string, string>>(new Map());
   const [dialogConfig, setDialogConfig] = useState<{
     open: boolean;
     title: string;
@@ -52,23 +50,42 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
   const isSuperAdmin = userRole === USER_ROLE.SUPER_ADMIN;
   const isOperator = userRole === USER_ROLE.OPERATOR;
 
-  const handleCleanup = async (
-    cleanupFunction: () => Promise<CleanupResult>,
-    operationName: string
-  ) => {
-    setIsLoading(operationName);
-    try {
-      const result = await cleanupFunction();
-      
-      if (result.success) {
-        toast.success(result.message);
+  useEffect(() => {
+    const handleJobUpdated = (data: { jobId: string; status: string; result?: Record<string, unknown>; error?: string | null }) => {
+      const label = pendingJobsRef.current.get(data.jobId);
+      if (!label) return;
+      if (data.status === 'COMPLETED') {
+        const fileName = data.result?.fileName as string | undefined;
+        const msg = label === translations.backup.runButton && fileName
+          ? `${translations.toasts.backupCompleted}: ${fileName}`
+          : label === translations.backup.runButton
+            ? translations.toasts.backupCompleted
+            : `Úloha „${label}“ dokončena.`;
+        toast.success(msg);
         onRefresh?.();
-      } else {
-        toast.error(result.message);
+      } else if (data.status === 'FAILED') {
+        const msg = data.error && data.error.length > 120 ? `${data.error.slice(0, 120)}…` : (data.error || `Úloha „${label}“ selhala.`);
+        toast.error(msg);
       }
+      pendingJobsRef.current.delete(data.jobId);
+    };
+    websocketService.subscribe('job:updated', handleJobUpdated);
+    return () => websocketService.unsubscribe('job:updated', handleJobUpdated);
+  }, [onRefresh]);
+
+  const enqueueOperation = async (
+    operationId: OperationId,
+    apiCall: () => Promise<{ jobId: string }>,
+  ) => {
+    setIsLoading(operationId);
+    try {
+      const { jobId } = await apiCall();
+      pendingJobsRef.current.set(jobId, OPERATION_LABELS[operationId]);
+      toast.success('Úloha zařazena. Stav uvidíte v Úlohy.');
+      onRefresh?.();
     } catch (error) {
-      console.error(`${operationName} failed:`, error);
-      toast.error(`Nepodařilo se provést ${operationName.toLowerCase()}`);
+      console.error(`${operationId} failed:`, error);
+      toast.error(`Nepodařilo se zařadit úlohu.`);
     } finally {
       setIsLoading(null);
     }
@@ -78,7 +95,7 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
     title: string,
     message: string,
     onConfirm: () => Promise<void>,
-    severity: 'warning' | 'error' = 'warning'
+    severity: 'warning' | 'error' = 'warning',
   ) => {
     setDialogConfig({
       open: true,
@@ -93,106 +110,45 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
     setDialogConfig(null);
   };
 
-  const allCleanupOptions = [
+  const operations = [
     {
-      id: 'system',
+      id: 'backup' as const,
+      title: 'Záloha databáze',
+      description: 'Vytvořit zálohu databáze a nahrát ji do úložiště.',
+      icon: <BackupIcon />,
+      color: 'primary' as const,
+      severity: 'warning' as const,
+      action: () => enqueueOperation('backup', () => backupService.run()),
+    },
+    {
+      id: 'system' as const,
       title: 'Vyčistit systém',
       description: 'Smazat staré logy a dočasné soubory',
       icon: <DeleteSweepIcon />,
       color: 'primary' as const,
       severity: 'warning' as const,
-      requiredRole: null as string | null, // Available to all
       action: () => openDialog(
         'Vyčistit systém',
         'Tato akce smaže staré logy a dočasné soubory starší než 30 dní. Tato operace je bezpečná a neovlivní aktuální data.',
-        () => handleCleanup(systemCleanup, 'System cleanup')
+        () => enqueueOperation('system', systemOperationsService.cleanupSystem),
       ),
     },
     {
-      id: 'activeEvent',
+      id: 'activeEvent' as const,
       title: 'Vyčistit aktivní událost',
       description: 'Smazat všechna data aktivní události',
       icon: <EventIcon />,
       color: 'warning' as const,
       severity: 'warning' as const,
-      requiredRole: null as string | null, // Available to OPERATOR and SUPER_ADMIN
       action: () => openDialog(
         'Vyčistit aktivní událost',
-        'Tato akce smaže všechna data související s aktuální aktivní událostí včetně účastníků, sudů a vypitých piv. Tato operace je nevratná!',
-        () => handleCleanup(activeEventCleanup, 'Active event cleanup')
-      ),
-    },
-    {
-      id: 'participants',
-      title: 'Smazat účastníky',
-      description: 'Smazat všechny účastníky (PARTICIPANT role)',
-      icon: <PeopleIcon />,
-      color: 'error' as const,
-      severity: 'error' as const,
-      requiredRole: USER_ROLE.SUPER_ADMIN,
-      action: () => openDialog(
-        'Smazat účastníky',
-        'Tato akce smaže všechny účastníky (uživatele s rolí PARTICIPANT). Administrátoři zůstanou zachováni. Tato operace je nevratná!',
-        () => handleCleanup(participantsCleanup, 'Participants cleanup'),
-        'error'
-      ),
-    },
-    {
-      id: 'users',
-      title: 'Smazat všechny uživatele',
-      description: 'Smazat všechny uživatele včetně administrátorů',
-      icon: <PersonIcon />,
-      color: 'error' as const,
-      severity: 'error' as const,
-      requiredRole: USER_ROLE.SUPER_ADMIN,
-      action: () => openDialog(
-        'Smazat všechny uživatele',
-        'Tato akce smaže všechny uživatele včetně administrátorů. Budete odhlášeni a budete muset vytvořit nového administrátora. Tato operace je nevratná!',
-        () => handleCleanup(usersCleanup, 'Users cleanup'),
-        'error'
-      ),
-    },
-    {
-      id: 'barrels',
-      title: 'Smazat sudy',
-      description: 'Smazat všechny sudy',
-      icon: <BarrelIcon />,
-      color: 'error' as const,
-      severity: 'error' as const,
-      requiredRole: USER_ROLE.SUPER_ADMIN,
-      action: () => openDialog(
-        'Smazat sudy',
-        'Tato akce smaže všechny sudy v systému. Tato operace je nevratná!',
-        () => handleCleanup(barrelsCleanup, 'Barrels cleanup'),
-        'error'
-      ),
-    },
-    {
-      id: 'events',
-      title: 'Smazat události',
-      description: 'Smazat všechny události',
-      icon: <CalendarIcon />,
-      color: 'error' as const,
-      severity: 'error' as const,
-      requiredRole: USER_ROLE.SUPER_ADMIN,
-      action: () => openDialog(
-        'Smazat události',
-        'Tato akce smaže všechny události v systému včetně jejich dat. Tato operace je nevratná!',
-        () => handleCleanup(eventsCleanup, 'Events cleanup'),
-        'error'
+        'Tato akce smaže všechna data související s aktuální aktivní událostí včetně účastníků a vypitých piv. Tato operace je nevratná!',
+        () => enqueueOperation('activeEvent', systemOperationsService.cleanupActiveEvent),
       ),
     },
   ];
 
-  // Filter cleanup options based on user role
-  const cleanupOptions = allCleanupOptions.filter(option => {
-    if (!option.requiredRole) {
-      // Available to all (OPERATOR and SUPER_ADMIN)
-      return isSuperAdmin || isOperator;
-    }
-    // SUPER_ADMIN only operations
-    return isSuperAdmin;
-  });
+  const visibleOperations = operations.filter(() => isSuperAdmin || isOperator);
 
   return (
     <Box>
@@ -200,23 +156,23 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
         <WarningIcon color="warning" />
         Systémové operace
       </Typography>
-      
+
       <Alert severity="warning" sx={{ mb: 3 }}>
         <Typography variant="body2">
-          <strong>Upozornění:</strong> Níže uvedené operace jsou nevratné. Před provedením se ujistěte, 
+          <strong>Upozornění:</strong> Operace „Vyčistit aktivní událost“ je nevratná. Před provedením se ujistěte,
           že máte zálohu důležitých dat.
         </Typography>
       </Alert>
 
       <Grid container spacing={2}>
-        {cleanupOptions.map((option) => (
+        {visibleOperations.map((option) => (
           <Grid item xs={12} sm={6} md={4} key={option.id}>
-            <Card 
-              sx={{ 
+            <Card
+              sx={{
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                border: option.severity === 'error' ? '1px solid #f44336' : '1px solid #ff9800',
+                border: '1px solid #ff9800',
               }}
             >
               <CardContent sx={{ flexGrow: 1 }}>
@@ -227,16 +183,6 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
                   <Typography variant="h6" component="h3">
                     {option.title}
                   </Typography>
-                  {option.requiredRole === USER_ROLE.SUPER_ADMIN && (
-                    <Chip
-                      icon={<SecurityIcon />}
-                      label="SUPER_ADMIN"
-                      size="small"
-                      color="error"
-                      variant="outlined"
-                      sx={{ ml: 'auto' }}
-                    />
-                  )}
                 </Box>
                 <Typography variant="body2" color="text.secondary">
                   {option.description}
@@ -251,56 +197,13 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
                   disabled={isLoading === option.id}
                   startIcon={option.icon}
                 >
-                  {isLoading === option.id ? 'Probíhá...' : option.title}
+                  {isLoading === option.id ? 'Probíhá...' : option.id === 'backup' ? translations.backup.runButton : option.title}
                 </Button>
               </CardActions>
             </Card>
           </Grid>
         ))}
       </Grid>
-
-      {isSuperAdmin && (
-        <Box mt={3}>
-          <Card sx={{ border: '2px solid #d32f2f' }}>
-            <CardContent>
-              <Box display="flex" alignItems="center" gap={1} mb={1}>
-                <WarningIcon color="error" />
-                <Typography variant="h6" color="error">
-                  Kompletní vyčištění systému
-                </Typography>
-                <Chip
-                  icon={<SecurityIcon />}
-                  label="SUPER_ADMIN"
-                  size="small"
-                  color="error"
-                  variant="outlined"
-                  sx={{ ml: 'auto' }}
-                />
-              </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Tato operace smaže všechna data v systému včetně uživatelů, událostí, sudů a logů. 
-                Budete odhlášeni a budete muset vytvořit nového administrátora.
-              </Typography>
-              <Button
-                variant="contained"
-                color="error"
-                size="large"
-                fullWidth
-                onClick={() => openDialog(
-                  'Kompletní vyčištění systému',
-                  'Tato akce smaže VŠECHNA data v systému včetně uživatelů, událostí, sudů a logů. Budete odhlášeni a budete muset vytvořit nového administrátora. Tato operace je nevratná!',
-                  () => handleCleanup(completeSystemCleanup, 'Complete system cleanup'),
-                  'error'
-                )}
-                disabled={isLoading === 'complete'}
-                startIcon={<DeleteSweepIcon />}
-              >
-                {isLoading === 'complete' ? 'Probíhá...' : 'Kompletní vyčištění systému'}
-              </Button>
-            </CardContent>
-          </Card>
-        </Box>
-      )}
 
       {dialogConfig && (
         <CleanupConfirmDialog
@@ -315,4 +218,4 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
       )}
     </Box>
   );
-}; 
+};

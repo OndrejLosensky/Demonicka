@@ -3,13 +3,26 @@ import { IJobQueueAdapter } from './job-queue.adapter.interface';
 
 const JOB_TYPES = {
   BACKUP_RUN: 'backup.run',
+  CLEANUP_SYSTEM: 'cleanup.system',
+  CLEANUP_ACTIVE_EVENT: 'cleanup.activeEvent',
 } as const;
 
 export type JobType = (typeof JOB_TYPES)[keyof typeof JOB_TYPES];
 
+export interface JobLogEntry {
+  level: string;
+  message: string;
+  timestamp: string;
+}
+
+export interface JobContext {
+  appendLog(level: string, message: string): void;
+}
+
 export type JobHandler<T = object> = (
   payload: T,
   jobId: string,
+  context: JobContext,
 ) => Promise<Record<string, unknown>>;
 
 @Injectable()

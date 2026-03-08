@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -6,11 +6,7 @@ import {
   Button,
   Grid,
 } from '@mui/material';
-import {
-  Refresh as RefreshIcon,
-  Download as DownloadIcon,
-  CloudUpload as CloudUploadIcon,
-} from '@mui/icons-material';
+import { Refresh as RefreshIcon, Download as DownloadIcon } from '@mui/icons-material';
 import { systemService, type SystemStats } from '../../../services/systemService';
 import { useToast } from '../../../hooks/useToast';
 import translations from '../../../locales/cs/system.json';
@@ -18,9 +14,6 @@ import { MetricCard } from '@demonicka/ui';
 import { useDashboardHeaderSlots } from '../../../contexts/DashboardChromeContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { USER_ROLE } from '@demonicka/shared-types';
-import { backupService } from '../../../services/backupService';
-import { websocketService } from '../../../services/websocketService';
-import { jobsService } from '../../../services/jobsService';
 
 const SystemPage: React.FC = () => {
   const { user } = useAuth();
@@ -29,8 +22,6 @@ const SystemPage: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isExportingSystem, setIsExportingSystem] = useState(false);
   const [isExportingUsers, setIsExportingUsers] = useState(false);
-  const [isRunningBackup, setIsRunningBackup] = useState(false);
-  const backupJobIdRef = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
   const isSuperAdmin = user?.role === USER_ROLE.SUPER_ADMIN;
@@ -76,66 +67,6 @@ const SystemPage: React.FC = () => {
       clearInterval(interval);
     };
   }, [loadStats]);
-
-  useEffect(() => {
-    const handleJobUpdated = (data: import('../../../services/websocketService').JobUpdatedPayload) => {
-      if (data.jobId !== backupJobIdRef.current) return;
-      if (data.status === 'COMPLETED') {
-        const fileName = data.result?.fileName as string | undefined;
-        toast.success(fileName ? `${translations.toasts.backupCompleted}: ${fileName}` : translations.toasts.backupCompleted);
-        setIsRunningBackup(false);
-        backupJobIdRef.current = null;
-      } else if (data.status === 'FAILED') {
-        const msg = data.error || translations.toasts.backupFailed;
-        toast.error(msg.length > 120 ? `${msg.slice(0, 120)}…` : msg);
-        setIsRunningBackup(false);
-        backupJobIdRef.current = null;
-      }
-    };
-    websocketService.subscribe('job:updated', handleJobUpdated);
-    return () => websocketService.unsubscribe('job:updated', handleJobUpdated);
-  }, [toast]);
-
-  useEffect(() => {
-    if (!isRunningBackup || !backupJobIdRef.current) return;
-    const interval = setInterval(async () => {
-      if (!backupJobIdRef.current) return;
-      try {
-        const job = await jobsService.getJob(backupJobIdRef.current);
-        if (job.status === 'COMPLETED') {
-          const fileName = job.result?.fileName as string | undefined;
-          toast.success(fileName ? `${translations.toasts.backupCompleted}: ${fileName}` : translations.toasts.backupCompleted);
-          setIsRunningBackup(false);
-          backupJobIdRef.current = null;
-        } else if (job.status === 'FAILED') {
-          const msg = job.error || translations.toasts.backupFailed;
-          toast.error(msg.length > 120 ? `${msg.slice(0, 120)}…` : msg);
-          setIsRunningBackup(false);
-          backupJobIdRef.current = null;
-        }
-      } catch {
-        // ignore poll errors
-      }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [isRunningBackup, toast]);
-
-  const handleRunBackup = useCallback(async () => {
-    try {
-      setIsRunningBackup(true);
-      const res = await backupService.run();
-      backupJobIdRef.current = res.jobId;
-      if (res.status !== 'queued') {
-        setIsRunningBackup(false);
-        backupJobIdRef.current = null;
-      }
-    } catch (err) {
-      console.error('Failed to run backup:', err);
-      toast.error(translations.toasts.backupFailed);
-      setIsRunningBackup(false);
-      backupJobIdRef.current = null;
-    }
-  }, [toast]);
 
   const handleExportSystemExcel = useCallback(async () => {
     try {
@@ -184,16 +115,16 @@ const SystemPage: React.FC = () => {
       <Box display="flex" gap={2}>
         {isSuperAdmin && (
           <>
-            <Button 
-              variant="outlined" 
+            <Button
+              variant="outlined"
               startIcon={<DownloadIcon />}
               onClick={handleExportSystemExcel}
               disabled={isExportingSystem}
             >
               {isExportingSystem ? 'Exportuji…' : 'Exportovat systém (Excel)'}
             </Button>
-            <Button 
-              variant="outlined" 
+            <Button
+              variant="outlined"
               startIcon={<DownloadIcon />}
               onClick={handleExportUsersExcel}
               disabled={isExportingUsers}
@@ -204,14 +135,6 @@ const SystemPage: React.FC = () => {
         )}
         <Button
           variant="outlined"
-          startIcon={<CloudUploadIcon />}
-          onClick={handleRunBackup}
-          disabled={isRunningBackup}
-        >
-          {isRunningBackup ? translations.backup.running : translations.backup.runButton}
-        </Button>
-        <Button 
-          variant="outlined" 
           startIcon={<RefreshIcon />}
           onClick={() => loadStats(false)}
           disabled={isRefreshing}
@@ -220,7 +143,7 @@ const SystemPage: React.FC = () => {
         </Button>
       </Box>
     ),
-    [loadStats, isRefreshing, isSuperAdmin, isExportingSystem, isExportingUsers, isRunningBackup, handleExportSystemExcel, handleExportUsersExcel, handleRunBackup],
+    [loadStats, isRefreshing, isSuperAdmin, isExportingSystem, isExportingUsers, handleExportSystemExcel, handleExportUsersExcel],
   );
 
   useDashboardHeaderSlots({

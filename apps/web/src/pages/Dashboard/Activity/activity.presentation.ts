@@ -215,7 +215,13 @@ export function getActivityEventMessage(log: ActivityLogEntry): string {
       if (op === 'BACKUP_RUN' && jobId) {
         return `Spuštěna záloha (úloha: ${jobId})${actor ? ` — ${actor}` : ''}`;
       }
-      return `Spuštěna systémová operace${op ? `: ${op}` : ''}${actor ? ` (provedl ${actor})` : ''}`;
+      if (op === 'CLEANUP_SYSTEM' && jobId) {
+        return `Spuštěno vyčištění systému (úloha: ${jobId})${actor ? ` — ${actor}` : ''}`;
+      }
+      if (op === 'CLEANUP_ACTIVE_EVENT' && jobId) {
+        return `Spuštěno vyčištění aktivní události (úloha: ${jobId})${actor ? ` — ${actor}` : ''}`;
+      }
+      return `Spuštěna systémová operace${op ? `: ${op}` : ''}${jobId ? ` (úloha: ${jobId})` : ''}${actor ? ` (provedl ${actor})` : ''}`;
     }
     case 'SETTINGS_CHANGED': {
       const setting = log.setting ?? getStringField(log, 'setting');

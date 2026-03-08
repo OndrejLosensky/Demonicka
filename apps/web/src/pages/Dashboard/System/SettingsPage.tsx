@@ -5,12 +5,13 @@ import {
   Security as SecurityIcon,
   SportsBar as SportsBarIcon,
   Leaderboard as LeaderboardIcon,
+  CloudUpload as BackupIcon,
 } from '@mui/icons-material';
 import RolesPage from './Roles';
 import FeatureFlagsPage from './FeatureFlags';
 import BeerPongSettingsPage from './BeerPongSettings';
 import LeaderboardSettingsPage from './LeaderboardSettings';
-import { tokens } from '../../../theme/tokens';
+import { BackupJobSettings } from './components/BackupJobSettings';
 
 const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -73,6 +74,16 @@ const SettingsPage: React.FC = () => {
               minHeight: 48,
             }}
           />
+          <Tab
+            icon={<BackupIcon />}
+            iconPosition="start"
+            label="Zálohy"
+            sx={{
+              textTransform: 'none',
+              fontWeight: 'medium',
+              minHeight: 48,
+            }}
+          />
         </Tabs>
 
         <Box sx={{ p: 3 }}>
@@ -80,6 +91,7 @@ const SettingsPage: React.FC = () => {
           {activeTab === 1 && <RolesPage />}
           {activeTab === 2 && <BeerPongSettingsPage />}
           {activeTab === 3 && <LeaderboardSettingsPage />}
+          {activeTab === 4 && <BackupJobSettings />}
         </Box>
       </Paper>
     </Box>

@@ -44,6 +44,8 @@ const statusColor: Record<JobStatus, 'default' | 'primary' | 'success' | 'error'
 
 const typeLabel: Record<string, string> = {
   'backup.run': 'Záloha DB',
+  'cleanup.system': 'Vyčistit systém',
+  'cleanup.activeEvent': 'Vyčistit aktivní událost',
 };
 
 function formatDate(s: string | null): string {
@@ -185,13 +187,13 @@ export const JobsPage: React.FC = () => {
                   <React.Fragment key={job.id}>
                     <TableRow hover>
                       <TableCell>
-                        {job.error && (
+                        {(job.error || (job.logs && job.logs.length > 0)) && (
                           <IconButton
                             size="small"
                             onClick={() =>
                               setExpandedId((id) => (id === job.id ? null : job.id))
                             }
-                            aria-label={expandedId === job.id ? 'Skrýt chybu' : 'Zobrazit chybu'}
+                            aria-label={expandedId === job.id ? 'Skrýt detail' : 'Zobrazit detail'}
                           >
                             {expandedId === job.id ? (
                               <ExpandLessIcon fontSize="small" />
@@ -247,23 +249,98 @@ export const JobsPage: React.FC = () => {
                         ) : null}
                       </TableCell>
                     </TableRow>
-                    {job.error && (
+                    {(job.error || (job.logs && job.logs.length > 0)) && (
                       <TableRow>
                         <TableCell colSpan={7} sx={{ py: 0, borderBottom: 0 }}>
                           <Collapse in={expandedId === job.id} timeout="auto">
-                            <Box sx={{ py: 2, px: 2, bgcolor: 'error.light', borderRadius: 1 }}>
-                              <Typography
-                                variant="caption"
-                                component="pre"
-                                sx={{
-                                  whiteSpace: 'pre-wrap',
-                                  wordBreak: 'break-word',
-                                  fontFamily: 'monospace',
-                                  fontSize: '0.75rem',
-                                }}
-                              >
-                                {job.error}
-                              </Typography>
+                            <Box sx={{ px: 2, pb: 2 }}>
+                              {job.logs && job.logs.length > 0 && (
+                                <Box
+                                  sx={{
+                                    py: 1.5,
+                                    px: 2,
+                                    mb: job.error ? 1.5 : 0,
+                                    bgcolor: (theme) =>
+                                      theme.palette.mode === 'dark'
+                                        ? 'grey.800'
+                                        : 'grey.200',
+                                    color: 'text.primary',
+                                    borderRadius: 1,
+                                    maxHeight: 200,
+                                    overflow: 'auto',
+                                  }}
+                                >
+                                  <Typography
+                                    variant="caption"
+                                    fontWeight="bold"
+                                    display="block"
+                                    gutterBottom
+                                    color="text.primary"
+                                  >
+                                    Log úlohy
+                                  </Typography>
+                                  {job.logs.map((entry, i) => (
+                                    <Typography
+                                      key={i}
+                                      variant="caption"
+                                      component="div"
+                                      sx={{
+                                        fontFamily: 'monospace',
+                                        fontSize: '0.75rem',
+                                        whiteSpace: 'pre-wrap',
+                                        wordBreak: 'break-word',
+                                        color: 'text.primary',
+                                        py: 0.25,
+                                      }}
+                                    >
+                                      <Box
+                                        component="span"
+                                        sx={{
+                                          color: 'text.secondary',
+                                          mr: 1,
+                                        }}
+                                      >
+                                        {formatDate(entry.timestamp)} [{entry.level}]
+                                      </Box>
+                                      {entry.message}
+                                    </Typography>
+                                  ))}
+                                </Box>
+                              )}
+                              {job.error && (
+                                <Box
+                                  sx={{
+                                    py: 1.5,
+                                    px: 2,
+                                    bgcolor: 'error.dark',
+                                    color: 'error.contrastText',
+                                    borderRadius: 1,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="caption"
+                                    fontWeight="bold"
+                                    display="block"
+                                    gutterBottom
+                                    sx={{ color: 'inherit' }}
+                                  >
+                                    Chyba
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    component="pre"
+                                    sx={{
+                                      whiteSpace: 'pre-wrap',
+                                      wordBreak: 'break-word',
+                                      fontFamily: 'monospace',
+                                      fontSize: '0.75rem',
+                                      color: 'inherit',
+                                    }}
+                                  >
+                                    {job.error}
+                                  </Typography>
+                                </Box>
+                              )}
                             </Box>
                           </Collapse>
                         </TableCell>

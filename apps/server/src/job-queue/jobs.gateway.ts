@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '@prisma/client';
 import { JobStatus } from '@prisma/client';
+import type { JobLogEntry } from './job-handler.registry';
 
 export interface JobUpdatePayload {
   jobId: string;
@@ -18,6 +19,7 @@ export interface JobUpdatePayload {
   status: JobStatus;
   result?: Record<string, unknown> | null;
   error?: string | null;
+  logs?: JobLogEntry[] | null;
   createdByUserId?: string | null;
 }
 
@@ -95,6 +97,7 @@ export class JobsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         status: payload.status,
         result: payload.result ?? null,
         error: payload.error ?? null,
+        logs: payload.logs ?? null,
       };
       if (payload.createdByUserId) {
         this.server.to(`user:${payload.createdByUserId}`).emit('job:updated', eventPayload);

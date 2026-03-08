@@ -11,7 +11,9 @@ import { VersioningModule } from './versioning/versioning.module';
 import { DocsModule } from './docs/docs.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { JobQueueModule } from './job-queue/job-queue.module';
+import { JobConfigModule } from './job-config/job-config.module';
 import { BackupModule } from './backup/backup.module';
+import { JobsModule } from './jobs/jobs.module';
 import { SystemModule } from './system/system.module';
 import { AchievementsModule } from './achievements/achievements.module';
 import { RolesModule } from './roles/roles.module';
@@ -48,7 +50,9 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
     DocsModule,
     LeaderboardModule,
     JobQueueModule,
+    JobConfigModule,
     BackupModule,
+    JobsModule,
     SystemModule,
     AchievementsModule,
     RolesModule,
