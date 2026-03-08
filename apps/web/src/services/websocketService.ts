@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import { config } from '../config/index';
 import type { LeaderboardData } from '../pages/Dashboard/Leaderboard/types';
+import type { LeaderboardViewSettings } from '../services/leaderboardViewSettingsService';
 import type { DashboardStats } from '@demonicka/shared-types';
 import type { PublicStats } from '../types/public';
 
@@ -25,6 +26,7 @@ export type NotificationPayload = {
 
 type WebSocketEvents = {
   'leaderboard:update': LeaderboardData;
+  'leaderboard-view-settings:update': LeaderboardViewSettings;
   'dashboard:update': void;
   'dashboard:stats:update': {
     dashboard: DashboardStats;

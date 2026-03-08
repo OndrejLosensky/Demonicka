@@ -50,7 +50,6 @@ export function CoreProviders({ children }: CoreProvidersProps) {
                         gap: '12px',
                       },
                     }}
-                    closeButton={true}
                   />
                 </HeaderVisibilityProvider>
                   </ActiveEventProvider>

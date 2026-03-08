@@ -153,7 +153,7 @@ export const EventRegistrationReview: React.FC = () => {
     }
   };
 
-  const getUserDisplayName = (user?: Pick<User, 'name' | 'firstName' | 'lastName' | 'username'> | null) => {
+  const getUserDisplayName = (user?: Partial<Pick<User, 'name' | 'firstName' | 'lastName' | 'username'>> | null) => {
     if (!user) return '-';
     if (user.name) return user.name;
     if (user.firstName && user.lastName) return `${user.firstName} ${user.lastName}`;
@@ -213,7 +213,7 @@ export const EventRegistrationReview: React.FC = () => {
         toast.success(`Úspěšně importováno ${result.created} registrací`);
         await loadData();
       } else {
-        toast.warning(`Importován ${result.created} registrací, ${result.errors.length} chyb`);
+        toast(`Importován ${result.created} registrací, ${result.errors.length} chyb`, { icon: '⚠️' });
       }
     } catch (error: any) {
       console.error('Failed to import registrations:', error);

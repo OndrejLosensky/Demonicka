@@ -110,7 +110,7 @@ export function BeerPongDetail() {
       loadTournament();
     } catch (err: any) {
       console.error('Failed to delete team:', err);
-      toast.error(err.response?.data?.message || detailErrors.deleteTeamFailed ?? 'Nepodařilo se smazat tým');
+      toast.error((err.response?.data?.message || detailErrors.deleteTeamFailed) ?? 'Nepodařilo se smazat tým');
     }
   };
 
@@ -124,7 +124,7 @@ export function BeerPongDetail() {
       loadTournament();
     } catch (err: any) {
       console.error('Failed to start tournament:', err);
-      toast.error(err.response?.data?.message || detailErrors.startFailed ?? 'Nepodařilo se spustit turnaj');
+      toast.error((err.response?.data?.message || detailErrors.startFailed) ?? 'Nepodařilo se spustit turnaj');
     }
   };
 

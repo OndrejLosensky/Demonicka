@@ -4,8 +4,8 @@ import type { ComponentProps } from 'react';
 import { config } from '../config/index';
 
 interface UserAvatarProps extends Omit<ComponentProps<typeof Avatar>, 'src' | 'children'> {
-  user: User | { username: string; id?: string; profilePictureUrl?: string | null; googleProfilePictureUrl?: string | null; name?: string; updatedAt?: string };
-  getInitials?: (user: { username: string; name?: string }) => string;
+  user: User | { username?: string; id?: string; profilePictureUrl?: string | null; googleProfilePictureUrl?: string | null; name?: string; firstName?: string; lastName?: string; updatedAt?: string };
+  getInitials?: (user: { username?: string; name?: string }) => string;
 }
 
 export const UserAvatar: React.FC<UserAvatarProps> = ({
@@ -14,7 +14,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   sx,
   ...avatarProps
 }) => {
-  const getDefaultInitials = (user: { username: string; name?: string }): string => {
+  const getDefaultInitials = (user: { username?: string; name?: string }): string => {
     if (user.name) {
       // Try to get initials from name
       const nameParts = user.name.trim().split(/\s+/);
@@ -23,7 +23,10 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       }
       return user.name.charAt(0).toUpperCase();
     }
-    return user.username.charAt(0).toUpperCase();
+    if (user.username) {
+      return user.username.charAt(0).toUpperCase();
+    }
+    return '?';
   };
 
   const initials = getInitials ? getInitials(user) : getDefaultInitials(user);

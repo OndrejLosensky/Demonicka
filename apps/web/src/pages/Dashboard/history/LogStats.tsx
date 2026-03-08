@@ -30,9 +30,11 @@ function LogStatsComponent() {
   const dateRangeT = (statsT.dateRange as Record<string, string>) || {};
   const sections = (statsT.sections as Record<string, Record<string, unknown>>) || {};
   const eventsSection = (sections.events as Record<string, string>) || {};
-  const logLevelsSection = (sections.logLevels as Record<string, Record<string, string>>) || {};
+  const logLevelsSection = (sections.logLevels as Record<string, unknown>) || {};
+  const logLevelsTitle = typeof logLevelsSection.title === 'string' ? logLevelsSection.title : 'Úrovně logů';
+  const logLevelsChartTitle = typeof logLevelsSection.chartTitle === 'string' ? logLevelsSection.chartTitle : 'Distribuce úrovní logů';
+  const logLevelLabels = (typeof logLevelsSection.labels === 'object' && logLevelsSection.labels !== null ? logLevelsSection.labels : {}) as Record<string, string>;
   const participantsSection = (sections.participants as Record<string, string>) || {};
-  const logLevelLabels = logLevelsSection.labels || {};
 
   if (isLoading) {
     return null; // withPageLoader will handle loading state
@@ -169,7 +171,7 @@ function LogStatsComponent() {
         )}
 
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">{logLevelsSection.title ?? 'Úrovně logů'}</h3>
+          <h3 className="text-lg font-semibold mb-2">{logLevelsTitle}</h3>
           <Pie
             data={logLevelData}
             options={{
@@ -180,7 +182,7 @@ function LogStatsComponent() {
                 },
                 title: {
                   display: true,
-                  text: logLevelsSection.chartTitle ?? 'Distribuce úrovní logů',
+                  text: logLevelsChartTitle,
                 },
               },
             }}

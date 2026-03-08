@@ -41,6 +41,8 @@ const emptyStats: DashboardStats = {
   totalUsers: 0,
   totalBarrels: 0,
   averageBeersPerUser: 0,
+  totalLitres: 0,
+  averageLitresPerUser: 0,
   topUsers: [],
   barrelStats: [],
 };

@@ -180,7 +180,7 @@ const BeerPongSettingsPage: React.FC = () => {
         {/* Documentation Section */}
         <Box>
           <Typography variant="h6" gutterBottom>
-            {(descriptions.title as string) ?? 'Popis polí'}
+            {(descriptions.title as unknown as string) ?? 'Popis polí'}
           </Typography>
 
           <Box sx={{ mt: 2 }}>

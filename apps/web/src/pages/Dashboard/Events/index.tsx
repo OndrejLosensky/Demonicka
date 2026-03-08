@@ -323,7 +323,6 @@ export const Events: React.FC = () => {
                             value={newEvent.endDate}
                             onChange={(date) => date && setNewEvent(prev => ({ ...prev, endDate: date }))}
                             minDateTime={newEvent.startDate}
-                            required
                         />
                     </Box>
                 </DialogContent>

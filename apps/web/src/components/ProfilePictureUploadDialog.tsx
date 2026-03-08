@@ -1,4 +1,5 @@
-import { useState, useRef, ChangeEvent, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import type { ChangeEvent } from 'react';
 import {
   Dialog,
   DialogTitle,

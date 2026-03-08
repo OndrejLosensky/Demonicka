@@ -189,7 +189,7 @@ export const AssignTeamDialog: React.FC<AssignTeamDialogProps> = ({
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit}>
         <DialogTitle>
-          {mode === 'create' ? (teamDialog.title as string) ?? 'Přidat Tým' : (t.assignTeam?.dialogTitle as string) ?? 'Přiřadit tým k pozici'}
+          {mode === 'create' ? (teamDialog.title as string) ?? 'Přidat Tým' : ((t.assignTeam as Record<string, string>)?.dialogTitle ?? 'Přiřadit tým k pozici')}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>

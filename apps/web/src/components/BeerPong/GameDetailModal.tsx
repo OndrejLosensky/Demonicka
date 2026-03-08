@@ -146,7 +146,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
       onClose();
     } catch (error: any) {
       console.error('Failed to start game:', error);
-      toast.error(error.response?.data?.message || errorsT.startFailed ?? 'Nepodařilo se spustit hru');
+      toast.error((error.response?.data?.message || errorsT.startFailed) ?? 'Nepodařilo se spustit hru');
     } finally {
       setIsSubmitting(false);
     }
@@ -165,7 +165,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
       onClose();
     } catch (error: any) {
       console.error('Failed to complete game:', error);
-      toast.error(error.response?.data?.message || errorsT.completeFailed ?? 'Nepodařilo se dokončit hru');
+      toast.error((error.response?.data?.message || errorsT.completeFailed) ?? 'Nepodařilo se dokončit hru');
     } finally {
       setIsSubmitting(false);
     }
@@ -186,7 +186,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
       onClose();
     } catch (error: any) {
       console.error('Failed to undo game start:', error);
-      toast.error(error.response?.data?.message || errorsT.undoFailed ?? 'Nepodařilo se zrušit start hry');
+      toast.error((error.response?.data?.message || errorsT.undoFailed) ?? 'Nepodařilo se zrušit start hry');
     } finally {
       setIsSubmitting(false);
     }

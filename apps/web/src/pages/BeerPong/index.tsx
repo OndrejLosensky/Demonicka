@@ -54,7 +54,7 @@ export function BeerPongList() {
       const data = await beerPongService.getByEvent(activeEvent.id);
       setTournaments(data);
     } catch (err: any) {
-      setError(err.message || (list.error as string) ?? 'Nepodařilo se načíst turnaje');
+      setError((err.message || (list.error as string)) ?? 'Nepodařilo se načíst turnaje');
     } finally {
       setLoading(false);
     }

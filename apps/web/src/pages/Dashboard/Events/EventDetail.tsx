@@ -145,8 +145,8 @@ export const EventDetail: React.FC = () => {
             users.map(async (user) => {
                 try {
                     // Use eventBeerCount from user if available, otherwise fetch it
-                    if (user.eventBeerCount !== undefined) {
-                        counts[user.id] = user.eventBeerCount;
+                    if ((user as User & { eventBeerCount?: number }).eventBeerCount !== undefined) {
+                        counts[user.id] = (user as User & { eventBeerCount?: number }).eventBeerCount!;
                     } else {
                         const count = await eventService.getUserEventBeerCount(id, user.id);
                         counts[user.id] = count;
@@ -922,7 +922,7 @@ export const EventDetail: React.FC = () => {
                                                 <Box display="flex" alignItems="center" gap={1}>
                                                     <BeerIcon sx={{ fontSize: 16, color: 'error.main' }} />
                                                     <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                                                        {eventBeerCounts[user.id] ?? user.eventBeerCount ?? 0} piv
+                                                        {eventBeerCounts[user.id] ?? (user as User & { eventBeerCount?: number }).eventBeerCount ?? 0} piv
                                                     </Typography>
                                                 </Box>
                                             </Box>

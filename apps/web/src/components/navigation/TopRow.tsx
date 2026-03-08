@@ -112,20 +112,20 @@ export function TopRow() {
           {user ? (
             <UserInfo />
           ) : (
-            <Button
-              component={Link}
-              to="/login"
-              variant="contained"
-              size="small"
-              sx={{
-                px: 2,
-                py: 1,
-                textTransform: 'none',
-                fontWeight: 500,
-              }}
-            >
-              {headerT.auth?.login ?? 'Log in'}
-            </Button>
+            <Link to="/login" style={{ textDecoration: 'none' }}>
+              <Button
+                variant="contained"
+                size="small"
+                sx={{
+                  px: 2,
+                  py: 1,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                }}
+              >
+                {headerT.auth?.login ?? 'Log in'}
+              </Button>
+            </Link>
           )}
         </Box>
       </Box>
