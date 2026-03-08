@@ -29,7 +29,20 @@ export class JobQueueService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    await this.runRecovery();
+    // Run recovery in background so a slow/ timing-out DB does not block or crash startup
+    this.runRecovery()
+      .then((result) => {
+        if (result.markedFailed > 0 || result.requeued > 0) {
+          this.logger.log(
+            `Recovery: marked ${result.markedFailed} RUNNING job(s) as failed, requeued ${result.requeued} QUEUED job(s).`,
+          );
+        }
+      })
+      .catch((err) => {
+        this.logger.warn(
+          `Recovery failed (server started anyway): ${err instanceof Error ? err.message : String(err)}`,
+        );
+      });
     this.startWorker();
     this.startStaleCheck();
   }
