@@ -5,9 +5,10 @@ import { SystemOperationsController } from './system-operations.controller';
 import { ExportsModule } from '../exports/exports.module';
 import { JobQueueModule } from '../job-queue/job-queue.module';
 import { LoggingModule } from '../logging/logging.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [ExportsModule, JobQueueModule, LoggingModule],
+  imports: [ExportsModule, JobQueueModule, LoggingModule, NotificationsModule],
   controllers: [SystemController, SystemOperationsController],
   providers: [SystemService],
   exports: [SystemService],

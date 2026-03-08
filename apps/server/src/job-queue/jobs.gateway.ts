@@ -89,6 +89,11 @@ export class JobsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // nothing to clean up per client
   }
 
+  /** Number of currently connected WebSocket clients (for system metrics). */
+  getConnectionCount(): number {
+    return this.server?.sockets?.sockets?.size ?? 0;
+  }
+
   emitJobUpdate(payload: JobUpdatePayload): void {
     try {
       const eventPayload = {

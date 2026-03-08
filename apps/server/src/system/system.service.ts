@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { MetricsService } from '../metrics/metrics.service';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { JobsGateway } from '../job-queue/jobs.gateway';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -9,7 +12,12 @@ export class SystemService {
   private readonly logger = new Logger(SystemService.name);
   private startTime = Date.now();
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private metrics: MetricsService,
+    private notificationsGateway: NotificationsGateway,
+    private jobsGateway: JobsGateway,
+  ) {}
 
   async getSystemHealth() {
     const uptime = Math.floor((Date.now() - this.startTime) / 1000);
@@ -18,25 +26,25 @@ export class SystemService {
     const freeMemory = os.freemem();
     const usedMemory = totalMemory - freeMemory;
 
-    // Get database stats
+    // Get database stats (size, status) and real connection count + response time
     const dbStats = await this.getDatabaseStats();
+    const dbConnections = await this.getDatabaseConnectionCount();
+    const dbResponseTimeMs = await this.measureDatabaseResponseTime();
 
-    // Get storage stats
+    // Get storage stats (logs + backups)
     const storageStats = await this.getStorageStats();
 
-    // Calculate API performance (simplified)
-    const apiStats = {
-      responseTime: 50, // Mock value - in real app, track actual response times
-      requestsPerMinute: 120, // Mock value
-      errorRate: 0.02, // 2% error rate
-      status: 'healthy' as const,
-    };
+    // Real API metrics from request tracking
+    const requestsPerMinute = this.metrics.getRequestsPerMinute();
+    const errorRate = this.metrics.getErrorRate();
+    const apiResponseTimeMs = this.metrics.getAverageResponseTimeMs();
+    const apiStatus = this.deriveApiStatus(apiResponseTimeMs, errorRate);
 
     // Determine overall status
     const status = this.calculateOverallStatus({
       memory: usedMemory / totalMemory,
       database: dbStats.status,
-      api: apiStats.status,
+      api: apiStatus,
       storage: storageStats.status,
     });
 
@@ -51,11 +59,16 @@ export class SystemService {
       },
       database: {
         size: dbStats.size,
-        connections: 1, // PostgreSQL connection pool size
-        responseTime: 10, // Mock value
+        connections: dbConnections,
+        responseTime: Math.max(0, dbResponseTimeMs),
         status: dbStats.status,
       },
-      api: apiStats,
+      api: {
+        responseTime: apiResponseTimeMs,
+        requestsPerMinute,
+        errorRate,
+        status: apiStatus,
+      },
       storage: storageStats,
       services: {
         database: true,
@@ -67,49 +80,21 @@ export class SystemService {
   }
 
   async getPerformanceMetrics() {
-    // Mock performance data - in a real app, you'd track this over time
+    const notificationsCount = this.notificationsGateway.getConnectionCount();
+    const jobsCount = this.jobsGateway.getConnectionCount();
+    const dbConnections = await this.getDatabaseConnectionCount();
+    const apiActive = this.metrics.getActiveRequestCount();
+
+    const slowest = this.metrics.getSlowestEndpoints(10);
+    const errorRates = this.metrics.getErrorRatesByEndpoint();
+
     return {
-      apiResponseTimes: [
-        {
-          endpoint: '/api/events',
-          averageTime: 45,
-          maxTime: 120,
-          minTime: 15,
-          requestCount: 150,
-        },
-        {
-          endpoint: '/api/users',
-          averageTime: 35,
-          maxTime: 80,
-          minTime: 12,
-          requestCount: 89,
-        },
-        {
-          endpoint: '/api/barrels',
-          averageTime: 28,
-          maxTime: 65,
-          minTime: 10,
-          requestCount: 67,
-        },
-      ],
-      errorRates: [
-        {
-          endpoint: '/api/events',
-          errorCount: 2,
-          totalRequests: 150,
-          errorRate: 0.013,
-        },
-        {
-          endpoint: '/api/users',
-          errorCount: 1,
-          totalRequests: 89,
-          errorRate: 0.011,
-        },
-      ],
+      apiResponseTimes: slowest,
+      errorRates,
       activeConnections: {
-        websocket: 5,
-        database: 1,
-        api: 3,
+        websocket: notificationsCount + jobsCount,
+        database: dbConnections,
+        api: apiActive,
       },
     };
   }
@@ -379,6 +364,37 @@ export class SystemService {
         status: 'error' as const,
       };
     }
+  }
+
+  private async getDatabaseConnectionCount(): Promise<number> {
+    try {
+      const result = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+        SELECT count(*) as count FROM pg_stat_activity WHERE datname = current_database()
+      `;
+      return Number(result[0]?.count ?? 0);
+    } catch {
+      return 0;
+    }
+  }
+
+  private async measureDatabaseResponseTime(): Promise<number> {
+    const start = process.hrtime.bigint();
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+      const end = process.hrtime.bigint();
+      return Math.round(Number(end - start) / 1_000_000);
+    } catch {
+      return -1;
+    }
+  }
+
+  private deriveApiStatus(
+    responseTimeMs: number,
+    errorRate: number,
+  ): 'healthy' | 'warning' | 'error' {
+    if (errorRate >= 0.05) return 'error';
+    if (errorRate >= 0.02 || responseTimeMs >= 1000) return 'warning';
+    return 'healthy';
   }
 
   private calculateOverallStatus(componentStatuses: {

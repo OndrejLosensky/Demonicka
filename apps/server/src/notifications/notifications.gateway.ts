@@ -94,6 +94,11 @@ export class NotificationsGateway
     // nothing to clean up per client
   }
 
+  /** Number of currently connected WebSocket clients (for system metrics). */
+  getConnectionCount(): number {
+    return this.server?.sockets?.sockets?.size ?? 0;
+  }
+
   emitNewNotification(notification: Notification): void {
     try {
       const payload: NotificationPayload = {

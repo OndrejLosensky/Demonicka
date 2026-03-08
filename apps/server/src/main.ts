@@ -19,6 +19,8 @@ import { LoggingService } from './logging/logging.service';
 import { requestIdMiddleware } from './logging/request-id.middleware';
 import { requestAppContextMiddleware } from './logging/request-app-context.middleware';
 import { httpLoggingMiddleware } from './logging/http-logging.middleware';
+import { createMetricsMiddleware } from './metrics/metrics.middleware';
+import { MetricsService } from './metrics/metrics.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -50,6 +52,7 @@ async function bootstrap() {
   // Request id + app context (X-App) + HTTP access logs
   app.use(requestIdMiddleware);
   app.use(requestAppContextMiddleware);
+  app.use(createMetricsMiddleware(app.get(MetricsService)));
   app.use(httpLoggingMiddleware(loggingService));
 
   // Enable cookie parser

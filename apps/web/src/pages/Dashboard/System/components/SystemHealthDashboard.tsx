@@ -232,6 +232,9 @@ export const SystemHealthDashboard: React.FC<SystemHealthDashboardProps> = ({ on
                 <Typography variant="body2" color="text.secondary">
                   {formatBytes(health.storage.totalSize)}
                 </Typography>
+                <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}>
+                  (logy + zálohy)
+                </Typography>
               </Box>
             </Grid>
           </Grid>
@@ -289,6 +292,19 @@ export const SystemHealthDashboard: React.FC<SystemHealthDashboardProps> = ({ on
                 color={getStatusColor(health.api.status)}
                 size="small"
               />
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <StorageIcon />
+                Velikost logů
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {formatBytes(health.storage.logsSize)}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>

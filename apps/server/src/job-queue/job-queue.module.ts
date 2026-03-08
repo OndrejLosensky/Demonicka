@@ -34,6 +34,6 @@ import { JobsController } from './jobs.controller';
     JobQueueService,
     JobsGateway,
   ],
-  exports: [JobQueueService, JobHandlerRegistry],
+  exports: [JobQueueService, JobHandlerRegistry, JobsGateway],
 })
 export class JobQueueModule {}

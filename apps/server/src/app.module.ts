@@ -28,6 +28,7 @@ import { GalleryModule } from './gallery/gallery.module';
 import { StorageModule } from './storage/storage.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { MetricsModule } from './metrics/metrics.module';
 import * as cookieParser from 'cookie-parser';
 import { VersionMiddleware } from './versioning/middleware/version.middleware';
 
@@ -66,6 +67,7 @@ import { VersionMiddleware } from './versioning/middleware/version.middleware';
     GalleryModule,
     FeedbackModule,
     NotificationsModule,
+    MetricsModule,
   ],
 })
 export class AppModule implements NestModule {

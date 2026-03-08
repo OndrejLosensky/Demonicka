@@ -3,7 +3,8 @@ import { JOB_TYPES } from '../../job-queue/job-handler.registry';
 import type { LoggingService } from '../../logging/logging.service';
 import type { EventsService } from '../../events/events.service';
 
-const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+const LOG_RETENTION_DAYS = 7;
+const LOG_RETENTION_MS = LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 
 export function registerCleanupHandlers(
   registry: JobHandlerRegistry,
@@ -15,9 +16,9 @@ export function registerCleanupHandlers(
     async (_payload, _jobId, context) => {
       context.appendLog('info', 'Starting system cleanup (old logs and temp files)');
       const result = await loggingService.cleanup({
-        olderThan: new Date(Date.now() - THIRTY_DAYS_MS),
+        olderThan: new Date(Date.now() - LOG_RETENTION_MS),
       });
-      context.appendLog('info', `Deleted ${result.deletedCount} old log file(s).`);
+      context.appendLog('info', `Deleted ${result.deletedCount} old log file(s) (older than ${LOG_RETENTION_DAYS} days).`);
       return { deletedCount: result.deletedCount };
     },
   );
