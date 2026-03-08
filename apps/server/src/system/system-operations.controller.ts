@@ -45,4 +45,17 @@ export class SystemOperationsController {
     this.loggingService.logSystemOperationTriggered('CLEANUP_ACTIVE_EVENT', user?.id, { jobId });
     return { jobId, status: 'queued' as const };
   }
+
+  @Post('clear-all-logs')
+  @UseGuards(RoleGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
+  async clearAllLogs(@GetUser() user: User) {
+    const jobId = await this.jobQueueService.enqueue({
+      type: JOB_TYPES.CLEAR_ALL_LOGS,
+      payload: {},
+      createdByUserId: user?.id,
+    });
+    this.loggingService.logSystemOperationTriggered('CLEAR_ALL_LOGS', user?.id, { jobId });
+    return { jobId, status: 'queued' as const };
+  }
 }

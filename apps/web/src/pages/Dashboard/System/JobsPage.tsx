@@ -46,6 +46,7 @@ const typeLabel: Record<string, string> = {
   'backup.run': 'Záloha DB',
   'cleanup.system': 'Vyčistit systém',
   'cleanup.activeEvent': 'Vyčistit aktivní událost',
+  'clearAllLogs': 'Smazat všechny logy',
   'achievements.check': 'Kontrola achievementů',
 };
 

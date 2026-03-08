@@ -14,6 +14,7 @@ import {
   Event as EventIcon,
   Warning as WarningIcon,
   CloudUpload as BackupIcon,
+  Description as LogsIcon,
 } from '@mui/icons-material';
 import { CleanupConfirmDialog } from './CleanupConfirmDialog';
 import { systemOperationsService } from '../../../../services/systemOperationsService';
@@ -28,7 +29,7 @@ interface CleanupSectionProps {
   userRole?: string;
 }
 
-type OperationId = 'backup' | 'system' | 'activeEvent';
+type OperationId = 'backup' | 'system' | 'activeEvent' | 'clearAllLogs';
 
 export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userRole }) => {
   const t = useTranslations<Record<string, unknown>>('system');
@@ -41,6 +42,7 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
     backup: runButtonLabel,
     system: cleanupT.operationSystem ?? 'Vyčistit systém',
     activeEvent: cleanupT.operationActiveEvent ?? 'Vyčistit aktivní událost',
+    clearAllLogs: cleanupT.operationClearAllLogs ?? 'Smazat všechny logy',
   };
   const [isLoading, setIsLoading] = useState<OperationId | null>(null);
   const pendingJobsRef = useRef<Map<string, string>>(new Map());
@@ -151,6 +153,20 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
         cleanupT.dialogActiveEventMessage ?? 'Tato akce smaže všechna data související s aktuální aktivní událostí. Tato operace je nevratná!',
         () => enqueueOperation('activeEvent', systemOperationsService.cleanupActiveEvent),
         'warning',
+      ),
+    },
+    {
+      id: 'clearAllLogs' as const,
+      title: cleanupT.operationClearAllLogs ?? 'Smazat všechny logy',
+      description: cleanupT.operationClearAllLogsDesc ?? 'Smazat všechny soubory logů (backend, web, mobile)',
+      icon: <LogsIcon />,
+      color: 'error' as const,
+      severity: 'error' as const,
+      action: () => openDialog(
+        cleanupT.dialogClearAllLogsTitle ?? 'Smazat všechny logy',
+        cleanupT.dialogClearAllLogsMessage ?? 'Tato akce smaže všechny soubory logů bez ohledu na stáří. Tato operace je nevratná!',
+        () => enqueueOperation('clearAllLogs', systemOperationsService.clearAllLogs),
+        'error',
       ),
     },
   ];

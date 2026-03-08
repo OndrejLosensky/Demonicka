@@ -39,4 +39,14 @@ export function registerCleanupHandlers(
       return result;
     },
   );
+
+  registry.register(
+    JOB_TYPES.CLEAR_ALL_LOGS,
+    async (_payload, _jobId, context) => {
+      context.appendLog('info', 'Starting clear all logs');
+      const result = await loggingService.clearAllLogs();
+      context.appendLog('info', `Deleted ${result.deletedCount} log file(s).`);
+      return { deletedCount: result.deletedCount };
+    },
+  );
 }

@@ -723,6 +723,34 @@ export class LoggingService {
   }
 
   /**
+   * Deletes all log files in logs/backend, logs/web, logs/mobile (no date filter).
+   * Used by the "clear all logs" system operation job.
+   */
+  async clearAllLogs(): Promise<{ deletedCount: number }> {
+    let deletedCount = 0;
+    const appDirs = ['backend', 'web', 'mobile'] as const;
+
+    for (const appName of appDirs) {
+      const dir = path.join(this.logDir, appName);
+      try {
+        const files = await fs.readdir(dir);
+        for (const file of files) {
+          if (!file.endsWith('.log')) continue;
+          const filePath = path.join(dir, file);
+          await fs.unlink(filePath);
+          deletedCount++;
+        }
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException)?.code !== 'ENOENT') {
+          this.error('Failed to clear log dir', { dir, error: String(e) });
+        }
+      }
+    }
+
+    return { deletedCount };
+  }
+
+  /**
    * Determines if a log file should be deleted based on cleanup options
    * @param fileName - Name of the log file
    * @param stats - File statistics

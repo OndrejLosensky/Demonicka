@@ -5,6 +5,7 @@ const JOB_TYPES = {
   BACKUP_RUN: 'backup.run',
   CLEANUP_SYSTEM: 'cleanup.system',
   CLEANUP_ACTIVE_EVENT: 'cleanup.activeEvent',
+  CLEAR_ALL_LOGS: 'clearAllLogs',
   ACHIEVEMENTS_CHECK: 'achievements.check',
 } as const;
 

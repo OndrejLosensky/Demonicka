@@ -221,6 +221,9 @@ export function getActivityEventMessage(log: ActivityLogEntry): string {
       if (op === 'CLEANUP_ACTIVE_EVENT' && jobId) {
         return `Spuštěno vyčištění aktivní události (úloha: ${jobId})${actor ? ` — ${actor}` : ''}`;
       }
+      if (op === 'CLEAR_ALL_LOGS' && jobId) {
+        return `Spuštěno smazání všech logů (úloha: ${jobId})${actor ? ` — ${actor}` : ''}`;
+      }
       return `Spuštěna systémová operace${op ? `: ${op}` : ''}${jobId ? ` (úloha: ${jobId})` : ''}${actor ? ` (provedl ${actor})` : ''}`;
     }
     case 'SETTINGS_CHANGED': {
