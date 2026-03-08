@@ -1,26 +1,28 @@
 # Stage 1: Build
 FROM node:20-alpine AS builder
 
-# Set working directory
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@10.17.1 --activate
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+
 WORKDIR /app
 
-# Copy only package files first (for caching)
-COPY package.json package-lock.json ./ 
-COPY apps/web/package.json ./apps/web/package.json
-COPY apps/web/tsconfig.json ./apps/web/tsconfig.json
-COPY apps/web/vite.config.ts ./apps/web/vite.config.ts
+# Copy workspace and lockfile
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 
-# Copy shared packages if needed
+# Copy package manifests and config for caching
 COPY packages ./packages
+COPY apps/web/package.json apps/web/tsconfig.json apps/web/tsconfig.app.json apps/web/tsconfig.node.json apps/web/vite.config.ts ./apps/web/
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Install dependencies (respects pnpm-workspace, links @demonicka/*)
+RUN pnpm install --frozen-lockfile
 
 # Copy full frontend source
 COPY apps/web ./apps/web
 
-# Build frontend
-RUN npm run --prefix apps/web build
+# Build frontend (turbo builds web app and its workspace deps)
+RUN pnpm run build:web
 
 # Stage 2: Serve
 FROM node:20-alpine AS runner
