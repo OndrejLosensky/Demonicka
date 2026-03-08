@@ -8,6 +8,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '../../contexts/AuthContext';
 import { AppThemeProvider } from '../../contexts/ThemeContext';
 import { ActiveEventProvider } from '../../contexts/ActiveEventContext';
+import { NotificationsProvider } from '../../contexts/NotificationsContext';
 import { HeaderVisibilityProvider } from '../../contexts/HeaderVisibilityContext';
 import { OnboardingProvider } from '../onboarding/OnboardingProvider';
 
@@ -24,7 +25,8 @@ export function CoreProviders({ children }: CoreProvidersProps) {
         <AppThemeProvider>
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={cs}>
             <AuthProvider>
-              <ActiveEventProvider>
+              <NotificationsProvider>
+                <ActiveEventProvider>
                 <HeaderVisibilityProvider>
                   <OnboardingProvider>
                     {children}
@@ -47,7 +49,8 @@ export function CoreProviders({ children }: CoreProvidersProps) {
                     closeButton={true}
                   />
                 </HeaderVisibilityProvider>
-              </ActiveEventProvider>
+                </ActiveEventProvider>
+              </NotificationsProvider>
             </AuthProvider>
           </LocalizationProvider>
         </AppThemeProvider>
