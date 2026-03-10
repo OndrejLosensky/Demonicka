@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/users.service';
+import { LoggingService } from '../../logging/logging.service';
 
 export interface GoogleProfile {
   id: string;
@@ -22,6 +23,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
     private configService: ConfigService,
     private usersService: UsersService,
+    private loggingService: LoggingService,
   ) {
     const clientID = configService.get<string>('GOOGLE_CLIENT_ID');
     const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET');
@@ -53,7 +55,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const email = emails?.[0]?.value?.toLowerCase();
 
     if (!email) {
-      this.logger.error('No email found in Google profile');
+      this.loggingService.auditFailure('GOOGLE_LOGIN_FAILED', 'Google login failed – no email in profile', {
+        googleId: id,
+        displayName: profile.displayName,
+      });
       return done(new Error('No email found in Google profile'), undefined);
     }
 

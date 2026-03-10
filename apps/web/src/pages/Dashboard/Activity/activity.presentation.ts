@@ -93,6 +93,18 @@ export function getActivityEventColor(event?: string): ActivityChipColor {
     case 'EVENT_UPDATE_FAILED':
     case 'GALLERY_PHOTO_UPLOAD_FAILED':
     case 'GALLERY_PHOTO_DELETE_FAILED':
+    case 'LOGIN_FAILED':
+    case 'ADMIN_LOGIN_FAILED':
+    case 'LOGIN_2FA_SEND_FAILED':
+    case 'LOGIN_2FA_INVALID':
+    case 'ADMIN_LOGIN_2FA_SEND_FAILED':
+    case 'ADMIN_LOGIN_2FA_INVALID':
+    case 'REGISTRATION_FAILED':
+    case 'COMPLETE_REGISTRATION_FAILED':
+    case 'AUTH_TOKEN_INVALID':
+    case 'USER_CREATE_FAILED':
+    case 'REFRESH_TOKEN_INVALID':
+    case 'GOOGLE_LOGIN_FAILED':
       return 'error';
     default:
       return 'default';
@@ -160,6 +172,30 @@ export function getActivityEventLabel(event?: string): string {
       return 'Nahrání fotky do galerie selhalo';
     case 'GALLERY_PHOTO_DELETE_FAILED':
       return 'Smazání fotky z galerie selhalo';
+    case 'LOGIN_FAILED':
+      return 'Přihlášení selhalo';
+    case 'ADMIN_LOGIN_FAILED':
+      return 'Admin přihlášení selhalo';
+    case 'LOGIN_2FA_SEND_FAILED':
+      return 'Odeslání 2FA kódu selhalo';
+    case 'LOGIN_2FA_INVALID':
+      return 'Neplatný 2FA kód';
+    case 'ADMIN_LOGIN_2FA_SEND_FAILED':
+      return 'Admin 2FA odeslání selhalo';
+    case 'ADMIN_LOGIN_2FA_INVALID':
+      return 'Admin neplatný 2FA kód';
+    case 'REGISTRATION_FAILED':
+      return 'Registrace selhala';
+    case 'COMPLETE_REGISTRATION_FAILED':
+      return 'Dokončení registrace selhalo';
+    case 'AUTH_TOKEN_INVALID':
+      return 'Neplatný token';
+    case 'USER_CREATE_FAILED':
+      return 'Vytvoření uživatele selhalo';
+    case 'REFRESH_TOKEN_INVALID':
+      return 'Obnovení tokenu selhalo';
+    case 'GOOGLE_LOGIN_FAILED':
+      return 'Google přihlášení selhalo';
     default:
       return event ?? '';
   }
@@ -224,6 +260,9 @@ export function getActivityEventMessage(log: ActivityLogEntry): string {
       if (op === 'CLEAR_ALL_LOGS' && jobId) {
         return `Spuštěno smazání všech logů (úloha: ${jobId})${actor ? ` — ${actor}` : ''}`;
       }
+      if (op === 'LOGS_RETENTION' && jobId) {
+        return `Spuštěna retence logů (úloha: ${jobId})${actor ? ` — ${actor}` : ''}`;
+      }
       return `Spuštěna systémová operace${op ? `: ${op}` : ''}${jobId ? ` (úloha: ${jobId})` : ''}${actor ? ` (provedl ${actor})` : ''}`;
     }
     case 'SETTINGS_CHANGED': {
@@ -241,9 +280,23 @@ export function getActivityEventMessage(log: ActivityLogEntry): string {
     case 'PROFILE_PICTURE_UPLOAD_FAILED':
     case 'EVENT_UPDATE_FAILED':
     case 'GALLERY_PHOTO_UPLOAD_FAILED':
-    case 'GALLERY_PHOTO_DELETE_FAILED': {
+    case 'GALLERY_PHOTO_DELETE_FAILED':
+    case 'LOGIN_FAILED':
+    case 'ADMIN_LOGIN_FAILED':
+    case 'LOGIN_2FA_SEND_FAILED':
+    case 'LOGIN_2FA_INVALID':
+    case 'ADMIN_LOGIN_2FA_SEND_FAILED':
+    case 'ADMIN_LOGIN_2FA_INVALID':
+    case 'REGISTRATION_FAILED':
+    case 'COMPLETE_REGISTRATION_FAILED':
+    case 'AUTH_TOKEN_INVALID':
+    case 'USER_CREATE_FAILED':
+    case 'REFRESH_TOKEN_INVALID':
+    case 'GOOGLE_LOGIN_FAILED': {
       const reason = getStringField(log, 'reason');
-      return reason ? `${log.message}: ${reason}` : log.message;
+      const err = getStringField(log, 'error');
+      const extra = reason || err;
+      return extra ? `${log.message}: ${extra}` : log.message;
     }
     default:
       return log.message;

@@ -7,6 +7,7 @@ import { UsersService } from '../users/users.service';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
+import { LoggingService } from '../logging/logging.service';
 
 type UserWithoutPassword = Omit<User, 'password'>;
 
@@ -19,6 +20,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private loggingService: LoggingService,
   ) {}
 
   public getCookieOptions(isRefreshToken = false) {
@@ -89,11 +91,15 @@ export class AuthService {
       refreshToken.isRevoked ||
       new Date() > refreshToken.expiresAt
     ) {
+      this.loggingService.auditFailure('REFRESH_TOKEN_INVALID', 'Refresh token invalid or expired', {});
       throw new UnauthorizedException('Neplatný obnovovací token');
     }
 
     const user = await this.usersService.findOne(refreshToken.userId);
     if (!user) {
+      this.loggingService.auditFailure('REFRESH_TOKEN_INVALID', 'Refresh token – user not found', {
+        userId: refreshToken.userId,
+      });
       throw new UnauthorizedException('Uživatel nebyl nalezen');
     }
 

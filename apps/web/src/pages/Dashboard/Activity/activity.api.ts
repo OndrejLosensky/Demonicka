@@ -1,6 +1,5 @@
 import { api } from '../../../services/api';
 import type { ActivityEventType, ActivityLogsResponse } from './activity.types';
-import { ACTIVITY_EVENTS } from './activity.constants';
 
 export async function fetchActivityLogs(params: {
   limit: number;
@@ -25,9 +24,8 @@ export async function fetchActivityLogs(params: {
 
   if (params.eventType) {
     qs.append('eventType', params.eventType);
-  } else {
-    ACTIVITY_EVENTS.forEach((e) => qs.append('eventType', e));
   }
+  // When no eventType (user selected "All"), we do not send eventType so backend returns all logs (errors, warns, info, any event).
 
   const response = await api.get<ActivityLogsResponse>(`/logs?${qs}`);
   return response.data;

@@ -42,6 +42,10 @@ export class UsersService {
     // Check if username is already taken
     const existingUser = await this.findByUsername(createUserDto.username);
     if (existingUser) {
+      this.loggingService.auditFailure('USER_CREATE_FAILED', 'Create user failed – username already exists', {
+        username: createUserDto.username,
+        createdBy,
+      });
       throw new BadRequestException('Uživatelské jméno již existuje');
     }
 
@@ -353,10 +357,17 @@ export class UsersService {
     );
 
     if (!user) {
+      this.loggingService.auditFailure('COMPLETE_REGISTRATION_FAILED', 'Complete registration failed – invalid token', {
+        username: completeRegistrationDto.username,
+      });
       throw new NotFoundException('Neplatný registrační token');
     }
 
     if (user.isRegistrationComplete) {
+      this.loggingService.auditFailure('COMPLETE_REGISTRATION_FAILED', 'Complete registration failed – already completed', {
+        userId: user.id,
+        username: completeRegistrationDto.username,
+      });
       throw new BadRequestException('Registrace již byla dokončena');
     }
 
@@ -365,6 +376,10 @@ export class UsersService {
       completeRegistrationDto.username,
     );
     if (existingUser && existingUser.id !== user.id) {
+      this.loggingService.auditFailure('COMPLETE_REGISTRATION_FAILED', 'Complete registration failed – username already exists', {
+        userId: user.id,
+        username: completeRegistrationDto.username,
+      });
       throw new BadRequestException('Uživatelské jméno již existuje');
     }
 

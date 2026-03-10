@@ -68,13 +68,19 @@ export class AuthController {
     try {
       return await this.usersService.create(createUserDto);
     } catch (error: any) {
-      // Prisma unique constraint error code is P2002
       if (
         error?.code === 'P2002' &&
         error?.meta?.target?.includes('username')
       ) {
+        this.loggingService.auditFailure('REGISTRATION_FAILED', 'Registration failed – username already exists', {
+          username: createUserDto?.username,
+        });
         throw new BadRequestException('Uživatelské jméno již existuje');
       }
+      this.loggingService.auditFailure('REGISTRATION_FAILED', 'Registration failed', {
+        username: createUserDto?.username,
+        error: error?.message ?? String(error),
+      });
       throw error;
     }
   }
@@ -111,6 +117,11 @@ export class AuthController {
             message: 'Kód pro dvoufázové ověření byl odeslán na váš email',
           };
         } catch (error) {
+          this.loggingService.auditFailure('LOGIN_2FA_SEND_FAILED', '2FA code send failed', {
+            actorUserId: user.id,
+            username: user.username,
+            error: error instanceof Error ? error.message : String(error),
+          });
           throw new BadRequestException(
             'Nepodařilo se odeslat kód pro dvoufázové ověření',
           );
@@ -123,6 +134,10 @@ export class AuthController {
         loginDto.twoFactorCode,
       );
       if (!isValid) {
+        this.loggingService.auditFailure('LOGIN_2FA_INVALID', 'Login failed – invalid or expired 2FA code', {
+          actorUserId: user.id,
+          username: user.username,
+        });
         throw new UnauthorizedException(
           'Neplatný nebo vypršený kód pro dvoufázové ověření',
         );

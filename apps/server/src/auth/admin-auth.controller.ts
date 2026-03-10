@@ -21,6 +21,7 @@ import { UsersService } from '../users/users.service';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { Public } from './decorators/public.decorator';
+import { LoggingService } from '../logging/logging.service';
 
 @Controller('auth/admin')
 @Versions('1')
@@ -31,6 +32,7 @@ export class AdminAuthController {
     private readonly deviceTokenService: DeviceTokenService,
     private readonly usersService: UsersService,
     private readonly twoFactorService: TwoFactorService,
+    private readonly loggingService: LoggingService,
   ) {}
 
   @Public()
@@ -42,34 +44,43 @@ export class AdminAuthController {
       adminLoginDto.password,
     );
 
-    // Check if user exists
     if (!userWithoutPassword) {
+      this.loggingService.auditFailure('ADMIN_LOGIN_FAILED', 'Admin login failed – invalid credentials', {
+        username: adminLoginDto.username,
+      });
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Get full user object
     const user = await this.usersService.findOne(userWithoutPassword.id);
 
     if (!user) {
+      this.loggingService.auditFailure('ADMIN_LOGIN_FAILED', 'Admin login failed – user not found', {
+        username: adminLoginDto.username,
+      });
       throw new UnauthorizedException('User not found');
     }
 
-    // Check if user is an operator or super admin
     if (user.role !== UserRole.OPERATOR && user.role !== UserRole.SUPER_ADMIN) {
+      this.loggingService.auditFailure('ADMIN_LOGIN_FAILED', 'Admin login failed – insufficient role', {
+        username: adminLoginDto.username,
+        userId: user.id,
+        role: user.role,
+      });
       throw new UnauthorizedException(
         'Only operator or super admin users can access this endpoint',
       );
     }
 
-    // Check if user can login
     if (!user.canLogin) {
+      this.loggingService.auditFailure('ADMIN_LOGIN_FAILED', 'Admin login failed – login disabled for user', {
+        username: adminLoginDto.username,
+        userId: user.id,
+      });
       throw new UnauthorizedException('Login is not enabled for this user');
     }
 
-    // Validate 2FA if enabled
     if (user.isTwoFactorEnabled) {
       if (!adminLoginDto.twoFactorCode) {
-        // Generate and send code
         try {
           await this.twoFactorService.generateAndSendCode(user.id);
           return {
@@ -77,18 +88,26 @@ export class AdminAuthController {
             message: 'Two-factor authentication code required',
           };
         } catch (error) {
+          this.loggingService.auditFailure('ADMIN_LOGIN_2FA_SEND_FAILED', 'Admin 2FA code send failed', {
+            username: adminLoginDto.username,
+            userId: user.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
           throw new BadRequestException(
             'Failed to send two-factor authentication code',
           );
         }
       }
 
-      // Validate 2FA code
       const isValid = await this.twoFactorService.validateCode(
         user.id,
         adminLoginDto.twoFactorCode,
       );
       if (!isValid) {
+        this.loggingService.auditFailure('ADMIN_LOGIN_2FA_INVALID', 'Admin login failed – invalid or expired 2FA code', {
+          username: adminLoginDto.username,
+          userId: user.id,
+        });
         throw new UnauthorizedException(
           'Invalid or expired two-factor authentication code',
         );
