@@ -4,6 +4,7 @@ import { IJobQueueAdapter } from './job-queue.adapter.interface';
 const JOB_TYPES = {
   BACKUP_RUN: 'backup.run',
   CLEANUP_SYSTEM: 'cleanup.system',
+  LOGS_RETENTION: 'logs.retention',
   CLEANUP_ACTIVE_EVENT: 'cleanup.activeEvent',
   CLEAR_ALL_LOGS: 'clearAllLogs',
   ACHIEVEMENTS_CHECK: 'achievements.check',

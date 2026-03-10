@@ -8,6 +8,7 @@ import {
   CardContent,
   CardActions,
   Alert,
+  TextField,
 } from '@mui/material';
 import {
   DeleteSweep as DeleteSweepIcon,
@@ -15,6 +16,7 @@ import {
   Warning as WarningIcon,
   CloudUpload as BackupIcon,
   Description as LogsIcon,
+  Schedule as RetentionIcon,
 } from '@mui/icons-material';
 import { CleanupConfirmDialog } from './CleanupConfirmDialog';
 import { systemOperationsService } from '../../../../services/systemOperationsService';
@@ -29,7 +31,7 @@ interface CleanupSectionProps {
   userRole?: string;
 }
 
-type OperationId = 'backup' | 'system' | 'activeEvent' | 'clearAllLogs';
+type OperationId = 'backup' | 'system' | 'activeEvent' | 'clearAllLogs' | 'logsRetention';
 
 export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userRole }) => {
   const t = useTranslations<Record<string, unknown>>('system');
@@ -43,7 +45,9 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
     system: cleanupT.operationSystem ?? 'Vyčistit systém',
     activeEvent: cleanupT.operationActiveEvent ?? 'Vyčistit aktivní událost',
     clearAllLogs: cleanupT.operationClearAllLogs ?? 'Smazat všechny logy',
+    logsRetention: cleanupT.operationLogsRetention ?? 'Smazat staré logy',
   };
+  const [logsRetentionDays, setLogsRetentionDays] = useState(14);
   const [isLoading, setIsLoading] = useState<OperationId | null>(null);
   const pendingJobsRef = useRef<Map<string, string>>(new Map());
   const [dialogConfig, setDialogConfig] = useState<{
@@ -67,7 +71,9 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
           ? `${toastsT.backupCompleted ?? 'Záloha byla úspěšně vytvořena'}: ${fileName}`
           : label === runButtonLabel
             ? (toastsT.backupCompleted ?? 'Záloha byla úspěšně vytvořena')
-            : (cleanupT.jobCompleted ?? 'Úloha dokončena.').replace('{{label}}', label);
+            : data.result?.deletedCount != null
+              ? (cleanupT.jobCompleted ?? 'Úloha dokončena.').replace('{{label}}', label) + ` (${data.result.deletedCount} souborů)`
+              : (cleanupT.jobCompleted ?? 'Úloha dokončena.').replace('{{label}}', label);
         toast.success(msg);
         onRefresh?.();
       } else if (data.status === 'FAILED') {
@@ -169,6 +175,20 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
         'error',
       ),
     },
+    {
+      id: 'logsRetention' as const,
+      title: cleanupT.operationLogsRetention ?? 'Smazat staré logy (retence)',
+      description: cleanupT.operationLogsRetentionDesc ?? 'Smazat soubory logů starší než zadaný počet dní (1–365).',
+      icon: <RetentionIcon />,
+      color: 'primary' as const,
+      severity: 'warning' as const,
+      action: () => openDialog(
+        cleanupT.dialogLogsRetentionTitle ?? 'Smazat staré logy',
+        (cleanupT.dialogLogsRetentionMessage ?? 'Tato akce smaže všechny soubory logů starší než {{days}} dní. Úloha se zařadí do fronty. Pokračovat?').replace('{{days}}', String(logsRetentionDays)),
+        () => enqueueOperation('logsRetention', () => systemOperationsService.logsRetention(logsRetentionDays)),
+        'warning',
+      ),
+    },
   ];
 
   const visibleOperations = operations.filter(() => isSuperAdmin || isOperator);
@@ -209,6 +229,20 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
                 <Typography variant="body2" color="text.secondary">
                   {option.description}
                 </Typography>
+                {option.id === 'logsRetention' && (
+                  <TextField
+                    type="number"
+                    size="small"
+                    value={logsRetentionDays}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value, 10);
+                      if (!Number.isNaN(v)) setLogsRetentionDays(Math.min(365, Math.max(1, v)));
+                    }}
+                    inputProps={{ min: 1, max: 365 }}
+                    label={cleanupT.retentionDaysLabel ?? 'Počet dní'}
+                    sx={{ mt: 2, width: '100%' }}
+                  />
+                )}
               </CardContent>
               <CardActions>
                 <Button
@@ -219,7 +253,7 @@ export const CleanupSection: React.FC<CleanupSectionProps> = ({ onRefresh, userR
                   disabled={isLoading === option.id}
                   startIcon={option.icon}
                 >
-                  {isLoading === option.id ? (cleanupT.buttonRunning ?? 'Probíhá...') : option.id === 'backup' ? runButtonLabel : option.title}
+                  {isLoading === option.id ? (cleanupT.buttonRunning ?? 'Probíhá...') : option.id === 'backup' ? runButtonLabel : option.id === 'logsRetention' ? (cleanupT.runLogsRetention ?? `Smazat logy starší než ${logsRetentionDays} dní`) : option.title}
                 </Button>
               </CardActions>
             </Card>

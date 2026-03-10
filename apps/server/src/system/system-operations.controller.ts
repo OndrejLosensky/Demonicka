@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RoleGuard } from '../auth/guards/role.guard';
@@ -10,6 +10,10 @@ import type { User } from '@prisma/client';
 import { Versions } from '../versioning/decorators/version.decorator';
 import { VersionGuard } from '../versioning/guards/version.guard';
 import { LoggingService } from '../logging/logging.service';
+
+const DEFAULT_RETENTION_DAYS = 14;
+const MIN_RETENTION_DAYS = 1;
+const MAX_RETENTION_DAYS = 365;
 
 @Controller('system/operations')
 @Versions('1')
@@ -56,6 +60,30 @@ export class SystemOperationsController {
       createdByUserId: user?.id,
     });
     this.loggingService.logSystemOperationTriggered('CLEAR_ALL_LOGS', user?.id, { jobId });
+    return { jobId, status: 'queued' as const };
+  }
+
+  @Post('logs-retention')
+  @UseGuards(RoleGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OPERATOR)
+  async logsRetention(
+    @GetUser() user: User,
+    @Body() body: { retentionDays?: number },
+  ) {
+    const raw = body?.retentionDays;
+    const retentionDays =
+      typeof raw === 'number' && raw >= MIN_RETENTION_DAYS && raw <= MAX_RETENTION_DAYS
+        ? Math.floor(raw)
+        : DEFAULT_RETENTION_DAYS;
+    const jobId = await this.jobQueueService.enqueue({
+      type: JOB_TYPES.LOGS_RETENTION,
+      payload: { retentionDays },
+      createdByUserId: user?.id,
+    });
+    this.loggingService.logSystemOperationTriggered('LOGS_RETENTION', user?.id, {
+      jobId,
+      retentionDays,
+    });
     return { jobId, status: 'queued' as const };
   }
 }

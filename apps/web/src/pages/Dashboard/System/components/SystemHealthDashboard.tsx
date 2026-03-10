@@ -17,6 +17,13 @@ import {
   Tooltip,
   CircularProgress,
   Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -30,7 +37,8 @@ import {
   Speed as SpeedIcon,
   Storage as DatabaseIcon,
   Wifi as WifiIcon,
-
+  Route as RouteIcon,
+  Assignment as LogStatsIcon,
 } from '@mui/icons-material';
 import { systemHealthService, type SystemHealth, type PerformanceMetrics, type SystemAlerts } from '../../../../services/systemHealthService';
 import { toast } from 'react-hot-toast';
@@ -43,6 +51,15 @@ export const SystemHealthDashboard: React.FC<SystemHealthDashboardProps> = ({ on
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [performance, setPerformance] = useState<PerformanceMetrics | null>(null);
   const [alerts, setAlerts] = useState<SystemAlerts[]>([]);
+  const [logStats, setLogStats] = useState<{
+    totalLogs: number;
+    logsToday: number;
+    errorCount: number;
+    warningCount: number;
+    logFileSize: number;
+    oldestLog: string;
+    newestLog: string;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -59,15 +76,17 @@ export const SystemHealthDashboard: React.FC<SystemHealthDashboardProps> = ({ on
         setIsLoading(true);
       }
 
-      const [healthData, performanceData, alertsData] = await Promise.all([
+      const [healthData, performanceData, alertsData, logStatsData] = await Promise.all([
         systemHealthService.getSystemHealth(),
         systemHealthService.getPerformanceMetrics(),
         systemHealthService.getSystemAlerts(),
+        systemHealthService.getLogStats().catch(() => null),
       ]);
 
       setHealth(healthData);
       setPerformance(performanceData);
       setAlerts(alertsData);
+      setLogStats(logStatsData ?? null);
     } catch (error) {
       console.error('Failed to load system health data:', error);
       toast.error('Nepodařilo se načíst data o zdraví systému');
@@ -318,10 +337,82 @@ export const SystemHealthDashboard: React.FC<SystemHealthDashboardProps> = ({ on
               <Typography variant="body2" color="text.secondary">
                 {formatBytes(health.storage.logsSize)}
               </Typography>
+              {logStats && (
+                <Box mt={2}>
+                  <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <LogStatsIcon fontSize="small" />
+                    Detail logů
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Celkem záznamů: {logStats.totalLogs.toLocaleString('cs-CZ')}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Dnes: {logStats.logsToday.toLocaleString('cs-CZ')}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Chyby: {logStats.errorCount.toLocaleString('cs-CZ')} · Varování: {logStats.warningCount.toLocaleString('cs-CZ')}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Velikost souborů: {formatBytes(logStats.logFileSize)}
+                  </Typography>
+                  <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}>
+                    Nejstarší: {logStats.oldestLog ? new Date(logStats.oldestLog).toLocaleString('cs-CZ') : '—'} · Nejnovější: {logStats.newestLog ? new Date(logStats.newestLog).toLocaleString('cs-CZ') : '—'}
+                  </Typography>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+
+      {/* Failed API routes (errors by endpoint) */}
+      {performance && (
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <RouteIcon color="error" />
+              Endpointy s chybami
+              <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                (posledních 5 min)
+              </Typography>
+            </Typography>
+            {performance.errorRates && performance.errorRates.length > 0 ? (
+              <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 320 }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Endpoint</TableCell>
+                      <TableCell align="right">Chyby</TableCell>
+                      <TableCell align="right">Požadavky</TableCell>
+                      <TableCell align="right">Podíl chyb</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {performance.errorRates.map((row) => (
+                      <TableRow key={row.endpoint}>
+                        <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{row.endpoint}</TableCell>
+                        <TableCell align="right">{row.errorCount}</TableCell>
+                        <TableCell align="right">{row.totalRequests}</TableCell>
+                        <TableCell align="right">
+                          <Chip
+                            size="small"
+                            label={`${(row.errorRate * 100).toFixed(1)}%`}
+                            color={row.errorRate >= 0.1 ? 'error' : row.errorRate >= 0.02 ? 'warning' : 'default'}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                Žádné chyby podle endpointu v posledních 5 minutách.
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Services Status */}
       <Card sx={{ mb: 3 }}>

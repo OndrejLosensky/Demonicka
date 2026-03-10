@@ -12,4 +12,8 @@ export const systemOperationsService = {
     api.post<SystemOperationResponse>('/system/operations/cleanup-active-event', {}).then((r) => r.data),
   clearAllLogs: () =>
     api.post<SystemOperationResponse>('/system/operations/clear-all-logs', {}).then((r) => r.data),
+  logsRetention: (retentionDays: number) =>
+    api
+      .post<SystemOperationResponse>('/system/operations/logs-retention', { retentionDays })
+      .then((r) => r.data),
 };

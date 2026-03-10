@@ -6,6 +6,9 @@ import type { EventsService } from '../../events/events.service';
 const LOG_RETENTION_DAYS = 7;
 const LOG_RETENTION_MS = LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 
+/** Default retention days when not specified in payload (e.g. for scheduled runs). */
+const DEFAULT_LOGS_RETENTION_DAYS = 14;
+
 export function registerCleanupHandlers(
   registry: JobHandlerRegistry,
   loggingService: LoggingService,
@@ -20,6 +23,21 @@ export function registerCleanupHandlers(
       });
       context.appendLog('info', `Deleted ${result.deletedCount} old log file(s) (older than ${LOG_RETENTION_DAYS} days).`);
       return { deletedCount: result.deletedCount };
+    },
+  );
+
+  registry.register(
+    JOB_TYPES.LOGS_RETENTION,
+    async (payload, _jobId, context) => {
+      const retentionDays =
+        typeof (payload as { retentionDays?: number }).retentionDays === 'number'
+          ? Math.max(1, Math.min(365, (payload as { retentionDays: number }).retentionDays))
+          : DEFAULT_LOGS_RETENTION_DAYS;
+      const olderThan = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
+      context.appendLog('info', `Starting logs retention cleanup (delete logs older than ${retentionDays} days)`);
+      const result = await loggingService.cleanup({ olderThan });
+      context.appendLog('info', `Deleted ${result.deletedCount} log file(s) older than ${retentionDays} days.`);
+      return { deletedCount: result.deletedCount, retentionDays };
     },
   );
 
