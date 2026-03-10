@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Box, Card, Typography, Button, TextField } from '@demonicka/ui';
+import { Feedback as FeedbackIcon } from '@mui/icons-material';
 import { useAuth } from '../../../contexts/AuthContext';
 import { feedbackApi } from '../../../services/feedbackService';
 import { notify } from '../../../notifications/notify';
@@ -32,14 +33,43 @@ export function FeedbackPage() {
   };
 
   return (
-    <Box sx={{ maxWidth: 560, mx: 'auto' }}>
-      <Card sx={{ p: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-          Zpětná vazba
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Slouží k hlášení chyb, návrhům na vylepšení nebo jakékoli jiné zpětné vazbě. Vaše zprávy ukládáme a průběžně je procházíme.
-        </Typography>
+    <Box sx={{ width: '100%', pt: 1 }}>
+      <Card
+        elevation={0}
+        sx={{
+          p: 3,
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.paper',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 3 }}>
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              borderRadius: 2,
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <FeedbackIcon sx={{ fontSize: 28 }} />
+          </Box>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+              Pošlete nám zprávu
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Hlášení chyb, nápady na vylepšení nebo jakékoli připomínky. Vaše zprávy ukládáme a průběžně je procházíme.
+            </Typography>
+          </Box>
+        </Box>
+
         <form onSubmit={handleSubmit}>
           <TextField
             label="Zpráva"
@@ -47,15 +77,27 @@ export function FeedbackPage() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             multiline
-            minRows={4}
-            maxRows={12}
+            minRows={5}
+            maxRows={14}
             fullWidth
             disabled={isSubmitting}
             inputProps={{ maxLength: 5000 }}
-            helperText={`${message.length}/5000`}
-            sx={{ mb: 2 }}
+            helperText={`${message.length} / 5000`}
+            sx={{
+              mb: 2.5,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 1.5,
+              },
+            }}
           />
-          <Button type="submit" variant="contained" disabled={isSubmitting || !message.trim()}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            size="medium"
+            disabled={isSubmitting || !message.trim()}
+            sx={{ minWidth: 140, borderRadius: 1.5 }}
+          >
             {isSubmitting ? 'Odesílám…' : 'Odeslat'}
           </Button>
         </form>

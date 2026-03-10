@@ -227,6 +227,13 @@ export const dashboardRouteMeta: RouteObject[] = [
         } satisfies DashboardChromeHandle,
       },
       {
+        path: 'feedback',
+        handle: {
+          crumbKey: 'auth.feedback',
+          titleKey: 'auth.feedback',
+        } satisfies DashboardChromeHandle,
+      },
+      {
         path: 'beer-pong',
         handle: {
           crumb: 'Beer Pong',
