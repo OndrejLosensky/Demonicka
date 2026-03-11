@@ -12,8 +12,8 @@ import { websocketService } from '../services/websocketService';
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => Promise<{ requiresTwoFactor?: boolean } | void>;
-  loginWithTwoFactor: (username: string, password: string, code: string) => Promise<void>;
+  login: (username: string, password: string, rememberMe?: boolean) => Promise<{ requiresTwoFactor?: boolean } | void>;
+  loginWithTwoFactor: (username: string, password: string, code: string, rememberMe?: boolean) => Promise<void>;
   register: (username: string, password: string, name: string | null, gender: 'MALE' | 'FEMALE') => Promise<void>;
   completeRegistration: (token: string, username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -89,11 +89,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchUser().finally(() => setIsLoading(false));
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string, rememberMe = true) => {
     try {
       const response = await apiClient.post('/auth/login', {
         username,
         password,
+        rememberMe,
       });
 
       // Check if 2FA is required
@@ -143,12 +144,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginWithTwoFactor = async (username: string, password: string, code: string) => {
+  const loginWithTwoFactor = async (username: string, password: string, code: string, rememberMe = true) => {
     try {
       const response = await apiClient.post('/auth/login', {
         username,
         password,
         twoFactorCode: code,
+        rememberMe,
       });
       localStorage.setItem('access_token', response.data.access_token);
       const u = response.data.user as User;

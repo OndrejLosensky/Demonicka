@@ -23,16 +23,25 @@ export class AuthService {
     private loggingService: LoggingService,
   ) {}
 
-  public getCookieOptions(isRefreshToken = false) {
+  public getCookieOptions(isRefreshToken = false, rememberMe = true) {
+    const base = {
+      httpOnly: true,
+      secure: this.configService.get('NODE_ENV') === 'production',
+      sameSite: 'lax' as const,
+      path: '/',
+    };
+    if (!isRefreshToken) {
+      return {
+        ...base,
+        expires: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12 hours for access
+      };
+    }
+    if (!rememberMe) {
+      return base; // session cookie (no expires)
+    }
     return {
-      httpOnly: true, // Prevents client-side access to the cookie
-      secure: this.configService.get('NODE_ENV') === 'production', // Only send cookie over HTTPS in production
-      sameSite: 'lax' as const, // Protection against CSRF
-      path: '/', // Cookie is available for all paths
-      expires: new Date(
-        Date.now() +
-          (isRefreshToken ? 7 * 24 * 60 * 60 * 1000 : 12 * 60 * 60 * 1000),
-      ), // 7 days for refresh, 12 hours for access
+      ...base,
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days for refresh
     };
   }
 
@@ -60,14 +69,14 @@ export class AuthService {
     return { user };
   }
 
-  async login(user: UserWithoutPassword): Promise<{
+  async login(user: UserWithoutPassword, rememberMe = true): Promise<{
     access_token: string;
     refresh_token: string;
     user: UserWithoutPassword;
   }> {
     const payload = { username: user.username, sub: user.id };
     const access_token = await this.jwtService.signAsync(payload);
-    const refreshToken = await this.createRefreshToken(user.id);
+    const refreshToken = await this.createRefreshToken(user.id, rememberMe);
 
     return {
       access_token,
@@ -77,7 +86,7 @@ export class AuthService {
   }
 
   async logout(response: Response): Promise<void> {
-    response.clearCookie('refresh_token', this.getCookieOptions(true));
+    response.clearCookie('refresh_token', this.getCookieOptions(true, true));
   }
 
   async refreshTokens(refreshTokenStr: string) {
@@ -118,18 +127,23 @@ export class AuthService {
     };
   }
 
-  private async createRefreshToken(userId: string) {
+  private async createRefreshToken(userId: string, rememberMe = true) {
     const timestamp = Date.now();
+    const durationMs = rememberMe
+      ? 7 * 24 * 60 * 60 * 1000 // 7 days
+      : 24 * 60 * 60 * 1000; // 24 hours for session-like
+    const expiresIn = rememberMe ? '7d' : '24h';
+
     const token = this.jwtService.sign(
       { sub: userId, iat: timestamp },
-      { expiresIn: '7d' }, // 7 days
+      { expiresIn },
     );
 
     const refreshToken = await this.prisma.refreshToken.create({
       data: {
         token,
         userId,
-        expiresAt: new Date(timestamp + 7 * 24 * 60 * 60 * 1000), // 7 days
+        expiresAt: new Date(timestamp + durationMs),
       },
     });
 

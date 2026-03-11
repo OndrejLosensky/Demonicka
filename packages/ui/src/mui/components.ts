@@ -25,6 +25,7 @@ export {
   FormControlLabel,
   RadioGroup,
   Radio,
+  Checkbox,
 } from '@mui/material';
 
 // Feedback

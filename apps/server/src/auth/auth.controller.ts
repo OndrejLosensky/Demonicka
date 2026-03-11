@@ -149,14 +149,15 @@ export class AuthController {
     }
 
     // Proceed with normal login
-    const { access_token, refresh_token } = await this.authService.login(user);
+    const rememberMe = loginDto.rememberMe ?? true;
+    const { access_token, refresh_token } = await this.authService.login(user, rememberMe);
     await this.usersService.update(user.id, { lastAdminLogin: new Date() });
 
     // Set refresh token as an HTTP-only cookie
     response.cookie(
       'refresh_token',
       refresh_token,
-      this.authService.getCookieOptions(true),
+      this.authService.getCookieOptions(true, rememberMe),
     );
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

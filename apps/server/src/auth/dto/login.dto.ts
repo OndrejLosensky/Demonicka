@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, MinLength, Matches, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, MinLength, Matches, IsOptional, IsBoolean } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class LoginDto {
@@ -16,6 +16,16 @@ export class LoginDto {
   @IsNotEmpty({ message: 'Heslo je povinné' })
   @MinLength(8, { message: 'Heslo musí mít alespoň 8 znaků' })
   password: string;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === true || value === 'true') return true;
+    if (value === false || value === 'false') return false;
+    if (value === undefined || value === null || value === '') return undefined;
+    return value;
+  })
+  @IsBoolean()
+  rememberMe?: boolean;
 
   @IsOptional()
   @IsString()

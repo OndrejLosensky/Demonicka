@@ -12,8 +12,8 @@ const footerLinks = [
 
 export function LandingFooter() {
   const t = useTranslations<Record<string, string>>('landing');
-  const footer = (t.footer as Record<string, string>) || {};
-  const nav = (t.nav as Record<string, string>) || {};
+  const footer = (t.footer as unknown as Record<string, string>) || {};
+  const nav = (t.nav as unknown as Record<string, string>) || {};
 
   const getLabel = (key: string) => {
     if (key.startsWith('nav.'))

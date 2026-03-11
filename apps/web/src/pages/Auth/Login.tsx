@@ -3,13 +3,14 @@ import { usePageTitle } from '../../hooks/usePageTitle';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AuthLayout } from '../../components/auth/AuthLayout';
-import { Input, PasswordInput, Button } from '@demonicka/ui';
+import { Input, PasswordInput, Button, Checkbox } from '@demonicka/ui';
 import { useTranslations } from '../../contexts/LocaleContext';
 import { withPageLoader } from '../../components/hoc/withPageLoader';
 
 const LoginComponent: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const [error, setError] = useState('');
@@ -28,12 +29,12 @@ const LoginComponent: React.FC = () => {
     try {
       if (requiresTwoFactor) {
         // Second step: submit 2FA code
-        await loginWithTwoFactor(username, password, twoFactorCode);
+        await loginWithTwoFactor(username, password, twoFactorCode, rememberMe);
         setRequiresTwoFactor(false);
         setTwoFactorCode('');
       } else {
         // First step: submit username/password
-        const result = await login(username, password);
+        const result = await login(username, password, rememberMe);
         if (result && typeof result === 'object' && 'requiresTwoFactor' in result && result.requiresTwoFactor) {
           setRequiresTwoFactor(true);
         }
@@ -87,10 +88,20 @@ const LoginComponent: React.FC = () => {
               placeholder={(loginT.password as string) ?? 'Heslo'}
               disabled={requiresTwoFactor}
             />
-            <div className="mt-1 text-right">
+            <div className="mt-1 flex items-center gap-6">
+              <label className="flex items-center gap-1.5 cursor-pointer shrink-0">
+                <Checkbox
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(_, checked) => setRememberMe(checked)}
+                />
+                <span className="text-sm text-gray-800 dark:text-gray-200 font-medium">
+                  {loginT.rememberMe as string}
+                </span>
+              </label>
               <Link
                 to="/forgot-password"
-                className="text-sm text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                className="text-sm text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 transition-colors ml-auto"
               >
                 {(loginT.forgotPassword as string) ?? 'Zapomněli jste heslo?'}
               </Link>
@@ -138,7 +149,7 @@ const LoginComponent: React.FC = () => {
             <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+            <span className="px-3 py-0.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded font-medium">
               {(loginT.or as string) ?? 'nebo'}
             </span>
           </div>
