@@ -133,6 +133,7 @@ model User {
   startedBeerPongGames       BeerPongGame[]
   matchedRegistrations       EventRegistration[]
   twoFactorCodes             TwoFactorCode[]
+  passwordResetCodes         PasswordResetCode[]
   galleryPhotos              GalleryPhoto[]
   feedback                   Feedback[]
   jobs                       Job[]
@@ -589,6 +590,21 @@ model BeerPongGameBeer {
 }
 
 model TwoFactorCode {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  code      String
+  expiresAt DateTime @db.Timestamptz(6)
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([code])
+  @@index([expiresAt])
+}
+
+model PasswordResetCode {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @db.Uuid
   code      String

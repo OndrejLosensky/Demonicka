@@ -68,9 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         // Only redirect to login if we're not already there and not on a public route
         const currentPath = location?.pathname || '';
-        if (!currentPath.startsWith('/login') && 
-            !currentPath.startsWith('/register') && 
-            !currentPath.startsWith('/complete-registration')) {
+        if (!currentPath.startsWith('/login') &&
+            !currentPath.startsWith('/register') &&
+            !currentPath.startsWith('/complete-registration') &&
+            !currentPath.startsWith('/forgot-password') &&
+            !currentPath.startsWith('/reset-password')) {
           navigate('/login');
         }
       }

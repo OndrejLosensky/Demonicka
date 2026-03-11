@@ -87,6 +87,14 @@ const LoginComponent: React.FC = () => {
               placeholder={(loginT.password as string) ?? 'Heslo'}
               disabled={requiresTwoFactor}
             />
+            <div className="mt-1 text-right">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+              >
+                {(loginT.forgotPassword as string) ?? 'Zapomněli jste heslo?'}
+              </Link>
+            </div>
           </div>
         </div>
         {requiresTwoFactor && (

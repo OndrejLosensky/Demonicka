@@ -27,9 +27,12 @@ import { VersionGuard } from '../versioning/guards/version.guard';
 import { UsersService } from '../users/users.service';
 import { TwoFactorService } from './two-factor.service';
 import { CompleteRegistrationDto } from '../users/dto/complete-registration.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { LoggingService } from '../logging/logging.service';
+import { PasswordResetService } from './password-reset.service';
 
 interface RequestWithUser extends Request {
   user: User;
@@ -52,6 +55,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
     private readonly twoFactorService: TwoFactorService,
+    private readonly passwordResetService: PasswordResetService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly loggingService: LoggingService,
@@ -266,6 +270,40 @@ export class AuthController {
     });
 
     return { access_token, user };
+  }
+
+  /**
+   * Request password reset: sends OTP to email if account exists with password.
+   * Always returns the same success response (no user enumeration).
+   */
+  @Public()
+  @Post('forgot-password')
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
+    await this.passwordResetService.requestReset(forgotPasswordDto.email);
+    return {
+      message:
+        'Pokud účet s tímto emailem existuje, obdržíte kód pro obnovení hesla.',
+    };
+  }
+
+  /**
+   * Reset password with OTP code and new password.
+   */
+  @Public()
+  @Post('reset-password')
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
+    await this.passwordResetService.resetPassword(
+      resetPasswordDto.email,
+      resetPasswordDto.code,
+      resetPasswordDto.newPassword,
+    );
+    return {
+      message: 'Heslo bylo úspěšně změněno. Můžete se přihlásit.',
+    };
   }
 
   /**

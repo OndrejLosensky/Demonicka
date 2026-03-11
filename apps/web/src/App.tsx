@@ -47,6 +47,8 @@ import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import { CompleteRegistration } from './pages/Auth/CompleteRegistration';
 import { EnterToken } from './pages/Auth/EnterToken';
+import { ForgotPassword } from './pages/Auth/ForgotPassword';
+import { ResetPassword } from './pages/Auth/ResetPassword';
 import { GoogleCallback } from './pages/Auth/GoogleCallback';
 import { RegisterEventByToken } from './pages/EventRegistration/RegisterEventByToken';
 
@@ -366,6 +368,22 @@ function App() {
           element={
             <GuestRoute>
               <EnterToken />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <GuestRoute>
+              <ForgotPassword />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <GuestRoute>
+              <ResetPassword />
             </GuestRoute>
           }
         />
