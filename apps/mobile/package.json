@@ -1,7 +1,7 @@
 {
   "name": "demonicka-mobile",
   "private": true,
-  "version": "3.7.3",
+  "version": "3.7.4",
   "description": "Mobile app for Démonická",
   "main": "expo-router/entry",
   "scripts": {

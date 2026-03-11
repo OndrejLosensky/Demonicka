@@ -1,28 +1,66 @@
 {
   "hero": {
-    "title": "Welcome to Auth Boilerplate",
-    "subtitle": "Secure, fast, and reliable authentication solution",
-    "getStarted": "Get Started",
-    "learnMore": "Learn More"
+    "title": "Démonická",
+    "subtitle": "Track your beer journey with friends",
+    "login": "Log in",
+    "register": "Sign up"
   },
-  "features": {
-    "title": "Features",
-    "security": {
-      "title": "Advanced Security",
-      "description": "State-of-the-art encryption and security practices"
+  "nav": {
+    "features": "Home",
+    "product": "Product",
+    "stats": "Stats",
+    "ios": "iOS"
+  },
+  "stats": {
+    "trustedBy": "Trusted by the community",
+    "totalBeers": "Total beers",
+    "activeParticipants": "Participants",
+    "activeBarrels": "Barrels",
+    "eventsFinished": "Events finished",
+    "beerPongGames": "Beer pong games",
+    "eventsFinishedFallback": "",
+    "totalBeersFallback": "",
+    "activeBarrelsFallback": "",
+    "activeParticipantsFallback": "",
+    "beerPongFallback": "No beer pong games played yet.",
+    "eventsFinishedDescription": "Number of events that have already ended (endDate in the past).",
+    "totalBeersDescription": "Total number of beers consumed across all events.",
+    "activeBarrelsDescription": "Number of beer barrels in the system.",
+    "activeParticipantsDescription": "Number of registered participants.",
+    "beerPongDescription": "Number of beer pong matches played."
+  },
+  "product": {
+    "sectionTitle": "How it looks inside",
+    "sectionSubtitle": "Complete system for managing beer events.",
+    "dashboard": {
+      "title": "Dashboard & analytics",
+      "description": "Real-time overview: charts, participant stats and event activity in one place."
     },
-    "easy": {
-      "title": "Easy Integration",
-      "description": "Simple to integrate with any application"
+    "participants": {
+      "title": "Participant management",
+      "description": "Add participants, track their activity and manage roles simply and intuitively."
     },
-    "scalable": {
-      "title": "Highly Scalable",
-      "description": "Built to handle millions of users"
+    "barrels": {
+      "title": "Barrel management",
+      "description": "Track barrel status, content and consumption in real time. Alerts when barrels are finished."
+    },
+    "leaderboard": {
+      "title": "Leaderboard & competitions",
+      "description": "Leaderboards, achievements and stats motivate participants and create a great atmosphere."
     }
   },
-  "cta": {
-    "title": "Ready to Get Started?",
-    "description": "Join thousands of developers who trust our solution",
-    "button": "Sign Up Now"
+  "ios": {
+    "title": "Manage events on the go",
+    "description": "Native iOS app in SwiftUI – same features as the web, optimized for mobile.",
+    "bullets": [
+      "Native SwiftUI app with smooth animations",
+      "Manage on the go: beers, barrels, stats",
+      "Real-time sync with the web"
+    ]
+  },
+  "footer": {
+    "allRightsReserved": "All rights reserved.",
+    "login": "Log in",
+    "register": "Sign up"
   }
-} 
+}

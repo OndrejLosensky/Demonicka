@@ -2,99 +2,65 @@
   "hero": {
     "title": "Démonická",
     "subtitle": "Sledujte svou pivní cestu s přáteli",
-    "getStarted": "Začít",
-    "learnMore": "Zjistit více"
+    "login": "Přihlášení",
+    "register": "Registrace"
   },
-  "features": {
-    "title": "Funkce",
-    "description": "Objevte všechny možnosti naší aplikace",
-    "list": {
-      "title": "Co nabízíme",
-      "items": [
-        "Sledování vypitých piv",
-        "Žebříček nejlepších",
-        "Statistiky a přehledy",
-        "Správa sudů",
-        "Achievementy"
-      ]
-    }
+  "nav": {
+    "features": "Úvod",
+    "product": "Produkt",
+    "stats": "Statistiky",
+    "ios": "iOS"
   },
   "stats": {
+    "trustedBy": "Důvěřuje nám komunita",
     "totalBeers": "Celkem piv",
-    "activeParticipants": "Aktivních účastníků",
-    "activeBarrels": "Aktivních sudů"
+    "activeParticipants": "Účastníků",
+    "activeBarrels": "Sudů",
+    "eventsFinished": "Událostí dokončeno",
+    "beerPongGames": "Beer pong her",
+    "eventsFinishedFallback": "",
+    "totalBeersFallback": "",
+    "activeBarrelsFallback": "",
+    "activeParticipantsFallback": "",
+    "beerPongFallback": "Beer pong zatím nebyl odehrán.",
+    "eventsFinishedDescription": "Počet událostí, které již skončily (endDate v minulosti).",
+    "totalBeersDescription": "Celkový počet vypitých piv napříč všemi událostmi.",
+    "activeBarrelsDescription": "Počet pivních sudů v systému.",
+    "activeParticipantsDescription": "Počet registrovaných účastníků.",
+    "beerPongDescription": "Počet odehraných beer pong zápasů."
   },
-  "topParticipants": {
-    "title": "Nejlepší pivaři",
-    "beers": "piv"
+  "product": {
+    "sectionTitle": "Jak to vypadá uvnitř",
+    "sectionSubtitle": "Kompletní systém pro správu pivních událostí.",
+    "dashboard": {
+      "title": "Dashboard a analytika",
+      "description": "Přehled v reálném čase: grafy, statistiky účastníků a aktivita události na jednom místě."
+    },
+    "participants": {
+      "title": "Správa účastníků",
+      "description": "Přidávejte účastníky, sledujte jejich aktivitu a spravujte role jednoduše a intuitivně."
+    },
+    "barrels": {
+      "title": "Správa sudů",
+      "description": "Sledujte stav sudů, obsah a spotřebu v reálném čase. Upozornění na dokončené sudy."
+    },
+    "leaderboard": {
+      "title": "Žebříček a soutěže",
+      "description": "Žebříčky, achievementy a statistiky motivují účastníky a vytváří skvělou atmosféru."
+    }
   },
-  "cta": {
-    "title": "Připraveni začít?",
-    "description": "Připojte se k tisícům vývojářů, kteří důvěřují našemu řešení",
-    "button": "Zaregistrujte se"
+  "ios": {
+    "title": "Spravujte události na cestách",
+    "description": "Nativní iOS aplikace ve SwiftUI – stejné funkce jako web, optimalizované pro mobil.",
+    "bullets": [
+      "Nativní SwiftUI aplikace s plynulými animacemi",
+      "Správa na cestách: piva, sudy, statistiky",
+      "Real-time synchronizace s webem"
+    ]
   },
   "footer": {
     "allRightsReserved": "Všechna práva vyhrazena.",
-    "sections": {
-      "product": {
-        "title": "Produkt",
-        "items": {
-          "features": "Funkce",
-          "pricing": "Ceník",
-          "changelog": "Co je nového",
-          "status": "Stav služby"
-        }
-      },
-      "company": {
-        "title": "Společnost",
-        "items": {
-          "about": "O nás",
-          "blog": "Blog",
-          "careers": "Kariéra",
-          "contact": "Kontakt"
-        }
-      },
-      "resources": {
-        "title": "Zdroje",
-        "items": {
-          "documentation": "Dokumentace",
-          "help": "Nápověda",
-          "terms": "Podmínky použití",
-          "privacy": "Ochrana soukromí"
-        }
-      },
-      "community": {
-        "title": "Komunita",
-        "items": {
-          "github": "GitHub",
-          "discord": "Discord",
-          "twitter": "Twitter",
-          "facebook": "Facebook"
-        }
-      }
-    },
-    "newsletter": {
-      "title": "Odebírejte novinky",
-      "description": "Získejte nejnovější informace o aktualizacích a novinkách",
-      "placeholder": "Zadejte svůj email",
-      "button": "Přihlásit k odběru",
-      "success": "Děkujeme za přihlášení k odběru!"
-    }
-  },
-  "latestActivity": {
-    "title": "Poslední aktivita",
-    "subtitle": "Co se děje v komunitě",
-    "events": {
-      "beer_added": "přidal(a) {count} piv",
-      "barrel_finished": "dokončil(a) sud {name}",
-      "achievement_unlocked": "získal(a) achievement {name}",
-      "new_participant": "se připojil(a) ke komunitě"
-    },
-    "timeAgo": {
-      "justNow": "právě teď",
-      "minutesAgo": "před {count} minutami",
-      "hoursAgo": "před {count} hodinami",
-      "daysAgo": "před {count} dny"
-    }
+    "login": "Přihlášení",
+    "register": "Registrace"
   }
-} 
+}

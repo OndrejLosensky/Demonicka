@@ -753,20 +753,37 @@ export class DashboardService {
         totalBeers,
         totalUsers: event.users.length,
         totalBarrels: event.barrels.length,
+        totalEventsFinished: 0,
+        totalBeerPongGamesPlayed: 0,
         topUsers,
         barrelStats: formattedBarrelStats,
       };
     } else {
       // Global stats
-      const totalUsers = await this.prisma.user.count({
-        where: { deletedAt: null },
-      });
-      const totalBeers = await this.prisma.beer.count({
-        where: { deletedAt: null },
-      });
-      const totalBarrels = await this.prisma.barrel.count({
-        where: { deletedAt: null },
-      });
+      const [
+        totalUsers,
+        totalBeers,
+        totalBarrels,
+        totalEventsFinished,
+        totalBeerPongGamesPlayed,
+      ] = await Promise.all([
+        this.prisma.user.count({
+          where: { deletedAt: null },
+        }),
+        this.prisma.beer.count({
+          where: { deletedAt: null },
+        }),
+        this.prisma.barrel.count({
+          where: { deletedAt: null },
+        }),
+        this.prisma.event.count({
+          where: {
+            deletedAt: null,
+            endDate: { lt: new Date() },
+          },
+        }),
+        this.prisma.beerPongGame.count(),
+      ]);
 
       // Get top users by beer count
       const topUsersData = await this.prisma.user.findMany({
@@ -806,6 +823,8 @@ export class DashboardService {
         totalBeers,
         totalUsers,
         totalBarrels,
+        totalEventsFinished,
+        totalBeerPongGamesPlayed,
         topUsers,
         barrelStats: formattedBarrelStats,
       };

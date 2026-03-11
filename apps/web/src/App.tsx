@@ -1,11 +1,11 @@
+import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Landing from './pages/Landing';
+import Landing from './pages/landing/Landing';
 import Header from './components/navigation/Header';
 import { CoreProviders } from './components/providers/CoreProviders';
 import RoleRoute from './components/auth/RoleRoute';
 import GuestRoute from './components/auth/GuestRoute';
 import { USER_ROLE } from '@demonicka/shared-types';
-import { DashboardLayout } from './routes/DashboardRoutes';
 import { Dashboard } from './pages/Dashboard/Dashboard';
 import Participants from './pages/Dashboard/Participants';
 import Barrels from './pages/Dashboard/Barrels';
@@ -50,13 +50,29 @@ import { EnterToken } from './pages/Auth/EnterToken';
 import { GoogleCallback } from './pages/Auth/GoogleCallback';
 import { RegisterEventByToken } from './pages/EventRegistration/RegisterEventByToken';
 
+const DashboardLayout = lazy(() =>
+  import('./routes/DashboardRoutes').then((m) => ({ default: m.DashboardLayout }))
+);
+
 function App() {
   return (
     <CoreProviders>
       <Routes>
         <Route path="/" element={<Header />}>
           <Route index element={<Landing />} />
-          <Route element={<DashboardLayout />}>
+          <Route
+            element={
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center min-h-[60vh]">
+                    <div className="text-gray-500">Loading…</div>
+                  </div>
+                }
+              >
+                <DashboardLayout />
+              </Suspense>
+            }
+          >
             <Route
               path="dashboard"
               element={

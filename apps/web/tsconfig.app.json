@@ -24,6 +24,7 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+    "resolveJsonModule": true,
     "paths": {
       "@demonicka/shared-types": ["../../packages/shared-types/src/index.ts"],
       "@demonicka/shared-utils": ["../../packages/shared-utils/src/index.ts"]

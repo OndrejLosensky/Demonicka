@@ -24,13 +24,14 @@ export interface PublicStats {
   totalBeers: number;
   totalUsers: number;
   totalBarrels: number;
+  totalEventsFinished: number;
+  totalBeerPongGamesPlayed: number;
   topUsers: Array<{
-    name: string;
+    username: string;
     beerCount: number;
   }>;
   barrelStats: Array<{
     size: number;
     count: number;
   }>;
-  latestActivity: ActivityEvent[];
 } 
