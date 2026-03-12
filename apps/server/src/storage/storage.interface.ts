@@ -29,4 +29,12 @@ export interface IStorageService {
   getObjectStream(
     key: string,
   ): Promise<{ stream: NodeJS.ReadableStream; contentType?: string }>;
+
+  /**
+   * List objects under a prefix. Returns key, lastModified, and optional size.
+   * Returns empty array if bucket not configured.
+   */
+  listObjects(
+    prefix: string,
+  ): Promise<Array<{ key: string; lastModified: Date; size?: number }>>;
 }

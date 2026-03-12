@@ -8,6 +8,8 @@ import { LoggingService } from '../logging/logging.service';
 import { EventsService } from '../events/events.service';
 import { AchievementsService } from '../achievements/achievements.service';
 import { registerBackupRunHandler } from './handlers/backup-run.handler';
+import { registerBackupVerifyHandler } from './handlers/backup-verify.handler';
+import { registerBackupRetentionHandler } from './handlers/backup-retention.handler';
 import { registerCleanupHandlers } from './handlers/cleanup.handlers';
 import { registerAchievementsCheckHandler } from './handlers/achievements-check.handler';
 
@@ -27,6 +29,8 @@ export class JobsRegistrationService implements OnModuleInit {
       this.backupService,
       this.loggingService,
     );
+    registerBackupVerifyHandler(this.jobHandlerRegistry, this.backupService);
+    registerBackupRetentionHandler(this.jobHandlerRegistry, this.backupService);
     registerCleanupHandlers(
       this.jobHandlerRegistry,
       this.loggingService,

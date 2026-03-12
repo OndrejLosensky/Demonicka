@@ -44,6 +44,8 @@ const statusColor: Record<JobStatus, 'default' | 'primary' | 'success' | 'error'
 
 const typeLabel: Record<string, string> = {
   'backup.run': 'Záloha DB',
+  'backup.verify': 'Ověřit zálohy',
+  'backup.retention': 'Retence záloh',
   'cleanup.system': 'Vyčistit systém',
   'cleanup.activeEvent': 'Vyčistit aktivní událost',
   'clearAllLogs': 'Smazat všechny logy',

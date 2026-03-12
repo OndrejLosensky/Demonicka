@@ -5,6 +5,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  ListObjectsV2Command,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { IStorageService } from './storage.interface';
@@ -107,5 +108,36 @@ export class S3StorageService implements IStorageService {
       stream: response.Body as NodeJS.ReadableStream,
       contentType: response.ContentType ?? undefined,
     };
+  }
+
+  async listObjects(
+    prefix: string,
+  ): Promise<Array<{ key: string; lastModified: Date; size?: number }>> {
+    if (!this.bucket) {
+      return [];
+    }
+    const result: Array<{ key: string; lastModified: Date; size?: number }> = [];
+    let continuationToken: string | undefined;
+    do {
+      const response = await this.s3.send(
+        new ListObjectsV2Command({
+          Bucket: this.bucket,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+        }),
+      );
+      const contents = response.Contents ?? [];
+      for (const obj of contents) {
+        if (obj.Key != null) {
+          result.push({
+            key: obj.Key,
+            lastModified: obj.LastModified ?? new Date(0),
+            size: obj.Size,
+          });
+        }
+      }
+      continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined;
+    } while (continuationToken);
+    return result;
   }
 }

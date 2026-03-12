@@ -16,6 +16,9 @@ import { pipeline } from 'stream/promises';
 
 const BACKUP_S3_PREFIX = 'demonicka/backups';
 
+/** Retention days for S3 backups (configurable in code only for now). */
+export const BACKUP_RETENTION_DAYS = 7;
+
 @Injectable()
 export class BackupService {
   private readonly logger = new Logger(BackupService.name);
@@ -126,6 +129,70 @@ export class BackupService {
     }
 
     return { fileName };
+  }
+
+  /**
+   * List all backup object keys in S3 under the backup prefix.
+   */
+  async listBackupKeysInS3(): Promise<
+    Array<{ key: string; lastModified: Date; size?: number }>
+  > {
+    return this.storage.listObjects(BACKUP_S3_PREFIX);
+  }
+
+  /**
+   * Verify backups in S3: list count and optionally validate the latest object.
+   */
+  async verifyBackupsInS3(): Promise<{
+    totalCount: number;
+    latestKey?: string;
+    verified: boolean;
+  }> {
+    const keys = await this.listBackupKeysInS3();
+    const totalCount = keys.length;
+    if (totalCount === 0) {
+      return { totalCount, verified: false };
+    }
+    const sorted = [...keys].sort(
+      (a, b) => b.lastModified.getTime() - a.lastModified.getTime(),
+    );
+    const latest = sorted[0];
+    let verified = false;
+    if (latest?.key) {
+      try {
+        const { stream } = await this.storage.getObjectStream(latest.key);
+        const chunks: Buffer[] = [];
+        for await (const chunk of stream) {
+          chunks.push(Buffer.from(chunk));
+          if (chunks.reduce((s, c) => s + c.length, 0) >= 1024) break;
+        }
+        verified = chunks.length > 0 && chunks.reduce((s, c) => s + c.length, 0) > 0;
+      } catch {
+        verified = false;
+      }
+    }
+    return {
+      totalCount,
+      latestKey: latest?.key,
+      verified,
+    };
+  }
+
+  /**
+   * Delete S3 backup objects older than retentionDays.
+   */
+  async deleteOldBackupsInS3(
+    retentionDays: number,
+  ): Promise<{ deletedCount: number; deletedKeys: string[] }> {
+    const keys = await this.listBackupKeysInS3();
+    const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
+    const toDelete = keys.filter((k) => k.lastModified.getTime() < cutoff);
+    const deletedKeys: string[] = [];
+    for (const { key } of toDelete) {
+      await this.storage.delete(key);
+      deletedKeys.push(key);
+    }
+    return { deletedCount: deletedKeys.length, deletedKeys };
   }
 
   /**
