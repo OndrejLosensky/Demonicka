@@ -204,7 +204,7 @@ export const Events: React.FC = () => {
                                                 height: 20,
                                                 fontSize: '0.7rem',
                                                 fontWeight: 500,
-                                                bgcolor: 'rgba(255,255,255,0.9)',
+                                                bgcolor: mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.9)',
                                                 color: 'text.primary',
                                                 '& .MuiChip-label': {
                                                     px: 1,
@@ -218,7 +218,7 @@ export const Events: React.FC = () => {
                                                 height: 20,
                                                 fontSize: '0.7rem',
                                                 fontWeight: 500,
-                                                bgcolor: 'rgba(255,255,255,0.9)',
+                                                bgcolor: mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.9)',
                                                 color: 'text.primary',
                                                 '& .MuiChip-label': {
                                                     px: 1,
@@ -232,7 +232,7 @@ export const Events: React.FC = () => {
                                                 height: 20,
                                                 fontSize: '0.7rem',
                                                 fontWeight: 500,
-                                                bgcolor: 'rgba(255,255,255,0.9)',
+                                                bgcolor: mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.9)',
                                                 color: 'text.primary',
                                                 '& .MuiChip-label': {
                                                     px: 1,
