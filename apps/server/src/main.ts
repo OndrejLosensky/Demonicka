@@ -1,3 +1,5 @@
+import './tracing';
+
 // Register tsconfig-paths for path mapping resolution
 import 'tsconfig-paths/register';
 
