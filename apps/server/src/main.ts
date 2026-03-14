@@ -1,4 +1,6 @@
+import './load-env';
 import './tracing';
+import { startTracing } from './tracing';
 
 // Register tsconfig-paths for path mapping resolution
 import 'tsconfig-paths/register';
@@ -25,6 +27,8 @@ import { createMetricsMiddleware } from './metrics/metrics.middleware';
 import { MetricsService } from './metrics/metrics.service';
 
 async function bootstrap() {
+  await startTracing();
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   const loggingService = app.get(LoggingService);
