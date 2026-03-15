@@ -2,7 +2,8 @@
   "expo": {
     "name": "Démonická",
     "slug": "demonicka-mobile",
-    "version": "3.5.0",
+    "version": "1.0.0",
+    "runtimeVersion": "1.0.0",
     "scheme": "demonicka",
     "experiments": {
       "autolinkingModuleResolution": true
@@ -10,7 +11,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -32,6 +33,10 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
+    },
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD"
     },
     "plugins": [
       "expo-router",

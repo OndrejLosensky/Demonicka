@@ -8,17 +8,41 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import { Icon } from '../../../../components/icons';
 import { AdminMenuLinks } from '../../../../components/navigation/AdminMenuLinks';
 import { useAuthStore } from '../../../../store/auth.store';
+import { useUpdateStore } from '../../../../store/update.store';
+import { useToastStore } from '../../../../store/toast.store';
 import { useRole } from '../../../../hooks/useRole';
 import { useThemeColors } from '../../../../hooks/useThemeColors';
+import { useExpoUpdates } from '../../../../hooks/useExpoUpdates';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
+  const { showUpdatePrompt } = useUpdateStore();
+  const { showInfo, showError } = useToastStore();
   const { isOperator, isAdmin, role } = useRole();
   const colors = useThemeColors();
+  const { checkForUpdate, isEnabled } = useExpoUpdates();
+
+  const handleCheckForUpdates = async () => {
+    if (!isEnabled) {
+      showInfo('Aktualizace nejsou v tomto režimu k dispozici.');
+      return;
+    }
+    const result = await checkForUpdate();
+    if (result.error) {
+      showError(result.error);
+      return;
+    }
+    if (result.isAvailable) {
+      showUpdatePrompt();
+    } else {
+      showInfo('Aplikace je aktuální.');
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -209,6 +233,20 @@ export default function SettingsScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.menuItem, { borderBottomColor: colors.border }]}
+              onPress={handleCheckForUpdates}
+            >
+              <View style={styles.menuIconWrap}>
+                <Icon name="refresh" size={22} color={colors.textMuted} />
+              </View>
+              <Text style={[styles.menuLabel, { color: colors.text }]}>
+                Zkontrolovat aktualizace
+              </Text>
+              <Text style={[styles.menuArrow, { color: colors.textMuted }]}>
+                →
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.menuItem, { borderBottomColor: colors.border }]}
               onPress={() => router.push('/(app)/(tabs)/settings/feedback')}
             >
               <View style={styles.menuIconWrap}>
@@ -229,7 +267,7 @@ export default function SettingsScreen() {
                 Verze
               </Text>
               <Text style={[styles.menuValue, { color: colors.textMuted }]}>
-                3.6.0
+                {Constants.expoConfig?.version ?? '1.0.0'}
               </Text>
             </View>
           </View>

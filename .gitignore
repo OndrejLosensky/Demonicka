@@ -12,3 +12,6 @@ docs/
 *session.sql
 
 .idea
+
+// Agent transcripts
+AGENTS.md
