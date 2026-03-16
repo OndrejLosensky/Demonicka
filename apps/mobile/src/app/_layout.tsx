@@ -5,9 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '../store/auth.store';
 import { useThemeStore } from '../store/theme.store';
 import { useUpdateStore } from '../store/update.store';
+import { useBiometricStore } from '../store/biometric.store';
 import { useTheme } from '../hooks/useTheme';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useToastStore } from '../store/toast.store';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { useExpoUpdates } from '../hooks/useExpoUpdates';
 import { Toast } from '../components/ui/Toast';
 import { UpdatePromptModal } from '../components/ui/UpdatePromptModal';
@@ -18,6 +20,12 @@ export default function RootLayout() {
   const { visible, message, type, hideToast, showError } = useToastStore();
   const { showUpdateModal, dismissUpdatePrompt, showUpdatePrompt } =
     useUpdateStore();
+  const setBiometricAvailable = useBiometricStore(
+    (state) => state.setAvailable,
+  );
+  const syncBiometricFromStorage = useBiometricStore(
+    (state) => state.syncFromStorage,
+  );
   const { isDark } = useTheme();
   const { checkForUpdate, fetchAndReload, isEnabled } = useExpoUpdates();
   const [isDownloading, setIsDownloading] = useState(false);
@@ -25,7 +33,28 @@ export default function RootLayout() {
   useEffect(() => {
     bootstrap();
     hydrateTheme();
-  }, [bootstrap, hydrateTheme]);
+    syncBiometricFromStorage();
+  }, [bootstrap, hydrateTheme, syncBiometricFromStorage]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const hasHardware = await LocalAuthentication.hasHardwareAsync();
+        const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+        if (!cancelled) {
+          setBiometricAvailable(hasHardware && isEnrolled);
+        }
+      } catch {
+        if (!cancelled) {
+          setBiometricAvailable(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [setBiometricAvailable]);
 
   useEffect(() => {
     if (!isEnabled) return;

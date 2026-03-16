@@ -5,15 +5,18 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as LocalAuthentication from 'expo-local-authentication';
 import Constants from 'expo-constants';
 import { Icon } from '../../../../components/icons';
 import { AdminMenuLinks } from '../../../../components/navigation/AdminMenuLinks';
 import { useAuthStore } from '../../../../store/auth.store';
 import { useUpdateStore } from '../../../../store/update.store';
 import { useToastStore } from '../../../../store/toast.store';
+import { useBiometricStore } from '../../../../store/biometric.store';
 import { useRole } from '../../../../hooks/useRole';
 import { useThemeColors } from '../../../../hooks/useThemeColors';
 import { useExpoUpdates } from '../../../../hooks/useExpoUpdates';
@@ -23,6 +26,9 @@ export default function SettingsScreen() {
   const { user, logout } = useAuthStore();
   const { showUpdatePrompt } = useUpdateStore();
   const { showInfo, showError } = useToastStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const token = useAuthStore((state) => state.token);
+  const { available, enabled, enable, disable } = useBiometricStore();
   const { isOperator, isAdmin, role } = useRole();
   const colors = useThemeColors();
   const { checkForUpdate, isEnabled } = useExpoUpdates();
@@ -245,6 +251,47 @@ export default function SettingsScreen() {
                 →
               </Text>
             </TouchableOpacity>
+            {available && (
+              <View style={[styles.menuItem, { borderBottomColor: colors.border }]}>
+                <View style={styles.menuIconWrap}>
+                  <Icon name="lock" size={22} color={colors.textMuted} />
+                </View>
+                <Text style={[styles.menuLabel, { color: colors.text }]}>
+                  Biometrické přihlášení
+                </Text>
+                <Switch
+                  value={enabled}
+                  onValueChange={async (next) => {
+                    if (!next) {
+                      await disable();
+                      return;
+                    }
+
+                    if (!isAuthenticated || !token) {
+                      showInfo('Nejprve se přihlaste pomocí hesla.');
+                      return;
+                    }
+
+                    try {
+                      const result =
+                        await LocalAuthentication.authenticateAsync({
+                          promptMessage:
+                            'Potvrďte zapnutí biometrického přihlášení',
+                          cancelLabel: 'Zrušit',
+                        });
+                      if (result.success) {
+                        await enable();
+                        showInfo('Biometrické přihlášení bylo povoleno.');
+                      }
+                    } catch {
+                      showError('Biometrické přihlášení se nepodařilo zapnout.');
+                    }
+                  }}
+                  trackColor={{ false: colors.border, true: colors.greenBg }}
+                  thumbColor={enabled ? colors.green : colors.textMuted}
+                />
+              </View>
+            )}
             <TouchableOpacity
               style={[styles.menuItem, { borderBottomColor: colors.border }]}
               onPress={() => router.push('/(app)/(tabs)/settings/feedback')}

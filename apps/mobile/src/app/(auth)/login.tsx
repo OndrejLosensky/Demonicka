@@ -12,11 +12,15 @@ import {
   Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { useAuthStore } from '../../store/auth.store';
 import { useThemeColors } from '../../hooks/useThemeColors';
+import { useToastStore } from '../../store/toast.store';
+import { useBiometricStore } from '../../store/biometric.store';
 import { FormInput } from '../../components/forms/FormInput';
 import { FormButton } from '../../components/forms/FormButton';
 import { config } from '../../config';
+import { authService } from '../../services/auth.service';
 
 const logo = require('../../../assets/logo.png');
 
@@ -40,14 +44,39 @@ export default function LoginScreen() {
   const router = useRouter();
   const colors = useThemeColors();
   const login = useAuthStore((state) => state.login);
+  const bootstrap = useAuthStore((state) => state.bootstrap);
   const storeError = useAuthStore((state) => state.error);
   const clearError = useAuthStore((state) => state.clearError);
+  const { showError, showInfo } = useToastStore();
+  const { available, enabled, hasDecided, enable, markDecided } =
+    useBiometricStore();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [canBiometricLogin, setCanBiometricLogin] = useState(false);
+
+  // Check if we have a stored token and biometrics are enabled.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await authService.getStoredToken();
+        if (!cancelled) {
+          setCanBiometricLogin(Boolean(token && available && enabled));
+        }
+      } catch {
+        if (!cancelled) {
+          setCanBiometricLogin(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [available, enabled]);
 
   const handleSubmit = async () => {
     setError('');
@@ -65,6 +94,28 @@ export default function LoginScreen() {
       if ('requiresTwoFactor' in result && result.requiresTwoFactor) {
         setError(result.message || COPY.twoFactorRequired);
         return;
+      }
+
+      // Offer to enable biometrics after a successful login.
+      const shouldOfferBiometrics =
+        available && !enabled && !hasDecided && rememberMe;
+
+      if (shouldOfferBiometrics) {
+        try {
+          const authResult = await LocalAuthentication.authenticateAsync({
+            promptMessage: 'Potvrďte biometrické přihlášení',
+            cancelLabel: 'Ne teď',
+          });
+
+          if (authResult.success) {
+            await enable();
+            showInfo('Biometrické přihlášení bylo povoleno.');
+          }
+        } catch {
+          showError('Nepodařilo se nastavit biometrické přihlášení.');
+        } finally {
+          await markDecided();
+        }
       }
 
       router.replace('/(app)/(tabs)');
@@ -224,6 +275,31 @@ export default function LoginScreen() {
             loading={isLoading}
             style={styles.button}
           />
+
+          {canBiometricLogin && (
+            <View style={{ marginTop: 16 }}>
+              <FormButton
+                title="Přihlásit se biometrikou"
+                onPress={async () => {
+                  try {
+                    const result = await LocalAuthentication.authenticateAsync({
+                      promptMessage: 'Přihlášení biometrikou',
+                      cancelLabel: 'Zrušit',
+                    });
+                    if (!result.success) {
+                      return;
+                    }
+
+                    await bootstrap();
+                    router.replace('/(app)/(tabs)');
+                  } catch {
+                    showError('Biometrické přihlášení se nezdařilo.');
+                  }
+                }}
+                style={styles.button}
+              />
+            </View>
+          )}
 
           <View style={styles.dividerWrap}>
             <View style={styles.dividerLine} />
