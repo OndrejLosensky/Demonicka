@@ -36,7 +36,8 @@
     },
     "updates": {
       "enabled": true,
-      "checkAutomatically": "ON_LOAD"
+      "checkAutomatically": "ON_LOAD",
+      "url": "https://u.expo.dev/aeb98845-da8a-4efe-aabc-02fc7dbba8ec"
     },
     "plugins": [
       "expo-router",

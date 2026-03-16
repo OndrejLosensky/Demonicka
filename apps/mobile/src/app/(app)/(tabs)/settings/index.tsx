@@ -266,8 +266,8 @@ export default function SettingsScreen() {
               <Text style={[styles.menuLabel, { color: colors.text }]}>
                 Verze
               </Text>
-              <Text style={[styles.menuValue, { color: colors.textMuted }]}>
-                {Constants.expoConfig?.version ?? '1.0.0'}
+              <Text style={[styles.menuValue, { color: colors.textMuted }]} numberOfLines={2}>
+                {Constants.expoConfig?.version ?? '1.0.0'} — první OTA
               </Text>
             </View>
           </View>
