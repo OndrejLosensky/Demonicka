@@ -267,7 +267,7 @@ export default function SettingsScreen() {
                 Verze
               </Text>
               <Text style={[styles.menuValue, { color: colors.textMuted }]} numberOfLines={2}>
-                {Constants.expoConfig?.version ?? '1.0.0'} — první OTA
+                {Constants.expoConfig?.version ?? '1.0.1'}
               </Text>
             </View>
           </View>

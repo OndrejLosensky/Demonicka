@@ -2,7 +2,7 @@
   "expo": {
     "name": "Démonická",
     "slug": "demonicka-mobile",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "runtimeVersion": "1.0.0",
     "scheme": "demonicka",
     "experiments": {
@@ -37,7 +37,10 @@
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
-      "url": "https://u.expo.dev/aeb98845-da8a-4efe-aabc-02fc7dbba8ec"
+      "url": "https://u.expo.dev/aeb98845-da8a-4efe-aabc-02fc7dbba8ec",
+      "requestHeaders": {
+        "expo-channel-name": "preview"
+      }
     },
     "plugins": [
       "expo-router",
