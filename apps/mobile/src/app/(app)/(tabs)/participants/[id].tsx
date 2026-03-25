@@ -48,6 +48,7 @@ export default function ParticipantDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [smallBeer, setSmallBeer] = useState(false);
 
   const fetchParticipant = useCallback(async () => {
     if (!activeEvent?.id || !token || !id) return;
@@ -104,6 +105,51 @@ export default function ParticipantDetailScreen() {
     await Promise.all([fetchParticipant(), fetchBeerHistory()]);
     setRefreshing(false);
   }, [fetchParticipant, fetchBeerHistory]);
+
+  const handleAddBeer = useCallback(async () => {
+    if (!token || !activeEvent?.id || !id) return;
+    setParticipant((prev) =>
+      prev ? { ...prev, eventBeerCount: (prev.eventBeerCount ?? 0) + 1 } : prev
+    );
+    try {
+      const useSmall = activeEvent.beerSizesEnabled !== false && smallBeer;
+      await api.post(
+        `/events/${activeEvent.id}/users/${id}/beers`,
+        useSmall ? { beerSize: 'SMALL' } : {},
+        token
+      );
+    } finally {
+      await Promise.all([fetchParticipant(), fetchBeerHistory()]);
+    }
+  }, [token, activeEvent?.id, activeEvent?.beerSizesEnabled, id, smallBeer, fetchParticipant, fetchBeerHistory]);
+
+  const handleRemoveBeer = useCallback(async () => {
+    if (!token || !activeEvent?.id || !id) return;
+    setParticipant((prev) =>
+      prev ? { ...prev, eventBeerCount: Math.max(0, (prev.eventBeerCount ?? 0) - 1) } : prev
+    );
+    try {
+      await api.delete(`/events/${activeEvent.id}/users/${id}/beers`, token);
+    } finally {
+      await Promise.all([fetchParticipant(), fetchBeerHistory()]);
+    }
+  }, [token, activeEvent?.id, id, fetchParticipant, fetchBeerHistory]);
+
+  const handleAddSpilledBeer = useCallback(async () => {
+    if (!token || !activeEvent?.id || !id) return;
+    setParticipant((prev) =>
+      prev ? { ...prev, eventBeerCount: (prev.eventBeerCount ?? 0) + 1 } : prev
+    );
+    try {
+      await api.post(
+        `/events/${activeEvent.id}/users/${id}/beers`,
+        { spilled: true },
+        token
+      );
+    } finally {
+      await Promise.all([fetchParticipant(), fetchBeerHistory()]);
+    }
+  }, [token, activeEvent?.id, id, fetchParticipant, fetchBeerHistory]);
 
   const handleRemoveFromEvent = useCallback(() => {
     if (!activeEvent?.id || !token || !id) return;
@@ -232,6 +278,30 @@ export default function ParticipantDetailScreen() {
           borderRadius: 6,
         },
         spilledText: { fontSize: 11, color: colors.amber, fontWeight: '500' },
+        beerActionsRow: {
+          flexDirection: 'row' as const,
+          gap: 10,
+          marginBottom: 24,
+          justifyContent: 'center',
+        },
+        beerActionBtn: {
+          width: 56,
+          height: 56,
+          borderRadius: 14,
+          borderWidth: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        beerActionBtnSpill: {},
+        beerSizeBtn: {
+          width: 56,
+          height: 56,
+          borderRadius: 14,
+          borderWidth: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        beerSizeBtnText: { fontSize: 16, fontWeight: '700' },
         actionsSection: { marginTop: 8, paddingHorizontal: 4 },
         removeFromEventBtn: {
           flexDirection: 'row' as const,
@@ -316,6 +386,37 @@ export default function ParticipantDetailScreen() {
             color={colors.text}
             style={styles.statCard}
           />
+        </View>
+
+        <View style={styles.beerActionsRow}>
+          <TouchableOpacity
+            style={[styles.beerActionBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+            onPress={handleAddBeer}
+          >
+            <Icon name="add" size={22} color={colors.text} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.beerActionBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+            onPress={handleRemoveBeer}
+          >
+            <Icon name="remove" size={22} color={colors.text} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.beerActionBtn, styles.beerActionBtnSpill, { backgroundColor: colors.amberBg, borderColor: colors.amberBg }]}
+            onPress={handleAddSpilledBeer}
+          >
+            <Icon name="spill" size={20} color={colors.amber} />
+          </TouchableOpacity>
+          {activeEvent?.beerSizesEnabled !== false && (
+            <TouchableOpacity
+              style={[styles.beerSizeBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }, smallBeer && { backgroundColor: colors.primary, borderColor: colors.primary }]}
+              onPress={() => setSmallBeer((v) => !v)}
+            >
+              <Text style={[styles.beerSizeBtnText, { color: smallBeer ? '#fff' : colors.textMuted }]}>
+                {smallBeer ? 'S' : 'L'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.detailsSection}>

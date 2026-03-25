@@ -168,33 +168,6 @@ export default function ParticipantsScreen() {
     [token, activeEvent?.id, fetchParticipants]
   );
 
-  const handleAddSpilledBeer = useCallback(
-    async (userId: string) => {
-      if (!token || !activeEvent?.id) return;
-      // Optimistic update (spilled still counts as a beer)
-      setParticipants((prev) =>
-        prev.map((p) =>
-          p.id === userId ? { ...p, eventBeerCount: (p.eventBeerCount ?? 0) + 1 } : p
-        )
-      );
-      setFilteredParticipants((prev) =>
-        prev.map((p) =>
-          p.id === userId ? { ...p, eventBeerCount: (p.eventBeerCount ?? 0) + 1 } : p
-        )
-      );
-      try {
-        await api.post(
-          `/events/${activeEvent.id}/users/${userId}/beers`,
-          { spilled: true },
-          token
-        );
-      } finally {
-        await fetchParticipants();
-      }
-    },
-    [token, activeEvent?.id, fetchParticipants]
-  );
-
   const toggleSmallBeer = useCallback((userId: string) => {
     setSmallBeerForUser((prev) => ({ ...prev, [userId]: !prev[userId] }));
   }, []);
@@ -236,12 +209,6 @@ export default function ParticipantsScreen() {
             onPress={() => handleRemoveBeer(item.id)}
           >
             <Icon name="remove" size={20} color={colors.text} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionBtnSpill, { backgroundColor: colors.amberBg }]}
-            onPress={() => handleAddSpilledBeer(item.id)}
-          >
-            <Icon name="spill" size={18} color={colors.amber} />
           </TouchableOpacity>
           {beerSizesEnabled && (
           <TouchableOpacity
@@ -403,7 +370,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  actionBtnSpill: {},
   sizeBtn: {
     minWidth: 28,
     height: 36,
