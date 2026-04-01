@@ -26,6 +26,7 @@ export type IconName =
   | 'spill'
   | 'copy'
   | 'check'
+  | 'close'
   | 'chevron-left'
   | 'image';
 
@@ -49,6 +50,7 @@ const ICON_MAP: Record<IconName, React.ComponentProps<typeof MaterialCommunityIc
   spill: 'cup-water',
   copy: 'content-copy',
   check: 'check',
+  close: 'close',
   'chevron-left': 'chevron-left',
   image: 'image-multiple',
 };

@@ -19,6 +19,7 @@ import { Icon } from '../../../../components/icons';
 import { LoadingScreen } from '../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../components/ui/EmptyState';
 import { AddParticipantModal } from '../../../../components/participants/AddParticipantModal';
+import { ImportParticipantsModal } from '../../../../components/participants/ImportParticipantsModal';
 import { useThemeColors } from '../../../../hooks/useThemeColors';
 import type { User } from '@demonicka/shared-types';
 
@@ -38,6 +39,7 @@ export default function ParticipantsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [addModalVisible, setAddModalVisible] = useState(false);
+  const [importModalVisible, setImportModalVisible] = useState(false);
   const [smallBeerForUser, setSmallBeerForUser] = useState<Record<string, boolean>>({});
   const isFirstFocus = useRef(true);
 
@@ -250,13 +252,22 @@ export default function ParticipantsScreen() {
             {participants.length} účastníků
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => setAddModalVisible(true)}
-        >
-          <Icon name="add" size={20} color="#fff" />
-          <Text style={styles.addBtnText}>Přidat</Text>
-        </TouchableOpacity>
+        <View style={styles.headerBtns}>
+          <TouchableOpacity
+            style={styles.importBtn}
+            onPress={() => setImportModalVisible(true)}
+          >
+            <Icon name="group" size={18} color={colors.primary} />
+            <Text style={[styles.importBtnText, { color: colors.primary }]}>Import</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() => setAddModalVisible(true)}
+          >
+            <Icon name="add" size={20} color="#fff" />
+            <Text style={styles.addBtnText}>Přidat</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <AddParticipantModal
@@ -264,6 +275,16 @@ export default function ParticipantsScreen() {
         onClose={() => setAddModalVisible(false)}
         onSubmit={handleAddParticipant}
       />
+
+      {activeEvent?.id && token && (
+        <ImportParticipantsModal
+          visible={importModalVisible}
+          eventId={activeEvent.id}
+          token={token}
+          onClose={() => setImportModalVisible(false)}
+          onDone={fetchParticipants}
+        />
+      )}
 
       <View style={styles.searchContainer}>
         <TextInput
@@ -311,6 +332,18 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 28, fontWeight: '700' },
   subtitle: { fontSize: 15, marginTop: 4 },
+  headerBtns: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  importBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FF0000',
+  },
+  importBtnText: { fontSize: 14, fontWeight: '600' },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -30,6 +30,7 @@ import { ParticipantsTable } from './ParticipantsTable';
 import { useParticipants } from './useParticipants';
 import { participantsApi } from './api';
 import { AddParticipantDialog } from './AddParticipantDialog';
+import { ImportParticipantsDialog } from './ImportParticipantsDialog';
 import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 import { FeatureFlagKey } from '../../../types/featureFlags';
 import { EventSelector } from '../../../components/EventSelector';
@@ -60,6 +61,7 @@ const ParticipantsPage: React.FC = () => {
   } = useParticipants(showDeleted);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyUsername, setHistoryUsername] = useState<string>('');
   const [historyBeers, setHistoryBeers] = useState<Array<{
@@ -135,6 +137,13 @@ const ParticipantsPage: React.FC = () => {
             />
           )}
           <Button
+            variant="outlined"
+            color="error"
+            onClick={() => setImportDialogOpen(true)}
+          >
+            Přidat existující
+          </Button>
+          <Button
             variant="contained"
             color="error"
             startIcon={<AddIcon />}
@@ -151,6 +160,7 @@ const ParticipantsPage: React.FC = () => {
       showDeleted,
       (t.actions as Record<string, string>)?.showDeleted,
       (t.actions as Record<string, string>)?.addParticipant,
+      importDialogOpen,
     ],
   );
 
@@ -235,6 +245,12 @@ const ParticipantsPage: React.FC = () => {
           setDialogOpen(false);
           fetchParticipants();
         }}
+      />
+
+      <ImportParticipantsDialog
+        open={importDialogOpen}
+        onClose={() => setImportDialogOpen(false)}
+        onSuccess={fetchParticipants}
       />
 
       <Dialog
