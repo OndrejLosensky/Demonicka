@@ -11,7 +11,9 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Share,
 } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '../../../../../store/auth.store';
@@ -187,6 +189,20 @@ export default function EventDetailScreen() {
     }
   }, [event, token, fetchEvent]);
 
+  const registrationUrl = useMemo(() => {
+    if (!event?.registrationToken || !event?.registrationEnabled) return null;
+    return `${process.env.EXPO_PUBLIC_WEB_APP_URL}/register/event/${event.registrationToken}`;
+  }, [event?.registrationToken, event?.registrationEnabled]);
+
+  const handleShareRegistrationLink = useCallback(async () => {
+    if (!registrationUrl) return;
+    try {
+      await Share.share({ message: registrationUrl, url: registrationUrl });
+    } catch {
+      // dismissed
+    }
+  }, [registrationUrl]);
+
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -275,6 +291,18 @@ export default function EventDetailScreen() {
         dangerBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
         note: { paddingTop: 8, paddingHorizontal: 4 },
         noteText: { fontSize: 12, color: colors.textMuted, textAlign: 'center', fontStyle: 'italic' },
+        qrWrap: { alignItems: 'center', paddingVertical: 14, gap: 10 },
+        shareBtn: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 6,
+          backgroundColor: colors.primary,
+          paddingHorizontal: 18,
+          paddingVertical: 9,
+          borderRadius: 8,
+        },
+        shareBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+        linkRowPadded: { paddingTop: 10 },
       }),
     [colors]
   );
@@ -370,6 +398,30 @@ export default function EventDetailScreen() {
                   <Text style={styles.fieldMono} selectable>{event.registrationToken}</Text>
                 </View>
               )}
+              {registrationUrl && (
+                <View style={styles.qrWrap}>
+                  <QRCode value={registrationUrl} size={160} />
+                  <TouchableOpacity
+                    style={styles.shareBtn}
+                    onPress={handleShareRegistrationLink}
+                    activeOpacity={0.8}
+                  >
+                    <Icon name="share" size={16} color="#fff" />
+                    <Text style={styles.shareBtnText}>Sdílet odkaz</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              <TouchableOpacity
+                style={[styles.linkRow, styles.linkRowPadded]}
+                onPress={() => router.push({ pathname: '/settings/event-registrations', params: { eventId: id } })}
+                activeOpacity={0.8}
+              >
+                <View style={styles.linkLeft}>
+                  <Icon name="inbox" size={20} color={colors.textSecondary} />
+                  <Text style={styles.linkLabel}>Přihlášky ke schválení</Text>
+                </View>
+                <Text style={styles.linkArrow}>→</Text>
+              </TouchableOpacity>
             </View>
           </View>
 

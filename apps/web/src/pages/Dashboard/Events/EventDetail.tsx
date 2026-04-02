@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import {
     Container,
     Grid,
@@ -837,6 +838,110 @@ export const EventDetail: React.FC = () => {
                     </Grid>
                 </Grid>
 
+                {/* Registration Section */}
+                {hasPermission([Permission.MANAGE_EVENT_USERS, Permission.MANAGE_PARTICIPANTS]) && (
+                    <Paper
+                        sx={{
+                            borderRadius: 1,
+                            bgcolor: 'background.paper',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            border: '1px solid',
+                            borderColor: event?.registrationEnabled ? 'success.light' : 'divider',
+                            mb: 3,
+                        }}
+                    >
+                        <Box sx={{ p: 3, display: 'flex', gap: 4, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                            <Box sx={{ flex: 1, minWidth: 200 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                                    <HowToRegIcon sx={{ fontSize: 20, color: event?.registrationEnabled ? 'success.main' : 'text.secondary' }} />
+                                    <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>
+                                        Registrace
+                                    </Typography>
+                                    <Chip
+                                        label={event?.registrationEnabled ? 'Otevřena' : 'Uzavřena'}
+                                        size="small"
+                                        color={event?.registrationEnabled ? 'success' : 'default'}
+                                        sx={{ fontWeight: 600 }}
+                                    />
+                                </Box>
+                                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                    {!event?.registrationEnabled ? (
+                                        <Button
+                                            variant="contained"
+                                            size="small"
+                                            color="success"
+                                            startIcon={<HowToRegIcon />}
+                                            onClick={handleOpenRegistration}
+                                            disabled={isManagingRegistration}
+                                        >
+                                            Otevřít registraci
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            color="error"
+                                            onClick={handleCloseRegistration}
+                                            disabled={isManagingRegistration}
+                                        >
+                                            Uzavřít registraci
+                                        </Button>
+                                    )}
+                                    {event?.registrationEnabled && event?.registrationToken && (
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            startIcon={<LinkIcon />}
+                                            onClick={() => {
+                                                setRegistrationLink(
+                                                    `${window.location.origin}/register/event/${event.registrationToken}`,
+                                                );
+                                                setShowLinkDialog(true);
+                                            }}
+                                        >
+                                            Odkaz + QR
+                                        </Button>
+                                    )}
+                                    <Button
+                                        variant="outlined"
+                                        size="small"
+                                        startIcon={<HowToRegIcon />}
+                                        onClick={() => navigate(`/dashboard/events/${id}/registration`)}
+                                    >
+                                        Přihlášky ke schválení
+                                    </Button>
+                                </Box>
+                            </Box>
+                            {event?.registrationEnabled && event?.registrationToken && (
+                                <Box
+                                    sx={{
+                                        p: 1.5,
+                                        bgcolor: '#fff',
+                                        borderRadius: 1,
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        display: 'flex',
+                                        flexShrink: 0,
+                                        cursor: 'pointer',
+                                    }}
+                                    onClick={() => {
+                                        setRegistrationLink(
+                                            `${window.location.origin}/register/event/${event.registrationToken}`,
+                                        );
+                                        setShowLinkDialog(true);
+                                    }}
+                                    title="Zobrazit registrační odkaz a QR kód"
+                                >
+                                    <QRCodeSVG
+                                        value={`${window.location.origin}/register/event/${event.registrationToken}`}
+                                        size={100}
+                                    />
+                                </Box>
+                            )}
+                        </Box>
+                    </Paper>
+                )}
+
                 {/* Rest of the content */}
                 <Grid container spacing={3}>
                     {/* Participants Section */}
@@ -1199,8 +1304,24 @@ export const EventDetail: React.FC = () => {
                 <DialogContent>
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            Sdílejte tento odkaz s účastníky, aby se mohli zaregistrovat:
+                            Sdílejte tento odkaz nebo QR kód s účastníky, aby se mohli zaregistrovat:
                         </Typography>
+                        {registrationLink && (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+                                <Box
+                                    sx={{
+                                        p: 2,
+                                        bgcolor: '#fff',
+                                        borderRadius: 2,
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        display: 'inline-flex',
+                                    }}
+                                >
+                                    <QRCodeSVG value={registrationLink} size={200} />
+                                </Box>
+                            </Box>
+                        )}
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                             <TextField
                                 fullWidth

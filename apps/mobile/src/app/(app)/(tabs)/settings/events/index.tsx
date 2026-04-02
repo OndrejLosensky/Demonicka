@@ -12,6 +12,7 @@ import { Header } from '../../../../../components/layout/Header';
 import { LoadingScreen } from '../../../../../components/ui/LoadingScreen';
 import { EmptyState } from '../../../../../components/ui/EmptyState';
 import { CreateEventModal } from '../../../../../components/events/CreateEventModal';
+import type { CreateEventConfig } from '../../../../../components/events/CreateEventModal';
 import { Icon } from '../../../../../components/icons';
 import { formatDate } from '../../../../../utils/format';
 import { Permission } from '@demonicka/shared';
@@ -48,9 +49,16 @@ export default function EventListScreen() {
   }, [isOperator, fetchEvents]);
 
   const handleCreateEvent = useCallback(
-    async (data: CreateEventDto) => {
+    async (data: CreateEventDto, config: CreateEventConfig) => {
       if (!token) return;
-      await api.post<Event>('/events', data, token);
+      const created = await api.post<Event>('/events', data, token);
+      const hasNonDefault =
+        config.beerPongEnabled !== false ||
+        config.beerSizesEnabled !== false ||
+        config.beerPrice !== 30;
+      if (hasNonDefault && created?.id) {
+        await api.put(`/events/${created.id}`, config, token);
+      }
       await Promise.all([fetchEvents(), refetchActiveEvent()]);
       setCreateModalVisible(false);
     },

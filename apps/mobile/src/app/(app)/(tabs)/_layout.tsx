@@ -57,7 +57,7 @@ export default function TabsLayout() {
         options={{
           title: 'Události',
           tabBarIcon: ({ color }) => <Icon name="chart" size={20} color={color} />,
-          href: isOperator ? null : undefined,
+          href: !isOperator && !!activeEvent ? undefined : null,
         }}
       />
       <Tabs.Screen
@@ -65,7 +65,7 @@ export default function TabsLayout() {
         options={{
           title: 'Galerie',
           tabBarIcon: ({ color }) => <Icon name="image" size={20} color={color} />,
-          href: isOperator ? null : undefined,
+          href: !!activeEvent ? undefined : null,
         }}
       />
       <Tabs.Screen
@@ -73,7 +73,7 @@ export default function TabsLayout() {
         options={{
           title: 'Účastníci',
           tabBarIcon: ({ color }) => <Icon name="group" size={20} color={color} />,
-          href: canAccess('participants', user) ? undefined : null,
+          href: canAccess('participants', user) && !!activeEvent ? undefined : null,
         }}
       />
       <Tabs.Screen
@@ -81,7 +81,7 @@ export default function TabsLayout() {
         options={{
           title: 'Sudy',
           tabBarIcon: ({ color }) => <Icon name="barrel" size={20} color={color} />,
-          href: canAccess('barrels', user) ? undefined : null,
+          href: canAccess('barrels', user) && !!activeEvent ? undefined : null,
         }}
       />
       <Tabs.Screen
@@ -89,7 +89,7 @@ export default function TabsLayout() {
         options={{
           title: 'Beer Pong',
           tabBarIcon: ({ color }) => <Icon name="beer-pong" size={20} color={color} />,
-          href: canAccess('beerPong', user) && activeEvent?.beerPongEnabled ? undefined : null,
+          href: canAccess('beerPong', user) && !!activeEvent?.beerPongEnabled ? undefined : null,
         }}
       />
       <Tabs.Screen

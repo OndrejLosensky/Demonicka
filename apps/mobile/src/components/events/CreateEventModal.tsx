@@ -10,11 +10,18 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Switch,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { formatDateTimeLong } from '../../utils/format';
 import type { CreateEventDto } from '@demonicka/shared-types';
+
+export interface CreateEventConfig {
+  beerPongEnabled: boolean;
+  beerSizesEnabled: boolean;
+  beerPrice: number;
+}
 
 function defaultStartDate(): Date {
   const d = new Date();
@@ -34,7 +41,7 @@ type PickerStep = 'date' | 'time';
 interface CreateEventModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateEventDto) => Promise<void>;
+  onSubmit: (data: CreateEventDto, config: CreateEventConfig) => Promise<void>;
 }
 
 export function CreateEventModal({
@@ -51,6 +58,9 @@ export function CreateEventModal({
   const [error, setError] = useState('');
   const [pickerField, setPickerField] = useState<'start' | 'end' | null>(null);
   const [pickerStep, setPickerStep] = useState<PickerStep>('date');
+  const [beerPongEnabled, setBeerPongEnabled] = useState(false);
+  const [beerSizesEnabled, setBeerSizesEnabled] = useState(false);
+  const [beerPrice, setBeerPrice] = useState('30');
 
   useEffect(() => {
     if (visible) {
@@ -62,6 +72,9 @@ export function CreateEventModal({
       setEndDate(end);
       setError('');
       setPickerField(null);
+      setBeerPongEnabled(false);
+      setBeerSizesEnabled(false);
+      setBeerPrice('30');
     }
   }, [visible]);
 
@@ -151,12 +164,20 @@ export function CreateEventModal({
     setError('');
     setIsSubmitting(true);
     try {
-      await onSubmit({
-        name: trimmed,
-        description: description.trim() || undefined,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-      });
+      const price = parseInt(beerPrice, 10);
+      await onSubmit(
+        {
+          name: trimmed,
+          description: description.trim() || undefined,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+        },
+        {
+          beerPongEnabled,
+          beerSizesEnabled,
+          beerPrice: isNaN(price) || price < 0 ? 30 : price,
+        },
+      );
       onClose();
     } catch (e) {
       const msg = (e as { message?: string })?.message ?? 'Nepodařilo se vytvořit událost';
@@ -188,7 +209,7 @@ export function CreateEventModal({
           paddingTop: 20,
           paddingBottom: 8,
         },
-        scroll: { maxHeight: 400 },
+        scroll: { maxHeight: 500 },
         scrollContent: { padding: 20, paddingBottom: 16 },
         label: {
           fontSize: 14,
@@ -246,6 +267,27 @@ export function CreateEventModal({
         },
         submitBtnDisabled: { opacity: 0.7 },
         submitText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+        sectionLabel: {
+          fontSize: 13,
+          fontWeight: '600',
+          color: colors.textSecondary,
+          textTransform: 'uppercase' as const,
+          marginTop: 20,
+          marginBottom: 8,
+        },
+        configRow: {
+          flexDirection: 'row' as const,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderWidth: 1,
+          borderRadius: 10,
+          paddingHorizontal: 14,
+          paddingVertical: 10,
+          marginBottom: 8,
+        },
+        configRowLeft: { flex: 1, marginRight: 8 },
+        configRowLabel: { fontSize: 15, fontWeight: '500' },
+        configRowSub: { fontSize: 12, marginTop: 2 },
       }),
     [colors]
   );
@@ -343,6 +385,47 @@ export function CreateEventModal({
                 onChange={handlePickerChange}
               />
             )}
+
+            <Text style={styles.sectionLabel}>Nastavení události</Text>
+
+            <View style={[styles.configRow, { borderColor: colors.border, backgroundColor: colors.inputBg }]}>
+              <View style={styles.configRowLeft}>
+                <Text style={[styles.configRowLabel, { color: colors.text }]}>Beer pong</Text>
+                <Text style={[styles.configRowSub, { color: colors.textMuted }]}>Povolit beer pong</Text>
+              </View>
+              <Switch
+                value={beerPongEnabled}
+                onValueChange={setBeerPongEnabled}
+                disabled={isSubmitting}
+                trackColor={{ false: colors.border, true: colors.greenBg }}
+                thumbColor={beerPongEnabled ? colors.green : colors.textMuted}
+              />
+            </View>
+
+            <View style={[styles.configRow, { borderColor: colors.border, backgroundColor: colors.inputBg }]}>
+              <View style={styles.configRowLeft}>
+                <Text style={[styles.configRowLabel, { color: colors.text }]}>Malá piva (0,3 l)</Text>
+                <Text style={[styles.configRowSub, { color: colors.textMuted }]}>Povolit malá piva</Text>
+              </View>
+              <Switch
+                value={beerSizesEnabled}
+                onValueChange={setBeerSizesEnabled}
+                disabled={isSubmitting}
+                trackColor={{ false: colors.border, true: colors.greenBg }}
+                thumbColor={beerSizesEnabled ? colors.green : colors.textMuted}
+              />
+            </View>
+
+            <Text style={styles.label}>Cena piva (Kč)</Text>
+            <TextInput
+              style={styles.input}
+              value={beerPrice}
+              onChangeText={(t) => setBeerPrice(t.replace(/[^0-9]/g, ''))}
+              placeholder="30"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="number-pad"
+              editable={!isSubmitting}
+            />
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
           </ScrollView>

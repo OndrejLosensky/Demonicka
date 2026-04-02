@@ -25,7 +25,7 @@ export default function UsersManagementScreen() {
   const router = useRouter();
   const colors = useThemeColors();
   const token = useAuthStore((state) => state.token);
-  const { isAdmin } = useRole();
+  const { isOperator } = useRole();
 
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -149,7 +149,7 @@ export default function UsersManagementScreen() {
     [colors]
   );
 
-  if (!isAdmin) {
+  if (!isOperator) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header title="Správa uživatelů" showBack />

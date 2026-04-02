@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,9 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Share,
 } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useActiveEvent } from '../../../../hooks/useActiveEvent';
@@ -199,6 +201,20 @@ export default function EventSettingsScreen() {
     }
   }, [activeEvent, token, refetchActiveEvent]);
 
+  const registrationUrl = useMemo(() => {
+    if (!activeEvent?.registrationToken || !activeEvent?.registrationEnabled) return null;
+    return `${process.env.EXPO_PUBLIC_WEB_APP_URL}/register/event/${activeEvent.registrationToken}`;
+  }, [activeEvent?.registrationToken, activeEvent?.registrationEnabled]);
+
+  const handleShareRegistrationLink = useCallback(async () => {
+    if (!registrationUrl) return;
+    try {
+      await Share.share({ message: registrationUrl, url: registrationUrl });
+    } catch {
+      // dismissed
+    }
+  }, [registrationUrl]);
+
   if (!isOperator) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
@@ -371,6 +387,30 @@ export default function EventSettingsScreen() {
                   </Text>
                 </View>
               )}
+              {registrationUrl && (
+                <View style={styles.qrWrap}>
+                  <QRCode value={registrationUrl} size={160} />
+                  <TouchableOpacity
+                    style={styles.shareBtn}
+                    onPress={handleShareRegistrationLink}
+                    activeOpacity={0.8}
+                  >
+                    <Icon name="share" size={16} color="#fff" />
+                    <Text style={styles.shareBtnText}>Sdílet odkaz</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              <TouchableOpacity
+                style={styles.linkRow}
+                onPress={() => router.push('/settings/event-registrations')}
+                activeOpacity={0.8}
+              >
+                <View style={styles.linkLeft}>
+                  <Icon name="inbox" size={20} color={colors.textSecondary} />
+                  <Text style={styles.linkLabel}>Přihlášky ke schválení</Text>
+                </View>
+                <Text style={styles.linkArrow}>→</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -656,5 +696,24 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  qrWrap: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    gap: 12,
+  },
+  shareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FF0000',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  shareBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
   },
 });

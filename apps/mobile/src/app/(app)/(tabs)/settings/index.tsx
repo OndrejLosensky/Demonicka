@@ -185,21 +185,7 @@ export default function SettingsScreen() {
               Administrace
             </Text>
             <View style={[styles.card, { backgroundColor: colors.card }]}>
-              <TouchableOpacity
-                style={[styles.menuItem, { borderBottomColor: colors.border }]}
-                onPress={() => router.push('/(app)/(tabs)/gallery')}
-              >
-                <View style={styles.menuIconWrap}>
-                  <Icon name="image" size={22} color={colors.textMuted} />
-                </View>
-                <Text style={[styles.menuLabel, { color: colors.text }]}>
-                  Galerie
-                </Text>
-                <Text style={[styles.menuArrow, { color: colors.textMuted }]}>
-                  →
-                </Text>
-              </TouchableOpacity>
-              <AdminMenuLinks isAdmin={isAdmin} />
+              <AdminMenuLinks isAdmin={isAdmin} isOperator={isOperator} />
             </View>
           </View>
         )}

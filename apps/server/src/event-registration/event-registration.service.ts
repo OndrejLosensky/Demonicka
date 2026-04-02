@@ -8,15 +8,21 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EventRegistration, EventRegistrationStatus } from '@prisma/client';
 import { CreateRegistrationDto } from './dto/create-registration.dto';
 import { UpdateRegistrationDto } from './dto/update-registration.dto';
+import { UserMatchingService } from './user-matching.service';
 import { randomBytes } from 'node:crypto';
 import { ExcelRenderer } from '../exports/excel/ExcelRenderer';
 import type { StreamableFile } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import { isEventCompleted } from '../events/utils/event-completion.util';
 
+const AUTO_MATCH_CONFIDENCE_THRESHOLD = 70;
+
 @Injectable()
 export class EventRegistrationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private userMatchingService: UserMatchingService,
+  ) {}
 
   /**
    * Generate a secure random token for event registration
@@ -242,10 +248,10 @@ export class EventRegistrationService {
   }
 
   /**
-   * Apply approved registrations to event (add users to EventUsers)
+   * Apply approved registrations to event (add users to EventUsers).
+   * For registrations without a matchedUserId, auto-matching is attempted at apply time.
    */
   async applyRegistrations(eventId: string): Promise<{ applied: number }> {
-    // Check if event is completed
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
     });
@@ -262,33 +268,39 @@ export class EventRegistrationService {
       where: {
         eventId,
         status: EventRegistrationStatus.APPROVED,
-        matchedUserId: { not: null },
       },
     });
 
+    // For registrations without a matchedUserId, attempt auto-matching now
+    const resolvedRegistrations: Array<{ id: string; matchedUserId: string }> = [];
+
+    for (const reg of approvedRegistrations) {
+      if (reg.matchedUserId) {
+        resolvedRegistrations.push({ id: reg.id, matchedUserId: reg.matchedUserId });
+      } else {
+        const match = await this.userMatchingService.findBestMatch(reg.rawName, eventId);
+        if (match.user && match.confidence >= AUTO_MATCH_CONFIDENCE_THRESHOLD) {
+          // Persist the matched user so future applies are consistent
+          await this.prisma.eventRegistration.update({
+            where: { id: reg.id },
+            data: { matchedUserId: match.user.id },
+          });
+          resolvedRegistrations.push({ id: reg.id, matchedUserId: match.user.id });
+        }
+      }
+    }
+
     let applied = 0;
 
-    // Use transaction to ensure atomicity
     await this.prisma.$transaction(async (tx) => {
-      for (const registration of approvedRegistrations) {
-        if (!registration.matchedUserId) continue;
-
-        // Check if user is already in event
+      for (const { matchedUserId } of resolvedRegistrations) {
         const existing = await tx.eventUsers.findUnique({
-          where: {
-            eventId_userId: {
-              eventId,
-              userId: registration.matchedUserId,
-            },
-          },
+          where: { eventId_userId: { eventId, userId: matchedUserId } },
         });
 
         if (!existing) {
           await tx.eventUsers.create({
-            data: {
-              eventId,
-              userId: registration.matchedUserId,
-            },
+            data: { eventId, userId: matchedUserId },
           });
           applied++;
         }

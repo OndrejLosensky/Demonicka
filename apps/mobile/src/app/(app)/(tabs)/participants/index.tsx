@@ -258,7 +258,7 @@ export default function ParticipantsScreen() {
             onPress={() => setImportModalVisible(true)}
           >
             <Icon name="group" size={18} color={colors.primary} />
-            <Text style={[styles.importBtnText, { color: colors.primary }]}>Import</Text>
+            <Text style={[styles.importBtnText, { color: colors.primary }]}>Importovat</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.addBtn}

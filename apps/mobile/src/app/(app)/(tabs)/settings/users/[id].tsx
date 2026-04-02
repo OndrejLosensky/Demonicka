@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
 import { useAuthStore } from '../../../../../store/auth.store';
 import { useRole } from '../../../../../hooks/useRole';
+import { useThemeColors } from '../../../../../hooks/useThemeColors';
 import { api } from '../../../../../services/api';
 import { parseError, logBackgroundError } from '../../../../../utils/errorHandler';
 import { config } from '../../../../../config';
@@ -38,13 +39,15 @@ function getRoleLabel(role: string) {
 export default function UserDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const token = useAuthStore((state) => state.token);
-  const { isAdmin } = useRole();
+  const { isOperator, isAdmin } = useRole();
+  const colors = useThemeColors();
 
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [registrationToken, setRegistrationToken] = useState<string | null>(null);
   const [generatingToken, setGeneratingToken] = useState(false);
+  const [changingRole, setChangingRole] = useState(false);
 
   const registrationUrl =
     registrationToken && config.webAppUrl
@@ -104,6 +107,43 @@ export default function UserDetailScreen() {
     }
   };
 
+  const handleChangeRole = () => {
+    if (!user) return;
+    const roles = isAdmin
+      ? ['USER', 'PARTICIPANT', 'OPERATOR', 'SUPER_ADMIN']
+      : ['USER', 'PARTICIPANT', 'OPERATOR'];
+    const labels: Record<string, string> = {
+      USER: 'Uživatel',
+      PARTICIPANT: 'Účastník',
+      OPERATOR: 'Operátor',
+      SUPER_ADMIN: 'Super Admin',
+    };
+    Alert.alert(
+      'Změnit roli',
+      `Aktuální role: ${labels[user.role] ?? user.role}`,
+      [
+        ...roles
+          .filter((r) => r !== user.role)
+          .map((r) => ({
+            text: labels[r],
+            onPress: async () => {
+              setChangingRole(true);
+              try {
+                await api.patch(`/users/${id}/role`, { role: r }, token ?? undefined);
+                await fetchUser();
+              } catch (e: unknown) {
+                const err = e as { message?: string };
+                Alert.alert('Chyba', err?.message ?? 'Nepodařilo se změnit roli');
+              } finally {
+                setChangingRole(false);
+              }
+            },
+          })),
+        { text: 'Zrušit', style: 'cancel' },
+      ],
+    );
+  };
+
   const openRegistrationInBrowser = async () => {
     if (!registrationUrl) return;
     try {
@@ -118,12 +158,118 @@ export default function UserDetailScreen() {
     }
   };
 
-  if (!isAdmin) {
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.bg },
+        scroll: { flex: 1 },
+        scrollContent: { padding: 16, paddingBottom: 32 },
+        section: {
+          backgroundColor: colors.card,
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 16,
+          borderWidth: 1,
+          borderColor: colors.cardBorder,
+        },
+        sectionTitle: {
+          fontSize: 16,
+          fontWeight: '600',
+          color: colors.text,
+          marginBottom: 12,
+        },
+        avatar: {
+          width: 64,
+          height: 64,
+          borderRadius: 32,
+          backgroundColor: colors.primary,
+          justifyContent: 'center',
+          alignItems: 'center',
+          alignSelf: 'center',
+          marginBottom: 12,
+        },
+        avatarText: { fontSize: 24, fontWeight: '600', color: '#fff' },
+        userName: { fontSize: 20, fontWeight: '600', color: colors.text, textAlign: 'center' },
+        username: { fontSize: 15, color: colors.textMuted, textAlign: 'center', marginTop: 4 },
+        metaRow: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: 10,
+          paddingVertical: 6,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        metaLabel: { fontSize: 14, color: colors.textSecondary },
+        metaValue: { fontSize: 14, fontWeight: '500', color: colors.text },
+        fieldLabel: { fontSize: 13, fontWeight: '500', color: colors.textSecondary, marginBottom: 6 },
+        fieldLabelTop: { marginTop: 14 },
+        fieldRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+        tokenInput: {
+          flex: 1,
+          backgroundColor: colors.inputBg,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 8,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+          fontSize: 14,
+          color: colors.text,
+        },
+        copyButton: {
+          backgroundColor: colors.primary,
+          padding: 12,
+          borderRadius: 8,
+        },
+        qrWrap: {
+          alignSelf: 'center',
+          backgroundColor: '#fff',
+          padding: 16,
+          borderRadius: 12,
+          marginTop: 12,
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+        openBrowserButton: {
+          backgroundColor: colors.card,
+          paddingVertical: 12,
+          borderRadius: 10,
+          alignItems: 'center',
+          marginTop: 12,
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+        openBrowserButtonText: { fontSize: 15, fontWeight: '500', color: colors.text },
+        generateButton: {
+          backgroundColor: colors.primary,
+          paddingVertical: 12,
+          borderRadius: 10,
+          alignItems: 'center',
+          marginTop: 16,
+          minHeight: 48,
+          justifyContent: 'center',
+        },
+        generateButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+        changeRoleButton: {
+          backgroundColor: '#3b82f6',
+          paddingVertical: 10,
+          borderRadius: 10,
+          alignItems: 'center',
+          marginTop: 14,
+          minHeight: 42,
+          justifyContent: 'center',
+        },
+        changeRoleButtonText: { fontSize: 15, fontWeight: '600', color: '#fff' },
+      }),
+    [colors],
+  );
+
+  if (!isOperator) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header title="Detail uživatele" showBack />
         <EmptyState
-          icon={<Icon name="lock" size={48} color="#9ca3af" />}
+          icon={<Icon name="lock" size={48} color={colors.textMuted} />}
           title="Přístup odepřen"
           message="Nemáte oprávnění k této sekci."
         />
@@ -140,7 +286,7 @@ export default function UserDetailScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <Header title="Detail uživatele" showBack />
         <EmptyState
-          icon={<Icon name="group" size={48} color="#9ca3af" />}
+          icon={<Icon name="group" size={48} color={colors.textMuted} />}
           title="Uživatel nenalezen"
           message={error ?? 'Neplatné ID.'}
         />
@@ -185,6 +331,17 @@ export default function UserDetailScreen() {
               <Text style={styles.metaValue}>{user.email}</Text>
             </View>
           )}
+          <TouchableOpacity
+            style={styles.changeRoleButton}
+            onPress={handleChangeRole}
+            disabled={changingRole}
+          >
+            {changingRole ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.changeRoleButtonText}>Změnit roli</Text>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Registration token + QR (only for participants who haven't completed registration) */}
@@ -266,92 +423,3 @@ export default function UserDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  scroll: { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 32 },
-  section: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111',
-    marginBottom: 12,
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#3b82f6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginBottom: 12,
-  },
-  avatarText: { fontSize: 24, fontWeight: '600', color: '#fff' },
-  userName: { fontSize: 20, fontWeight: '600', color: '#111', textAlign: 'center' },
-  username: { fontSize: 15, color: '#6b7280', textAlign: 'center', marginTop: 4 },
-  metaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 10,
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  metaLabel: { fontSize: 14, color: '#6b7280' },
-  metaValue: { fontSize: 14, fontWeight: '500', color: '#111' },
-  fieldLabel: { fontSize: 13, fontWeight: '500', color: '#6b7280', marginBottom: 6 },
-  fieldLabelTop: { marginTop: 14 },
-  fieldRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  tokenInput: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: '#111',
-  },
-  copyButton: {
-    backgroundColor: '#3b82f6',
-    padding: 12,
-    borderRadius: 8,
-  },
-  qrWrap: {
-    alignSelf: 'center',
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  openBrowserButton: {
-    backgroundColor: '#f3f4f6',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  openBrowserButtonText: { fontSize: 15, fontWeight: '500', color: '#374151' },
-  generateButton: {
-    backgroundColor: '#FF0000',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 16,
-    minHeight: 48,
-    justifyContent: 'center',
-  },
-  generateButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
-});

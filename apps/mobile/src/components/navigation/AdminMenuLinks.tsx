@@ -8,15 +8,16 @@ const SETTINGS_EVENT = '/(app)/(tabs)/settings/events';
 
 interface AdminMenuLinksProps {
   isAdmin?: boolean;
+  isOperator?: boolean;
 }
 
-export function AdminMenuLinks({ isAdmin = false }: AdminMenuLinksProps) {
+export function AdminMenuLinks({ isAdmin = false, isOperator = false }: AdminMenuLinksProps) {
   const router = useRouter();
   const colors = useThemeColors();
 
   return (
     <>
-      {isAdmin && (
+      {(isAdmin || isOperator) && (
         <TouchableOpacity
           style={[styles.menuItem, { borderBottomColor: colors.border }]}
           onPress={() => router.push(SETTINGS_USERS)}

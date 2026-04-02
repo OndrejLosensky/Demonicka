@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { useActiveEvent } from '../../hooks/useActiveEvent';
 import { useAuthStore } from '../../store/auth.store';
 import { api } from '../../services/api';
@@ -40,6 +41,7 @@ export function EventDashboardScreen() {
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
   const colors = useThemeColors();
+  const router = useRouter();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [hourly, setHourly] = useState<HourlyPoint[]>([]);
@@ -110,11 +112,25 @@ export function EventDashboardScreen() {
   if (!activeEvent) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
-        <EmptyState
-          icon={<Icon name="calendar" size={48} color={colors.textMuted} />}
-          title="Žádná aktivní událost"
-          message="Momentálně není aktivní žádná událost."
-        />
+        <View style={styles.noEventHeader}>
+          <Text style={[styles.title, { color: colors.text }]}>Přehled</Text>
+        </View>
+        <View style={styles.noEventBody}>
+          <View style={[styles.noEventCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Icon name="calendar" size={40} color={colors.textMuted} />
+            <Text style={[styles.noEventTitle, { color: colors.text }]}>Žádná aktivní událost</Text>
+            <Text style={[styles.noEventSub, { color: colors.textMuted }]}>
+              Momentálně není aktivní žádná událost. Aktivujte ji v nastavení.
+            </Text>
+            <TouchableOpacity
+              style={[styles.noEventBtn, { backgroundColor: colors.primary }]}
+              onPress={() => router.push('/settings/events')}
+            >
+              <Icon name="calendar" size={16} color="#fff" />
+              <Text style={styles.noEventBtnText}>Správa událostí</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </SafeAreaView>
     );
   }
@@ -246,6 +262,49 @@ export function EventDashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  noEventHeader: {
+    padding: 16,
+    paddingBottom: 8,
+  },
+  noEventBody: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  noEventCard: {
+    width: '100%',
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 32,
+    alignItems: 'center',
+    gap: 12,
+  },
+  noEventTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  noEventSub: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  noEventBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  noEventBtnText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 32 },
   header: {
